@@ -69,9 +69,13 @@ export function Couple() {
                 }`}
               >
                 {/* Content */}
-                <div className={`flex-1 ${i % 2 === 0 ? 'md:text-right md:pr-12' : 'md:text-left md:pl-12'}`}>
+                <div
+                  className={`flex-1 ${i % 2 === 0 ? 'md:text-right md:pr-12' : 'md:text-left md:pl-12'}`}
+                >
                   <div className="inline-block bg-peach rounded-2xl px-6 py-5">
-                    <span className="font-sans text-xs tracking-widest text-amber uppercase">{m.year}</span>
+                    <span className="font-sans text-xs tracking-widest text-amber uppercase">
+                      {m.year}
+                    </span>
                     <h4 className="font-serif text-xl text-forest mt-1">
                       {lang === 'pt' ? m.title_pt : m.title_en}
                     </h4>

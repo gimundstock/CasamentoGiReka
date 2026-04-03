@@ -60,9 +60,7 @@ export function CityGuide() {
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="font-sans text-xs text-forest/60">{h.address}</span>
-                  <span className="font-sans text-xs font-semibold text-amber">
-                    {h.priceRange}
-                  </span>
+                  <span className="font-sans text-xs font-semibold text-amber">{h.priceRange}</span>
                 </div>
                 {h.url && (
                   <a

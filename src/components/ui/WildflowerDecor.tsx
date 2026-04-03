@@ -9,7 +9,10 @@ export function WildflowerDecor({ className = '', variant = 'scatter', opacity =
 
   if (variant === 'top') {
     return (
-      <div className={`absolute top-0 left-0 right-0 pointer-events-none overflow-hidden ${className}`} style={style}>
+      <div
+        className={`absolute top-0 left-0 right-0 pointer-events-none overflow-hidden ${className}`}
+        style={style}
+      >
         <WildflowerRow flip={false} />
       </div>
     )
@@ -17,7 +20,10 @@ export function WildflowerDecor({ className = '', variant = 'scatter', opacity =
 
   if (variant === 'bottom') {
     return (
-      <div className={`absolute bottom-0 left-0 right-0 pointer-events-none overflow-hidden ${className}`} style={style}>
+      <div
+        className={`absolute bottom-0 left-0 right-0 pointer-events-none overflow-hidden ${className}`}
+        style={style}
+      >
         <WildflowerRow flip={true} />
       </div>
     )
@@ -83,7 +89,14 @@ function WildflowerRow({ flip }: { flip: boolean }) {
 
 function Flower({ cx, cy, color }: { cx: number; cy: number; color: string }) {
   const petalOffsets = [
-    [0, -10], [7, -7], [10, 0], [7, 7], [0, 10], [-7, 7], [-10, 0], [-7, -7],
+    [0, -10],
+    [7, -7],
+    [10, 0],
+    [7, 7],
+    [0, 10],
+    [-7, 7],
+    [-10, 0],
+    [-7, -7],
   ]
   return (
     <g>
@@ -107,7 +120,12 @@ function Flower({ cx, cy, color }: { cx: number; cy: number; color: string }) {
 
 function ScatteredFlowers() {
   return (
-    <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" aria-hidden>
+    <svg
+      viewBox="0 0 400 400"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-full"
+      aria-hidden
+    >
       <Flower cx={50} cy={80} color="#DC8000" />
       <Flower cx={200} cy={30} color="#DFB100" />
       <Flower cx={360} cy={100} color="#AA9DA9" />

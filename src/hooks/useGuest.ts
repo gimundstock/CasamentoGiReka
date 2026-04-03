@@ -44,7 +44,7 @@ export function useGuest() {
         localStorage.removeItem(STORAGE_KEY)
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function loadGuestById(id: string) {
