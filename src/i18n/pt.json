@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "couple": "O Casal",
+    "wedding": "O Casamento",
+    "city": "Brasília",
+    "rsvp": "Confirmação",
+    "gifts": "Presentes"
+  },
+  "nameEntry": {
+    "welcome": "Bem-vindo(a)",
+    "subtitle": "Digite seu nome para acessar o convite personalizado",
+    "placeholder": "Seu nome...",
+    "button": "Entrar",
+    "loading": "Procurando seu convite...",
+    "notFound": "Nome não encontrado. Verifique a ortografia ou entre em contato com os noivos.",
+    "error": "Erro ao buscar convite. Tente novamente."
+  },
+  "welcome": {
+    "greeting": "Olá, {{name}}!",
+    "invitation": "Você está convidado(a) para celebrar conosco",
+    "seats": "Sua mesa tem {{count}} lugar reservado",
+    "seats_plural": "Sua mesa tem {{count}} lugares reservados",
+    "countdown": {
+      "days": "dias",
+      "hours": "horas",
+      "minutes": "minutos",
+      "seconds": "segundos",
+      "title": "Contagem regressiva"
+    },
+    "scrollDown": "Rolar para baixo"
+  },
+  "couple": {
+    "title": "O Casal",
+    "ourStory": "Nossa História"
+  },
+  "wedding": {
+    "title": "O Grande Dia",
+    "date": "Data",
+    "time": "Horário",
+    "venue": "Local",
+    "dresscode": "Traje",
+    "directions": "Como chegar",
+    "ceremony": "Cerimônia"
+  },
+  "city": {
+    "title": "Brasília",
+    "subtitle": "Tudo que você precisa saber para a sua visita",
+    "hotels": "Onde Ficar",
+    "transport": "Como se Locomover",
+    "restaurants": "Onde Comer",
+    "stars": "estrelas",
+    "perNight": "/noite"
+  },
+  "rsvp": {
+    "title": "Confirmação de Presença",
+    "subtitle": "Por favor confirme sua presença até {{date}}",
+    "attending": "Confirmado(a)",
+    "notAttending": "Não poderei ir",
+    "menu": "Cardápio",
+    "menuPlaceholder": "Escolha o prato",
+    "song": "Sugestão de música",
+    "songPlaceholder": "Uma música para a pista de dança...",
+    "message": "Mensagem para os noivos",
+    "messagePlaceholder": "Uma mensagem especial para Ana & Bruno...",
+    "submit": "Confirmar presença",
+    "submitting": "Enviando...",
+    "successTitle": "Confirmação enviada!",
+    "successText": "Mal podemos esperar para celebrar com você!",
+    "alreadySubmitted": "Sua presença já foi confirmada. Obrigado!",
+    "error": "Erro ao enviar. Tente novamente."
+  },
+  "gifts": {
+    "title": "Lista de Presentes",
+    "subtitle": "Sua presença já é o nosso maior presente. Se quiser nos presentear, aqui está nossa lista.",
+    "available": "Disponível",
+    "soldOut": "Esgotado",
+    "partiallyAvailable": "{{available}} de {{total}} cotas disponíveis",
+    "selectCotas": "Selecione as cotas",
+    "cotasTitle": "Escolha uma ou mais cotas",
+    "totalSelected": "Total: R$ {{amount}}",
+    "proceed": "Pagar com PIX",
+    "back": "Voltar",
+    "pixInstructions": "Escaneie o QR Code com o app do seu banco para pagar via PIX",
+    "pixCopy": "Copiar código PIX",
+    "pixCopied": "Copiado!",
+    "cardMessage": "Mensagem no cartão",
+    "cardPlaceholder": "Escreva uma mensagem carinhosa para os noivos...",
+    "yourEmail": "Seu e-mail (para receber confirmação)",
+    "emailPlaceholder": "seu@email.com",
+    "confirmPurchase": "Confirmar presente",
+    "confirming": "Confirmando...",
+    "successTitle": "Presente enviado!",
+    "successText": "Obrigado pelo carinho! Um e-mail de confirmação foi enviado para você.",
+    "error": "Erro ao confirmar. Tente novamente.",
+    "noCotas": "Nenhuma cota selecionada",
+    "emailRequired": "Por favor, informe seu e-mail"
+  },
+  "footer": {
+    "made": "Feito com amor",
+    "for": "para"
+  },
+  "language": "EN"
+}

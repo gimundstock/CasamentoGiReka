@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "couple": "The Couple",
+    "wedding": "The Wedding",
+    "city": "Brasília",
+    "rsvp": "RSVP",
+    "gifts": "Gifts"
+  },
+  "nameEntry": {
+    "welcome": "Welcome",
+    "subtitle": "Enter your name to access your personalised invitation",
+    "placeholder": "Your name...",
+    "button": "Enter",
+    "loading": "Looking up your invitation...",
+    "notFound": "Name not found. Please check your spelling or contact the couple.",
+    "error": "Error fetching invitation. Please try again."
+  },
+  "welcome": {
+    "greeting": "Hello, {{name}}!",
+    "invitation": "You are invited to celebrate with us",
+    "seats": "Your table has {{count}} reserved seat",
+    "seats_plural": "Your table has {{count}} reserved seats",
+    "countdown": {
+      "days": "days",
+      "hours": "hours",
+      "minutes": "minutes",
+      "seconds": "seconds",
+      "title": "Countdown"
+    },
+    "scrollDown": "Scroll down"
+  },
+  "couple": {
+    "title": "The Couple",
+    "ourStory": "Our Story"
+  },
+  "wedding": {
+    "title": "The Big Day",
+    "date": "Date",
+    "time": "Time",
+    "venue": "Venue",
+    "dresscode": "Dress Code",
+    "directions": "Get Directions",
+    "ceremony": "Ceremony"
+  },
+  "city": {
+    "title": "Brasília",
+    "subtitle": "Everything you need to know for your visit",
+    "hotels": "Where to Stay",
+    "transport": "Getting Around",
+    "restaurants": "Where to Eat",
+    "stars": "stars",
+    "perNight": "/night"
+  },
+  "rsvp": {
+    "title": "RSVP",
+    "subtitle": "Please confirm your attendance by {{date}}",
+    "attending": "Attending",
+    "notAttending": "Unable to attend",
+    "menu": "Meal",
+    "menuPlaceholder": "Choose your meal",
+    "song": "Song request",
+    "songPlaceholder": "A song for the dance floor...",
+    "message": "Message to the couple",
+    "messagePlaceholder": "A special message for Ana & Bruno...",
+    "submit": "Confirm attendance",
+    "submitting": "Sending...",
+    "successTitle": "RSVP confirmed!",
+    "successText": "We can't wait to celebrate with you!",
+    "alreadySubmitted": "Your attendance has already been confirmed. Thank you!",
+    "error": "Error submitting. Please try again."
+  },
+  "gifts": {
+    "title": "Gift Registry",
+    "subtitle": "Your presence is our greatest gift. If you'd like to give a present, here is our list.",
+    "available": "Available",
+    "soldOut": "Sold out",
+    "partiallyAvailable": "{{available}} of {{total}} shares available",
+    "selectCotas": "Select shares",
+    "cotasTitle": "Choose one or more shares",
+    "totalSelected": "Total: R$ {{amount}}",
+    "proceed": "Pay with PIX",
+    "back": "Back",
+    "pixInstructions": "Scan the QR Code with your banking app to pay via PIX",
+    "pixCopy": "Copy PIX code",
+    "pixCopied": "Copied!",
+    "cardMessage": "Card message",
+    "cardPlaceholder": "Write a heartfelt message for the couple...",
+    "yourEmail": "Your email (to receive confirmation)",
+    "emailPlaceholder": "your@email.com",
+    "confirmPurchase": "Confirm gift",
+    "confirming": "Confirming...",
+    "successTitle": "Gift sent!",
+    "successText": "Thank you for your kindness! A confirmation email has been sent to you.",
+    "error": "Error confirming. Please try again.",
+    "noCotas": "No shares selected",
+    "emailRequired": "Please enter your email"
+  },
+  "footer": {
+    "made": "Made with love",
+    "for": "for"
+  },
+  "language": "PT"
+}
