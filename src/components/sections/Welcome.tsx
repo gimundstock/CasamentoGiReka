@@ -105,8 +105,18 @@ export function Welcome({ guest }: Props) {
 
           {/* Scroll indicator */}
           <div className="mt-10 animate-bounce">
-            <svg className="mx-auto w-5 h-5 text-forest/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+            <svg
+              className="mx-auto w-5 h-5 text-forest/50"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </div>
         </div>

@@ -58,9 +58,15 @@ export function Nav() {
             className="flex flex-col gap-1.5 p-1"
             aria-label="Menu"
           >
-            <span className={`block w-5 h-0.5 bg-forest transition-all ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-            <span className={`block w-5 h-0.5 bg-forest transition-all ${menuOpen ? 'opacity-0' : ''}`} />
-            <span className={`block w-5 h-0.5 bg-forest transition-all ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+            <span
+              className={`block w-5 h-0.5 bg-forest transition-all ${menuOpen ? 'rotate-45 translate-y-2' : ''}`}
+            />
+            <span
+              className={`block w-5 h-0.5 bg-forest transition-all ${menuOpen ? 'opacity-0' : ''}`}
+            />
+            <span
+              className={`block w-5 h-0.5 bg-forest transition-all ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`}
+            />
           </button>
         </div>
       </div>

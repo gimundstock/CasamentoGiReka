@@ -9,7 +9,8 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 - **i18n**: i18next + react-i18next (PT/EN)
 - **Data/API**: Google Sheets (5 tabs) + Google Apps Script Web App
 - **Email**: Apps Script → Gmail (500/day free)
-- **PIX QR**: pix-payload npm package + react-qrcode-logo
+- **PIX QR**: custom EMV payload builder (`src/utils/pix.ts`) + react-qrcode-logo
+- **Linting/Formatting**: ESLint 9 (flat config) + Prettier
 - **Hosting**: GitHub Pages + custom domain (GitHub Actions CI/CD)
 
 ## Architecture decisions
@@ -31,6 +32,32 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 - `GET ?action=getGifts` — returns gifts with nested cotas + availability counts
 - `POST {action:'purchaseGift', guestId, selectedCotaIds, guestEmail, cardMessage}`
 - `POST {action:'submitRSVP', guestId, attendeesJson, menuChoicesJson, songRequest, message}`
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start local dev server on :5173 |
+| `npm run typecheck` | TypeScript type check (no emit) |
+| `npm run lint` | ESLint — TypeScript + React hooks rules |
+| `npm run format` | Prettier — auto-format `src/**/*.{ts,tsx,css}` |
+| `npm run format:check` | Prettier — check formatting (used in CI) |
+| `npm run release` | Full quality gate: typecheck + lint + format:check + build |
+| `npm run build` | Production build to `dist/` |
+| `npm run generate-qr` | Generate per-guest invitation QR PNGs (requires `qrcode` package) |
+
+## CI / CD
+
+- **`.github/workflows/ci.yml`** — Runs `typecheck`, `lint`, `format:check` on every push and every PR.
+- **`.github/workflows/deploy.yml`** — Runs `npm run release` (full quality gate) then deploys to GitHub Pages on push to `main`.
+
+Always run `npm run release` locally before pushing to `main`.
+
+## Code style
+
+- No semicolons, single quotes, 2-space indent, 100-char print width (enforced by Prettier).
+- ESLint enforces TypeScript strict rules + React hooks rules.
+- TypeScript `noUnusedLocals` / `noUnusedParameters` enforced via `tsconfig.app.json`.
 
 ## Key files
 | File | Purpose |

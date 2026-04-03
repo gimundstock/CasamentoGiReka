@@ -25,7 +25,7 @@ export const CONFIG = {
 
   // ── Wedding Day ──────────────────────────────────────────
   wedding: {
-    date: '2025-12-06',        // ISO format YYYY-MM-DD
+    date: '2025-12-06', // ISO format YYYY-MM-DD
     time: '17h00',
     venue: 'Nome do Local',
     address: 'Endereço completo, Brasília, DF',
@@ -58,7 +58,7 @@ export const CONFIG = {
         title_pt: 'A celebração',
         title_en: 'The celebration',
         text_pt: 'E agora chegou a hora de celebrar com todos vocês!',
-        text_en: 'And now it\'s time to celebrate with all of you!',
+        text_en: "And now it's time to celebrate with all of you!",
       },
     ],
   },
@@ -97,8 +97,10 @@ export const CONFIG = {
       {
         type_pt: 'Aeroporto',
         type_en: 'Airport',
-        description_pt: 'O Aeroporto Internacional de Brasília (BSB) fica a aproximadamente 30 min do centro.',
-        description_en: 'Brasília International Airport (BSB) is about 30 min from the city centre.',
+        description_pt:
+          'O Aeroporto Internacional de Brasília (BSB) fica a aproximadamente 30 min do centro.',
+        description_en:
+          'Brasília International Airport (BSB) is about 30 min from the city centre.',
         icon: '✈️',
       },
       {
@@ -112,7 +114,7 @@ export const CONFIG = {
         type_pt: 'Metrô',
         type_en: 'Metro',
         description_pt: 'O metrô de Brasília cobre as principais regiões. Bilhete único R$ 5.',
-        description_en: 'Brasília\'s metro covers the main areas. Single ticket R$ 5.',
+        description_en: "Brasília's metro covers the main areas. Single ticket R$ 5.",
         icon: '🚇',
       },
     ],
@@ -143,7 +145,12 @@ export const CONFIG = {
       description_en: 'Complete dinnerware set for 12 people.',
       imageUrl: '/gifts/jantar.jpg',
       cotas: [
-        { cotaId: 'cota_001_a', label_pt: 'Jogo de Jantar Completo', label_en: 'Full Dinnerware Set', price: 450 },
+        {
+          cotaId: 'cota_001_a',
+          label_pt: 'Jogo de Jantar Completo',
+          label_en: 'Full Dinnerware Set',
+          price: 450,
+        },
       ],
     },
     {
@@ -154,10 +161,30 @@ export const CONFIG = {
       description_en: 'Contribute to our unforgettable honeymoon!',
       imageUrl: '/gifts/honeymoon.jpg',
       cotas: [
-        { cotaId: 'cota_002_a', label_pt: 'Noite 1 — Hospedagem', label_en: 'Night 1 — Lodging', price: 500 },
-        { cotaId: 'cota_002_b', label_pt: 'Noite 2 — Hospedagem', label_en: 'Night 2 — Lodging', price: 500 },
-        { cotaId: 'cota_002_c', label_pt: 'Passeios e Aventuras', label_en: 'Tours & Adventures', price: 800 },
-        { cotaId: 'cota_002_d', label_pt: 'Jantar Romântico', label_en: 'Romantic Dinner', price: 350 },
+        {
+          cotaId: 'cota_002_a',
+          label_pt: 'Noite 1 — Hospedagem',
+          label_en: 'Night 1 — Lodging',
+          price: 500,
+        },
+        {
+          cotaId: 'cota_002_b',
+          label_pt: 'Noite 2 — Hospedagem',
+          label_en: 'Night 2 — Lodging',
+          price: 500,
+        },
+        {
+          cotaId: 'cota_002_c',
+          label_pt: 'Passeios e Aventuras',
+          label_en: 'Tours & Adventures',
+          price: 800,
+        },
+        {
+          cotaId: 'cota_002_d',
+          label_pt: 'Jantar Romântico',
+          label_en: 'Romantic Dinner',
+          price: 350,
+        },
       ],
     },
     {
@@ -179,7 +206,12 @@ export const CONFIG = {
       description_en: 'King size bed linen set, 300 thread count, 4 pieces.',
       imageUrl: '/gifts/cama.jpg',
       cotas: [
-        { cotaId: 'cota_004_a', label_pt: 'Jogo de Cama King', label_en: 'King Bed Linen Set', price: 320 },
+        {
+          cotaId: 'cota_004_a',
+          label_pt: 'Jogo de Cama King',
+          label_en: 'King Bed Linen Set',
+          price: 320,
+        },
       ],
     },
     {
@@ -200,6 +232,6 @@ export const CONFIG = {
   ],
 }
 
-export type MenuOption = typeof CONFIG.menuOptions[number]
-export type GiftConfig = typeof CONFIG.gifts[number]
-export type CotaConfig = typeof CONFIG.gifts[number]['cotas'][number]
+export type MenuOption = (typeof CONFIG.menuOptions)[number]
+export type GiftConfig = (typeof CONFIG.gifts)[number]
+export type CotaConfig = (typeof CONFIG.gifts)[number]['cotas'][number]

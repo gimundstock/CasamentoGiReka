@@ -202,7 +202,10 @@ export function GiftShop({ guest }: Props) {
                       </span>
                       {gift.total > 1 && (
                         <span className="font-sans text-xs text-mauve/60">
-                          {gift.cotas.filter((c) => !c.purchased).map(c => `R$ ${c.price}`).join(' · ')}
+                          {gift.cotas
+                            .filter((c) => !c.purchased)
+                            .map((c) => `R$ ${c.price}`)
+                            .join(' · ')}
                         </span>
                       )}
                       {gift.total === 1 && (
@@ -226,9 +229,7 @@ export function GiftShop({ guest }: Props) {
           lang={lang}
           onClose={() => setPurchase(null)}
           onToggleCota={toggleCota}
-          onProceedToPixFromCotas={() =>
-            setPurchase({ ...purchase, step: 'pix' })
-          }
+          onProceedToPixFromCotas={() => setPurchase({ ...purchase, step: 'pix' })}
           onProceedToConfirm={() => setPurchase({ ...purchase, step: 'confirm' })}
           onBack={() =>
             setPurchase({
@@ -293,7 +294,13 @@ function GiftModal(props: ModalProps) {
             )}
           </div>
           <button onClick={props.onClose} className="text-mauve/60 hover:text-mauve ml-4 shrink-0">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -326,7 +333,13 @@ function GiftModal(props: ModalProps) {
                         }`}
                       >
                         {isSelected && (
-                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <svg
+                            className="w-2.5 h-2.5 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={3}
+                          >
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         )}
@@ -405,7 +418,10 @@ function GiftModal(props: ModalProps) {
             </button>
 
             {gift.cotas.length > 1 && (
-              <button onClick={props.onBack} className="w-full mt-2 py-2 text-mauve font-sans text-xs hover:text-forest transition-colors">
+              <button
+                onClick={props.onBack}
+                className="w-full mt-2 py-2 text-mauve font-sans text-xs hover:text-forest transition-colors"
+              >
                 ← {t('gifts.back')}
               </button>
             )}
@@ -454,7 +470,10 @@ function GiftModal(props: ModalProps) {
               {submitting ? t('gifts.confirming') : t('gifts.confirmPurchase')}
             </button>
 
-            <button onClick={props.onBack} className="w-full mt-2 py-2 text-mauve font-sans text-xs hover:text-forest transition-colors">
+            <button
+              onClick={props.onBack}
+              className="w-full mt-2 py-2 text-mauve font-sans text-xs hover:text-forest transition-colors"
+            >
               ← {t('gifts.back')}
             </button>
           </>
@@ -465,7 +484,9 @@ function GiftModal(props: ModalProps) {
           <div className="text-center py-4">
             <div className="text-5xl mb-5">🌸</div>
             <h4 className="font-serif text-2xl text-forest mb-2">{t('gifts.successTitle')}</h4>
-            <p className="font-sans text-sm text-mauve mb-6 leading-relaxed">{t('gifts.successText')}</p>
+            <p className="font-sans text-sm text-mauve mb-6 leading-relaxed">
+              {t('gifts.successText')}
+            </p>
 
             {/* Receipt */}
             <div className="bg-peach/50 rounded-2xl p-4 text-left mb-6">
@@ -481,7 +502,9 @@ function GiftModal(props: ModalProps) {
               ))}
               <div className="border-t border-sage/30 mt-2 pt-2 flex justify-between">
                 <span className="font-sans text-xs text-forest font-semibold">Total</span>
-                <span className="font-sans text-sm font-bold text-amber">R$ {props.totalAmount.toFixed(2)}</span>
+                <span className="font-sans text-sm font-bold text-amber">
+                  R$ {props.totalAmount.toFixed(2)}
+                </span>
               </div>
               {cardMessage && (
                 <p className="mt-3 font-sans text-xs text-mauve italic border-l-2 border-sage pl-3">

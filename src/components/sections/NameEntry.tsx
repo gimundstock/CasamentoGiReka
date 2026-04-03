@@ -43,9 +43,33 @@ export function NameEntry({ state, onSubmit }: Props) {
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <ellipse cx="8" cy="4" rx="4" ry="2.5" fill="#ADB897" opacity="0.5" />
-              <ellipse cx="12" cy="8" rx="4" ry="2.5" fill="#ADB897" opacity="0.5" transform="rotate(90 12 8)" />
-              <ellipse cx="8" cy="12" rx="4" ry="2.5" fill="#ADB897" opacity="0.5" transform="rotate(180 8 12)" />
-              <ellipse cx="4" cy="8" rx="4" ry="2.5" fill="#ADB897" opacity="0.5" transform="rotate(270 4 8)" />
+              <ellipse
+                cx="12"
+                cy="8"
+                rx="4"
+                ry="2.5"
+                fill="#ADB897"
+                opacity="0.5"
+                transform="rotate(90 12 8)"
+              />
+              <ellipse
+                cx="8"
+                cy="12"
+                rx="4"
+                ry="2.5"
+                fill="#ADB897"
+                opacity="0.5"
+                transform="rotate(180 8 12)"
+              />
+              <ellipse
+                cx="4"
+                cy="8"
+                rx="4"
+                ry="2.5"
+                fill="#ADB897"
+                opacity="0.5"
+                transform="rotate(270 4 8)"
+              />
             </svg>
           </div>
         ))}

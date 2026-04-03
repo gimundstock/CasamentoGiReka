@@ -25,15 +25,21 @@ function crc16(str: string): string {
 export interface PixPayloadOptions {
   pixKey: string
   amount: number
-  name: string       // merchant name, max 25 chars
-  city: string       // max 15 chars
-  txid?: string      // max 25 chars, alphanumeric only
+  name: string // merchant name, max 25 chars
+  city: string // max 15 chars
+  txid?: string // max 25 chars, alphanumeric only
   description?: string
 }
 
 export function buildPixPayload(opts: PixPayloadOptions): string {
-  const merchantName = opts.name.slice(0, 25).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  const city = opts.city.slice(0, 15).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const merchantName = opts.name
+    .slice(0, 25)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+  const city = opts.city
+    .slice(0, 15)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
   const txid = (opts.txid ?? '***').replace(/[^a-zA-Z0-9]/g, '').slice(0, 25) || '***'
 
   // Merchant Account Info (ID 26)
@@ -48,17 +54,17 @@ export function buildPixPayload(opts: PixPayloadOptions): string {
   const amountStr = opts.amount.toFixed(2)
 
   const payload =
-    tlv('00', '01') +                   // Payload Format Indicator
-    tlv('01', '12') +                   // Point of Initiation Method (12 = dynamic, 11 = static)
+    tlv('00', '01') + // Payload Format Indicator
+    tlv('01', '12') + // Point of Initiation Method (12 = dynamic, 11 = static)
     merchantAccountInfo +
-    tlv('52', '0000') +                 // Merchant Category Code
-    tlv('53', '986') +                  // Transaction Currency (BRL)
-    tlv('54', amountStr) +              // Transaction Amount
-    tlv('58', 'BR') +                   // Country Code
-    tlv('59', merchantName) +           // Merchant Name
-    tlv('60', city) +                   // Merchant City
+    tlv('52', '0000') + // Merchant Category Code
+    tlv('53', '986') + // Transaction Currency (BRL)
+    tlv('54', amountStr) + // Transaction Amount
+    tlv('58', 'BR') + // Country Code
+    tlv('59', merchantName) + // Merchant Name
+    tlv('60', city) + // Merchant City
     additionalData +
-    '6304'                              // CRC placeholder
+    '6304' // CRC placeholder
 
   return payload + crc16(payload)
 }

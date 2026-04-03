@@ -29,12 +29,8 @@ export function useGifts() {
     setGifts((prev) =>
       prev.map((gift) => ({
         ...gift,
-        cotas: gift.cotas.map((c) =>
-          cotaIds.includes(c.cotaId) ? { ...c, purchased: true } : c
-        ),
-        available: gift.cotas.filter(
-          (c) => !cotaIds.includes(c.cotaId) && !c.purchased
-        ).length,
+        cotas: gift.cotas.map((c) => (cotaIds.includes(c.cotaId) ? { ...c, purchased: true } : c)),
+        available: gift.cotas.filter((c) => !cotaIds.includes(c.cotaId) && !c.purchased).length,
       }))
     )
   }

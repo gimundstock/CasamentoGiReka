@@ -18,7 +18,11 @@ export function WeddingInfo() {
     {
       icon: (
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#4E784F" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
         </svg>
       ),
       label: t('wedding.date'),
@@ -27,7 +31,11 @@ export function WeddingInfo() {
     {
       icon: (
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#4E784F" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       ),
       label: t('wedding.time'),
@@ -36,7 +44,11 @@ export function WeddingInfo() {
     {
       icon: (
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#4E784F" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+          />
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
@@ -47,7 +59,11 @@ export function WeddingInfo() {
     {
       icon: (
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#4E784F" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+          />
         </svg>
       ),
       label: t('wedding.dresscode'),
@@ -86,7 +102,9 @@ export function WeddingInfo() {
             <div key={i} className="bg-white/80 rounded-2xl p-6 flex gap-4 items-start">
               <div className="mt-0.5 shrink-0">{d.icon}</div>
               <div>
-                <p className="font-sans text-xs tracking-widest uppercase text-mauve mb-1">{d.label}</p>
+                <p className="font-sans text-xs tracking-widest uppercase text-mauve mb-1">
+                  {d.label}
+                </p>
                 <p className="font-serif text-lg text-forest capitalize">{d.value}</p>
                 {d.sub && <p className="font-sans text-sm text-mauve mt-1">{d.sub}</p>}
               </div>
@@ -102,8 +120,18 @@ export function WeddingInfo() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border border-forest text-forest font-sans text-xs tracking-widest uppercase hover:bg-forest hover:text-peach transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              />
             </svg>
             {t('wedding.directions')}
           </a>
