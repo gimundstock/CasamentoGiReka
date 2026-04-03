@@ -3,14 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { WildflowerDecor } from '../ui/WildflowerDecor'
 import { CONFIG } from '../../content.config'
 
-type Tab = 'hotels' | 'transport' | 'restaurants'
+type Tab = 'hotels' | 'transport' | 'restaurants' | 'tourism'
 
 export function CityGuide() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
   const [tab, setTab] = useState<Tab>('hotels')
 
-  const tabs: Tab[] = ['hotels', 'transport', 'restaurants']
+  const tabs: Tab[] = ['hotels', 'transport', 'restaurants', 'tourism']
 
   return (
     <section id="city" className="relative bg-white py-24 overflow-hidden">
@@ -110,6 +110,31 @@ export function CityGuide() {
                   <span className="font-sans text-xs text-forest/60">{r.address}</span>
                   <span className="font-sans text-xs font-semibold text-amber">{r.priceRange}</span>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Tourism */}
+        {tab === 'tourism' && (
+          <div className="grid sm:grid-cols-2 gap-6">
+            {CONFIG.cityGuide.tourism.map((place, i) => (
+              <div key={i} className="bg-sage/20 rounded-2xl p-6">
+                <h3 className="font-serif text-xl text-forest mb-3">{place.name}</h3>
+                <p className="font-sans text-sm text-mauve mb-3 leading-relaxed">
+                  {lang === 'pt' ? place.description_pt : place.description_en}
+                </p>
+                <span className="font-sans text-xs text-forest/60">{place.address}</span>
+                {place.url && (
+                  <a
+                    href={place.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 block font-sans text-xs text-forest underline underline-offset-2"
+                  >
+                    {lang === 'pt' ? 'Saiba mais →' : 'Learn more →'}
+                  </a>
+                )}
               </div>
             ))}
           </div>

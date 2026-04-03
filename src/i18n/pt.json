@@ -48,6 +48,7 @@
     "hotels": "Onde Ficar",
     "transport": "Como se Locomover",
     "restaurants": "Onde Comer",
+    "tourism": "Turismo",
     "stars": "estrelas",
     "perNight": "/noite"
   },
@@ -61,7 +62,7 @@
     "song": "Sugestão de música",
     "songPlaceholder": "Uma música para a pista de dança...",
     "message": "Mensagem para os noivos",
-    "messagePlaceholder": "Uma mensagem especial para Ana & Bruno...",
+    "messagePlaceholder": "Uma mensagem especial para Giovanna & Renato...",
     "submit": "Confirmar presença",
     "submitting": "Enviando...",
     "successTitle": "Confirmação enviada!",
