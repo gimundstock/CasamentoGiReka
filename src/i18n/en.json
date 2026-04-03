@@ -48,6 +48,7 @@
     "hotels": "Where to Stay",
     "transport": "Getting Around",
     "restaurants": "Where to Eat",
+    "tourism": "Tourism",
     "stars": "stars",
     "perNight": "/night"
   },
@@ -61,7 +62,7 @@
     "song": "Song request",
     "songPlaceholder": "A song for the dance floor...",
     "message": "Message to the couple",
-    "messagePlaceholder": "A special message for Ana & Bruno...",
+    "messagePlaceholder": "A special message for Giovanna & Renato...",
     "submit": "Confirm attendance",
     "submitting": "Sending...",
     "successTitle": "RSVP confirmed!",
