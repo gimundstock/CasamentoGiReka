@@ -51,7 +51,19 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 - **`.github/workflows/ci.yml`** — Runs `typecheck`, `lint`, `format:check` on every push and every PR.
 - **`.github/workflows/deploy.yml`** — Runs `npm run release` (full quality gate) then deploys to GitHub Pages on push to `main`.
 
-Always run `npm run release` locally before pushing to `main`.
+## Git workflow
+
+**Never push directly to `main`.** All changes go through a PR.
+
+1. Create a feature branch: `git checkout -b feat/short-description`
+2. Make commits on that branch
+3. Run `npm run release` locally to verify everything passes
+4. Push the branch: `git push -u origin feat/short-description`
+5. Open a PR: `gh pr create ...`
+6. CI runs automatically — merge once it passes
+7. The deploy workflow triggers on merge to `main`
+
+Group related changes in the same PR. Unrelated changes (e.g. content updates vs. new features) go in separate branches and PRs.
 
 ## Code style
 
