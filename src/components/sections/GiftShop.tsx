@@ -92,6 +92,7 @@ export function GiftShop({ guest }: Props) {
         giftId: purchase.gift.giftId,
         giftName: lang === 'pt' ? purchase.gift.name_pt : purchase.gift.name_en,
         selectedCotaIds: purchase.selectedCotas.map((c) => c.cotaId),
+        selectedCotaLabels: purchase.selectedCotas.map((c) => c.label_pt),
         totalPrice: totalAmount(purchase.selectedCotas),
         guestEmail: purchase.email,
         cardMessage: purchase.cardMessage,

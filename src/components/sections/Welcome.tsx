@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { WildflowerDecor } from '../ui/WildflowerDecor'
+import { WildflowerDecor, WildflowerArch } from '../ui/WildflowerDecor'
 import type { Guest } from '../../types'
 import { CONFIG } from '../../content.config'
 
@@ -33,97 +33,98 @@ export function Welcome({ guest }: Props) {
   const { t } = useTranslation()
   const countdown = useCountdown(CONFIG.wedding.date)
   const photoSrc = guest.hasPhoto ? `/photos/${guest.guestId}.jpg` : '/photos/couple.jpg'
-
+  const altText = `${CONFIG.couple.bride} & ${CONFIG.couple.groom}`
   const seatCount = guest.attendees.length
 
+  const countdownItems = [
+    { value: countdown.days, label: t('welcome.countdown.days') },
+    { value: countdown.hours, label: t('welcome.countdown.hours') },
+    { value: countdown.minutes, label: t('welcome.countdown.minutes') },
+    { value: countdown.seconds, label: t('welcome.countdown.seconds') },
+  ]
+
   return (
-    <section id="welcome" className="relative min-h-screen flex flex-col">
-      {/* Hero image */}
-      <div className="relative flex-1 flex items-end justify-center min-h-screen overflow-hidden">
-        <img
-          src={photoSrc}
-          alt={`${CONFIG.couple.bride} & ${CONFIG.couple.groom}`}
-          className="absolute inset-0 w-full h-full object-cover object-top"
-          onError={(e) => {
-            ;(e.currentTarget as HTMLImageElement).src = '/photos/couple.jpg'
-          }}
-        />
+    <section
+      id="welcome"
+      className="relative min-h-screen bg-peach/60 overflow-hidden flex items-center"
+    >
+      {/* Corner wildflower accents */}
+      <WildflowerDecor
+        variant="scatter"
+        className="absolute top-0 left-0 w-40 h-40 lg:w-56 lg:h-56"
+        opacity={0.18}
+      />
+      <div className="absolute bottom-0 right-0 w-40 h-40 lg:w-56 lg:h-56 rotate-180">
+        <WildflowerDecor variant="scatter" className="w-full h-full" opacity={0.18} />
+      </div>
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-peach/20 via-transparent to-peach/90" />
-
-        {/* Wildflower overlay top */}
-        <WildflowerDecor variant="top" className="h-40 z-10" opacity={0.45} />
-
-        {/* Content */}
-        <div className="relative z-10 text-center px-6 pb-16 w-full max-w-2xl mx-auto">
-          <p className="font-sans text-xs tracking-widest uppercase text-forest/80 mb-3 animate-fade-in">
+      <div className="relative w-full max-w-6xl mx-auto px-6 py-24 lg:py-20 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        {/* Left: copy */}
+        <div className="order-2 lg:order-1 text-center lg:text-left">
+          <p className="font-sans text-[0.7rem] tracking-[0.35em] uppercase text-amber mb-5 animate-fade-in">
             {t('welcome.invitation')}
           </p>
 
-          <h1 className="font-serif text-5xl md:text-7xl text-forest italic mb-2 animate-slide-up leading-tight">
-            {CONFIG.couple.bride}
-          </h1>
-          <div className="font-serif text-2xl text-forest/50 mb-2">&</div>
-          <h1 className="font-serif text-5xl md:text-7xl text-forest italic mb-6 animate-slide-up leading-tight">
-            {CONFIG.couple.groom}
+          <h1 className="font-serif italic text-forest leading-[0.95] mb-8 animate-slide-up">
+            <span className="block text-6xl md:text-7xl lg:text-8xl">{CONFIG.couple.bride}</span>
+            <span className="block font-serif not-italic text-3xl md:text-4xl text-forest/40 my-2 lg:my-3 tracking-widest">
+              &
+            </span>
+            <span className="block text-6xl md:text-7xl lg:text-8xl">{CONFIG.couple.groom}</span>
           </h1>
 
-          <p className="font-serif text-xl text-forest/80 mb-8 animate-fade-in">
-            {t('welcome.greeting', { name: guest.groupName })}
-          </p>
+          <div className="flex items-center justify-center lg:justify-start gap-4 mb-6 animate-fade-in">
+            <div className="h-px w-10 bg-forest/30" />
+            <p className="font-serif italic text-xl md:text-2xl text-forest/80">
+              {t('welcome.greeting', { name: guest.groupName })}
+            </p>
+            <div className="h-px w-10 bg-forest/30 lg:hidden" />
+          </div>
 
-          <p className="font-sans text-sm text-forest/70 mb-10 animate-fade-in">
+          <p className="font-sans text-sm text-mauve mb-10 tracking-wide animate-fade-in">
             {seatCount === 1
               ? t('welcome.seats', { count: seatCount })
               : t('welcome.seats_plural', { count: seatCount })}
           </p>
 
-          {/* Countdown */}
           {!countdown.isPast && (
-            <div className="bg-white/50 backdrop-blur-sm rounded-2xl px-6 py-5 inline-block animate-fade-in">
-              <p className="font-sans text-xs tracking-widest uppercase text-forest/60 mb-4">
+            <div className="animate-fade-in inline-flex flex-col items-center lg:items-start">
+              <p className="font-sans text-[0.65rem] tracking-[0.35em] uppercase text-forest/60 mb-3">
                 {t('welcome.countdown.title')}
               </p>
-              <div className="flex gap-6 justify-center">
-                {[
-                  { value: countdown.days, label: t('welcome.countdown.days') },
-                  { value: countdown.hours, label: t('welcome.countdown.hours') },
-                  { value: countdown.minutes, label: t('welcome.countdown.minutes') },
-                  { value: countdown.seconds, label: t('welcome.countdown.seconds') },
-                ].map(({ value, label }) => (
-                  <div key={label} className="text-center min-w-[50px]">
-                    <div className="font-serif text-3xl text-forest tabular-nums">
+              <div className="flex items-stretch divide-x divide-forest/20">
+                {countdownItems.map(({ value, label }) => (
+                  <div key={label} className="text-center px-4 md:px-5 first:pl-0 last:pr-0">
+                    <div className="font-serif text-4xl md:text-5xl text-forest tabular-nums leading-none">
                       {String(value).padStart(2, '0')}
                     </div>
-                    <div className="font-sans text-xs text-mauve tracking-wider mt-1">{label}</div>
+                    <div className="font-sans text-[0.6rem] tracking-[0.2em] text-mauve uppercase mt-2">
+                      {label}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
+        </div>
 
-          {/* Scroll indicator */}
-          <div className="mt-10 animate-bounce">
-            <svg
-              className="mx-auto w-5 h-5 text-forest/50"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </div>
+        {/* Right: arched photo */}
+        <div className="order-1 lg:order-2 flex justify-center animate-fade-in">
+          <WildflowerArch imageSrc={photoSrc} imageAlt={altText} />
         </div>
       </div>
 
-      {/* Bottom wildflowers */}
-      <WildflowerDecor variant="bottom" className="absolute bottom-0 h-24 z-10" opacity={0.4} />
+      {/* Scroll indicator */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce">
+        <svg
+          className="w-5 h-5 text-forest/40"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
     </section>
   )
 }

@@ -4,7 +4,6 @@ export interface Guest {
   language: 'pt' | 'en'
   attendees: string[]
   hasPhoto: boolean
-  notes?: string
 }
 
 export interface Cota {
@@ -14,8 +13,6 @@ export interface Cota {
   label_en: string
   price: number
   purchased: boolean
-  purchasedBy?: string
-  purchasedAt?: string
 }
 
 export interface Gift {
@@ -48,6 +45,7 @@ export interface PurchaseSubmission {
   giftId: string
   giftName: string
   selectedCotaIds: string[]
+  selectedCotaLabels: string[]
   totalPrice: number
   guestEmail: string
   cardMessage: string

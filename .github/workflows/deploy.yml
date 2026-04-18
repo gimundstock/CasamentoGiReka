@@ -31,6 +31,8 @@ jobs:
 
       - name: Release check + Build
         run: npm run release
+        env:
+          VITE_APPSCRIPT_URL: ${{ secrets.VITE_APPSCRIPT_URL }}
 
       - uses: actions/configure-pages@v5
 

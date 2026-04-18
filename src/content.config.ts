@@ -21,8 +21,11 @@ export const CONFIG = {
   coupleEmails: ['gimundstock@gmail.com', 'rekanobre@gmail.com'],
 
   // ── Apps Script ─────────────────────────────────────────
-  // Paste your deployed Apps Script Web App URL here
-  appScriptUrl: 'PLACEHOLDER_APPS_SCRIPT_URL',
+  // Injected at build time from the VITE_APPSCRIPT_URL env var.
+  // Local dev: set it in .env.local (gitignored).
+  // CI/CD: set it as a GitHub Actions secret named VITE_APPSCRIPT_URL.
+  // See .env.example for the template.
+  appScriptUrl: import.meta.env.VITE_APPSCRIPT_URL ?? 'PLACEHOLDER_APPS_SCRIPT_URL',
 
   // ── Wedding Day ──────────────────────────────────────────
   wedding: {

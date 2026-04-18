@@ -38,16 +38,33 @@ export async function getGuestByName(name: string): Promise<Guest | null> {
 }
 
 export async function getGifts(): Promise<Gift[]> {
-  // If no Apps Script URL is configured, return gifts from local config
-  if (BASE_URL === 'PLACEHOLDER_APPS_SCRIPT_URL') {
-    return CONFIG.gifts.map((g) => ({
-      ...g,
-      cotas: g.cotas.map((c) => ({ ...c, giftId: g.giftId, purchased: false })),
-      available: g.cotas.length,
-      total: g.cotas.length,
+  const soldIds =
+    BASE_URL === 'PLACEHOLDER_APPS_SCRIPT_URL'
+      ? new Set<string>()
+      : new Set(await fetchSoldCotaIds())
+
+  return CONFIG.gifts.map((g) => {
+    const cotas = g.cotas.map((c) => ({
+      ...c,
+      giftId: g.giftId,
+      purchased: soldIds.has(c.cotaId),
     }))
+    return {
+      ...g,
+      cotas,
+      total: cotas.length,
+      available: cotas.filter((c) => !c.purchased).length,
+    }
+  })
+}
+
+async function fetchSoldCotaIds(): Promise<string[]> {
+  try {
+    const res = await get<{ sold?: string[] }>({ action: 'getSoldCotas' })
+    return res.sold ?? []
+  } catch {
+    return []
   }
-  return get<Gift[]>({ action: 'getGifts' })
 }
 
 export async function purchaseGift(data: PurchaseSubmission): Promise<{ success: boolean }> {
@@ -57,6 +74,7 @@ export async function purchaseGift(data: PurchaseSubmission): Promise<{ success:
     giftId: data.giftId,
     giftName: data.giftName,
     selectedCotaIds: data.selectedCotaIds,
+    selectedCotaLabels: data.selectedCotaLabels,
     totalPrice: data.totalPrice,
     guestEmail: data.guestEmail,
     cardMessage: data.cardMessage,

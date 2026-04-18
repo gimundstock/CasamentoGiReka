@@ -62,7 +62,7 @@
     "song": "Song request",
     "songPlaceholder": "A song for the dance floor...",
     "message": "Message to the couple",
-    "messagePlaceholder": "A special message for Giovanna & Renato...",
+    "messagePlaceholder": "A special message for {{bride}} & {{groom}}...",
     "submit": "Confirm attendance",
     "submitting": "Sending...",
     "successTitle": "RSVP confirmed!",

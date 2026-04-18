@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 interface Props {
   className?: string
   variant?: 'top' | 'bottom' | 'left' | 'right' | 'scatter'
@@ -115,6 +117,102 @@ function Flower({ cx, cy, color }: { cx: number; cy: number; color: string }) {
       <circle cx={cx} cy={cy} r={4} fill="#F5D1B2" />
       <circle cx={cx} cy={cy} r={2} fill={color} opacity={0.6} />
     </g>
+  )
+}
+
+// Wildflower arch — a wide, low elliptical arbor framing a landscape photo.
+// The entire garland (flowers, leaves, trailing stems) lives OUTSIDE the arch
+// silhouette so the photo reads cleanly. Evokes a wedding ceremony arch.
+export function WildflowerArch({ imageSrc, imageAlt }: { imageSrc: string; imageAlt: string }) {
+  const rawId = useId()
+  const clipId = `arch-clip-${rawId.replace(/[^a-zA-Z0-9-]/g, '')}`
+  const archPath = 'M 50 400 L 50 200 A 250 120 0 0 1 550 200 L 550 400 Z'
+  const archStroke = 'M 50 400 L 50 200 A 250 120 0 0 1 550 200 L 550 400'
+
+  return (
+    <svg
+      viewBox="0 0 600 420"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-auto"
+      role="img"
+      aria-label={imageAlt}
+    >
+      <defs>
+        <clipPath id={clipId}>
+          <path d={archPath} />
+        </clipPath>
+      </defs>
+
+      {/* Ground shadow */}
+      <ellipse cx="300" cy="410" rx="260" ry="5" fill="#4E784F" opacity="0.14" />
+
+      {/* Sage fallback fills the arch if the image is missing */}
+      <path d={archPath} fill="#ADB897" opacity="0.22" />
+
+      {/* Photo, clipped to the arch silhouette */}
+      <image
+        href={imageSrc}
+        x="50"
+        y="80"
+        width="500"
+        height="320"
+        preserveAspectRatio="xMidYMid slice"
+        clipPath={`url(#${clipId})`}
+      />
+
+      {/* Soft arch outline */}
+      <path d={archStroke} stroke="#4E784F" strokeWidth="1.6" fill="none" opacity="0.3" />
+
+      {/* Garland arc riding above the arch apex */}
+      <path
+        d="M 40 210 Q 300 -30 560 210"
+        stroke="#4E784F"
+        strokeWidth="1.3"
+        fill="none"
+        opacity="0.5"
+      />
+
+      {/* Leaves along the garland — all above the arch curve */}
+      <ellipse cx="108" cy="108" rx="11" ry="5" fill="#ADB897" transform="rotate(-42 108 108)" />
+      <ellipse cx="170" cy="78" rx="11" ry="5" fill="#ADB897" transform="rotate(-22 170 78)" />
+      <ellipse cx="238" cy="52" rx="11" ry="5" fill="#ADB897" transform="rotate(-8 238 52)" />
+      <ellipse cx="362" cy="52" rx="11" ry="5" fill="#ADB897" transform="rotate(8 362 52)" />
+      <ellipse cx="430" cy="78" rx="11" ry="5" fill="#ADB897" transform="rotate(22 430 78)" />
+      <ellipse cx="492" cy="108" rx="11" ry="5" fill="#ADB897" transform="rotate(42 492 108)" />
+
+      {/* Flowers along the garland — all positioned above the arch curve */}
+      <Flower cx={90} cy={118} color="#DFB100" />
+      <Flower cx={135} cy={92} color="#AA9DA9" />
+      <Flower cx={200} cy={70} color="#DC8000" />
+      <Flower cx={265} cy={55} color="#DFB100" />
+      <Flower cx={300} cy={42} color="#DC8000" />
+      <Flower cx={335} cy={55} color="#AA9DA9" />
+      <Flower cx={400} cy={70} color="#DC8000" />
+      <Flower cx={465} cy={92} color="#DFB100" />
+      <Flower cx={510} cy={118} color="#AA9DA9" />
+
+      {/* Trailing stems from the left shoulder, flowing outward */}
+      <g opacity="0.9">
+        <path d="M 48 202 Q 18 260 26 330" stroke="#4E784F" strokeWidth="1.3" fill="none" />
+        <path d="M 40 235 Q 10 300 22 380" stroke="#4E784F" strokeWidth="1.1" fill="none" />
+        <ellipse cx="20" cy="280" rx="9" ry="4" fill="#ADB897" transform="rotate(-55 20 280)" />
+        <ellipse cx="14" cy="340" rx="9" ry="4" fill="#ADB897" transform="rotate(-40 14 340)" />
+      </g>
+
+      {/* Trailing stems from the right shoulder, mirrored */}
+      <g opacity="0.9">
+        <path d="M 552 202 Q 582 260 574 330" stroke="#4E784F" strokeWidth="1.3" fill="none" />
+        <path d="M 560 235 Q 590 300 578 380" stroke="#4E784F" strokeWidth="1.1" fill="none" />
+        <ellipse cx="580" cy="280" rx="9" ry="4" fill="#ADB897" transform="rotate(55 580 280)" />
+        <ellipse cx="586" cy="340" rx="9" ry="4" fill="#ADB897" transform="rotate(40 586 340)" />
+      </g>
+
+      {/* Trailing flowers beside the arch shoulders */}
+      <Flower cx={32} cy={250} color="#DC8000" />
+      <Flower cx={568} cy={250} color="#DFB100" />
+      <Flower cx={22} cy={370} color="#AA9DA9" />
+      <Flower cx={578} cy={370} color="#DC8000" />
+    </svg>
   )
 }
 

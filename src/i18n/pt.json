@@ -62,7 +62,7 @@
     "song": "Sugestão de música",
     "songPlaceholder": "Uma música para a pista de dança...",
     "message": "Mensagem para os noivos",
-    "messagePlaceholder": "Uma mensagem especial para Giovanna & Renato...",
+    "messagePlaceholder": "Uma mensagem especial para {{bride}} & {{groom}}...",
     "submit": "Confirmar presença",
     "submitting": "Enviando...",
     "successTitle": "Confirmação enviada!",
