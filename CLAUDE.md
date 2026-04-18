@@ -17,20 +17,20 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 - **No server**: All persistence via Google Sheets + Apps Script. The frontend calls the Apps Script URL directly.
 - **Guest personalization**: URL param `?g=GUESTID` auto-loads guest profile. Fallback: name entry screen with fuzzy search.
 - **PIX payments**: Client-side QR generation from the PIX EMV spec. One PIX key for all gifts, per-cota amounts.
-- **Gift model**: Gifts are containers; pricing/availability lives in Cotas (portions). A guest can buy multiple cotas at once.
+- **Gift model**: Gift catalog (gifts + cotas + prices) lives in `src/content.config.ts` and is baked into the bundle. The Sheet only stores state. Cota availability is derived from the Orders tab — a cotaId appearing in any Orders row marks that cota as sold. A guest can buy multiple cotas at once.
 - **No credit card / no cloud costs**: Firebase rejected in favor of Google Sheets + Apps Script (100% free, no account needed beyond Google).
 
 ## Google Sheets tabs
-1. **Guests** — guestId, groupName, language, attendees (comma-sep), hasPhoto, notes
-2. **Gifts** — giftId, name_pt, name_en, description_pt, description_en, imageUrl
-3. **Cotas** — cotaId, giftId, label_pt, label_en, price, purchased, purchasedBy, purchasedAt
-4. **RSVPs** — timestamp, guestId, groupName, attendeesJson, menuChoicesJson, songRequest, message
-5. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice, cardMessage
+1. **Guests** — guestId, groupName, language, attendees (comma-sep), hasPhoto
+2. **RSVPs** — timestamp, guestId, groupName, attendeesJson, menuChoicesJson, songRequest, message
+3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice, cardMessage
+
+The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Availability is derived from which cotaIds appear in the `selectedCotas` column of the Orders tab.
 
 ## Apps Script endpoints
 - `GET ?action=getGuest&id=X` or `?action=getGuest&name=X`
-- `GET ?action=getGifts` — returns gifts with nested cotas + availability counts
-- `POST {action:'purchaseGift', guestId, selectedCotaIds, guestEmail, cardMessage}`
+- `GET ?action=getSoldCotas` — returns `{ sold: string[] }` of cotaIds present in Orders
+- `POST {action:'purchaseGift', guestId, giftId, giftName, selectedCotaIds, selectedCotaLabels, totalPrice, guestEmail, cardMessage}`
 - `POST {action:'submitRSVP', guestId, attendeesJson, menuChoicesJson, songRequest, message}`
 
 ## Scripts
@@ -49,7 +49,14 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 ## CI / CD
 
 - **`.github/workflows/ci.yml`** — Runs `typecheck`, `lint`, `format:check` on every push and every PR.
-- **`.github/workflows/deploy.yml`** — Runs `npm run release` (full quality gate) then deploys to GitHub Pages on push to `main`.
+- **`.github/workflows/deploy.yml`** — Runs `npm run release` (full quality gate) then deploys to GitHub Pages on push to `main`. Injects `VITE_APPSCRIPT_URL` from GitHub Actions secrets so the Apps Script URL stays out of source.
+
+## Environment variables
+
+- `VITE_APPSCRIPT_URL` — the deployed Apps Script `/exec` URL. Required for the backend to work.
+  - **Local dev**: copy `.env.example` → `.env.local` (gitignored) and fill it in.
+  - **Prod**: set as a GitHub Actions repository secret with the same name.
+  - If missing, `CONFIG.appScriptUrl` falls back to a placeholder and `getGifts()` serves `CONFIG.gifts` directly (useful for offline UI preview).
 
 ## Git workflow
 
