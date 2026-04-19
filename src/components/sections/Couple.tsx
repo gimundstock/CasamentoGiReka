@@ -33,13 +33,13 @@ export function Couple() {
 
         {/* Photo grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-20">
-          {['/photos/couple.jpg', '/photos/couple2.jpg', '/photos/couple3.jpg'].map((src, i) => (
+          {['couple.jpg', 'couple2.jpg', 'couple3.jpg'].map((file, i) => (
             <div
               key={i}
               className={`aspect-[3/4] rounded-2xl overflow-hidden bg-peach ${i === 1 ? 'md:row-span-1 md:aspect-square' : ''}`}
             >
               <img
-                src={src}
+                src={`${import.meta.env.BASE_URL}photos/${file}`}
                 alt={`${CONFIG.couple.bride} & ${CONFIG.couple.groom}`}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                 onError={(e) => {

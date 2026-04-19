@@ -32,7 +32,10 @@ function useCountdown(targetDate: string) {
 export function Welcome({ guest }: Props) {
   const { t } = useTranslation()
   const countdown = useCountdown(CONFIG.wedding.date)
-  const photoSrc = guest.hasPhoto ? `/photos/${guest.guestId}.jpg` : '/photos/couple.jpg'
+  const base = import.meta.env.BASE_URL
+  const photoSrc = guest.hasPhoto
+    ? `${base}photos/${guest.guestId}.jpg`
+    : `${base}photos/couple.jpg`
   const altText = `${CONFIG.couple.bride} & ${CONFIG.couple.groom}`
   const seatCount = guest.attendees.length
 
