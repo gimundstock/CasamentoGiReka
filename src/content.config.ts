@@ -78,22 +78,48 @@ export const CONFIG = {
   cityGuide: {
     hotels: [
       {
-        name: 'Hotel exemplo 1',
-        description_pt: 'Descrição do hotel...',
-        description_en: 'Hotel description...',
-        stars: 4,
-        priceRange: 'R$ 200–350/noite',
+        name: 'B Hotel Brasília',
+        description_pt:
+          'Boutique 5 estrelas no Setor Hoteleiro Norte, com rooftop panorâmico, piscina aquecida e decoração contemporânea. A poucos minutos a pé da Esplanada dos Ministérios.',
+        description_en:
+          'Five-star boutique in the North Hotel Sector with a panoramic rooftop, heated pool, and contemporary design. A short walk from the Esplanada dos Ministérios.',
+        stars: 5,
+        priceRange: 'R$ 550–850/noite',
         url: '',
-        address: 'Setor Hoteleiro Norte, Brasília',
+        address: 'SHN Quadra 05, Bloco J — Asa Norte',
       },
       {
-        name: 'Hotel exemplo 2',
-        description_pt: 'Descrição do hotel...',
-        description_en: 'Hotel description...',
-        stars: 3,
-        priceRange: 'R$ 120–200/noite',
+        name: 'Kubitschek Plaza Hotel',
+        description_pt:
+          'Clássico renovado no Setor Hoteleiro Norte, com apartamentos espaçosos, piscina coberta e restaurante no topo. Ótima base para explorar o Eixo Monumental.',
+        description_en:
+          'Renovated classic in the North Hotel Sector with spacious rooms, an indoor pool, and a rooftop restaurant. Great base for exploring the Monumental Axis.',
+        stars: 4,
+        priceRange: 'R$ 380–600/noite',
         url: '',
-        address: 'Asa Sul, Brasília',
+        address: 'SHN Quadra 02, Bloco E — Asa Norte',
+      },
+      {
+        name: 'Meliá Brasil 21',
+        description_pt:
+          'Hotel internacional dentro do complexo Brasil 21, no Setor Hoteleiro Sul, com shopping, restaurantes, academia e spa no próprio prédio. Próximo ao Parque da Cidade.',
+        description_en:
+          'International hotel inside the Brasil 21 complex in the South Hotel Sector, with shopping, dining, gym, and spa on site. Close to Parque da Cidade.',
+        stars: 4,
+        priceRange: 'R$ 400–650/noite',
+        url: '',
+        address: 'SHS Quadra 06, Conj. A, Bloco D — Asa Sul',
+      },
+      {
+        name: 'Ibis Styles Brasília Aeroporto',
+        description_pt:
+          'Opção econômica ao lado do Aeroporto Internacional (BSB), com café da manhã incluso e shuttle para o terminal. Ideal para chegadas tarde ou voos cedo.',
+        description_en:
+          'Budget option next to Brasília International Airport (BSB), with breakfast included and a shuttle to the terminal. Ideal for late arrivals or early flights.',
+        stars: 3,
+        priceRange: 'R$ 220–340/noite',
+        url: '',
+        address: 'Av. Eixo Sul, Lote 6 — Lago Sul (próximo ao BSB)',
       },
     ],
     transport: [
@@ -101,24 +127,28 @@ export const CONFIG = {
         type_pt: 'Aeroporto',
         type_en: 'Airport',
         description_pt:
-          'O Aeroporto Internacional de Brasília (BSB) fica a aproximadamente 30 min do centro.',
+          'O Aeroporto Internacional Juscelino Kubitschek (BSB) fica a cerca de 15 minutos do Plano Piloto. Táxi, Uber e 99 estão disponíveis 24h em frente ao desembarque.',
         description_en:
-          'Brasília International Airport (BSB) is about 30 min from the city centre.',
+          'Brasília International Airport (BSB) is about 15 minutes from the Plano Piloto. Taxi, Uber, and 99 are available 24/7 right at the arrivals exit.',
         icon: '✈️',
       },
       {
         type_pt: 'Uber / 99',
         type_en: 'Uber / 99',
-        description_pt: 'Uber e 99 funcionam bem em Brasília. Recomendado para se locomover.',
-        description_en: 'Uber and 99 work well in Brasília. Recommended for getting around.',
+        description_pt:
+          'Uber e 99 funcionam muito bem em Brasília, com tempo de espera curto e tarifas razoáveis. Nossa principal recomendação para quem não vai alugar carro — cobre aeroporto, hotéis, restaurantes e o local do casamento.',
+        description_en:
+          'Uber and 99 work great in Brasília, with short wait times and fair fares. Our top pick if you are not renting a car — covers the airport, hotels, restaurants, and the wedding venue.',
         icon: '🚗',
       },
       {
-        type_pt: 'Metrô',
-        type_en: 'Metro',
-        description_pt: 'O metrô de Brasília cobre as principais regiões. Bilhete único R$ 5.',
-        description_en: "Brasília's metro covers the main areas. Single ticket R$ 5.",
-        icon: '🚇',
+        type_pt: 'Aluguel de carro',
+        type_en: 'Car rental',
+        description_pt:
+          'Brasília é uma cidade feita para carros, com avenidas largas e estacionamento abundante. Se pretendem explorar os arredores (Pirenópolis, Chapada dos Veadeiros), vale a pena alugar — Localiza, Movida e Unidas têm balcões no aeroporto.',
+        description_en:
+          'Brasília is built for cars, with wide avenues and plenty of free parking. If you plan to explore nearby destinations (Pirenópolis, Chapada dos Veadeiros), renting is worth it — Localiza, Movida, and Unidas have counters at the airport.',
+        icon: '🚙',
       },
     ],
     restaurants: [
@@ -186,37 +216,56 @@ export const CONFIG = {
     tourism: [
       {
         name: 'Catedral Metropolitana',
-        description_pt: 'Descrição a preencher.',
-        description_en: 'Description to be filled.',
-        address: 'Eixo Monumental, Brasília, DF',
+        description_pt:
+          'Projetada por Oscar Niemeyer e inaugurada em 1970, a catedral tem 16 colunas curvas formando uma coroa ascendente. Destaques para o teto de vitrais coloridos de Marianne Peretti e os três anjos suspensos de Alfredo Ceschiatti. Entrada gratuita.',
+        description_en:
+          "Designed by Oscar Niemeyer and inaugurated in 1970, the cathedral's 16 curved columns form an upward-sweeping crown. Highlights include Marianne Peretti's stained-glass ceiling and the three suspended angels by Alfredo Ceschiatti. Free entry.",
+        address: 'Esplanada dos Ministérios, Lote 12 — Brasília, DF',
         url: '',
       },
       {
         name: 'Congresso Nacional',
-        description_pt: 'Descrição a preencher.',
-        description_en: 'Description to be filled.',
-        address: 'Praça dos Três Poderes, Brasília, DF',
+        description_pt:
+          'Sede do poder legislativo, com a cúpula côncava da Câmara, a cúpula convexa do Senado e as torres gêmeas — ícone de Niemeyer e Lúcio Costa. Visitas guiadas gratuitas aos finais de semana (agendamento pelo site do Congresso).',
+        description_en:
+          "Brazil's legislative seat, with the concave House dome, the convex Senate dome, and the twin towers — a Niemeyer & Lúcio Costa icon. Free guided tours on weekends (book via the Congresso website).",
+        address: 'Praça dos Três Poderes — Brasília, DF',
         url: '',
       },
       {
         name: 'Torre de TV',
-        description_pt: 'Descrição a preencher.',
-        description_en: 'Description to be filled.',
-        address: 'Eixo Monumental, Brasília, DF',
+        description_pt:
+          'Torre de 224 m projetada por Lúcio Costa, com mirante gratuito a 75 m de altura e vista 360° do Plano Piloto. Aos finais de semana, a feira de artesanato na base é parada obrigatória.',
+        description_en:
+          'A 224 m tower by Lúcio Costa with a free observation deck at 75 m offering 360° views of the Plano Piloto. The weekend craft fair at the base is a must-stop.',
+        address: 'Eixo Monumental — Brasília, DF',
         url: '',
       },
       {
         name: 'Parque da Cidade Sarah Kubitschek',
-        description_pt: 'Descrição a preencher.',
-        description_en: 'Description to be filled.',
-        address: 'Asa Sul, Brasília, DF',
+        description_pt:
+          'Um dos maiores parques urbanos do mundo, com cerca de 420 hectares e paisagismo de Burle Marx. Pistas de corrida e ciclismo, kartódromo, lagos artificiais e muito verde no coração da cidade.',
+        description_en:
+          "One of the world's largest urban parks at ~420 hectares, with landscaping by Burle Marx. Running and cycling paths, a go-kart track, artificial lakes, and lush greenery right in the middle of the city.",
+        address: 'Asa Sul — Brasília, DF',
         url: '',
       },
       {
         name: 'Memorial JK',
-        description_pt: 'Descrição a preencher.',
-        description_en: 'Description to be filled.',
-        address: 'Eixo Monumental, Brasília, DF',
+        description_pt:
+          'Mausoléu e museu dedicados a Juscelino Kubitschek, fundador de Brasília. A estátua de JK emoldurada pela nicha curva é um dos cartões-postais da cidade; o museu reúne objetos pessoais, carros e documentos do presidente.',
+        description_en:
+          "Mausoleum and museum honoring Juscelino Kubitschek, Brasília's founder. The statue of JK framed by a curved niche is one of the city's signature images; the museum holds personal belongings, cars, and documents.",
+        address: 'Eixo Monumental Oeste — Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Santuário Dom Bosco',
+        description_pt:
+          'Igreja de cubos de concreto com vitrais azuis em 12 tons que filtram a luz de maneira impressionante — uma das experiências visuais mais marcantes da cidade, especialmente no fim da tarde.',
+        description_en:
+          "A church of concrete cubes with twelve shades of blue stained glass that filter the light dramatically — one of the city's most striking visual experiences, especially in the late afternoon.",
+        address: 'SEPS 702/902, Conj. A — Asa Sul, Brasília, DF',
         url: '',
       },
     ],
