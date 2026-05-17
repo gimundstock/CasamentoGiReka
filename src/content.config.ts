@@ -40,8 +40,10 @@ export const CONFIG = {
   },
 
   // ── Couple Story ─────────────────────────────────────────
+  // Each milestone has a paired photo shown in the Meet-the-Couple
+  // hero. Add a milestone here and drop a matching image in
+  // public/photos/ — the hero's reel scales with the array.
   story: {
-    // Array of story milestones shown in the Couple section
     milestones: [
       {
         year: '2019',
@@ -49,6 +51,7 @@ export const CONFIG = {
         title_en: 'First meeting',
         text_pt: 'Texto sobre como se conheceram...',
         text_en: 'Text about how they met...',
+        photo: 'couple.jpg',
       },
       {
         year: '2022',
@@ -56,6 +59,7 @@ export const CONFIG = {
         title_en: 'The proposal',
         text_pt: 'Texto sobre o pedido de casamento...',
         text_en: 'Text about the proposal...',
+        photo: 'couple2.jpg',
       },
       {
         year: '2027',
@@ -63,6 +67,7 @@ export const CONFIG = {
         title_en: 'The celebration',
         text_pt: 'E agora chegou a hora de celebrar com todos vocês!',
         text_en: "And now it's time to celebrate with all of you!",
+        photo: 'couple3.jpg',
       },
     ],
   },
