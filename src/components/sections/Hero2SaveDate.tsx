@@ -94,53 +94,54 @@ export function Hero2SaveDate() {
             sizeMax={72}
           />
 
-          <div className="relative z-10 flex h-full flex-col items-center justify-between px-6 py-16 text-center md:py-24">
-            {/* TOP: SAVE / THE / DATE */}
+          {/* Centered stack — SAVE THE DATE on top, then a comfortable gap,
+              then date + countdown below it. Both groups sit near the
+              vertical center of the viewport. Scroll ranges are widened
+              so the per-letter cascade is unmistakable as you scroll. */}
+          <div className="relative z-10 flex h-full flex-col items-center justify-center gap-16 px-6 text-center md:gap-24">
             <FlipLetters
               text={'SAVE\nTHE\nDATE'}
               scrollProgress={scrollYProgress}
               scrollStart={0}
-              scrollEnd={0.45}
-              staggerRatio={0.9}
-              scaleFrom={0.2}
-              className="font-display text-forest-deep block text-6xl leading-[0.95] italic md:text-8xl lg:text-9xl"
+              scrollEnd={0.55}
+              staggerRatio={0.95}
+              scaleFrom={0.15}
+              className="font-display text-forest-deep block text-6xl leading-[1] italic md:text-8xl lg:text-9xl"
               lineClassName="block"
             />
 
-            {/* BOTTOM: date + countdown */}
-            <div className="flex flex-col items-center gap-8 md:gap-10">
+            <div className="flex flex-col items-center gap-6 md:gap-8">
               <FlipLetters
                 text={dateLine}
                 scrollProgress={scrollYProgress}
-                scrollStart={0.45}
-                scrollEnd={0.7}
-                staggerRatio={0.85}
-                scaleFrom={0.25}
+                scrollStart={0.55}
+                scrollEnd={0.78}
+                staggerRatio={0.9}
+                scaleFrom={0.2}
                 className="font-display text-forest-deep block text-4xl italic md:text-6xl"
               />
 
-              <div className="flex flex-col items-center">
-                <FlipLetters
-                  text={countdownText}
-                  scrollProgress={scrollYProgress}
-                  scrollStart={0.7}
-                  scrollEnd={0.95}
-                  staggerRatio={0.85}
-                  scaleFrom={0.3}
-                  className="font-display text-forest-deep block text-2xl tabular-nums italic md:text-4xl"
-                />
-                <MaskReveal
-                  direction="up"
-                  scrollProgress={scrollYProgress}
-                  scrollStart={0.88}
-                  scrollEnd={1}
-                >
-                  <p className="font-sans text-forest mt-4 text-[0.6rem] tracking-[0.4em] uppercase">
-                    {t('welcome.countdown.days')} · {t('welcome.countdown.hours')} ·{' '}
-                    {t('welcome.countdown.minutes')} · {t('welcome.countdown.seconds')}
-                  </p>
-                </MaskReveal>
-              </div>
+              <FlipLetters
+                text={countdownText}
+                scrollProgress={scrollYProgress}
+                scrollStart={0.78}
+                scrollEnd={0.95}
+                staggerRatio={0.9}
+                scaleFrom={0.3}
+                className="font-display text-forest-deep block text-2xl tabular-nums italic md:text-4xl"
+              />
+
+              <MaskReveal
+                direction="up"
+                scrollProgress={scrollYProgress}
+                scrollStart={0.9}
+                scrollEnd={1}
+              >
+                <p className="font-sans text-forest text-[0.6rem] tracking-[0.4em] uppercase">
+                  {t('welcome.countdown.days')} · {t('welcome.countdown.hours')} ·{' '}
+                  {t('welcome.countdown.minutes')} · {t('welcome.countdown.seconds')}
+                </p>
+              </MaskReveal>
             </div>
           </div>
         </div>

@@ -152,7 +152,11 @@ export function FlipLetters({
   }
 
   const safeStagger = Math.max(0, Math.min(1, staggerRatio))
-  const denom = Math.max(totalLetters, 1)
+  // Use (N-1) intervals between N letters so the last letter's start lands
+  // at exactly `window * staggerRatio` past the first — i.e. the full
+  // requested spread. With N as the divisor (the previous behavior) the
+  // spread is short by one step, which compressed the perceived cascade.
+  const denom = Math.max(totalLetters - 1, 1)
 
   const autoStep = (duration * safeStagger) / denom
   const scrollWindow = Math.max(0, scrollEnd - scrollStart)
@@ -194,12 +198,12 @@ export function FlipLetters({
             const letterStart = i * autoStep
             const letterDuration = Math.max(duration - letterStart, 0.001)
             const initial = {
-              rotateY: 90,
-              scaleX: 0,
+              rotateY: -90,
+              rotateZ: -25,
               scale: scaleFrom,
               opacity: withFade ? 0 : 1,
             }
-            const final = { rotateY: 0, scaleX: 1, scale: scaleTo, opacity: 1 }
+            const final = { rotateY: 0, rotateZ: 0, scale: scaleTo, opacity: 1 }
             const animate = play === false ? initial : final
 
             return (
