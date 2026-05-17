@@ -31,12 +31,20 @@ function pad(value: number, width: number): string {
   return String(value).padStart(width, '0')
 }
 
+// Drop more PNG/JPG files in public/flowers/ and add their filename here
+// to extend the floating field. Order shapes which image appears in which
+// slot — keep a mix so each rising column reads differently.
 const FLOWER_IMAGES = [
-  `${import.meta.env.BASE_URL}flowers/flower1.svg`,
-  `${import.meta.env.BASE_URL}flowers/flower2.svg`,
-  `${import.meta.env.BASE_URL}flowers/flower3.svg`,
-  `${import.meta.env.BASE_URL}flowers/flower4.svg`,
-  `${import.meta.env.BASE_URL}flowers/flower5.svg`,
+  `${import.meta.env.BASE_URL}flowers/Dahlia_x3.png`,
+  `${import.meta.env.BASE_URL}flowers/camomile_x3.png`,
+  `${import.meta.env.BASE_URL}flowers/dahlia_x1.png`,
+  `${import.meta.env.BASE_URL}flowers/flower_x1.png`,
+  `${import.meta.env.BASE_URL}flowers/flower_x3.png`,
+  `${import.meta.env.BASE_URL}flowers/purpel_flower_x3.png`,
+  `${import.meta.env.BASE_URL}flowers/purple_flower_x1.png`,
+  `${import.meta.env.BASE_URL}flowers/purple_flower_x2.png`,
+  `${import.meta.env.BASE_URL}flowers/red_dahlia_x1.png`,
+  `${import.meta.env.BASE_URL}flowers/red_dahlia_x3.png`,
 ]
 
 /**
