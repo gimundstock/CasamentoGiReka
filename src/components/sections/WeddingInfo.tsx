@@ -72,10 +72,7 @@ export function WeddingInfo() {
         className="absolute inset-0 bg-wash-sage opacity-60 pointer-events-none -z-10"
         aria-hidden
       />
-      <div
-        className="absolute inset-0 bg-paper opacity-30 pointer-events-none -z-10"
-        aria-hidden
-      />
+      <div className="absolute inset-0 bg-paper opacity-30 pointer-events-none -z-10" aria-hidden />
 
       {/* Top vine divider */}
       <div className="absolute top-0 left-0 right-0 pointer-events-none" aria-hidden>
@@ -83,43 +80,40 @@ export function WeddingInfo() {
       </div>
 
       {/* Bottom vine divider (rotated) */}
-      <div
-        className="absolute bottom-0 left-0 right-0 pointer-events-none rotate-180"
-        aria-hidden
-      >
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none rotate-180" aria-hidden>
         <VineDivider width={1200} height={70} flowerCount={4} className="w-full h-auto" />
       </div>
 
-      {/* Floating petals */}
+      {/* Floating petals — hidden on mobile to keep cards uncluttered */}
       <Petal
         size={26}
         color="#F7D8BD"
         rotation={18}
-        className="absolute top-32 left-[8%] animate-float opacity-80 pointer-events-none"
+        className="hidden md:block absolute top-32 left-[8%] animate-float opacity-80 pointer-events-none"
       />
       <Petal
         size={20}
         color="#C98262"
         rotation={-22}
-        className="absolute bottom-40 right-[10%] animate-float opacity-70 pointer-events-none"
+        className="hidden md:block absolute bottom-40 right-[10%] animate-float opacity-70 pointer-events-none"
       />
 
-      <div className="relative max-w-5xl mx-auto px-6 pt-12 md:pt-16">
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-12 md:pt-16">
         {/* Heading */}
         <RevealOnScroll>
           <div className="text-center mb-16 md:mb-20">
-            <div className="inline-flex items-center justify-center gap-4 relative">
+            <div className="inline-flex items-center justify-center gap-3 sm:gap-4 relative">
               <svg
                 width="50"
                 height="50"
                 viewBox="-25 -25 50 50"
                 xmlns="http://www.w3.org/2000/svg"
-                className="shrink-0"
+                className="shrink-0 w-10 h-10 sm:w-12 sm:h-12"
                 aria-hidden
               >
                 <Flower cx={0} cy={0} variant="daisy" size={1} color="#DC8000" />
               </svg>
-              <h2 className="font-display italic text-5xl md:text-6xl text-forest-deep">
+              <h2 className="font-display italic text-4xl sm:text-5xl md:text-6xl text-forest-deep">
                 {t('wedding.title')}
               </h2>
             </div>

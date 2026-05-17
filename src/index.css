@@ -9,6 +9,7 @@
 
   body {
     @apply bg-peach font-sans text-forest antialiased;
+    overflow-x: hidden;
   }
 
   h1,
@@ -16,6 +17,17 @@
   h3,
   h4 {
     @apply font-serif;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

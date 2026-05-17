@@ -69,7 +69,13 @@ function CornerGarden() {
       style={{ opacity: 0.65 }}
     >
       <DrawStem d={TOP_LEFT_STEM_A} stroke="#4E784F" strokeWidth={1.4} duration={2.6} delay={0.2} />
-      <DrawStem d={TOP_LEFT_STEM_B} stroke="#3F6041" strokeWidth={1.1} duration={2.6} delay={0.55} />
+      <DrawStem
+        d={TOP_LEFT_STEM_B}
+        stroke="#3F6041"
+        strokeWidth={1.1}
+        duration={2.6}
+        delay={0.55}
+      />
       <DrawStem
         d={BOTTOM_RIGHT_STEM_A}
         stroke="#4E784F"
@@ -115,13 +121,7 @@ function CornerGarden() {
 
 // Tiny corner ornament for the countdown card — a single filler bloom on a
 // short curl. Rendered at a small size so the card stays light.
-function CardCornerOrnament({
-  className,
-  rotate = 0,
-}: {
-  className?: string
-  rotate?: number
-}) {
+function CardCornerOrnament({ className, rotate = 0 }: { className?: string; rotate?: number }) {
   return (
     <svg
       viewBox="0 0 40 40"
@@ -209,7 +209,7 @@ export function Welcome({ guest }: Props) {
         <CornerGarden />
       </div>
 
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-6 py-24 lg:py-20 grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-24 lg:py-20 grid lg:grid-cols-12 gap-10 sm:gap-12 lg:gap-16 items-center">
         {/* Left: copy — 5 of 12 columns, staggered alignment */}
         <div className="order-2 lg:order-1 lg:col-span-5 text-center lg:text-left">
           <RevealOnScroll delay={0} as="div">
@@ -221,17 +221,17 @@ export function Welcome({ guest }: Props) {
           {/* Couple names — sequentially revealed */}
           <h1 className="text-forest leading-[0.92] mb-8">
             <RevealOnScroll delay={0.2} as="span">
-              <span className="block font-display italic text-7xl md:text-8xl lg:text-9xl">
+              <span className="block font-display italic text-5xl sm:text-6xl md:text-8xl lg:text-9xl">
                 {CONFIG.couple.bride}
               </span>
             </RevealOnScroll>
             <RevealOnScroll delay={0.6} as="span">
-              <span className="block font-display not-italic text-3xl md:text-4xl text-mauve-light tracking-[0.5em] my-3 lg:my-4 lg:pl-6">
+              <span className="block font-display not-italic text-2xl sm:text-3xl md:text-4xl text-mauve-light tracking-[0.5em] my-3 lg:my-4 lg:pl-6">
                 &amp;
               </span>
             </RevealOnScroll>
             <RevealOnScroll delay={0.9} as="span">
-              <span className="block font-display italic text-7xl md:text-8xl lg:text-9xl lg:pl-10">
+              <span className="block font-display italic text-5xl sm:text-6xl md:text-8xl lg:text-9xl lg:pl-10">
                 {CONFIG.couple.groom}
               </span>
             </RevealOnScroll>
@@ -246,7 +246,7 @@ export function Welcome({ guest }: Props) {
                 viewBox="0 0 56 10"
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden
-                className="text-forest/40"
+                className="hidden sm:block text-forest/40 shrink-0"
               >
                 <path
                   d="M 2 5 C 14 1 28 9 54 5"
@@ -257,7 +257,7 @@ export function Welcome({ guest }: Props) {
                 />
                 <circle cx="54" cy="5" r="1.6" fill="#DC9A32" />
               </svg>
-              <p className="font-serif italic text-xl md:text-2xl text-forest/80">
+              <p className="font-serif italic text-lg sm:text-xl md:text-2xl text-forest/80">
                 {t('welcome.greeting', { name: guest.groupName })}
               </p>
               <svg
@@ -266,7 +266,7 @@ export function Welcome({ guest }: Props) {
                 viewBox="0 0 56 10"
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden
-                className="text-forest/40"
+                className="hidden sm:block text-forest/40 shrink-0"
               >
                 <path
                   d="M 2 5 C 28 9 42 1 54 5"
@@ -292,7 +292,7 @@ export function Welcome({ guest }: Props) {
           {!countdown.isPast && (
             <RevealOnScroll delay={1.5} as="div">
               <div className="inline-flex flex-col items-center lg:items-start">
-                <div className="relative inline-block rounded-2xl border border-sage/30 bg-peach-light/60 shadow-sm px-7 py-6 overflow-hidden">
+                <div className="relative inline-block rounded-2xl border border-sage/30 bg-peach-light/60 shadow-sm px-4 py-5 sm:px-7 sm:py-6 overflow-hidden">
                   <div
                     className="absolute inset-0 bg-paper opacity-40 pointer-events-none rounded-2xl"
                     aria-hidden
@@ -316,12 +316,12 @@ export function Welcome({ guest }: Props) {
                       {countdownItems.map(({ value, label }) => (
                         <div
                           key={label}
-                          className="text-center px-4 md:px-5 first:pl-0 last:pr-0"
+                          className="text-center px-2.5 sm:px-4 md:px-5 first:pl-0 last:pr-0"
                         >
-                          <div className="font-display text-4xl md:text-5xl text-honey tabular-nums leading-none">
+                          <div className="font-display text-3xl sm:text-4xl md:text-5xl text-honey tabular-nums leading-none">
                             {String(value).padStart(2, '0')}
                           </div>
-                          <div className="font-sans text-[0.6rem] tracking-[0.22em] text-mauve uppercase mt-2">
+                          <div className="font-sans text-[0.55rem] sm:text-[0.6rem] tracking-[0.18em] sm:tracking-[0.22em] text-mauve uppercase mt-2">
                             {label}
                           </div>
                         </div>

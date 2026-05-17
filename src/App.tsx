@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Nav } from './components/layout/Nav'
+import { BackgroundVine } from './components/layout/BackgroundVine'
 import { NameEntry } from './components/sections/NameEntry'
 import { Welcome } from './components/sections/Welcome'
 import { Couple } from './components/sections/Couple'
@@ -9,6 +10,7 @@ import { CityGuide } from './components/sections/CityGuide'
 import { RSVP } from './components/sections/RSVP'
 import { GiftShop } from './components/sections/GiftShop'
 import { Petal, VineDivider } from './components/botanicals'
+import { PetalDrift } from './components/motion/PetalDrift'
 import { useGuest } from './hooks/useGuest'
 import { CONFIG } from './content.config'
 
@@ -92,6 +94,7 @@ export default function App() {
 
   return (
     <>
+      <BackgroundVine />
       <Nav />
       <main>
         <Welcome guest={guest} />
@@ -102,6 +105,7 @@ export default function App() {
         <GiftShop guest={guest} />
       </main>
       <Footer />
+      <PetalDrift count={6} />
     </>
   )
 }

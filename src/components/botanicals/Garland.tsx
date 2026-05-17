@@ -117,13 +117,7 @@ export function Garland({
     >
       {animate ? (
         <>
-          <DrawStem
-            d={STEM_PRIMARY}
-            stroke="#4E784F"
-            strokeWidth={1.6}
-            duration={2.6}
-            delay={0}
-          />
+          <DrawStem d={STEM_PRIMARY} stroke="#4E784F" strokeWidth={1.6} duration={2.6} delay={0} />
           <DrawStem
             d={STEM_SECONDARY}
             stroke="#3F6041"

@@ -33,7 +33,7 @@ export function Nav() {
           }
         }
       },
-      { rootMargin: '-30% 0px -55% 0px', threshold: [0, 0.1, 0.25, 0.5] },
+      { rootMargin: '-30% 0px -55% 0px', threshold: [0, 0.1, 0.25, 0.5] }
     )
 
     const els: HTMLElement[] = []
@@ -173,10 +173,7 @@ export function Nav() {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="bg-peach-light/97 border-sage/30 relative overflow-hidden rounded-b-2xl border-t md:hidden">
-            <div
-              className="bg-paper pointer-events-none absolute inset-0 opacity-40"
-              aria-hidden
-            />
+            <div className="bg-paper pointer-events-none absolute inset-0 opacity-40" aria-hidden />
             <div className="relative flex justify-center pt-1 opacity-60" aria-hidden>
               <VineDivider width={220} height={30} flowerCount={2} />
             </div>

@@ -63,10 +63,7 @@ function InlineLeaf({ className, fill = '#FAE6D4' }: { className?: string; fill?
       aria-hidden
     >
       <g transform="translate(3 12) rotate(-20)">
-        <path
-          d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z"
-          fill={fill}
-        />
+        <path d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z" fill={fill} />
         <path
           d="M 1 1 Q 7 0 13 -2"
           stroke="#3F6041"
@@ -113,13 +110,62 @@ const SUCCESS_FLOWERS: Array<{
   rotation: number
   delay: number
 }> = [
-  { className: '-top-6 -left-4', variant: 'daisy', color: '#DFB100', size: 1.2, rotation: -15, delay: 0.1 },
-  { className: '-top-4 right-6', variant: 'wild-rose', color: '#C98262', size: 1.1, rotation: 18, delay: 0.3 },
-  { className: 'top-1/3 -left-7', variant: 'cosmos', color: '#AA9DA9', size: 1, rotation: -8, delay: 0.5 },
-  { className: 'top-1/2 -right-6', variant: 'filler', color: '#DC9A32', size: 0.9, rotation: 12, delay: 0.7 },
-  { className: '-bottom-5 left-10', variant: 'anemone', color: '#C98262', size: 1, rotation: 22, delay: 0.4 },
-  { className: '-bottom-6 right-12', variant: 'daisy', color: '#DFB100', size: 1.1, rotation: -20, delay: 0.6 },
-  { className: 'bottom-8 -right-4', variant: 'filler', color: '#ADB897', size: 0.8, rotation: 0, delay: 0.8 },
+  {
+    className: '-top-6 -left-4',
+    variant: 'daisy',
+    color: '#DFB100',
+    size: 1.2,
+    rotation: -15,
+    delay: 0.1,
+  },
+  {
+    className: '-top-4 right-6',
+    variant: 'wild-rose',
+    color: '#C98262',
+    size: 1.1,
+    rotation: 18,
+    delay: 0.3,
+  },
+  {
+    className: 'top-1/3 -left-7',
+    variant: 'cosmos',
+    color: '#AA9DA9',
+    size: 1,
+    rotation: -8,
+    delay: 0.5,
+  },
+  {
+    className: 'top-1/2 -right-6',
+    variant: 'filler',
+    color: '#DC9A32',
+    size: 0.9,
+    rotation: 12,
+    delay: 0.7,
+  },
+  {
+    className: '-bottom-5 left-10',
+    variant: 'anemone',
+    color: '#C98262',
+    size: 1,
+    rotation: 22,
+    delay: 0.4,
+  },
+  {
+    className: '-bottom-6 right-12',
+    variant: 'daisy',
+    color: '#DFB100',
+    size: 1.1,
+    rotation: -20,
+    delay: 0.6,
+  },
+  {
+    className: 'bottom-8 -right-4',
+    variant: 'filler',
+    color: '#ADB897',
+    size: 0.8,
+    rotation: 0,
+    delay: 0.8,
+  },
 ]
 
 // Tiny drifting petals overlaid on the success card.
@@ -145,7 +191,7 @@ function LetterCard({ children }: { children: React.ReactNode }) {
   return (
     <RevealOnScroll>
       <div className="relative mx-auto max-w-2xl">
-        <div className="relative rounded-3xl border border-sage/40 bg-peach-light/85 p-8 md:p-12 shadow-[0_8px_40px_rgba(78,120,79,0.10)] overflow-visible">
+        <div className="relative rounded-3xl border border-sage/40 bg-peach-light/85 p-6 sm:p-8 md:p-12 shadow-[0_8px_40px_rgba(78,120,79,0.10)] overflow-visible">
           <div
             className="absolute inset-0 bg-paper opacity-30 pointer-events-none rounded-3xl"
             aria-hidden
@@ -187,7 +233,7 @@ function SectionShell({ children }: { children: React.ReactNode }) {
         <Garland density="medium" width={1200} height={120} />
       </div>
 
-      <div className="relative z-10 px-6">{children}</div>
+      <div className="relative z-10 px-4 sm:px-6">{children}</div>
     </section>
   )
 }
@@ -196,8 +242,7 @@ export function RSVP({ guest }: Props) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
 
-  const alreadySubmitted =
-    localStorage.getItem(`${RSVP_STORAGE_KEY}_${guest.guestId}`) === 'true'
+  const alreadySubmitted = localStorage.getItem(`${RSVP_STORAGE_KEY}_${guest.guestId}`) === 'true'
 
   const [attendees, setAttendees] = useState<RSVPAttendee[]>(
     guest.attendees.map((name) => ({ name, attending: true, menu: '' }))
@@ -244,7 +289,7 @@ export function RSVP({ guest }: Props) {
           <p className="font-sans text-[0.7rem] tracking-[0.35em] uppercase text-amber mb-3">
             {t('rsvp.kicker')}
           </p>
-          <h2 className="font-display italic text-5xl md:text-6xl text-forest-deep leading-tight">
+          <h2 className="font-display italic text-4xl sm:text-5xl md:text-6xl text-forest-deep leading-tight">
             {t('rsvp.title')}
           </h2>
         </div>
@@ -296,10 +341,7 @@ export function RSVP({ guest }: Props) {
               ))}
 
             {isAlready && (
-              <span
-                className="pointer-events-none absolute -top-2 right-8"
-                aria-hidden
-              >
+              <span className="pointer-events-none absolute -top-2 right-8" aria-hidden>
                 <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                   <Flower
                     cx={24}
@@ -331,18 +373,16 @@ export function RSVP({ guest }: Props) {
         <p className="font-sans text-[0.7rem] tracking-[0.35em] uppercase text-amber mb-3">
           {t('rsvp.kicker')}
         </p>
-        <h2 className="font-display italic text-5xl md:text-6xl text-forest-deep leading-tight">
+        <h2 className="font-display italic text-4xl sm:text-5xl md:text-6xl text-forest-deep leading-tight">
           {t('rsvp.title')}
         </h2>
-        <p className="font-serif italic text-mauve text-lg md:text-xl mt-4">
+        <p className="font-serif italic text-mauve text-base sm:text-lg md:text-xl mt-4">
           {t('rsvp.subtitle', { date: rsvpDeadline })}
         </p>
       </div>
 
       <LetterCard>
-        <p className="font-serif italic text-forest/70 text-base mb-6">
-          {t('rsvp.letterOpening')}
-        </p>
+        <p className="font-serif italic text-forest/70 text-base mb-6">{t('rsvp.letterOpening')}</p>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Attendees — paper-light cards with pill toggles */}

@@ -21,13 +21,69 @@ const FLOATING_PETALS: Array<{
   delay: string
   duration: string
 }> = [
-  { left: '8%', top: '22%', rotation: -18, color: '#F7D8BD', size: 14, delay: '0s', duration: '6s' },
-  { left: '18%', top: '68%', rotation: 32, color: '#C98262', size: 11, delay: '1.2s', duration: '7s' },
-  { left: '30%', top: '32%', rotation: 12, color: '#FAE6D4', size: 13, delay: '0.6s', duration: '5.5s' },
-  { left: '72%', top: '20%', rotation: -28, color: '#F7D8BD', size: 12, delay: '1.8s', duration: '6.5s' },
-  { left: '82%', top: '60%', rotation: 24, color: '#DC9A32', size: 10, delay: '0.9s', duration: '7.2s' },
-  { left: '64%', top: '78%', rotation: -8, color: '#F7D8BD', size: 13, delay: '2.4s', duration: '6.8s' },
-  { left: '12%', top: '50%', rotation: 48, color: '#FAE6D4', size: 11, delay: '1.5s', duration: '5.8s' },
+  {
+    left: '8%',
+    top: '22%',
+    rotation: -18,
+    color: '#F7D8BD',
+    size: 14,
+    delay: '0s',
+    duration: '6s',
+  },
+  {
+    left: '18%',
+    top: '68%',
+    rotation: 32,
+    color: '#C98262',
+    size: 11,
+    delay: '1.2s',
+    duration: '7s',
+  },
+  {
+    left: '30%',
+    top: '32%',
+    rotation: 12,
+    color: '#FAE6D4',
+    size: 13,
+    delay: '0.6s',
+    duration: '5.5s',
+  },
+  {
+    left: '72%',
+    top: '20%',
+    rotation: -28,
+    color: '#F7D8BD',
+    size: 12,
+    delay: '1.8s',
+    duration: '6.5s',
+  },
+  {
+    left: '82%',
+    top: '60%',
+    rotation: 24,
+    color: '#DC9A32',
+    size: 10,
+    delay: '0.9s',
+    duration: '7.2s',
+  },
+  {
+    left: '64%',
+    top: '78%',
+    rotation: -8,
+    color: '#F7D8BD',
+    size: 13,
+    delay: '2.4s',
+    duration: '6.8s',
+  },
+  {
+    left: '12%',
+    top: '50%',
+    rotation: 48,
+    color: '#FAE6D4',
+    size: 11,
+    delay: '1.5s',
+    duration: '5.8s',
+  },
 ]
 
 export function NameEntry({ state, onSubmit }: Props) {
@@ -45,10 +101,7 @@ export function NameEntry({ state, onSubmit }: Props) {
   return (
     <div className="bg-peach-light relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6">
       {/* Layered background washes */}
-      <div
-        className="bg-wash-peach pointer-events-none absolute inset-0 opacity-60"
-        aria-hidden
-      />
+      <div className="bg-wash-peach pointer-events-none absolute inset-0 opacity-60" aria-hidden />
       <div className="bg-paper pointer-events-none absolute inset-0 opacity-40" aria-hidden />
 
       {/* Garland top */}
@@ -103,10 +156,7 @@ export function NameEntry({ state, onSubmit }: Props) {
           />
 
           {/* Corner flowers peeking past the edge */}
-          <div
-            className="pointer-events-none absolute -top-4 -left-4 h-10 w-10"
-            aria-hidden
-          >
+          <div className="pointer-events-none absolute -top-4 -left-4 h-10 w-10" aria-hidden>
             <svg width="40" height="40" viewBox="-20 -20 40 40" aria-hidden>
               <Flower
                 cx={0}
@@ -119,10 +169,7 @@ export function NameEntry({ state, onSubmit }: Props) {
               />
             </svg>
           </div>
-          <div
-            className="pointer-events-none absolute -top-4 -right-4 h-10 w-10"
-            aria-hidden
-          >
+          <div className="pointer-events-none absolute -top-4 -right-4 h-10 w-10" aria-hidden>
             <svg width="40" height="40" viewBox="-20 -20 40 40" aria-hidden>
               <Flower
                 cx={0}

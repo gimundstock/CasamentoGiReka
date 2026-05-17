@@ -22,12 +22,7 @@ function FlowerStar() {
 // Small leaf-like accent to sit next to category headings.
 function HeadingLeaf({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 40 24"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden
-    >
+    <svg viewBox="0 0 40 24" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden>
       <path
         d="M 4 18 C 12 4 28 4 36 18"
         stroke="#4E784F"
@@ -35,11 +30,7 @@ function HeadingLeaf({ className }: { className?: string }) {
         strokeLinecap="round"
         fill="none"
       />
-      <path
-        d="M 14 14 C 18 8 24 8 28 14 C 24 20 18 20 14 14 Z"
-        fill="#ADB897"
-        opacity={0.9}
-      />
+      <path d="M 14 14 C 18 8 24 8 28 14 C 24 20 18 20 14 14 Z" fill="#ADB897" opacity={0.9} />
     </svg>
   )
 }
@@ -79,12 +70,7 @@ function CategoryHeading({ children }: { children: React.ReactNode }) {
 function CategoryDivider() {
   return (
     <div className="my-16 flex justify-center">
-      <VineDivider
-        width={600}
-        height={50}
-        flowerCount={3}
-        className="mx-auto opacity-60"
-      />
+      <VineDivider width={600} height={50} flowerCount={3} className="mx-auto opacity-60" />
     </div>
   )
 }
@@ -99,45 +85,45 @@ export function CityGuide() {
       <div className="absolute inset-0 bg-wash-mauve opacity-[0.35] pointer-events-none" />
       <div className="absolute inset-0 bg-paper opacity-30 pointer-events-none" />
 
-      {/* Edge petals */}
+      {/* Edge petals — hidden on mobile so the paper notes breathe */}
       <Petal
         color="#F7D8BD"
         size={32}
         rotation={-25}
-        className="absolute top-24 left-6 opacity-50 animate-float pointer-events-none"
+        className="hidden md:block absolute top-24 left-6 opacity-50 animate-float pointer-events-none"
       />
       <Petal
         color="#C98262"
         size={26}
         rotation={40}
-        className="absolute top-44 right-10 opacity-40 animate-float pointer-events-none"
+        className="hidden md:block absolute top-44 right-10 opacity-40 animate-float pointer-events-none"
       />
       <Petal
         color="#DFB100"
         size={22}
         rotation={15}
-        className="absolute bottom-32 left-12 opacity-45 animate-float pointer-events-none"
+        className="hidden md:block absolute bottom-32 left-12 opacity-45 animate-float pointer-events-none"
       />
       <Petal
         color="#AA9DA9"
         size={28}
         rotation={-60}
-        className="absolute bottom-20 right-8 opacity-35 animate-float pointer-events-none"
+        className="hidden md:block absolute bottom-20 right-8 opacity-35 animate-float pointer-events-none"
       />
       <Petal
         color="#F5D1B2"
         size={20}
         rotation={120}
-        className="absolute top-1/2 left-4 opacity-30 animate-float pointer-events-none"
+        className="hidden md:block absolute top-1/2 left-4 opacity-30 animate-float pointer-events-none"
       />
       <Petal
         color="#C98262"
         size={24}
         rotation={-100}
-        className="absolute top-1/3 right-4 opacity-30 animate-float pointer-events-none"
+        className="hidden md:block absolute top-1/3 right-4 opacity-30 animate-float pointer-events-none"
       />
 
-      <div className="relative max-w-5xl mx-auto px-6">
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6">
         {/* Heading */}
         <RevealOnScroll>
           <div className="text-center mb-16">
@@ -160,7 +146,7 @@ export function CityGuide() {
                   />
                 </Bloom>
               </svg>
-              <h2 className="font-display italic text-5xl md:text-6xl text-forest-deep">
+              <h2 className="font-display italic text-4xl sm:text-5xl md:text-6xl text-forest-deep">
                 {t('city.title')}
               </h2>
               <svg
@@ -182,9 +168,7 @@ export function CityGuide() {
                 </Bloom>
               </svg>
             </div>
-            <p className="font-serif italic text-mauve text-lg md:text-xl">
-              {t('city.subtitle')}
-            </p>
+            <p className="font-serif italic text-mauve text-lg md:text-xl">{t('city.subtitle')}</p>
           </div>
         </RevealOnScroll>
 
@@ -249,9 +233,7 @@ export function CityGuide() {
         <div className="grid sm:grid-cols-2 gap-6">
           {CONFIG.cityGuide.restaurants.map((r, i) => (
             <PaperNote key={`r-${i}`} delay={i * 0.05}>
-              <h4 className="font-display text-lg text-forest-deep mb-1 leading-tight">
-                {r.name}
-              </h4>
+              <h4 className="font-display text-lg text-forest-deep mb-1 leading-tight">{r.name}</h4>
               <span className="inline-block font-serif italic text-xs tracking-wide text-honey mb-3">
                 {lang === 'pt' ? r.cuisine_pt : r.cuisine_en}
               </span>

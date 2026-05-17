@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { QRCode } from 'react-qrcode-logo'
-import {
-  Flower,
-  OvalFrame,
-  Petal,
-  TornPaperFrame,
-  VineDivider,
-} from '../botanicals'
+import { Flower, OvalFrame, Petal, TornPaperFrame, VineDivider } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
 import { RevealOnScroll } from '../motion/RevealOnScroll'
 import { useGifts } from '../../hooks/useGifts'
@@ -132,10 +126,7 @@ export function GiftShop({ guest }: Props) {
   }
 
   return (
-    <section
-      id="gifts"
-      className="relative overflow-hidden py-24 md:py-32 bg-peach-warm"
-    >
+    <section id="gifts" className="relative overflow-hidden py-24 md:py-32 bg-peach-warm">
       {/* Layered backgrounds */}
       <div className="absolute inset-0 bg-wash-peach opacity-50 pointer-events-none" aria-hidden />
       <div className="absolute inset-0 bg-paper opacity-30 pointer-events-none" aria-hidden />
@@ -153,39 +144,42 @@ export function GiftShop({ guest }: Props) {
         <VineDivider width={1600} height={70} flowerCount={4} className="w-full h-auto" />
       </div>
 
-      {/* Floating edge petals */}
-      <div className="absolute top-24 left-6 animate-float pointer-events-none" aria-hidden>
+      {/* Floating edge petals — hidden on mobile to declutter the gift grid */}
+      <div
+        className="hidden md:block absolute top-24 left-6 animate-float pointer-events-none"
+        aria-hidden
+      >
         <Petal color="#F7D8BD" size={28} rotation={-18} />
       </div>
       <div
-        className="absolute top-40 right-10 animate-float pointer-events-none"
+        className="hidden md:block absolute top-40 right-10 animate-float pointer-events-none"
         style={{ animationDelay: '1.4s' }}
         aria-hidden
       >
         <Petal color="#DFB100" size={22} rotation={32} />
       </div>
       <div
-        className="absolute bottom-32 left-12 animate-float pointer-events-none"
+        className="hidden md:block absolute bottom-32 left-12 animate-float pointer-events-none"
         style={{ animationDelay: '2.6s' }}
         aria-hidden
       >
         <Petal color="#C98262" size={20} rotation={48} />
       </div>
       <div
-        className="absolute bottom-48 right-8 animate-float pointer-events-none"
+        className="hidden md:block absolute bottom-48 right-8 animate-float pointer-events-none"
         style={{ animationDelay: '0.8s' }}
         aria-hidden
       >
         <Petal color="#ADB897" size={26} rotation={-22} />
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-6 pt-8">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-8">
         <RevealOnScroll>
           <div className="text-center mb-16">
             <p className="font-sans text-xs tracking-[0.35em] uppercase text-honey mb-3">
               {t('nav.gifts')}
             </p>
-            <h2 className="font-display italic text-5xl md:text-6xl text-forest-deep">
+            <h2 className="font-display italic text-4xl sm:text-5xl md:text-6xl text-forest-deep">
               {t('gifts.title')}
             </h2>
             <p className="font-serif italic text-mauve mt-4 max-w-xl mx-auto leading-relaxed">
@@ -397,9 +391,7 @@ function GiftModal(props: ModalProps) {
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-0 sm:px-4 bg-forest-deep/40 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && props.onClose()}
     >
-      <div
-        className="relative bg-peach-light w-full sm:max-w-md rounded-t-3xl sm:rounded-[28px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_rgba(63,96,65,0.25)] border border-sage/30"
-      >
+      <div className="relative bg-peach-light w-full sm:max-w-md rounded-t-3xl sm:rounded-[28px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_rgba(63,96,65,0.25)] border border-sage/30">
         {/* Paper texture inside modal */}
         <div
           className="absolute inset-0 bg-paper opacity-25 pointer-events-none rounded-t-3xl sm:rounded-[28px]"
@@ -544,9 +536,7 @@ function GiftModal(props: ModalProps) {
                 R$ {props.totalAmount.toFixed(2)}
               </p>
               <p className="text-center font-serif italic text-xs text-mauve mb-6">
-                {selectedCotas
-                  .map((c) => (lang === 'pt' ? c.label_pt : c.label_en))
-                  .join(' + ')}
+                {selectedCotas.map((c) => (lang === 'pt' ? c.label_pt : c.label_en)).join(' + ')}
               </p>
 
               <button
@@ -658,7 +648,14 @@ function GiftModal(props: ModalProps) {
                   aria-hidden
                 >
                   <Bloom delay={0}>
-                    <Flower cx={-60} cy={0} variant="daisy" color="#DC9A32" size={1.1} animate={false} />
+                    <Flower
+                      cx={-60}
+                      cy={0}
+                      variant="daisy"
+                      color="#DC9A32"
+                      size={1.1}
+                      animate={false}
+                    />
                   </Bloom>
                   <Bloom delay={0.15}>
                     <Flower
@@ -691,16 +688,20 @@ function GiftModal(props: ModalProps) {
                     />
                   </Bloom>
                   <Bloom delay={0.6}>
-                    <Flower cx={75} cy={4} variant="filler" color="#ADB897" size={1.2} animate={false} />
+                    <Flower
+                      cx={75}
+                      cy={4}
+                      variant="filler"
+                      color="#ADB897"
+                      size={1.2}
+                      animate={false}
+                    />
                   </Bloom>
                 </svg>
               </div>
 
               {/* Drifting petals */}
-              <div
-                className="absolute top-4 left-6 animate-float pointer-events-none"
-                aria-hidden
-              >
+              <div className="absolute top-4 left-6 animate-float pointer-events-none" aria-hidden>
                 <Petal color="#F7D8BD" size={18} rotation={-22} />
               </div>
               <div
@@ -836,7 +837,14 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
           opacity={0.7}
         />
         {/* Corner filler flowers */}
-        <Flower cx={16} cy={size - 14} variant="filler" color="#ADB897" size={0.9} animate={false} />
+        <Flower
+          cx={16}
+          cy={size - 14}
+          variant="filler"
+          color="#ADB897"
+          size={0.9}
+          animate={false}
+        />
         <Flower
           cx={size - 16}
           cy={size - 14}

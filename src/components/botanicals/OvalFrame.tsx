@@ -53,14 +53,7 @@ export function OvalFrame({
       </defs>
 
       {/* Watercolor backing — offset and slightly larger than the photo oval */}
-      <ellipse
-        cx={backingCx}
-        cy={backingCy}
-        rx={rx + 10}
-        ry={ry + 8}
-        fill={tint}
-        opacity={0.22}
-      />
+      <ellipse cx={backingCx} cy={backingCy} rx={rx + 10} ry={ry + 8} fill={tint} opacity={0.22} />
       <ellipse
         cx={backingCx + 4}
         cy={backingCy - 4}

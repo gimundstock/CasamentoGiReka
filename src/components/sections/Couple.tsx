@@ -31,9 +31,7 @@ function PortraitBlock({ imageSrc, imageAlt, name, role, bio, delay }: PortraitB
         <h3 className="font-display italic text-3xl text-forest-deep mt-6">{name}</h3>
         <p className="font-serif italic text-mauve text-sm mt-1 tracking-wide">{role}</p>
         {bio && (
-          <p className="font-serif text-base text-forest/80 leading-relaxed mt-4 max-w-sm">
-            {bio}
-          </p>
+          <p className="font-serif text-base text-forest/80 leading-relaxed mt-4 max-w-sm">{bio}</p>
         )}
       </div>
     </RevealOnScroll>
@@ -60,10 +58,7 @@ export function Couple() {
   const stepY = milestones.length > 0 ? 880 / (milestones.length + 1) : 0
 
   return (
-    <section
-      id="couple"
-      className="relative bg-peach-light overflow-hidden py-24 md:py-32"
-    >
+    <section id="couple" className="relative bg-peach-light overflow-hidden py-24 md:py-32">
       {/* Watercolor washes */}
       <div className="absolute inset-0 bg-wash-peach opacity-50 pointer-events-none" />
       <div className="absolute inset-0 bg-paper opacity-30 pointer-events-none" />
@@ -73,46 +68,46 @@ export function Couple() {
         <Garland width={720} height={180} density="sparse" className="w-full h-auto" />
       </div>
 
-      {/* Scattered petals */}
+      {/* Scattered petals — hidden on mobile to declutter portraits */}
       <Petal
         color="#F7D8BD"
         size={30}
         rotation={-20}
-        className="absolute top-32 left-8 opacity-50 animate-float pointer-events-none"
+        className="hidden md:block absolute top-32 left-8 opacity-50 animate-float pointer-events-none"
       />
       <Petal
         color="#C98262"
         size={24}
         rotation={45}
-        className="absolute top-1/3 right-10 opacity-40 animate-float pointer-events-none"
+        className="hidden md:block absolute top-1/3 right-10 opacity-40 animate-float pointer-events-none"
       />
       <Petal
         color="#DFB100"
         size={22}
         rotation={-50}
-        className="absolute bottom-40 left-12 opacity-45 animate-float pointer-events-none"
+        className="hidden md:block absolute bottom-40 left-12 opacity-45 animate-float pointer-events-none"
       />
       <Petal
         color="#AA9DA9"
         size={26}
         rotation={70}
-        className="absolute bottom-20 right-16 opacity-35 animate-float pointer-events-none"
+        className="hidden md:block absolute bottom-20 right-16 opacity-35 animate-float pointer-events-none"
       />
       <Petal
         color="#F5D1B2"
         size={20}
         rotation={140}
-        className="absolute top-1/2 left-6 opacity-30 animate-float pointer-events-none"
+        className="hidden md:block absolute top-1/2 left-6 opacity-30 animate-float pointer-events-none"
       />
 
-      <div className="relative max-w-5xl mx-auto px-6 pt-20">
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-20">
         {/* Heading */}
         <RevealOnScroll>
           <div className="text-center mb-20">
             <p className="font-serif italic text-mauve text-sm tracking-[0.3em] uppercase mb-3">
               {CONFIG.couple.bride} & {CONFIG.couple.groom}
             </p>
-            <h2 className="font-display italic text-5xl md:text-6xl text-forest-deep">
+            <h2 className="font-display italic text-4xl sm:text-5xl md:text-6xl text-forest-deep">
               {t('couple.title')}
             </h2>
           </div>
@@ -141,7 +136,7 @@ export function Couple() {
           <>
             <RevealOnScroll>
               <div className="text-center mb-16">
-                <h3 className="font-display italic text-4xl md:text-5xl text-forest-deep">
+                <h3 className="font-display italic text-3xl sm:text-4xl md:text-5xl text-forest-deep">
                   {t('couple.ourStory')}
                 </h3>
               </div>
@@ -156,12 +151,7 @@ export function Couple() {
                 className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 h-full w-32 pointer-events-none"
                 aria-hidden
               >
-                <DrawStem
-                  d={STORY_VINE_D}
-                  stroke="#4E784F"
-                  strokeWidth={1.6}
-                  duration={3.2}
-                />
+                <DrawStem d={STORY_VINE_D} stroke="#4E784F" strokeWidth={1.6} duration={3.2} />
                 <DrawStem
                   d={STORY_VINE_D}
                   stroke="#3F6041"

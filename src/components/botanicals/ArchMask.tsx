@@ -111,11 +111,7 @@ export function ArchMask({
       <path d={d} stroke={stroke} strokeWidth={sw} strokeLinecap="round" fill="none" />
     )
 
-  const renderBloomed = (
-    key: string,
-    delay: number,
-    children: React.ReactNode,
-  ) =>
+  const renderBloomed = (key: string, delay: number, children: React.ReactNode) =>
     animate ? (
       <Bloom key={key} delay={delay}>
         {children}
@@ -161,13 +157,7 @@ export function ArchMask({
       />
 
       {/* Soft arch outline */}
-      <path
-        d={archStroke}
-        stroke="#4E784F"
-        strokeWidth={1.4}
-        fill="none"
-        opacity={0.32}
-      />
+      <path d={archStroke} stroke="#4E784F" strokeWidth={1.4} fill="none" opacity={0.32} />
 
       {/* Top garland — three overlapping stems drawn sequentially */}
       {renderStem(GARLAND_STEM_1, '#4E784F', 1.4, 0, 2.4)}
@@ -192,8 +182,8 @@ export function ArchMask({
             size={leaf.size}
             variant={leaf.variant}
             fill={leaf.fill ?? '#ADB897'}
-          />,
-        ),
+          />
+        )
       )}
       {SHOULDER_LEAVES.map((leaf, i) =>
         renderBloomed(
@@ -206,8 +196,8 @@ export function ArchMask({
             size={leaf.size}
             variant={leaf.variant}
             fill={leaf.fill ?? '#ADB897'}
-          />,
-        ),
+          />
+        )
       )}
 
       {/* Flowers — Flower component already handles its own Bloom; pass animate. */}

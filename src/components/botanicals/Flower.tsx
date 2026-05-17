@@ -29,13 +29,7 @@ const PETAL_PATH_COSMOS = 'M 0 0 C 1.5 -6 1 -14 0 -18 C -1 -14 -1.5 -6 0 0 Z'
 const PETAL_PATH_ANEMONE = 'M 0 0 C 3 -4 5 -10 3 -15 C 0 -17 -3 -15 -3 -10 C -3 -5 -1.5 -2 0 0 Z'
 const PETAL_PATH_FILLER = 'M 0 0 C 1 -2 1.2 -5 0 -6.5 C -1.2 -5 -1 -2 0 0 Z'
 
-function renderPetals(
-  angles: number[],
-  d: string,
-  color: string,
-  opacity: number,
-  size: number,
-) {
+function renderPetals(angles: number[], d: string, color: string, opacity: number, size: number) {
   return angles.map((angle, i) => (
     <path
       key={i}
@@ -117,9 +111,7 @@ export function Flower({
   delay = 0,
   className,
 }: Props) {
-  const body = (
-    <FlowerBody variant={variant} size={size} color={color} centerColor={centerColor} />
-  )
+  const body = <FlowerBody variant={variant} size={size} color={color} centerColor={centerColor} />
 
   if (!animate) {
     return (
