@@ -1,9 +1,10 @@
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useScroll } from 'framer-motion'
 import type { Guest } from '../../types'
 import { CONFIG } from '../../content.config'
 import { LetterFlock } from '../motion/LetterFlock'
 import { MaskReveal } from '../motion/MaskReveal'
-import { useArmedOnScroll } from '../motion/useArmedOnScroll'
 
 interface Props {
   guest: Guest
@@ -55,10 +56,16 @@ function Daisy({ className }: { className?: string }) {
 
 export function WelcomeDaisy({ guest }: Props) {
   const { t, i18n } = useTranslation()
-  const armed = useArmedOnScroll()
+
+  // Locked stage — same scroll-pinned pattern as the Saisei hero. The
+  // poster stamps itself together across the locked scroll budget.
+  const stageRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: stageRef,
+    offset: ['start start', 'end end'],
+  })
 
   const weddingDate = new Date(CONFIG.wedding.date)
-
   const day = weddingDate.toLocaleDateString(i18n.language === 'pt' ? 'pt-BR' : 'en-GB', {
     day: '2-digit',
   })
@@ -71,70 +78,95 @@ export function WelcomeDaisy({ guest }: Props) {
   })
 
   return (
-    <section
-      id="welcome"
-      className="relative min-h-screen overflow-hidden bg-terracotta flex items-center justify-center px-6 py-20"
-    >
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <Daisy className="w-[150vmin] h-[150vmin] max-w-none" />
-      </div>
+    <section id="welcome" className="bg-terracotta relative">
+      <div ref={stageRef} className="relative h-[200vh]">
+        <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <Daisy className="h-[150vmin] w-[150vmin] max-w-none" />
+          </div>
 
-      <div className="relative z-10 w-full max-w-5xl mx-auto">
-        <div className="absolute -top-4 left-0 sm:-top-8">
-          <MaskReveal direction="up" delay={0.1} play={armed}>
-            <div className="bg-peach-light text-terracotta px-4 sm:px-6 py-3 sm:py-4">
-              <p className="font-sans text-[0.7rem] sm:text-xs tracking-[0.4em] uppercase">
-                Save the Date
-              </p>
+          <div className="relative z-10 mx-auto w-full max-w-5xl">
+            <div className="absolute -top-4 left-0 sm:-top-8">
+              <MaskReveal direction="up" scrollProgress={scrollYProgress} scrollEnd={0.18}>
+                <div className="bg-peach-light text-terracotta px-4 py-3 sm:px-6 sm:py-4">
+                  <p className="font-sans text-[0.7rem] tracking-[0.4em] uppercase sm:text-xs">
+                    Save the Date
+                  </p>
+                </div>
+              </MaskReveal>
             </div>
-          </MaskReveal>
-        </div>
 
-        <div className="absolute top-1/2 right-0 -translate-y-1/2 flex flex-col items-end gap-3">
-          <MaskReveal direction="left" delay={0.3} play={armed}>
-            <span className="block bg-peach-light text-terracotta px-5 sm:px-7 py-2 sm:py-3 font-display italic text-5xl sm:text-7xl md:text-8xl leading-none">
-              {day}
-            </span>
-          </MaskReveal>
-          <MaskReveal direction="left" delay={0.5} play={armed}>
-            <span className="block bg-forest-deep text-peach-light px-4 sm:px-6 py-2 sm:py-3 font-sans tracking-[0.4em] text-base sm:text-xl">
-              {month}
-            </span>
-          </MaskReveal>
-          <MaskReveal direction="left" delay={0.7} play={armed}>
-            <span className="block bg-peach-light text-terracotta px-4 sm:px-6 py-1 sm:py-2 font-display italic text-2xl sm:text-3xl">
-              {year}
-            </span>
-          </MaskReveal>
-        </div>
-
-        <div className="absolute -bottom-2 left-0 right-0 sm:right-auto">
-          <MaskReveal direction="up" delay={0.9} play={armed}>
-            <div className="bg-peach-light text-terracotta px-5 sm:px-7 py-3 sm:py-4 inline-block">
-              <p className="font-display italic text-2xl sm:text-4xl md:text-5xl leading-none">
-                <LetterFlock
-                  text={`${CONFIG.couple.bride} & ${CONFIG.couple.groom}`}
-                  delay={1.2}
-                  stagger={0.04}
-                  spreadX={60}
-                  spreadY={30}
-                  spreadRotate={6}
-                  play={armed}
-                />
-              </p>
+            <div className="absolute top-1/2 right-0 flex -translate-y-1/2 flex-col items-end gap-3">
+              <MaskReveal
+                direction="left"
+                scrollProgress={scrollYProgress}
+                scrollStart={0.15}
+                scrollEnd={0.4}
+              >
+                <span className="bg-peach-light text-terracotta font-display block px-5 py-2 text-5xl leading-none italic sm:px-7 sm:py-3 sm:text-7xl md:text-8xl">
+                  {day}
+                </span>
+              </MaskReveal>
+              <MaskReveal
+                direction="left"
+                scrollProgress={scrollYProgress}
+                scrollStart={0.3}
+                scrollEnd={0.55}
+              >
+                <span className="bg-forest-deep text-peach-light font-sans block px-4 py-2 text-base tracking-[0.4em] sm:px-6 sm:py-3 sm:text-xl">
+                  {month}
+                </span>
+              </MaskReveal>
+              <MaskReveal
+                direction="left"
+                scrollProgress={scrollYProgress}
+                scrollStart={0.45}
+                scrollEnd={0.7}
+              >
+                <span className="bg-peach-light text-terracotta font-display block px-4 py-1 text-2xl italic sm:px-6 sm:py-2 sm:text-3xl">
+                  {year}
+                </span>
+              </MaskReveal>
             </div>
-          </MaskReveal>
+
+            <div className="absolute right-0 -bottom-2 left-0 sm:right-auto">
+              <MaskReveal
+                direction="up"
+                scrollProgress={scrollYProgress}
+                scrollStart={0.65}
+                scrollEnd={0.9}
+              >
+                <div className="bg-peach-light text-terracotta inline-block px-5 py-3 sm:px-7 sm:py-4">
+                  <p className="font-display text-2xl leading-none italic sm:text-4xl md:text-5xl">
+                    <LetterFlock
+                      text={`${CONFIG.couple.bride} & ${CONFIG.couple.groom}`}
+                      scrollProgress={scrollYProgress}
+                      scrollSpan={0.3}
+                      spreadX={60}
+                      spreadY={30}
+                      spreadRotate={6}
+                    />
+                  </p>
+                </div>
+              </MaskReveal>
+            </div>
+
+            <div className="h-[80vh] sm:h-[70vh]" />
+          </div>
+
+          <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 text-center">
+            <MaskReveal
+              direction="up"
+              scrollProgress={scrollYProgress}
+              scrollStart={0.85}
+              scrollEnd={1}
+            >
+              <p className="font-sans text-peach-light/80 text-[0.6rem] tracking-[0.4em] uppercase">
+                {t('welcome.greeting', { name: guest.groupName })}
+              </p>
+            </MaskReveal>
+          </div>
         </div>
-
-        <div className="h-[80vh] sm:h-[70vh]" />
-      </div>
-
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center pointer-events-none">
-        <MaskReveal direction="up" delay={1.5} play={armed}>
-          <p className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-peach-light/80">
-            {t('welcome.greeting', { name: guest.groupName })}
-          </p>
-        </MaskReveal>
       </div>
     </section>
   )
