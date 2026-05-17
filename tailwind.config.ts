@@ -5,17 +5,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        peach: '#F5D1B2',
+        // Canvas: warm cream/ivory (renamed semantically from "peach" — keys
+        // kept so existing bg-peach* classes pick up the new tones).
+        peach: '#F2E8D5',
+        'peach-light': '#FAF3E3',
+        'peach-warm': '#ECDFC6',
         mauve: '#AA9DA9',
+        'mauve-light': '#B9A8B5',
         sage: '#ADB897',
+        'sage-light': '#C3CBB2',
         forest: '#4E784F',
+        'forest-deep': '#3F6041',
         amber: '#DC8000',
         gold: '#DFB100',
-        'peach-light': '#FAE6D4',
-        'peach-warm': '#F7D8BD',
-        'sage-light': '#C3CBB2',
-        'forest-deep': '#3F6041',
-        'mauve-light': '#B9A8B5',
         terracotta: '#C98262',
         honey: '#DC9A32',
       },
