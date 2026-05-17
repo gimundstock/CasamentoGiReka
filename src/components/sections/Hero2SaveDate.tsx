@@ -98,8 +98,8 @@ export function Hero2SaveDate() {
             count={16}
             variant="image"
             images={FLOWER_IMAGES}
-            sizeMin={36}
-            sizeMax={72}
+            sizeMin={70}
+            sizeMax={140}
           />
 
           {/* Centered stack — SAVE THE DATE on top, then a comfortable gap,

@@ -27,14 +27,32 @@ interface Props {
   scrollStart?: number
   /** Scroll range end (0–1). Default 1. */
   scrollEnd?: number
-  /** Gate the auto-play. `false` keeps letters edge-on, `true` plays. */
+  /** Gate the auto-play. `false` keeps letters scattered, `true` plays. */
   play?: boolean
-  /** Initial uniform scale per letter. Default 0.25 — letters grow as they flip. */
+  /** Max random horizontal offset each letter starts at, in px. Default 400. */
+  spreadX?: number
+  /** Max random vertical offset each letter starts at, in px. Default 240. */
+  spreadY?: number
+  /**
+   * Max random 2D rotation each letter starts at, in degrees. Default 180
+   * — letters can begin upside down or at any angle.
+   */
+  spreadRotate?: number
+  /**
+   * Initial scale for the smallest letters. Each letter picks a starting
+   * scale somewhere in `[scaleFrom, scaleFrom + scaleVariance]`. Default
+   * 0.3 — most letters start small and grow.
+   */
   scaleFrom?: number
-  /** Final uniform scale. Default 1. */
+  /**
+   * Random variance on the starting scale (so some letters begin a bit
+   * bigger than `scaleFrom`). Default 0.8 — start scales land somewhere in
+   * [0.3, 1.1] with the defaults, giving size variety at the scattered
+   * state.
+   */
+  scaleVariance?: number
+  /** Final scale. Default 1. */
   scaleTo?: number
-  /** Fade letters in by interpolating opacity 0→1 alongside the flip. Default false. */
-  withFade?: boolean
 }
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -42,19 +60,28 @@ const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 const LETTER_STYLE = {
   display: 'inline-block',
   transformOrigin: 'center',
-  backfaceVisibility: 'hidden',
-  transformStyle: 'preserve-3d',
+  willChange: 'transform',
 } as const
 
 interface LetterToken {
   char: string
   isSpace: boolean
-  /** Index across all non-space letters — drives the stagger. */
+  /** Index across non-space letters — drives the stagger and randomness. */
   letterIndex: number
+  initialX: number
+  initialY: number
+  initialRotate: number
+  initialScale: number
 }
 
 interface LineToken {
   letters: LetterToken[]
+}
+
+function pseudoRandom(seed: number): number {
+  // Deterministic per-letter randomness so the scatter is stable across mounts.
+  const x = Math.sin(seed * 12.9898) * 43758.5453
+  return x - Math.floor(x)
 }
 
 interface ScrollLetterProps {
@@ -62,9 +89,11 @@ interface ScrollLetterProps {
   scrollProgress: MotionValue<number>
   start: number
   end: number
-  scaleFrom: number
+  initialX: number
+  initialY: number
+  initialRotate: number
+  initialScale: number
   scaleTo: number
-  withFade: boolean
   className?: string
 }
 
@@ -73,32 +102,35 @@ function ScrollLetter({
   scrollProgress,
   start,
   end,
-  scaleFrom,
+  initialX,
+  initialY,
+  initialRotate,
+  initialScale,
   scaleTo,
-  withFade,
   className,
 }: ScrollLetterProps) {
-  // Per-letter hooks are extracted into a sub-component so we don't break
-  // the rules-of-hooks (no hooks in a map).
-  const rotateY = useTransform(scrollProgress, [start, end], [90, 0])
-  const scaleX = useTransform(scrollProgress, [start, end], [0, 1])
-  const scale = useTransform(scrollProgress, [start, end], [scaleFrom, scaleTo])
-  const opacity = useTransform(scrollProgress, [start, end], withFade ? [0, 1] : [1, 1])
+  // Per-letter hooks live in a sub-component so we don't break rules-of-hooks
+  // (no hook calls inside a map). Each letter interpolates its scattered
+  // initial pose (random x/y/rotation/scale) → its resting pose (0/0/0/scaleTo).
+  const x = useTransform(scrollProgress, [start, end], [initialX, 0])
+  const y = useTransform(scrollProgress, [start, end], [initialY, 0])
+  const rotate = useTransform(scrollProgress, [start, end], [initialRotate, 0])
+  const scale = useTransform(scrollProgress, [start, end], [initialScale, scaleTo])
 
   return (
-    <motion.span className={className} style={{ ...LETTER_STYLE, rotateY, scaleX, scale, opacity }}>
+    <motion.span className={className} style={{ ...LETTER_STYLE, x, y, rotate, scale }}>
       {char}
     </motion.span>
   )
 }
 
 /**
- * 3D letter-flip headline. Each character flips in from edge-on
- * (`rotateY: 90deg`) to face-on (`rotateY: 0deg`), pairs with a
- * horizontal scale for the flip emphasis, and grows from `scaleFrom`
- * to `scaleTo` so letters get larger as they assemble. Letters start at
- * staggered scroll/time points but all finish at the same instant — the
- * line resolves in a single beat.
+ * Scatter-and-collect headline. Each character starts at a random
+ * position / rotation / scale (rotation can include 180°, so letters
+ * may start upside down) and gathers to its resting pose as the
+ * scroll progresses. Letters start at staggered scroll/time points
+ * but all finish at the same instant — the line resolves in a single
+ * beat.
  *
  * Pass `scrollProgress` (from `useScroll`) for scroll-driven mode.
  */
@@ -114,9 +146,12 @@ export function FlipLetters({
   scrollStart = 0,
   scrollEnd = 1,
   play,
-  scaleFrom = 0.25,
+  spreadX = 400,
+  spreadY = 240,
+  spreadRotate = 180,
+  scaleFrom = 0.3,
+  scaleVariance = 0.8,
   scaleTo = 1,
-  withFade = false,
 }: Props) {
   const reduced = useReducedMotion()
 
@@ -126,18 +161,38 @@ export function FlipLetters({
     const built: LineToken[] = rawLines.map((line) => {
       const letters: LetterToken[] = Array.from(line).map((char) => {
         const isSpace = char === ' '
-        const token: LetterToken = {
+        if (isSpace) {
+          return {
+            char,
+            isSpace,
+            letterIndex: -1,
+            initialX: 0,
+            initialY: 0,
+            initialRotate: 0,
+            initialScale: 1,
+          }
+        }
+        const i = counter
+        counter += 1
+        // Four independent pseudo-random seeds per letter for stable shuffling.
+        const rx = pseudoRandom(i * 4 + 11)
+        const ry = pseudoRandom(i * 4 + 23)
+        const rr = pseudoRandom(i * 4 + 47)
+        const rs = pseudoRandom(i * 4 + 91)
+        return {
           char,
           isSpace,
-          letterIndex: isSpace ? -1 : counter,
+          letterIndex: i,
+          initialX: (rx - 0.5) * 2 * spreadX,
+          initialY: (ry - 0.5) * 2 * spreadY,
+          initialRotate: (rr - 0.5) * 2 * spreadRotate,
+          initialScale: scaleFrom + rs * scaleVariance,
         }
-        if (!isSpace) counter += 1
-        return token
       })
       return { letters }
     })
     return { lines: built, totalLetters: counter }
-  }, [text])
+  }, [text, spreadX, spreadY, spreadRotate, scaleFrom, scaleVariance])
 
   if (reduced) {
     return (
@@ -152,22 +207,13 @@ export function FlipLetters({
   }
 
   const safeStagger = Math.max(0, Math.min(1, staggerRatio))
-  // Use (N-1) intervals between N letters so the last letter's start lands
-  // at exactly `window * staggerRatio` past the first — i.e. the full
-  // requested spread. With N as the divisor (the previous behavior) the
-  // spread is short by one step, which compressed the perceived cascade.
   const denom = Math.max(totalLetters - 1, 1)
-
   const autoStep = (duration * safeStagger) / denom
   const scrollWindow = Math.max(0, scrollEnd - scrollStart)
   const scrollStep = (scrollWindow * safeStagger) / denom
 
   return (
-    <span
-      className={className}
-      style={{ perspective: '1000px' }}
-      aria-label={text.replace(/\n/g, ' ')}
-    >
+    <span className={className} aria-label={text.replace(/\n/g, ' ')}>
       {lines.map((line, li) => (
         <span key={li} className={`block ${lineClassName ?? ''}`} aria-hidden>
           {line.letters.length === 0 ? ' ' : null}
@@ -187,9 +233,11 @@ export function FlipLetters({
                   scrollProgress={scrollProgress}
                   start={start}
                   end={end}
-                  scaleFrom={scaleFrom}
+                  initialX={letter.initialX}
+                  initialY={letter.initialY}
+                  initialRotate={letter.initialRotate}
+                  initialScale={letter.initialScale}
                   scaleTo={scaleTo}
-                  withFade={withFade}
                   className={letterClassName}
                 />
               )
@@ -198,12 +246,12 @@ export function FlipLetters({
             const letterStart = i * autoStep
             const letterDuration = Math.max(duration - letterStart, 0.001)
             const initial = {
-              rotateY: -90,
-              rotateZ: -25,
-              scale: scaleFrom,
-              opacity: withFade ? 0 : 1,
+              x: letter.initialX,
+              y: letter.initialY,
+              rotate: letter.initialRotate,
+              scale: letter.initialScale,
             }
-            const final = { rotateY: 0, rotateZ: 0, scale: scaleTo, opacity: 1 }
+            const final = { x: 0, y: 0, rotate: 0, scale: scaleTo }
             const animate = play === false ? initial : final
 
             return (
