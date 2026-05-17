@@ -35,7 +35,7 @@ export function Leaf({
   rotation = 0,
   size = 1,
   variant = 1,
-  fill = '#ADB897',
+  fill = '#B8C2A3',
   className,
 }: Props) {
   return (
@@ -47,7 +47,7 @@ export function Leaf({
       <path d={LEAF_PATHS[variant]} fill={fill} />
       <path
         d={LEAF_VEIN[variant]}
-        stroke="#3F6041"
+        stroke="#3F5F3D"
         strokeWidth={0.4}
         strokeLinecap="round"
         fill="none"

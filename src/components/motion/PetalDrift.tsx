@@ -17,7 +17,7 @@ interface Petal {
   rotate: number
 }
 
-const PALETTE = ['#8C7480', '#A39584', '#AA9DA9', '#C3CBB2', '#9A7F84']
+const PALETTE = ['#A88A9D', '#C58A7A', '#A88A9D', '#D0D8B8', '#B96F52']
 
 function rand(min: number, max: number) {
   return Math.random() * (max - min) + min

@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Nav } from './components/layout/Nav'
-import { BackgroundVine } from './components/layout/BackgroundVine'
 import { NameEntry } from './components/sections/NameEntry'
 import { Welcome } from './components/sections/Welcome'
 import { Couple } from './components/sections/Couple'
@@ -9,65 +8,19 @@ import { WeddingInfo } from './components/sections/WeddingInfo'
 import { CityGuide } from './components/sections/CityGuide'
 import { RSVP } from './components/sections/RSVP'
 import { GiftShop } from './components/sections/GiftShop'
-import { Petal, VineDivider } from './components/botanicals'
-import { PetalDrift } from './components/motion/PetalDrift'
 import { useGuest } from './hooks/useGuest'
 import { CONFIG } from './content.config'
 
 function Footer() {
   const { t } = useTranslation()
   return (
-    <footer className="relative overflow-hidden bg-forest-deep text-peach-light py-14 text-center">
-      {/* Paper texture overlay for warmth */}
-      <div className="absolute inset-0 bg-paper opacity-[0.15] pointer-events-none" />
-
-      {/* Tiny petal goodbye flourishes */}
-      <Petal
-        color="#8C7480"
-        size={18}
-        rotation={-25}
-        className="absolute bottom-3 left-[10%] opacity-30 animate-float pointer-events-none"
-      />
-      <Petal
-        color="#A39584"
-        size={16}
-        rotation={40}
-        className="absolute bottom-6 left-[28%] opacity-30 animate-float pointer-events-none"
-      />
-      <Petal
-        color="#9A7F84"
-        size={20}
-        rotation={-60}
-        className="absolute bottom-2 right-[30%] opacity-30 animate-float pointer-events-none"
-      />
-      <Petal
-        color="#8C7480"
-        size={14}
-        rotation={120}
-        className="absolute bottom-5 right-[12%] opacity-30 animate-float pointer-events-none"
-      />
-      <Petal
-        color="#A39584"
-        size={18}
-        rotation={20}
-        className="absolute bottom-1 left-1/2 -translate-x-1/2 opacity-30 animate-float pointer-events-none"
-      />
-
-      <div className="relative">
-        <VineDivider
-          width={400}
-          height={50}
-          flowerCount={3}
-          palette={['#8C7480', '#A39584', '#9A7F84']}
-          className="mx-auto opacity-40 mb-4"
-        />
-        <p className="font-display italic text-4xl mb-2">
-          {CONFIG.couple.bride} & {CONFIG.couple.groom}
-        </p>
-        <p className="font-sans text-xs tracking-widest text-peach-light/50 uppercase">
-          {t('footer.made')} <span className="animate-breath inline-block">♥</span>
-        </p>
-      </div>
+    <footer className="bg-forest-deep text-peach-light py-20 text-center">
+      <p className="font-display italic text-3xl md:text-4xl mb-3">
+        {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
+      </p>
+      <p className="font-sans text-[0.65rem] tracking-[0.35em] text-peach-light/50 uppercase">
+        {t('footer.made')} <span className="animate-breath inline-block">♥</span>
+      </p>
     </footer>
   )
 }
@@ -76,12 +29,10 @@ export default function App() {
   const { state, lookupByName } = useGuest()
   const { i18n } = useTranslation()
 
-  // Update <html lang> attribute when language changes
   useEffect(() => {
     document.documentElement.lang = i18n.language === 'pt' ? 'pt-BR' : 'en'
   }, [i18n.language])
 
-  // Update page title
   useEffect(() => {
     document.title = `${CONFIG.couple.bride} & ${CONFIG.couple.groom} — Casamento`
   }, [])
@@ -94,7 +45,6 @@ export default function App() {
 
   return (
     <>
-      <BackgroundVine />
       <Nav />
       <main>
         <Welcome guest={guest} />
@@ -105,7 +55,6 @@ export default function App() {
         <GiftShop guest={guest} />
       </main>
       <Footer />
-      <PetalDrift count={6} />
     </>
   )
 }

@@ -5,35 +5,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        // INVERTED scheme: violet on the page, peach on top.
-        // The "peach" keys now hold the violet canvas tones (used by
-        // every bg-peach* class — body bg, sections, paper cards), and
-        // the "forest"/"mauve" keys now hold the peach text tones (used
-        // by every text-forest* / text-mauve* class). Key names are
-        // preserved so no section file needs to change.
-        // The literal hexes #4E784F / #3F6041 / #ADB897 inside SVG
-        // vines, stems, and leaves are unchanged — they stay green so
-        // the only green on the page is the botanical illustration.
-        // Lighter dusty plum so the page reads "soft twilight" instead of
-        // "deep velvet". `peach-warm` aliased to the same value as `peach`
-        // so the one section that uses bg-peach-warm (GiftShop) reads
-        // identically to the rest — no per-section color variation.
-        peach: '#8B7280', // canvas (body bg, every section bg)
-        'peach-light': '#9D8593', // lighter — elevated cards inside sections
-        'peach-warm': '#8B7280', // aliased to peach so sections don't drift
-        forest: '#F4DBC4', // was forest green — now warm peach (body text)
-        'forest-deep': '#FAE8D6', // was forest-deep — now light peach (headings, CTA bg)
-        mauve: '#EDD2BB', // was mauve grey — now medium peach (subtitles)
-        'mauve-light': '#F4DBC4', // was mauve-light — now warm peach (soft text)
-        // Sage kept green — used for soft borders and leaf decoration.
-        sage: '#ADB897',
-        'sage-light': '#C3CBB2',
-        // Warm accents remapped to peach tones to keep all text/borders
-        // in the peach family on the violet canvas.
-        amber: '#EDD2BB', // kicker labels
-        gold: '#FAE8D6', // soft accents
-        terracotta: '#F4DBC4', // errors / warm accents
-        honey: '#FAE8D6', // prices, countdown numbers
+        // Saisei-style palette. Key names preserved so no section file
+        // needs to change — the underlying tones are warm cream/peach
+        // with dark warm-brown text and green/rose/amber accents.
+        //
+        // Canvas (bg-peach*)
+        peach: '#F8E8D8', // primary background (body, sections)
+        'peach-light': '#FFF4E8', // paper / card background (lightest)
+        'peach-warm': '#F3D2B8', // secondary background (deeper accents)
+        // Text (text-forest*, text-mauve*)
+        forest: '#7A6758', // secondary text (body)
+        'forest-deep': '#3D3229', // primary text (headings, CTA bg)
+        mauve: '#A88A9D', // muted mauve — subtitle / accent
+        'mauve-light': '#B9AFC1', // faded lilac — soft text / decoration
+        // Greens — used for botanical detail (leaves, vines, sage borders)
+        sage: '#B8C2A3', // soft sage — light leaf fill, soft borders
+        'sage-light': '#D0D8B8', // lighter sage tint
+        // Warm accents
+        amber: '#D89A35', // honey amber — kicker labels, price weight
+        gold: '#C58A7A', // dusty rose — soft accents
+        terracotta: '#B96F52', // clay terracotta — error / accent
+        honey: '#D89A35', // alias of amber — prices, countdown numbers
       },
       fontFamily: {
         serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],

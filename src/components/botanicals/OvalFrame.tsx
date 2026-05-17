@@ -15,8 +15,8 @@ export function OvalFrame({
   imageAlt,
   width = 320,
   height = 400,
-  tint = '#ADB897',
-  borderColor = '#4E784F',
+  tint = '#B8C2A3',
+  borderColor = '#3F5F3D',
   className,
 }: Props) {
   const rawId = useId()

@@ -51,12 +51,12 @@ function CornerGarden() {
   ]
 
   const flowers = [
-    { cx: 90, cy: 80, variant: 'filler' as const, color: '#5A7956', size: 1.1, delay: 1.9 },
-    { cx: 175, cy: 150, variant: 'daisy' as const, color: '#A39584', size: 1.2, delay: 2.05 },
-    { cx: 260, cy: 240, variant: 'filler' as const, color: '#9A7F84', size: 1, delay: 2.2 },
-    { cx: 1110, cy: 730, variant: 'filler' as const, color: '#5A7956', size: 1.1, delay: 1.95 },
-    { cx: 1030, cy: 655, variant: 'daisy' as const, color: '#A39584', size: 1.2, delay: 2.1 },
-    { cx: 950, cy: 580, variant: 'filler' as const, color: '#9A7F84', size: 1, delay: 2.25 },
+    { cx: 90, cy: 80, variant: 'filler' as const, color: '#6F7F55', size: 1.1, delay: 1.9 },
+    { cx: 175, cy: 150, variant: 'daisy' as const, color: '#C58A7A', size: 1.2, delay: 2.05 },
+    { cx: 260, cy: 240, variant: 'filler' as const, color: '#B96F52', size: 1, delay: 2.2 },
+    { cx: 1110, cy: 730, variant: 'filler' as const, color: '#6F7F55', size: 1.1, delay: 1.95 },
+    { cx: 1030, cy: 655, variant: 'daisy' as const, color: '#C58A7A', size: 1.2, delay: 2.1 },
+    { cx: 950, cy: 580, variant: 'filler' as const, color: '#B96F52', size: 1, delay: 2.25 },
   ]
 
   return (
@@ -68,24 +68,24 @@ function CornerGarden() {
       aria-hidden
       style={{ opacity: 0.65 }}
     >
-      <DrawStem d={TOP_LEFT_STEM_A} stroke="#4E784F" strokeWidth={1.4} duration={2.6} delay={0.2} />
+      <DrawStem d={TOP_LEFT_STEM_A} stroke="#3F5F3D" strokeWidth={1.4} duration={2.6} delay={0.2} />
       <DrawStem
         d={TOP_LEFT_STEM_B}
-        stroke="#3F6041"
+        stroke="#3F5F3D"
         strokeWidth={1.1}
         duration={2.6}
         delay={0.55}
       />
       <DrawStem
         d={BOTTOM_RIGHT_STEM_A}
-        stroke="#4E784F"
+        stroke="#3F5F3D"
         strokeWidth={1.4}
         duration={2.6}
         delay={0.4}
       />
       <DrawStem
         d={BOTTOM_RIGHT_STEM_B}
-        stroke="#3F6041"
+        stroke="#3F5F3D"
         strokeWidth={1.1}
         duration={2.6}
         delay={0.75}
@@ -99,7 +99,7 @@ function CornerGarden() {
             rotation={l.rotation}
             size={l.size}
             variant={l.variant}
-            fill="#ADB897"
+            fill="#B8C2A3"
           />
         </Bloom>
       ))}
@@ -132,13 +132,13 @@ function CardCornerOrnament({ className, rotate = 0 }: { className?: string; rot
     >
       <path
         d="M 4 36 C 10 26 16 18 26 12"
-        stroke="#4E784F"
+        stroke="#3F5F3D"
         strokeWidth={1.1}
         strokeLinecap="round"
         fill="none"
         opacity={0.55}
       />
-      <Flower cx={26} cy={12} variant="filler" size={0.9} color="#5A7956" animate={false} />
+      <Flower cx={26} cy={12} variant="filler" size={0.9} color="#6F7F55" animate={false} />
     </svg>
   )
 }
@@ -160,7 +160,7 @@ function ScrollHint({ label }: { label: string }) {
       >
         <path
           d="M 11 2 C 14 14 9 24 11 36"
-          stroke="#4E784F"
+          stroke="#3F5F3D"
           strokeWidth={1.2}
           strokeLinecap="round"
           fill="none"
@@ -169,7 +169,7 @@ function ScrollHint({ label }: { label: string }) {
         <g transform="translate(11 38) rotate(20)">
           <path
             d="M 0 0 C 3 -5 9 -6 13 -3 C 15 1 11 5 6 5 C 1 5 -1 3 0 0 Z"
-            fill="#ADB897"
+            fill="#B8C2A3"
             opacity={0.85}
           />
         </g>
@@ -255,7 +255,7 @@ export function Welcome({ guest }: Props) {
                   strokeLinecap="round"
                   fill="none"
                 />
-                <circle cx="54" cy="5" r="1.6" fill="#5A7956" />
+                <circle cx="54" cy="5" r="1.6" fill="#6F7F55" />
               </svg>
               <p className="font-serif italic text-lg sm:text-xl md:text-2xl text-forest/80">
                 {t('welcome.greeting', { name: guest.groupName })}
@@ -275,7 +275,7 @@ export function Welcome({ guest }: Props) {
                   strokeLinecap="round"
                   fill="none"
                 />
-                <circle cx="2" cy="5" r="1.6" fill="#5A7956" />
+                <circle cx="2" cy="5" r="1.6" fill="#6F7F55" />
               </svg>
             </div>
           </RevealOnScroll>

@@ -12,7 +12,7 @@ interface Props {
 
 export function DrawStem({
   d,
-  stroke = '#4E784F',
+  stroke = '#3F5F3D',
   strokeWidth = 1.6,
   duration = 2.4,
   delay = 0,

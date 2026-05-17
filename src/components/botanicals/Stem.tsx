@@ -23,7 +23,7 @@ const STEM_PATHS: Record<1 | 2 | 3 | 4, string> = {
 export function Stem({
   d,
   variant = 1,
-  stroke = '#4E784F',
+  stroke = '#3F5F3D',
   strokeWidth = 1.5,
   animate = true,
   delay = 0,

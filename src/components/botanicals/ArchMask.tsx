@@ -14,7 +14,7 @@ interface Props {
   className?: string
 }
 
-const DEFAULT_PALETTE = ['#8C7480', '#A39584', '#AA9DA9', '#9A7F84', '#5A7956']
+const DEFAULT_PALETTE = ['#A88A9D', '#C58A7A', '#A88A9D', '#B96F52', '#6F7F55']
 
 // Asymmetric garland stems above the arch — three overlapping arcs drawn
 // with staggered delays for a hand-painted, layered feel.
@@ -59,10 +59,10 @@ const TOP_LEAVES: LeafSpec[] = [
 ]
 
 const SHOULDER_LEAVES: LeafSpec[] = [
-  { cx: 22, cy: 268, rotation: -60, size: 1.2, variant: 2, delay: 1.6, fill: '#C3CBB2' },
+  { cx: 22, cy: 268, rotation: -60, size: 1.2, variant: 2, delay: 1.6, fill: '#D0D8B8' },
   { cx: 18, cy: 320, rotation: -50, size: 1.2, variant: 4, delay: 1.65 },
   { cx: 14, cy: 366, rotation: -40, size: 1.1, variant: 1, delay: 1.7 },
-  { cx: 578, cy: 268, rotation: 60, size: 1.2, variant: 3, delay: 1.6, fill: '#C3CBB2' },
+  { cx: 578, cy: 268, rotation: 60, size: 1.2, variant: 3, delay: 1.6, fill: '#D0D8B8' },
   { cx: 582, cy: 322, rotation: 50, size: 1.2, variant: 1, delay: 1.7 },
   { cx: 586, cy: 372, rotation: 40, size: 1.1, variant: 2, delay: 1.75 },
 ]
@@ -136,14 +136,14 @@ export function ArchMask({
       </defs>
 
       {/* Soft watercolor wash behind the arch */}
-      <ellipse cx={300} cy={210} rx={300} ry={170} fill="#ADB897" opacity={0.18} />
-      <ellipse cx={310} cy={230} rx={250} ry={140} fill="#C3CBB2" opacity={0.22} />
+      <ellipse cx={300} cy={210} rx={300} ry={170} fill="#B8C2A3" opacity={0.18} />
+      <ellipse cx={310} cy={230} rx={250} ry={140} fill="#D0D8B8" opacity={0.22} />
 
       {/* Ground shadow */}
-      <ellipse cx={300} cy={410} rx={260} ry={5} fill="#4E784F" opacity={0.16} />
+      <ellipse cx={300} cy={410} rx={260} ry={5} fill="#3F5F3D" opacity={0.16} />
 
       {/* Sage fallback behind the photo */}
-      <path d={archPath} fill="#ADB897" opacity={0.22} />
+      <path d={archPath} fill="#B8C2A3" opacity={0.22} />
 
       {/* Photo clipped to the arch silhouette */}
       <image
@@ -157,18 +157,18 @@ export function ArchMask({
       />
 
       {/* Soft arch outline */}
-      <path d={archStroke} stroke="#4E784F" strokeWidth={1.4} fill="none" opacity={0.32} />
+      <path d={archStroke} stroke="#3F5F3D" strokeWidth={1.4} fill="none" opacity={0.32} />
 
       {/* Top garland — three overlapping stems drawn sequentially */}
-      {renderStem(GARLAND_STEM_1, '#4E784F', 1.4, 0, 2.4)}
-      {renderStem(GARLAND_STEM_2, '#3F6041', 1.2, 0.4, 2.4)}
-      {renderStem(GARLAND_STEM_3, '#4E784F', 1.1, 0.8, 2.2)}
+      {renderStem(GARLAND_STEM_1, '#3F5F3D', 1.4, 0, 2.4)}
+      {renderStem(GARLAND_STEM_2, '#3F5F3D', 1.2, 0.4, 2.4)}
+      {renderStem(GARLAND_STEM_3, '#3F5F3D', 1.1, 0.8, 2.2)}
 
       {/* Trailing shoulder stems */}
-      {renderStem(LEFT_TRAIL_1, '#4E784F', 1.3, 1.0, 2.2)}
-      {renderStem(LEFT_TRAIL_2, '#3F6041', 1.1, 1.15, 2.2)}
-      {renderStem(RIGHT_TRAIL_1, '#4E784F', 1.3, 1.05, 2.2)}
-      {renderStem(RIGHT_TRAIL_2, '#3F6041', 1.1, 1.2, 2.2)}
+      {renderStem(LEFT_TRAIL_1, '#3F5F3D', 1.3, 1.0, 2.2)}
+      {renderStem(LEFT_TRAIL_2, '#3F5F3D', 1.1, 1.15, 2.2)}
+      {renderStem(RIGHT_TRAIL_1, '#3F5F3D', 1.3, 1.05, 2.2)}
+      {renderStem(RIGHT_TRAIL_2, '#3F5F3D', 1.1, 1.2, 2.2)}
 
       {/* Leaves */}
       {TOP_LEAVES.map((leaf, i) =>
@@ -181,7 +181,7 @@ export function ArchMask({
             rotation={leaf.rotation}
             size={leaf.size}
             variant={leaf.variant}
-            fill={leaf.fill ?? '#ADB897'}
+            fill={leaf.fill ?? '#B8C2A3'}
           />
         )
       )}
@@ -195,7 +195,7 @@ export function ArchMask({
             rotation={leaf.rotation}
             size={leaf.size}
             variant={leaf.variant}
-            fill={leaf.fill ?? '#ADB897'}
+            fill={leaf.fill ?? '#B8C2A3'}
           />
         )
       )}

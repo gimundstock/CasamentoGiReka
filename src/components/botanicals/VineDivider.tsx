@@ -10,7 +10,7 @@ interface Props {
   className?: string
 }
 
-const DEFAULT_PALETTE = ['#8C7480', '#A39584', '#AA9DA9', '#9A7F84']
+const DEFAULT_PALETTE = ['#A88A9D', '#C58A7A', '#A88A9D', '#B96F52']
 
 // A wavy hand-drawn vine — smooth bezier across the full 800-unit width.
 const VINE_D = 'M 10 30 C 110 6 200 54 320 30 S 540 6 660 36 S 770 50 790 28'
@@ -68,7 +68,7 @@ export function VineDivider({
       className={className}
       aria-hidden
     >
-      <DrawStem d={VINE_D} stroke="#4E784F" strokeWidth={1.4} duration={2.6} delay={0} />
+      <DrawStem d={VINE_D} stroke="#3F5F3D" strokeWidth={1.4} duration={2.6} delay={0} />
 
       {LEAVES.map((leaf, i) => (
         <Leaf
@@ -78,7 +78,7 @@ export function VineDivider({
           rotation={leaf.rotation}
           size={leaf.size}
           variant={leaf.variant}
-          fill={i % 2 === 0 ? '#ADB897' : '#C3CBB2'}
+          fill={i % 2 === 0 ? '#B8C2A3' : '#D0D8B8'}
         />
       ))}
 

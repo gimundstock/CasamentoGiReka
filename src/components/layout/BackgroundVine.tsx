@@ -28,7 +28,7 @@ export function BackgroundVine() {
   const pathLength = useTransform(scrollYProgress, [0.05, 0.95], [0, 1])
 
   const sharedProps = {
-    stroke: '#3F6041',
+    stroke: '#3F5F3D',
     strokeWidth: 0.6,
     strokeLinecap: 'round' as const,
     fill: 'none',

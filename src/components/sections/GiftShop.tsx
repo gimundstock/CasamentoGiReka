@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { QRCode } from 'react-qrcode-logo'
-import { Flower, OvalFrame, Petal, TornPaperFrame, VineDivider } from '../botanicals'
+import { Flower, Petal } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
+import { MaskReveal } from '../motion/MaskReveal'
 import { RevealOnScroll } from '../motion/RevealOnScroll'
 import { useGifts } from '../../hooks/useGifts'
 import { purchaseGift } from '../../api/sheets'
@@ -27,15 +28,6 @@ interface PurchaseState {
   error: string | null
   pixCopied: boolean
 }
-
-// Asymmetric "hand-cut" corner radii — alternated per card so the grid
-// feels like loose paper notes pinned in a garden.
-const CORNER_VARIANTS = [
-  'rounded-tr-3xl rounded-bl-3xl rounded-tl-lg rounded-br-lg',
-  'rounded-tl-3xl rounded-br-3xl rounded-tr-lg rounded-bl-lg',
-  'rounded-tr-3xl rounded-bl-3xl rounded-tl-md rounded-br-2xl',
-  'rounded-bl-3xl rounded-tr-3xl rounded-br-md rounded-tl-2xl',
-]
 
 export function GiftShop({ guest }: Props) {
   const { t, i18n } = useTranslation()
@@ -126,82 +118,29 @@ export function GiftShop({ guest }: Props) {
   }
 
   return (
-    <section id="gifts" className="relative overflow-hidden py-24 md:py-32 bg-peach-warm">
-      {/* Layered backgrounds */}
-      <div className="absolute inset-0 bg-wash-peach opacity-50 pointer-events-none" aria-hidden />
-      <div className="absolute inset-0 bg-paper opacity-30 pointer-events-none" aria-hidden />
-
-      {/* Top vine */}
-      <div className="absolute top-0 left-0 right-0 opacity-50 pointer-events-none" aria-hidden>
-        <VineDivider width={1600} height={70} flowerCount={4} className="w-full h-auto" />
-      </div>
-
-      {/* Bottom vine (mirrored) */}
-      <div
-        className="absolute bottom-0 left-0 right-0 opacity-50 pointer-events-none rotate-180"
-        aria-hidden
-      >
-        <VineDivider width={1600} height={70} flowerCount={4} className="w-full h-auto" />
-      </div>
-
-      {/* Floating edge petals — hidden on mobile to declutter the gift grid */}
-      <div
-        className="hidden md:block absolute top-24 left-6 animate-float pointer-events-none"
-        aria-hidden
-      >
-        <Petal color="#C3CBB2" size={28} rotation={-18} />
-      </div>
-      <div
-        className="hidden md:block absolute top-40 right-10 animate-float pointer-events-none"
-        style={{ animationDelay: '1.4s' }}
-        aria-hidden
-      >
-        <Petal color="#A39584" size={22} rotation={32} />
-      </div>
-      <div
-        className="hidden md:block absolute bottom-32 left-12 animate-float pointer-events-none"
-        style={{ animationDelay: '2.6s' }}
-        aria-hidden
-      >
-        <Petal color="#9A7F84" size={20} rotation={48} />
-      </div>
-      <div
-        className="hidden md:block absolute bottom-48 right-8 animate-float pointer-events-none"
-        style={{ animationDelay: '0.8s' }}
-        aria-hidden
-      >
-        <Petal color="#ADB897" size={26} rotation={-22} />
-      </div>
-
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-8">
-        <RevealOnScroll>
-          <div className="text-center mb-16">
-            <p className="font-sans text-xs tracking-[0.35em] uppercase text-honey mb-3">
+    <section id="gifts" className="bg-peach py-32 md:py-48">
+      <div className="max-w-5xl mx-auto px-6">
+        <MaskReveal direction="up" delay={0.05}>
+          <div className="text-center mb-20 md:mb-28">
+            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber mb-6">
               {t('nav.gifts')}
             </p>
-            <h2 className="font-display italic text-4xl sm:text-5xl md:text-6xl text-forest-deep">
+            <h2 className="font-display italic text-5xl md:text-7xl text-forest-deep">
               {t('gifts.title')}
             </h2>
-            <p className="font-serif italic text-mauve mt-4 max-w-xl mx-auto leading-relaxed">
+            <p className="font-serif italic text-mauve text-lg md:text-xl mt-6 max-w-xl mx-auto leading-relaxed">
               {t('gifts.subtitle')}
             </p>
           </div>
-        </RevealOnScroll>
+        </MaskReveal>
 
         {loading ? (
           <div className="text-center py-16 text-mauve font-serif italic">…</div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-7 md:gap-9">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             {gifts.map((gift, i) => (
               <RevealOnScroll key={gift.giftId} delay={i * 0.05}>
-                <GiftCard
-                  gift={gift}
-                  lang={lang}
-                  cornerClass={CORNER_VARIANTS[i % CORNER_VARIANTS.length]}
-                  useTorn={i % 4 === 3}
-                  onOpen={() => openGift(gift)}
-                  t={t}
-                />
+                <GiftCard gift={gift} lang={lang} onOpen={() => openGift(gift)} t={t} />
               </RevealOnScroll>
             ))}
           </div>
@@ -240,13 +179,11 @@ export function GiftShop({ guest }: Props) {
 interface GiftCardProps {
   gift: Gift
   lang: 'pt' | 'en'
-  cornerClass: string
-  useTorn: boolean
   onOpen: () => void
   t: (key: string, opts?: Record<string, unknown>) => string
 }
 
-function GiftCard({ gift, lang, cornerClass, useTorn, onOpen, t }: GiftCardProps) {
+function GiftCard({ gift, lang, onOpen, t }: GiftCardProps) {
   const isSoldOut = gift.available === 0
   const isPartial = gift.total > 1 && gift.available < gift.total && !isSoldOut
   const name = lang === 'pt' ? gift.name_pt : gift.name_en
@@ -254,110 +191,60 @@ function GiftCard({ gift, lang, cornerClass, useTorn, onOpen, t }: GiftCardProps
   const lowestPrice = Math.min(...gift.cotas.filter((c) => !c.purchased).map((c) => c.price))
 
   return (
-    <div
+    <button
+      type="button"
       onClick={() => !isSoldOut && onOpen()}
-      className={`group relative bg-peach-light/90 border border-sage/30 ${cornerClass} p-5 shadow-[0_4px_24px_rgba(78,120,79,0.08)] transition-all duration-300 ${
-        isSoldOut
-          ? 'opacity-80 cursor-not-allowed'
-          : 'cursor-pointer hover:shadow-[0_8px_30px_rgba(78,120,79,0.14)] hover:scale-[1.01]'
+      disabled={isSoldOut}
+      className={`group block w-full text-left ${
+        isSoldOut ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
       }`}
     >
-      {/* Paper texture overlay */}
-      <div
-        className={`absolute inset-0 bg-paper opacity-25 pointer-events-none ${cornerClass}`}
-        aria-hidden
-      />
-
-      <div className="relative">
-        {/* Photo */}
-        <div className="flex justify-center mb-4">
-          {useTorn ? (
-            <TornPaperFrame
-              imageSrc={gift.imageUrl}
-              imageAlt={name}
-              width={280}
-              height={300}
-              className="max-w-full h-auto"
-            />
-          ) : (
-            <OvalFrame
-              imageSrc={gift.imageUrl}
-              imageAlt={name}
-              width={280}
-              height={300}
-              className="max-w-full h-auto"
-            />
-          )}
-        </div>
-
-        {/* Sold out stamp */}
+      <div className="aspect-[4/5] overflow-hidden mb-5 relative">
+        <img
+          src={gift.imageUrl}
+          alt={name}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+          onError={(e) => {
+            const el = e.currentTarget as HTMLImageElement
+            el.style.display = 'none'
+          }}
+        />
         {isSoldOut && (
-          <div
-            className="absolute top-2 right-2 pointer-events-none flex flex-col items-center"
-            aria-hidden
-          >
-            <svg
-              width="86"
-              height="86"
-              viewBox="-50 -50 100 100"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{ opacity: 0.5 }}
-              className="-rotate-12"
-            >
-              <Flower
-                cx={0}
-                cy={0}
-                variant="wild-rose"
-                color="#AA9DA9"
-                centerColor="#AA9DA9"
-                size={2.4}
-                animate={false}
-              />
-            </svg>
-            <span className="-mt-2 font-serif italic text-sm text-mauve tracking-wide -rotate-6">
+          <div className="absolute inset-0 flex items-center justify-center bg-peach/70">
+            <span className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-forest-deep">
               {t('gifts.soldOutStamp')}
             </span>
           </div>
         )}
-
-        {/* Title + description */}
-        <h3 className="font-display text-xl text-forest-deep leading-snug">{name}</h3>
-        {description && (
-          <p className="font-serif italic text-sm text-mauve mt-1 leading-relaxed line-clamp-2">
-            {description}
-          </p>
-        )}
-
-        {/* Price + availability */}
-        <div className="mt-4 flex items-end justify-between gap-3">
-          <div>
-            <p className="font-sans text-[10px] tracking-widest uppercase text-mauve/70">
-              {gift.total > 1 ? t('gifts.fromPrice') : t('gifts.price')}
-            </p>
-            <p className="font-display text-2xl text-honey leading-none mt-1">
-              R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
-            </p>
-          </div>
-
-          {!isSoldOut && (
-            <>
-              {isPartial ? (
-                <span className="bg-honey/20 text-forest-deep font-sans text-[10px] uppercase tracking-widest px-3 py-1 rounded-full border border-honey/40">
-                  {t('gifts.partiallyAvailable', {
-                    available: gift.available,
-                    total: gift.total,
-                  })}
-                </span>
-              ) : (
-                <span className="bg-sage/40 text-forest-deep font-sans text-[10px] uppercase tracking-widest px-3 py-1 rounded-full">
-                  {t('gifts.available')}
-                </span>
-              )}
-            </>
-          )}
-        </div>
       </div>
-    </div>
+
+      <h3 className="font-display italic text-xl text-forest-deep leading-snug">{name}</h3>
+      {description && (
+        <p className="font-serif italic text-sm text-forest mt-2 leading-relaxed line-clamp-2">
+          {description}
+        </p>
+      )}
+
+      <div className="mt-4 flex items-baseline justify-between gap-3">
+        <p className="font-display text-lg text-amber">
+          {gift.total > 1 && (
+            <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-forest mr-2">
+              {t('gifts.fromPrice')}
+            </span>
+          )}
+          R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
+        </p>
+
+        {!isSoldOut && isPartial && (
+          <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-forest">
+            {t('gifts.partiallyAvailable', {
+              available: gift.available,
+              total: gift.total,
+            })}
+          </span>
+        )}
+      </div>
+    </button>
   )
 }
 
@@ -472,7 +359,7 @@ function GiftModal(props: ModalProps) {
                         >
                           <path
                             d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z"
-                            fill="#C3CBB2"
+                            fill="#D0D8B8"
                             transform="translate(-6 0) rotate(-20)"
                           />
                         </svg>
@@ -526,7 +413,7 @@ function GiftModal(props: ModalProps) {
                     logoPadding={4}
                     qrStyle="dots"
                     eyeRadius={6}
-                    fgColor="#3F6041"
+                    fgColor="#3F5F3D"
                     bgColor="transparent"
                   />
                 </ArchQrFrame>
@@ -652,7 +539,7 @@ function GiftModal(props: ModalProps) {
                       cx={-60}
                       cy={0}
                       variant="daisy"
-                      color="#5A7956"
+                      color="#6F7F55"
                       size={1.1}
                       animate={false}
                     />
@@ -662,7 +549,7 @@ function GiftModal(props: ModalProps) {
                       cx={-25}
                       cy={-12}
                       variant="cosmos"
-                      color="#9A7F84"
+                      color="#B96F52"
                       size={1.2}
                       animate={false}
                     />
@@ -672,7 +559,7 @@ function GiftModal(props: ModalProps) {
                       cx={10}
                       cy={6}
                       variant="wild-rose"
-                      color="#A39584"
+                      color="#C58A7A"
                       size={1.3}
                       animate={false}
                     />
@@ -682,7 +569,7 @@ function GiftModal(props: ModalProps) {
                       cx={45}
                       cy={-8}
                       variant="anemone"
-                      color="#AA9DA9"
+                      color="#A88A9D"
                       size={1.1}
                       animate={false}
                     />
@@ -692,7 +579,7 @@ function GiftModal(props: ModalProps) {
                       cx={75}
                       cy={4}
                       variant="filler"
-                      color="#ADB897"
+                      color="#B8C2A3"
                       size={1.2}
                       animate={false}
                     />
@@ -702,14 +589,14 @@ function GiftModal(props: ModalProps) {
 
               {/* Drifting petals */}
               <div className="absolute top-4 left-6 animate-float pointer-events-none" aria-hidden>
-                <Petal color="#C3CBB2" size={18} rotation={-22} />
+                <Petal color="#D0D8B8" size={18} rotation={-22} />
               </div>
               <div
                 className="absolute top-8 right-8 animate-float pointer-events-none"
                 style={{ animationDelay: '1s' }}
                 aria-hidden
               >
-                <Petal color="#A39584" size={14} rotation={28} />
+                <Petal color="#C58A7A" size={14} rotation={28} />
               </div>
 
               <h4 className="font-display italic text-3xl text-forest-deep mb-2">
@@ -784,7 +671,7 @@ function PrimaryButton({ onClick, disabled, submitting, children }: PrimaryButto
       >
         <path
           d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z"
-          fill="#C3CBB2"
+          fill="#D0D8B8"
           transform="translate(-7 0) rotate(-20)"
         />
       </svg>
@@ -821,7 +708,7 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
              L ${archInset} ${size / 2}
              A ${size / 2 - archInset} ${size / 2 - archInset} 0 0 1 ${size - archInset} ${size / 2}
              L ${size - archInset} ${size - archInset} Z`}
-          fill="#FAF3E3"
+          fill="#FFF4E8"
           opacity={0.85}
         />
         {/* Arch outline */}
@@ -831,7 +718,7 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
              A ${size / 2 - archInset} ${size / 2 - archInset} 0 0 1 ${size - archInset} ${size / 2}
              L ${size - archInset} ${size - archInset}`}
           fill="none"
-          stroke="#4E784F"
+          stroke="#3F5F3D"
           strokeWidth={1.4}
           strokeLinecap="round"
           opacity={0.7}
@@ -841,7 +728,7 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
           cx={16}
           cy={size - 14}
           variant="filler"
-          color="#ADB897"
+          color="#B8C2A3"
           size={0.9}
           animate={false}
         />
@@ -849,11 +736,11 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
           cx={size - 16}
           cy={size - 14}
           variant="filler"
-          color="#5A7956"
+          color="#6F7F55"
           size={0.9}
           animate={false}
         />
-        <Flower cx={size / 2} cy={20} variant="filler" color="#A39584" size={0.9} animate={false} />
+        <Flower cx={size / 2} cy={20} variant="filler" color="#C58A7A" size={0.9} animate={false} />
       </svg>
 
       {/* QR centered inside arch */}

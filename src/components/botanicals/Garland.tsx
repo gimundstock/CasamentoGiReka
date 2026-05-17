@@ -89,7 +89,7 @@ const DENSITY_MAP: Record<Density, { leaves: LeafPos[]; flowers: FlowerPos[] }> 
   lush: { leaves: LEAVES_LUSH, flowers: FLOWERS_LUSH },
 }
 
-const DEFAULT_PALETTE = ['#8C7480', '#A39584', '#AA9DA9', '#9A7F84']
+const DEFAULT_PALETTE = ['#A88A9D', '#C58A7A', '#A88A9D', '#B96F52']
 
 // Two asymmetric overlapping stem arcs to give the garland depth.
 const STEM_PRIMARY = 'M 20 160 C 140 -10 320 -10 580 60'
@@ -117,10 +117,10 @@ export function Garland({
     >
       {animate ? (
         <>
-          <DrawStem d={STEM_PRIMARY} stroke="#4E784F" strokeWidth={1.6} duration={2.6} delay={0} />
+          <DrawStem d={STEM_PRIMARY} stroke="#3F5F3D" strokeWidth={1.6} duration={2.6} delay={0} />
           <DrawStem
             d={STEM_SECONDARY}
-            stroke="#3F6041"
+            stroke="#3F5F3D"
             strokeWidth={1.2}
             duration={2.4}
             delay={0.45}
@@ -130,14 +130,14 @@ export function Garland({
         <>
           <path
             d={STEM_PRIMARY}
-            stroke="#4E784F"
+            stroke="#3F5F3D"
             strokeWidth={1.6}
             fill="none"
             strokeLinecap="round"
           />
           <path
             d={STEM_SECONDARY}
-            stroke="#3F6041"
+            stroke="#3F5F3D"
             strokeWidth={1.2}
             fill="none"
             strokeLinecap="round"
@@ -153,7 +153,7 @@ export function Garland({
           rotation={leaf.rotation}
           size={leaf.size}
           variant={leaf.variant}
-          fill={i % 3 === 0 ? '#C3CBB2' : '#ADB897'}
+          fill={i % 3 === 0 ? '#D0D8B8' : '#B8C2A3'}
         />
       ))}
 

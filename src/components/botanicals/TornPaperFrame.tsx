@@ -97,7 +97,7 @@ export function TornPaperFrame({
       </defs>
 
       {/* Soft paper backing peeking out behind the torn silhouette */}
-      <path d={path} fill="#FAF3E3" opacity={0.7} transform="translate(3 4)" />
+      <path d={path} fill="#FFF4E8" opacity={0.7} transform="translate(3 4)" />
 
       {/* Photo clipped to the torn rectangle */}
       <image
@@ -114,7 +114,7 @@ export function TornPaperFrame({
       <path
         d={path}
         fill="none"
-        stroke="#ADB897"
+        stroke="#B8C2A3"
         strokeWidth={1}
         strokeLinecap="round"
         strokeLinejoin="round"
