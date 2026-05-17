@@ -114,7 +114,6 @@ export function Hero2SaveDate() {
               scrollEnd={0.55}
               staggerRatio={0.95}
               scaleFrom={0.15}
-              withFade
               className="font-display text-forest-deep block text-6xl leading-[1] italic md:text-8xl lg:text-9xl"
               lineClassName="block"
             />
@@ -127,7 +126,6 @@ export function Hero2SaveDate() {
                 scrollEnd={0.78}
                 staggerRatio={0.9}
                 scaleFrom={0.2}
-                withFade
                 className="font-display text-forest-deep block text-4xl italic md:text-6xl"
               />
 
@@ -138,7 +136,6 @@ export function Hero2SaveDate() {
                 scrollEnd={0.95}
                 staggerRatio={0.9}
                 scaleFrom={0.3}
-                withFade
                 className="font-display text-forest-deep block text-2xl tabular-nums italic md:text-4xl"
               />
 
