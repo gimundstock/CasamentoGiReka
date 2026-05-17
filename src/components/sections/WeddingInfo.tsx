@@ -66,10 +66,10 @@ export function WeddingInfo() {
   const dressCode = lang === 'pt' ? CONFIG.wedding.dresscode_pt : CONFIG.wedding.dresscode_en
 
   return (
-    <section id="wedding" className="relative overflow-hidden py-24 md:py-32 bg-sage-light/30">
+    <section id="wedding" className="relative overflow-hidden py-24 md:py-32 bg-peach-light">
       {/* Watercolor wash + paper grain overlays */}
       <div
-        className="absolute inset-0 bg-wash-sage opacity-60 pointer-events-none -z-10"
+        className="absolute inset-0 bg-wash-mauve opacity-40 pointer-events-none -z-10"
         aria-hidden
       />
       <div className="absolute inset-0 bg-paper opacity-30 pointer-events-none -z-10" aria-hidden />

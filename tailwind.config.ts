@@ -5,11 +5,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Canvas: warm cream/ivory (renamed semantically from "peach" — keys
-        // kept so existing bg-peach* classes pick up the new tones).
-        peach: '#F2E8D5',
-        'peach-light': '#FAF3E3',
-        'peach-warm': '#ECDFC6',
+        // Canvas: soft mauve-cream (renamed semantically from "peach" —
+        // keys kept so existing bg-peach* classes pick up the new tones).
+        // Shifts the page undertone away from green/yellow toward dusty
+        // violet while staying light enough to read as paper.
+        peach: '#EFE6E4',
+        'peach-light': '#F7F1F0',
+        'peach-warm': '#E6DAD8',
         mauve: '#AA9DA9',
         'mauve-light': '#B9A8B5',
         sage: '#ADB897',
