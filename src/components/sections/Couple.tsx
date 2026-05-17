@@ -2,41 +2,10 @@ import { useTranslation } from 'react-i18next'
 import { RevealOnScroll } from '../motion/RevealOnScroll'
 import { DrawStem } from '../motion/DrawStem'
 import { Bloom } from '../motion/Bloom'
-import { ArchMask, Flower, Garland, Petal } from '../botanicals'
+import { Flower, Garland, Petal } from '../botanicals'
 import { CONFIG } from '../../content.config'
 
-interface PortraitBlockProps {
-  imageSrc: string
-  imageAlt: string
-  name: string
-  role: string
-  bio?: string
-  delay: number
-}
-
-function PortraitBlock({ imageSrc, imageAlt, name, role, bio, delay }: PortraitBlockProps) {
-  return (
-    <RevealOnScroll delay={delay}>
-      <div className="flex flex-col items-center text-center">
-        <div className="w-full max-w-[420px]">
-          <ArchMask
-            imageSrc={imageSrc}
-            imageAlt={imageAlt}
-            width={420}
-            height={500}
-            animate
-            className="w-full h-auto"
-          />
-        </div>
-        <h3 className="font-display italic text-3xl text-forest-deep mt-6">{name}</h3>
-        <p className="font-serif italic text-mauve text-sm mt-1 tracking-wide">{role}</p>
-        {bio && (
-          <p className="font-serif text-base text-forest/80 leading-relaxed mt-4 max-w-sm">{bio}</p>
-        )}
-      </div>
-    </RevealOnScroll>
-  )
-}
+const PHOTOS = ['couple.jpg', 'couple2.jpg', 'couple3.jpg']
 
 // A winding vine for the "our story" timeline. Path drawn in a tall
 // viewBox so we can place flowers at deterministic y-positions and the
@@ -47,28 +16,22 @@ const STORY_VINE_D =
 export function Couple() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
-
-  const brideImg = `${import.meta.env.BASE_URL}photos/couple.jpg`
-  const groomImg = `${import.meta.env.BASE_URL}photos/couple2.jpg`
+  const base = import.meta.env.BASE_URL
+  const altText = `${CONFIG.couple.bride} & ${CONFIG.couple.groom}`
 
   const milestones = CONFIG.story?.milestones ?? []
   const hasStory = milestones.length > 0
-
-  // Evenly distribute milestones along the 920-unit vine path.
   const stepY = milestones.length > 0 ? 880 / (milestones.length + 1) : 0
 
   return (
     <section id="couple" className="relative bg-peach-light overflow-hidden py-24 md:py-32">
-      {/* Watercolor washes */}
       <div className="absolute inset-0 bg-wash-peach opacity-50 pointer-events-none" />
       <div className="absolute inset-0 bg-paper opacity-30 pointer-events-none" />
 
-      {/* Garland at top */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(720px,90vw)] opacity-80 pointer-events-none">
         <Garland width={720} height={180} density="sparse" className="w-full h-auto" />
       </div>
 
-      {/* Scattered petals — hidden on mobile to declutter portraits */}
       <Petal
         color="#C3CBB2"
         size={30}
@@ -93,42 +56,55 @@ export function Couple() {
         rotation={70}
         className="hidden md:block absolute bottom-20 right-16 opacity-35 animate-float pointer-events-none"
       />
-      <Petal
-        color="#B9A8B5"
-        size={20}
-        rotation={140}
-        className="hidden md:block absolute top-1/2 left-6 opacity-30 animate-float pointer-events-none"
-      />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-20">
-        {/* Heading */}
         <RevealOnScroll>
-          <div className="text-center mb-20">
+          <div className="text-center mb-16">
             <p className="font-serif italic text-mauve text-sm tracking-[0.3em] uppercase mb-3">
               {CONFIG.couple.bride} & {CONFIG.couple.groom}
             </p>
             <h2 className="font-display italic text-4xl sm:text-5xl md:text-6xl text-forest-deep">
               {t('couple.title')}
             </h2>
+            <div className="flex items-center justify-center gap-3 mt-5">
+              <div className="w-16 h-px bg-sage/60" />
+              <svg viewBox="-10 -10 20 20" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+                <Flower
+                  variant="filler"
+                  cx={0}
+                  cy={0}
+                  color="#AA9DA9"
+                  centerColor="#A39584"
+                  size={0.6}
+                  animate={false}
+                />
+              </svg>
+              <div className="w-16 h-px bg-sage/60" />
+            </div>
           </div>
         </RevealOnScroll>
 
-        {/* Portraits */}
-        <div className="grid md:grid-cols-2 gap-12 md:gap-16 mb-24">
-          <PortraitBlock
-            imageSrc={brideImg}
-            imageAlt={CONFIG.couple.bride}
-            name={CONFIG.couple.bride}
-            role={lang === 'pt' ? 'a noiva' : 'the bride'}
-            delay={0}
-          />
-          <PortraitBlock
-            imageSrc={groomImg}
-            imageAlt={CONFIG.couple.groom}
-            name={CONFIG.couple.groom}
-            role={lang === 'pt' ? 'o noivo' : 'the groom'}
-            delay={0.2}
-          />
+        {/* Photo grid — 3 photos, middle is square on md+ */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-24">
+          {PHOTOS.map((file, i) => (
+            <RevealOnScroll key={file} delay={i * 0.1}>
+              <div
+                className={`relative aspect-[3/4] overflow-hidden rounded-2xl border border-sage/30 bg-peach-warm shadow-[0_4px_24px_-12px_rgba(63,96,65,0.45)] ${
+                  i === 1 ? 'md:aspect-square' : ''
+                }`}
+              >
+                <img
+                  src={`${base}photos/${file}`}
+                  alt={altText}
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  onError={(e) => {
+                    const el = e.currentTarget as HTMLImageElement
+                    el.style.display = 'none'
+                  }}
+                />
+              </div>
+            </RevealOnScroll>
+          ))}
         </div>
 
         {/* Our Story timeline */}
@@ -143,7 +119,6 @@ export function Couple() {
             </RevealOnScroll>
 
             <div className="relative max-w-4xl mx-auto">
-              {/* Winding vine — hidden on small screens where layout stacks */}
               <svg
                 viewBox="0 0 200 920"
                 xmlns="http://www.w3.org/2000/svg"
@@ -161,7 +136,6 @@ export function Couple() {
                 />
                 {milestones.map((_, i) => {
                   const progress = (i + 1) / (milestones.length + 1)
-                  // Approximate the vine x at this point using its meander pattern.
                   const sway = Math.sin(progress * Math.PI * 2.5) * 35
                   const cx = 100 + sway
                   const cy = 20 + stepY * (i + 1)
@@ -191,7 +165,6 @@ export function Couple() {
                           isLeft ? 'md:flex-row' : 'md:flex-row-reverse'
                         }`}
                       >
-                        {/* Card side */}
                         <div
                           className={`flex-1 ${
                             isLeft ? 'md:text-right md:pr-16' : 'md:text-left md:pl-16'
@@ -213,7 +186,6 @@ export function Couple() {
                           </div>
                         </div>
 
-                        {/* Mobile-only flower marker */}
                         <div className="md:hidden">
                           <svg
                             viewBox="-20 -20 40 40"
@@ -233,7 +205,6 @@ export function Couple() {
                           </svg>
                         </div>
 
-                        {/* Spacer that the central vine passes through */}
                         <div className="hidden md:block flex-1" />
                       </div>
                     </RevealOnScroll>
