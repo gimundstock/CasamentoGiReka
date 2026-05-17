@@ -2,8 +2,9 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Nav } from './components/layout/Nav'
 import { NameEntry } from './components/sections/NameEntry'
-import { Welcome } from './components/sections/Welcome'
-import { Couple } from './components/sections/Couple'
+import { Hero1Welcome } from './components/sections/Hero1Welcome'
+import { Hero2SaveDate } from './components/sections/Hero2SaveDate'
+import { Hero3MeetCouple } from './components/sections/Hero3MeetCouple'
 import { WeddingInfo } from './components/sections/WeddingInfo'
 import { CityGuide } from './components/sections/CityGuide'
 import { RSVP } from './components/sections/RSVP'
@@ -47,8 +48,9 @@ export default function App() {
     <>
       <Nav />
       <main>
-        <Welcome guest={guest} />
-        <Couple />
+        <Hero1Welcome guest={guest} />
+        <Hero2SaveDate />
+        <Hero3MeetCouple />
         <WeddingInfo />
         <CityGuide />
         <RSVP guest={guest} />

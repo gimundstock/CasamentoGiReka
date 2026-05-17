@@ -84,9 +84,7 @@ export function RisingCard({
         />
       </div>
       {caption && (
-        <div
-          className={`flex w-full max-w-sm flex-col gap-2 text-[#4E784F] ${captionOrderClass}`}
-        >
+        <div className={`flex w-full max-w-sm flex-col gap-2 text-[#4E784F] ${captionOrderClass}`}>
           {caption}
         </div>
       )}

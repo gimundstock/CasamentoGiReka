@@ -158,7 +158,7 @@ export function FlipLetters({
           {line.letters.length === 0 ? ' ' : null}
           {line.letters.map((letter, ci) => {
             if (letter.isSpace) {
-              return <span key={`${li}-${ci}`}>{' '}</span>
+              return <span key={`${li}-${ci}`}> </span>
             }
             const i = letter.letterIndex
 

@@ -41,7 +41,7 @@ export function WeddingInfo() {
   const dressCode = lang === 'pt' ? CONFIG.wedding.dresscode_pt : CONFIG.wedding.dresscode_en
 
   return (
-    <section id="wedding" className="bg-peach py-32 md:py-48">
+    <section id="wedding" className="bg-peach-light py-32 md:py-48">
       <div className="max-w-3xl mx-auto px-6">
         <MaskReveal direction="up" delay={0.05}>
           <div className="text-center mb-20 md:mb-28">
