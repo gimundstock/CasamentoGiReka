@@ -73,12 +73,14 @@ export function Hero2SaveDate() {
     offset: ['start start', 'end end'],
   })
 
-  // Dahlia grows from a point at the center to viewport-overflowing size
-  // as the user scrolls through the final stretch of the hero. A subtle
-  // rotation makes the bloom feel alive while it expands.
-  const dahliaScale = useTransform(scrollYProgress, [0.75, 1], [0, 1.2])
+  // Dahlia grows from a point at the center to a sized bloom that matches
+  // Hero 3's backdrop dahlia exactly — so when the user scrolls across
+  // the section boundary the flower stays put visually instead of
+  // jumping. A subtle rotation makes the bloom feel alive while it
+  // expands.
+  const dahliaScale = useTransform(scrollYProgress, [0.75, 1], [0, 1])
   const dahliaRotate = useTransform(scrollYProgress, [0.75, 1], [-20, 0])
-  // Save-the-date copy fades out just before the dahlia covers everything.
+  // Save-the-date copy fades out just before the dahlia takes over.
   const textOpacity = useTransform(scrollYProgress, [0.88, 1], [1, 0])
 
   const weddingDate = new Date(CONFIG.wedding.date)
@@ -110,16 +112,34 @@ export function Hero2SaveDate() {
             sizeMax={140}
           />
 
-          {/* Hero dahlia — grows from a center point to fill the viewport
-              at the end of the scroll. Behind the text but in front of the
-              rising flower field. */}
+          {/* Persistent dahlia decoration on the left — static, like a
+              pinned flower that anchors the composition throughout the
+              save-the-date scroll. Sits behind the rising flower field
+              so the field flows past it. */}
+          <img
+            src={DAHLIA_HERO_SRC}
+            alt=""
+            aria-hidden
+            draggable={false}
+            className="pointer-events-none absolute top-1/2 left-0 z-[1] h-[55vmin] w-[55vmin] -translate-x-1/3 -translate-y-1/2 object-contain"
+          />
+
+          {/* Hero dahlia — grows from a center point to its full size at
+              the end of the scroll. Centered via framer-motion's `x`/`y`
+              style props (NOT Tailwind translate classes, which would be
+              clobbered by motion's composed transform string). Sized to
+              match Hero 3's backdrop dahlia so the boundary reads as
+              continuous. Behind the text but above other backdrop
+              elements. */}
           <motion.img
             src={DAHLIA_HERO_SRC}
             alt=""
             aria-hidden
             draggable={false}
-            className="pointer-events-none absolute top-1/2 left-1/2 z-10 h-screen w-screen -translate-x-1/2 -translate-y-1/2"
+            className="pointer-events-none absolute top-1/2 left-1/2 z-10 h-[100vmin] w-[100vmin]"
             style={{
+              x: '-50%',
+              y: '-50%',
               objectFit: 'contain',
               scale: dahliaScale,
               rotate: dahliaRotate,

@@ -4,6 +4,8 @@ import { LanguageToggle } from '../ui/LanguageToggle'
 import type { GuestState } from '../../hooks/useGuest'
 import { CONFIG } from '../../content.config'
 
+const base = import.meta.env.BASE_URL
+
 interface Props {
   state: GuestState
   onSubmit: (name: string) => void
@@ -28,12 +30,11 @@ export function NameEntry({ state, onSubmit }: Props) {
       </div>
 
       <div className="animate-fade-in w-full max-w-md text-center">
-        <div className="font-display text-forest-deep mb-3 text-5xl italic">
-          {CONFIG.couple.bride[0]} &amp; {CONFIG.couple.groom[0]}
-        </div>
-        <div className="font-serif text-forest/70 mb-16 text-base italic tracking-wide">
-          {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
-        </div>
+        <img
+          src={`${base}flowers/title.png`}
+          alt={`${CONFIG.couple.bride} & ${CONFIG.couple.groom}`}
+          className="mx-auto mb-12 w-full max-w-xs"
+        />
 
         <h1 className="font-display text-forest-deep mb-4 text-3xl italic">
           {t('nameEntry.welcome')}

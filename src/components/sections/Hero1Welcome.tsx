@@ -38,17 +38,12 @@ export function Hero1Welcome({ guest }: Props) {
       {/* Text column — right on desktop, below on mobile */}
       <div className="flex w-full flex-1 items-center justify-center px-6 py-16 md:px-10 md:py-0">
         <div className="w-full max-w-xl text-center">
-          <h1 className="font-display text-forest-deep leading-[0.95]">
-            <span className="block text-6xl italic sm:text-7xl md:text-8xl lg:text-9xl">
-              {CONFIG.couple.bride}
-            </span>
-            <span className="text-mauve font-display my-4 block text-xl tracking-[0.6em] not-italic sm:text-2xl md:my-6 md:text-3xl">
-              &amp;
-            </span>
-            <span className="block text-6xl italic sm:text-7xl md:text-8xl lg:text-9xl">
-              {CONFIG.couple.groom}
-            </span>
-          </h1>
+          <h1 className="sr-only">{altText}</h1>
+          <img
+            src={`${base}flowers/title.png`}
+            alt={altText}
+            className="mx-auto w-full max-w-md md:max-w-lg lg:max-w-xl"
+          />
 
           <div className="bg-forest-deep/30 mx-auto my-8 h-px w-12 md:my-10" />
 

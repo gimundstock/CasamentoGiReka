@@ -75,7 +75,10 @@ export function Hero3MeetCouple() {
             </MaskReveal>
           </div>
 
-          {/* Layer 2 — Spinning daisy backdrop + final zoom morph */}
+          {/* Layer 2 — Spinning dahlia backdrop + final zoom morph.
+              Sized to match Hero 2's ending dahlia so the section
+              boundary reads as continuous: the user scrolls past Hero 2,
+              and the same flower is right there waiting in Hero 3. */}
           <ZoomMorph
             scrollProgress={scrollYProgress}
             scrollStart={0.7}
@@ -83,7 +86,7 @@ export function Hero3MeetCouple() {
             scaleFrom={1}
             scaleTo={6}
           >
-            <Daisy className="h-[80vmin] w-[80vmin]" rotate={daisyRotate} />
+            <Daisy className="h-[100vmin] w-[100vmin]" rotate={daisyRotate} />
           </ZoomMorph>
 
           {/* Layer 3 — Photo + milestone cascade */}
