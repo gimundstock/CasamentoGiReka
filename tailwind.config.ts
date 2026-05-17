@@ -5,28 +5,31 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Canvas: warm peach (the wedding's golden-hour skin tone).
-        peach: '#F4DBC4',
-        'peach-light': '#FAE8D6',
-        'peach-warm': '#EDD2BB',
-        // Mauve carries the identity — headings, body, buttons. The keys
-        // named "forest"/"forest-deep" are intentionally repointed to deep
-        // plum tones so every existing text-forest* / bg-forest-deep class
-        // shifts to violet without touching section files. The literal
-        // green hexes (#4E784F, #3F6041) remain inside SVG vines/leaves
-        // so botanical details stay green.
-        mauve: '#AA9DA9',
-        'mauve-light': '#B9A8B5',
-        forest: '#7A6470', // was #4E784F — now plum-mauve for body text
-        'forest-deep': '#5C4750', // was #3F6041 — now deep plum for headings/CTAs
-        // Sage stays green — used for soft borders and leaf decoration.
+        // INVERTED scheme: violet on the page, peach on top.
+        // The "peach" keys now hold the violet canvas tones (used by
+        // every bg-peach* class — body bg, sections, paper cards), and
+        // the "forest"/"mauve" keys now hold the peach text tones (used
+        // by every text-forest* / text-mauve* class). Key names are
+        // preserved so no section file needs to change.
+        // The literal hexes #4E784F / #3F6041 / #ADB897 inside SVG
+        // vines, stems, and leaves are unchanged — they stay green so
+        // the only green on the page is the botanical illustration.
+        peach: '#6B5560', // was peach — now medium plum-violet (body bg)
+        'peach-light': '#7A6470', // was peach-light — now lighter violet (cards, elevated bg)
+        'peach-warm': '#5C4750', // was peach-warm — now deep plum (deeper bg accents)
+        forest: '#F4DBC4', // was forest green — now warm peach (body text)
+        'forest-deep': '#FAE8D6', // was forest-deep — now light peach (headings, CTA bg)
+        mauve: '#EDD2BB', // was mauve grey — now medium peach (subtitles)
+        'mauve-light': '#F4DBC4', // was mauve-light — now warm peach (soft text)
+        // Sage kept green — used for soft borders and leaf decoration.
         sage: '#ADB897',
         'sage-light': '#C3CBB2',
-        // Warm accents kept in the mauve family.
-        amber: '#8C7480',
-        gold: '#A39584',
-        terracotta: '#9A7F84',
-        honey: '#8C6F7A', // was sage-green — now dusty rose for prices/numbers
+        // Warm accents remapped to peach tones to keep all text/borders
+        // in the peach family on the violet canvas.
+        amber: '#EDD2BB', // kicker labels
+        gold: '#FAE8D6', // soft accents
+        terracotta: '#F4DBC4', // errors / warm accents
+        honey: '#FAE8D6', // prices, countdown numbers
       },
       fontFamily: {
         serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
