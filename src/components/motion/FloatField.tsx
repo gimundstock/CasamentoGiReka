@@ -39,7 +39,17 @@ interface FieldItem {
 
 const DEFAULT_PALETTE = ['#A88A9D', '#B9AFC1', '#C58A7A', '#D89A35', '#B96F52', '#B8C2A3']
 
-const RISE_SPAN = 0.4
+// How much scroll progress each item takes to traverse the viewport from
+// below to above. Larger = slower visible drift per unit of scroll. The
+// rise window is NOT clamped at progress=1, so items that start late are
+// still mid-rise when the user finishes scrolling — keeps the field
+// populated all the way through, not just at the start.
+const RISE_SPAN = 0.7
+
+// Latest scroll-progress an item can start at. Items spread evenly across
+// [0, MAX_START] with a small jitter. Pushed late enough that the field
+// is still busy near the end of the section.
+const MAX_START = 0.85
 
 function pseudoRandom(seed: number): number {
   const x = Math.sin(seed * 12.9898) * 43758.5453
@@ -53,7 +63,10 @@ interface FloatItemProps {
 }
 
 function FloatItem({ item, variant, scrollProgress }: FloatItemProps) {
-  const end = Math.min(item.scrollStart + RISE_SPAN, 1)
+  // Don't clamp `end` at 1 — late starters with a long rise span will be
+  // mid-traverse at scroll progress 1.0, leaving the field populated
+  // through the end of the section.
+  const end = item.scrollStart + RISE_SPAN
   const y = useTransform(scrollProgress, [item.scrollStart, end], ['120vh', '-120vh'])
 
   return (
@@ -123,16 +136,15 @@ export function FloatField({
   const reduced = useReducedMotion()
 
   const items = useMemo<FieldItem[]>(() => {
-    const maxStart = 0.7
     const usingImages = variant === 'image' && images && images.length > 0
     return Array.from({ length: count }, (_, i) => {
       const r1 = pseudoRandom(i + 1)
       const r2 = pseudoRandom(i + 101)
       const r3 = pseudoRandom(i + 211)
       const r4 = pseudoRandom(i + 307)
-      const evenStart = count > 1 ? (i / (count - 1)) * maxStart : 0
-      const jitter = (r4 - 0.5) * (maxStart / Math.max(count, 1)) * 0.6
-      const scrollStart = Math.min(maxStart, Math.max(0, evenStart + jitter))
+      const evenStart = count > 1 ? (i / (count - 1)) * MAX_START : 0
+      const jitter = (r4 - 0.5) * (MAX_START / Math.max(count, 1)) * 0.6
+      const scrollStart = Math.min(MAX_START, Math.max(0, evenStart + jitter))
       return {
         leftPercent: r1 * 100,
         color: palette[Math.floor(r2 * palette.length) % palette.length] as string,

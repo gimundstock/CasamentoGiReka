@@ -95,7 +95,7 @@ export function Hero2SaveDate() {
         <div className="sticky top-0 h-screen overflow-hidden">
           <FloatField
             scrollProgress={scrollYProgress}
-            count={16}
+            count={30}
             variant="image"
             images={FLOWER_IMAGES}
             sizeMin={70}
