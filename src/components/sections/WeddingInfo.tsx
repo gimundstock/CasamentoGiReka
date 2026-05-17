@@ -1,6 +1,55 @@
 import { useTranslation } from 'react-i18next'
-import { WildflowerDecor } from '../ui/WildflowerDecor'
 import { CONFIG } from '../../content.config'
+import { RevealOnScroll } from '../motion/RevealOnScroll'
+import { Bloom } from '../motion/Bloom'
+import { Flower, Petal, VineDivider } from '../botanicals'
+
+interface InfoCardProps {
+  label: string
+  value: string
+  cornerColor: string
+  className?: string
+  children?: React.ReactNode
+}
+
+function InfoCard({ label, value, cornerColor, className, children }: InfoCardProps) {
+  return (
+    <div
+      className={`relative bg-peach-light/85 border border-sage/30 rounded-2xl p-6 md:p-8 shadow-[0_4px_24px_rgba(78,120,79,0.06)] overflow-hidden ${
+        className ?? ''
+      }`}
+    >
+      <div
+        className="absolute inset-0 bg-paper opacity-40 pointer-events-none rounded-2xl"
+        aria-hidden
+      />
+
+      {/* Tiny filler bloom in a corner — alternates by position via prop */}
+      <svg
+        className="absolute -top-1 -right-1 w-12 h-12 pointer-events-none"
+        viewBox="-20 -20 40 40"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden
+      >
+        <Flower
+          cx={0}
+          cy={0}
+          variant="filler"
+          size={0.6}
+          color={cornerColor}
+          centerColor="#DFB100"
+          animate={false}
+        />
+      </svg>
+
+      <div className="relative">
+        <p className="font-sans text-xs uppercase tracking-widest text-mauve mb-2">{label}</p>
+        <p className="font-display text-2xl md:text-3xl text-forest-deep leading-snug">{value}</p>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 export function WeddingInfo() {
   const { t, i18n } = useTranslation()
@@ -14,131 +63,136 @@ export function WeddingInfo() {
     day: 'numeric',
   })
 
-  const details = [
-    {
-      icon: (
-        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#4E784F" strokeWidth={1.5}>
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      ),
-      label: t('wedding.date'),
-      value: dateStr,
-    },
-    {
-      icon: (
-        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#4E784F" strokeWidth={1.5}>
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
-      label: t('wedding.time'),
-      value: CONFIG.wedding.time,
-    },
-    {
-      icon: (
-        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#4E784F" strokeWidth={1.5}>
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-          />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
-      label: t('wedding.venue'),
-      value: CONFIG.wedding.venue,
-      sub: CONFIG.wedding.address,
-    },
-    {
-      icon: (
-        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#4E784F" strokeWidth={1.5}>
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-          />
-        </svg>
-      ),
-      label: t('wedding.dresscode'),
-      value: lang === 'pt' ? CONFIG.wedding.dresscode_pt : CONFIG.wedding.dresscode_en,
-    },
-  ]
+  const dressCode = lang === 'pt' ? CONFIG.wedding.dresscode_pt : CONFIG.wedding.dresscode_en
 
   return (
-    <section id="wedding" className="relative bg-sage/20 py-24 overflow-hidden">
-      <WildflowerDecor variant="top" className="h-16" opacity={0.3} />
+    <section id="wedding" className="relative overflow-hidden py-24 md:py-32 bg-sage-light/30">
+      {/* Watercolor wash + paper grain overlays */}
+      <div
+        className="absolute inset-0 bg-wash-sage opacity-60 pointer-events-none -z-10"
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0 bg-paper opacity-30 pointer-events-none -z-10"
+        aria-hidden
+      />
 
-      <div className="max-w-4xl mx-auto px-6 pt-8">
-        <div className="text-center mb-16">
-          <p className="font-sans text-xs tracking-widest uppercase text-amber mb-3">
-            {CONFIG.wedding.date.slice(0, 4)}
-          </p>
-          <h2 className="font-serif text-4xl md:text-5xl text-forest italic">
-            {t('wedding.title')}
-          </h2>
-          <div className="flex items-center justify-center gap-3 mt-4">
-            <div className="w-20 h-px bg-sage" />
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="#ADB897">
-              <circle cx="10" cy="10" r="2.5" />
-              <circle cx="10" cy="3" r="1.5" />
-              <circle cx="17" cy="10" r="1.5" />
-              <circle cx="10" cy="17" r="1.5" />
-              <circle cx="3" cy="10" r="1.5" />
-            </svg>
-            <div className="w-20 h-px bg-sage" />
-          </div>
-        </div>
-
-        {/* Detail cards */}
-        <div className="grid sm:grid-cols-2 gap-6 mb-12">
-          {details.map((d, i) => (
-            <div key={i} className="bg-white/80 rounded-2xl p-6 flex gap-4 items-start">
-              <div className="mt-0.5 shrink-0">{d.icon}</div>
-              <div>
-                <p className="font-sans text-xs tracking-widest uppercase text-mauve mb-1">
-                  {d.label}
-                </p>
-                <p className="font-serif text-lg text-forest capitalize">{d.value}</p>
-                {d.sub && <p className="font-sans text-sm text-mauve mt-1">{d.sub}</p>}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Map / directions button */}
-        <div className="text-center">
-          <a
-            href={CONFIG.wedding.mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border border-forest text-forest font-sans text-xs tracking-widest uppercase hover:bg-forest hover:text-peach transition-colors"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-              />
-            </svg>
-            {t('wedding.directions')}
-          </a>
-        </div>
+      {/* Top vine divider */}
+      <div className="absolute top-0 left-0 right-0 pointer-events-none" aria-hidden>
+        <VineDivider width={1200} height={70} flowerCount={4} className="w-full h-auto" />
       </div>
 
-      <WildflowerDecor variant="bottom" className="h-16 mt-8" opacity={0.3} />
+      {/* Bottom vine divider (rotated) */}
+      <div
+        className="absolute bottom-0 left-0 right-0 pointer-events-none rotate-180"
+        aria-hidden
+      >
+        <VineDivider width={1200} height={70} flowerCount={4} className="w-full h-auto" />
+      </div>
+
+      {/* Floating petals */}
+      <Petal
+        size={26}
+        color="#F7D8BD"
+        rotation={18}
+        className="absolute top-32 left-[8%] animate-float opacity-80 pointer-events-none"
+      />
+      <Petal
+        size={20}
+        color="#C98262"
+        rotation={-22}
+        className="absolute bottom-40 right-[10%] animate-float opacity-70 pointer-events-none"
+      />
+
+      <div className="relative max-w-5xl mx-auto px-6 pt-12 md:pt-16">
+        {/* Heading */}
+        <RevealOnScroll>
+          <div className="text-center mb-16 md:mb-20">
+            <div className="inline-flex items-center justify-center gap-4 relative">
+              <svg
+                width="50"
+                height="50"
+                viewBox="-25 -25 50 50"
+                xmlns="http://www.w3.org/2000/svg"
+                className="shrink-0"
+                aria-hidden
+              >
+                <Flower cx={0} cy={0} variant="daisy" size={1} color="#DC8000" />
+              </svg>
+              <h2 className="font-display italic text-5xl md:text-6xl text-forest-deep">
+                {t('wedding.title')}
+              </h2>
+            </div>
+            <p className="font-serif italic text-mauve text-lg md:text-xl mt-6">
+              {t('wedding.tagline')}
+            </p>
+          </div>
+        </RevealOnScroll>
+
+        {/* Asymmetric paper cards */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+          <RevealOnScroll delay={0} className="md:col-span-7">
+            <InfoCard label={t('wedding.date')} value={dateStr} cornerColor="#DC8000" />
+          </RevealOnScroll>
+
+          <RevealOnScroll delay={0.15} className="md:col-span-5 md:translate-y-4">
+            <InfoCard label={t('wedding.time')} value={CONFIG.wedding.time} cornerColor="#DFB100" />
+          </RevealOnScroll>
+
+          <RevealOnScroll delay={0.3} className="md:col-span-6">
+            <InfoCard
+              label={t('wedding.venue')}
+              value={CONFIG.wedding.venue}
+              cornerColor="#C98262"
+            />
+          </RevealOnScroll>
+
+          <RevealOnScroll delay={0.45} className="md:col-span-6">
+            <InfoCard label={t('wedding.dresscode')} value={dressCode} cornerColor="#AA9DA9" />
+          </RevealOnScroll>
+
+          <RevealOnScroll delay={0.6} className="md:col-span-12">
+            <InfoCard
+              label={t('wedding.address')}
+              value={CONFIG.wedding.address}
+              cornerColor="#DC9A32"
+            >
+              <div className="mt-6">
+                <a
+                  href={CONFIG.wedding.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-forest-deep text-peach-light rounded-full px-6 py-2 font-sans text-sm tracking-widest uppercase hover:bg-forest-deep/90 transition-all hover:scale-[1.02]"
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="-10 -10 30 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden
+                  >
+                    <Bloom delay={0}>
+                      <path
+                        d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z"
+                        fill="#FAE6D4"
+                      />
+                      <path
+                        d="M 1 1 Q 7 0 13 -2"
+                        stroke="#3F6041"
+                        strokeWidth={0.6}
+                        strokeLinecap="round"
+                        fill="none"
+                        opacity={0.55}
+                      />
+                    </Bloom>
+                  </svg>
+                  {t('wedding.directions')}
+                </a>
+              </div>
+            </InfoCard>
+          </RevealOnScroll>
+        </div>
+      </div>
     </section>
   )
 }
