@@ -89,7 +89,7 @@ const DENSITY_MAP: Record<Density, { leaves: LeafPos[]; flowers: FlowerPos[] }> 
   lush: { leaves: LEAVES_LUSH, flowers: FLOWERS_LUSH },
 }
 
-const DEFAULT_PALETTE = ['#DC8000', '#DFB100', '#AA9DA9', '#C98262']
+const DEFAULT_PALETTE = ['#8C7480', '#A39584', '#AA9DA9', '#9A7F84']
 
 // Two asymmetric overlapping stem arcs to give the garland depth.
 const STEM_PRIMARY = 'M 20 160 C 140 -10 320 -10 580 60'

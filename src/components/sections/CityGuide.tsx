@@ -14,7 +14,7 @@ function FlowerStar() {
       className="w-3.5 h-3.5"
       aria-hidden
     >
-      <Flower variant="filler" cx={0} cy={0} color="#DFB100" size={0.6} animate={false} />
+      <Flower variant="filler" cx={0} cy={0} color="#A39584" size={0.6} animate={false} />
     </svg>
   )
 }
@@ -87,19 +87,19 @@ export function CityGuide() {
 
       {/* Edge petals — hidden on mobile so the paper notes breathe */}
       <Petal
-        color="#F7D8BD"
+        color="#C3CBB2"
         size={32}
         rotation={-25}
         className="hidden md:block absolute top-24 left-6 opacity-50 animate-float pointer-events-none"
       />
       <Petal
-        color="#C98262"
+        color="#9A7F84"
         size={26}
         rotation={40}
         className="hidden md:block absolute top-44 right-10 opacity-40 animate-float pointer-events-none"
       />
       <Petal
-        color="#DFB100"
+        color="#A39584"
         size={22}
         rotation={15}
         className="hidden md:block absolute bottom-32 left-12 opacity-45 animate-float pointer-events-none"
@@ -111,13 +111,13 @@ export function CityGuide() {
         className="hidden md:block absolute bottom-20 right-8 opacity-35 animate-float pointer-events-none"
       />
       <Petal
-        color="#F5D1B2"
+        color="#B9A8B5"
         size={20}
         rotation={120}
         className="hidden md:block absolute top-1/2 left-4 opacity-30 animate-float pointer-events-none"
       />
       <Petal
-        color="#C98262"
+        color="#9A7F84"
         size={24}
         rotation={-100}
         className="hidden md:block absolute top-1/3 right-4 opacity-30 animate-float pointer-events-none"
@@ -140,7 +140,7 @@ export function CityGuide() {
                     cx={0}
                     cy={0}
                     color="#AA9DA9"
-                    centerColor="#DFB100"
+                    centerColor="#A39584"
                     size={0.6}
                     animate={false}
                   />
@@ -161,7 +161,7 @@ export function CityGuide() {
                     cx={0}
                     cy={0}
                     color="#AA9DA9"
-                    centerColor="#DFB100"
+                    centerColor="#A39584"
                     size={0.6}
                     animate={false}
                   />

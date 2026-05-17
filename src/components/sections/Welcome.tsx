@@ -51,12 +51,12 @@ function CornerGarden() {
   ]
 
   const flowers = [
-    { cx: 90, cy: 80, variant: 'filler' as const, color: '#DC9A32', size: 1.1, delay: 1.9 },
-    { cx: 175, cy: 150, variant: 'daisy' as const, color: '#DFB100', size: 1.2, delay: 2.05 },
-    { cx: 260, cy: 240, variant: 'filler' as const, color: '#C98262', size: 1, delay: 2.2 },
-    { cx: 1110, cy: 730, variant: 'filler' as const, color: '#DC9A32', size: 1.1, delay: 1.95 },
-    { cx: 1030, cy: 655, variant: 'daisy' as const, color: '#DFB100', size: 1.2, delay: 2.1 },
-    { cx: 950, cy: 580, variant: 'filler' as const, color: '#C98262', size: 1, delay: 2.25 },
+    { cx: 90, cy: 80, variant: 'filler' as const, color: '#5A7956', size: 1.1, delay: 1.9 },
+    { cx: 175, cy: 150, variant: 'daisy' as const, color: '#A39584', size: 1.2, delay: 2.05 },
+    { cx: 260, cy: 240, variant: 'filler' as const, color: '#9A7F84', size: 1, delay: 2.2 },
+    { cx: 1110, cy: 730, variant: 'filler' as const, color: '#5A7956', size: 1.1, delay: 1.95 },
+    { cx: 1030, cy: 655, variant: 'daisy' as const, color: '#A39584', size: 1.2, delay: 2.1 },
+    { cx: 950, cy: 580, variant: 'filler' as const, color: '#9A7F84', size: 1, delay: 2.25 },
   ]
 
   return (
@@ -138,7 +138,7 @@ function CardCornerOrnament({ className, rotate = 0 }: { className?: string; rot
         fill="none"
         opacity={0.55}
       />
-      <Flower cx={26} cy={12} variant="filler" size={0.9} color="#DC9A32" animate={false} />
+      <Flower cx={26} cy={12} variant="filler" size={0.9} color="#5A7956" animate={false} />
     </svg>
   )
 }
@@ -255,7 +255,7 @@ export function Welcome({ guest }: Props) {
                   strokeLinecap="round"
                   fill="none"
                 />
-                <circle cx="54" cy="5" r="1.6" fill="#DC9A32" />
+                <circle cx="54" cy="5" r="1.6" fill="#5A7956" />
               </svg>
               <p className="font-serif italic text-lg sm:text-xl md:text-2xl text-forest/80">
                 {t('welcome.greeting', { name: guest.groupName })}
@@ -275,7 +275,7 @@ export function Welcome({ guest }: Props) {
                   strokeLinecap="round"
                   fill="none"
                 />
-                <circle cx="2" cy="5" r="1.6" fill="#DC9A32" />
+                <circle cx="2" cy="5" r="1.6" fill="#5A7956" />
               </svg>
             </div>
           </RevealOnScroll>

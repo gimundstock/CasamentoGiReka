@@ -97,7 +97,7 @@ export function TornPaperFrame({
       </defs>
 
       {/* Soft paper backing peeking out behind the torn silhouette */}
-      <path d={path} fill="#FAE6D4" opacity={0.7} transform="translate(3 4)" />
+      <path d={path} fill="#FAF3E3" opacity={0.7} transform="translate(3 4)" />
 
       {/* Photo clipped to the torn rectangle */}
       <image

@@ -23,31 +23,31 @@ function Footer() {
 
       {/* Tiny petal goodbye flourishes */}
       <Petal
-        color="#DC8000"
+        color="#8C7480"
         size={18}
         rotation={-25}
         className="absolute bottom-3 left-[10%] opacity-30 animate-float pointer-events-none"
       />
       <Petal
-        color="#DFB100"
+        color="#A39584"
         size={16}
         rotation={40}
         className="absolute bottom-6 left-[28%] opacity-30 animate-float pointer-events-none"
       />
       <Petal
-        color="#C98262"
+        color="#9A7F84"
         size={20}
         rotation={-60}
         className="absolute bottom-2 right-[30%] opacity-30 animate-float pointer-events-none"
       />
       <Petal
-        color="#DC8000"
+        color="#8C7480"
         size={14}
         rotation={120}
         className="absolute bottom-5 right-[12%] opacity-30 animate-float pointer-events-none"
       />
       <Petal
-        color="#DFB100"
+        color="#A39584"
         size={18}
         rotation={20}
         className="absolute bottom-1 left-1/2 -translate-x-1/2 opacity-30 animate-float pointer-events-none"
@@ -58,7 +58,7 @@ function Footer() {
           width={400}
           height={50}
           flowerCount={3}
-          palette={['#DC8000', '#DFB100', '#C98262']}
+          palette={['#8C7480', '#A39584', '#9A7F84']}
           className="mx-auto opacity-40 mb-4"
         />
         <p className="font-display italic text-4xl mb-2">

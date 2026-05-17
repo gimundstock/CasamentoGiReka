@@ -16,10 +16,13 @@ export default {
         'sage-light': '#C3CBB2',
         forest: '#4E784F',
         'forest-deep': '#3F6041',
-        amber: '#DC8000',
-        gold: '#DFB100',
-        terracotta: '#C98262',
-        honey: '#DC9A32',
+        // Warm-accent keys retargeted to muted mauve/sage tones so the
+        // palette settles into a cream + green + mauve scheme. Names
+        // kept stable so existing classes pick up the new tones silently.
+        amber: '#8C7480',
+        gold: '#A39584',
+        terracotta: '#9A7F84',
+        honey: '#5A7956',
       },
       fontFamily: {
         serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],

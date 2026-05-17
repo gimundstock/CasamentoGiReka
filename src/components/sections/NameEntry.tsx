@@ -25,7 +25,7 @@ const FLOATING_PETALS: Array<{
     left: '8%',
     top: '22%',
     rotation: -18,
-    color: '#F7D8BD',
+    color: '#C3CBB2',
     size: 14,
     delay: '0s',
     duration: '6s',
@@ -34,7 +34,7 @@ const FLOATING_PETALS: Array<{
     left: '18%',
     top: '68%',
     rotation: 32,
-    color: '#C98262',
+    color: '#9A7F84',
     size: 11,
     delay: '1.2s',
     duration: '7s',
@@ -43,7 +43,7 @@ const FLOATING_PETALS: Array<{
     left: '30%',
     top: '32%',
     rotation: 12,
-    color: '#FAE6D4',
+    color: '#FAF3E3',
     size: 13,
     delay: '0.6s',
     duration: '5.5s',
@@ -52,7 +52,7 @@ const FLOATING_PETALS: Array<{
     left: '72%',
     top: '20%',
     rotation: -28,
-    color: '#F7D8BD',
+    color: '#C3CBB2',
     size: 12,
     delay: '1.8s',
     duration: '6.5s',
@@ -61,7 +61,7 @@ const FLOATING_PETALS: Array<{
     left: '82%',
     top: '60%',
     rotation: 24,
-    color: '#DC9A32',
+    color: '#5A7956',
     size: 10,
     delay: '0.9s',
     duration: '7.2s',
@@ -70,7 +70,7 @@ const FLOATING_PETALS: Array<{
     left: '64%',
     top: '78%',
     rotation: -8,
-    color: '#F7D8BD',
+    color: '#C3CBB2',
     size: 13,
     delay: '2.4s',
     duration: '6.8s',
@@ -79,7 +79,7 @@ const FLOATING_PETALS: Array<{
     left: '12%',
     top: '50%',
     rotation: 48,
-    color: '#FAE6D4',
+    color: '#FAF3E3',
     size: 11,
     delay: '1.5s',
     duration: '5.8s',
@@ -163,8 +163,8 @@ export function NameEntry({ state, onSubmit }: Props) {
                 cy={0}
                 variant="filler"
                 size={1.6}
-                color="#C98262"
-                centerColor="#DFB100"
+                color="#9A7F84"
+                centerColor="#A39584"
                 animate={false}
               />
             </svg>
@@ -176,8 +176,8 @@ export function NameEntry({ state, onSubmit }: Props) {
                 cy={0}
                 variant="filler"
                 size={1.6}
-                color="#DC8000"
-                centerColor="#DFB100"
+                color="#8C7480"
+                centerColor="#A39584"
                 animate={false}
               />
             </svg>
@@ -233,7 +233,7 @@ export function NameEntry({ state, onSubmit }: Props) {
                   <svg width="12" height="12" viewBox="-2 -8 20 16" aria-hidden>
                     <path
                       d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z"
-                      fill="#FAE6D4"
+                      fill="#FAF3E3"
                     />
                     <path
                       d="M 1 1 Q 7 0 13 -2"

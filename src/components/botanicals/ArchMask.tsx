@@ -14,7 +14,7 @@ interface Props {
   className?: string
 }
 
-const DEFAULT_PALETTE = ['#DC8000', '#DFB100', '#AA9DA9', '#C98262', '#DC9A32']
+const DEFAULT_PALETTE = ['#8C7480', '#A39584', '#AA9DA9', '#9A7F84', '#5A7956']
 
 // Asymmetric garland stems above the arch — three overlapping arcs drawn
 // with staggered delays for a hand-painted, layered feel.

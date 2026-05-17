@@ -37,7 +37,7 @@ function InfoCard({ label, value, cornerColor, className, children }: InfoCardPr
           variant="filler"
           size={0.6}
           color={cornerColor}
-          centerColor="#DFB100"
+          centerColor="#A39584"
           animate={false}
         />
       </svg>
@@ -87,13 +87,13 @@ export function WeddingInfo() {
       {/* Floating petals — hidden on mobile to keep cards uncluttered */}
       <Petal
         size={26}
-        color="#F7D8BD"
+        color="#C3CBB2"
         rotation={18}
         className="hidden md:block absolute top-32 left-[8%] animate-float opacity-80 pointer-events-none"
       />
       <Petal
         size={20}
-        color="#C98262"
+        color="#9A7F84"
         rotation={-22}
         className="hidden md:block absolute bottom-40 right-[10%] animate-float opacity-70 pointer-events-none"
       />
@@ -111,7 +111,7 @@ export function WeddingInfo() {
                 className="shrink-0 w-10 h-10 sm:w-12 sm:h-12"
                 aria-hidden
               >
-                <Flower cx={0} cy={0} variant="daisy" size={1} color="#DC8000" />
+                <Flower cx={0} cy={0} variant="daisy" size={1} color="#8C7480" />
               </svg>
               <h2 className="font-display italic text-4xl sm:text-5xl md:text-6xl text-forest-deep">
                 {t('wedding.title')}
@@ -126,18 +126,18 @@ export function WeddingInfo() {
         {/* Asymmetric paper cards */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
           <RevealOnScroll delay={0} className="md:col-span-7">
-            <InfoCard label={t('wedding.date')} value={dateStr} cornerColor="#DC8000" />
+            <InfoCard label={t('wedding.date')} value={dateStr} cornerColor="#8C7480" />
           </RevealOnScroll>
 
           <RevealOnScroll delay={0.15} className="md:col-span-5 md:translate-y-4">
-            <InfoCard label={t('wedding.time')} value={CONFIG.wedding.time} cornerColor="#DFB100" />
+            <InfoCard label={t('wedding.time')} value={CONFIG.wedding.time} cornerColor="#A39584" />
           </RevealOnScroll>
 
           <RevealOnScroll delay={0.3} className="md:col-span-6">
             <InfoCard
               label={t('wedding.venue')}
               value={CONFIG.wedding.venue}
-              cornerColor="#C98262"
+              cornerColor="#9A7F84"
             />
           </RevealOnScroll>
 
@@ -149,7 +149,7 @@ export function WeddingInfo() {
             <InfoCard
               label={t('wedding.address')}
               value={CONFIG.wedding.address}
-              cornerColor="#DC9A32"
+              cornerColor="#5A7956"
             >
               <div className="mt-6">
                 <a
@@ -168,7 +168,7 @@ export function WeddingInfo() {
                     <Bloom delay={0}>
                       <path
                         d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z"
-                        fill="#FAE6D4"
+                        fill="#FAF3E3"
                       />
                       <path
                         d="M 1 1 Q 7 0 13 -2"

@@ -19,7 +19,7 @@ interface Props {
 function CardCornerFlower({
   className,
   rotation = 0,
-  color = '#DC9A32',
+  color = '#5A7956',
   variant = 'filler',
 }: {
   className?: string
@@ -52,7 +52,7 @@ function CardCornerFlower({
 }
 
 // Tiny inline leaf icon embedded inside the attending pill / submit button.
-function InlineLeaf({ className, fill = '#FAE6D4' }: { className?: string; fill?: string }) {
+function InlineLeaf({ className, fill = '#FAF3E3' }: { className?: string; fill?: string }) {
   return (
     <svg
       width="14"
@@ -96,7 +96,7 @@ function Flourish({ flip = false }: { flip?: boolean }) {
         strokeLinecap="round"
         fill="none"
       />
-      <circle cx="76" cy="6" r="1.6" fill="#DC9A32" />
+      <circle cx="76" cy="6" r="1.6" fill="#5A7956" />
     </svg>
   )
 }
@@ -113,7 +113,7 @@ const SUCCESS_FLOWERS: Array<{
   {
     className: '-top-6 -left-4',
     variant: 'daisy',
-    color: '#DFB100',
+    color: '#A39584',
     size: 1.2,
     rotation: -15,
     delay: 0.1,
@@ -121,7 +121,7 @@ const SUCCESS_FLOWERS: Array<{
   {
     className: '-top-4 right-6',
     variant: 'wild-rose',
-    color: '#C98262',
+    color: '#9A7F84',
     size: 1.1,
     rotation: 18,
     delay: 0.3,
@@ -137,7 +137,7 @@ const SUCCESS_FLOWERS: Array<{
   {
     className: 'top-1/2 -right-6',
     variant: 'filler',
-    color: '#DC9A32',
+    color: '#5A7956',
     size: 0.9,
     rotation: 12,
     delay: 0.7,
@@ -145,7 +145,7 @@ const SUCCESS_FLOWERS: Array<{
   {
     className: '-bottom-5 left-10',
     variant: 'anemone',
-    color: '#C98262',
+    color: '#9A7F84',
     size: 1,
     rotation: 22,
     delay: 0.4,
@@ -153,7 +153,7 @@ const SUCCESS_FLOWERS: Array<{
   {
     className: '-bottom-6 right-12',
     variant: 'daisy',
-    color: '#DFB100',
+    color: '#A39584',
     size: 1.1,
     rotation: -20,
     delay: 0.6,
@@ -176,14 +176,14 @@ const SUCCESS_PETALS: Array<{
   rotation: number
   size: number
 }> = [
-  { left: '8%', delay: '0s', color: '#F7D8BD', rotation: 12, size: 12 },
-  { left: '18%', delay: '2.4s', color: '#DC9A32', rotation: -8, size: 10 },
+  { left: '8%', delay: '0s', color: '#C3CBB2', rotation: 12, size: 12 },
+  { left: '18%', delay: '2.4s', color: '#5A7956', rotation: -8, size: 10 },
   { left: '28%', delay: '5.1s', color: '#AA9DA9', rotation: 28, size: 11 },
-  { left: '40%', delay: '1.2s', color: '#C98262', rotation: -18, size: 13 },
-  { left: '52%', delay: '3.6s', color: '#F7D8BD', rotation: 6, size: 12 },
-  { left: '64%', delay: '0.6s', color: '#DFB100', rotation: -22, size: 10 },
+  { left: '40%', delay: '1.2s', color: '#9A7F84', rotation: -18, size: 13 },
+  { left: '52%', delay: '3.6s', color: '#C3CBB2', rotation: 6, size: 12 },
+  { left: '64%', delay: '0.6s', color: '#A39584', rotation: -22, size: 10 },
   { left: '74%', delay: '4.2s', color: '#ADB897', rotation: 14, size: 11 },
-  { left: '86%', delay: '2.1s', color: '#F7D8BD', rotation: -10, size: 12 },
+  { left: '86%', delay: '2.1s', color: '#C3CBB2', rotation: -10, size: 12 },
 ]
 
 // Shared paper letter card wrapper used by all three states.
@@ -202,7 +202,7 @@ function LetterCard({ children }: { children: React.ReactNode }) {
           <CardCornerFlower
             className="absolute -top-3 -right-3"
             rotation={90}
-            color="#C98262"
+            color="#9A7F84"
             variant="filler"
           />
 
@@ -408,7 +408,7 @@ export function RSVP({ guest }: Props) {
                           : 'border border-sage/40 text-forest/60 bg-transparent hover:border-forest/40'
                       }`}
                     >
-                      {attendee.attending && <InlineLeaf fill="#FAE6D4" />}
+                      {attendee.attending && <InlineLeaf fill="#FAF3E3" />}
                       {t('rsvp.attending')}
                     </button>
                     <button
@@ -490,7 +490,7 @@ export function RSVP({ guest }: Props) {
                     cy={16}
                     variant="filler"
                     size={0.7}
-                    color="#C98262"
+                    color="#9A7F84"
                     animate={false}
                   />
                 </svg>
@@ -518,7 +518,7 @@ export function RSVP({ guest }: Props) {
               </span>
               <InlineLeaf
                 className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                fill="#FAE6D4"
+                fill="#FAF3E3"
               />
             </button>
           </div>

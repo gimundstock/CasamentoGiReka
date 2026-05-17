@@ -70,19 +70,19 @@ export function Couple() {
 
       {/* Scattered petals — hidden on mobile to declutter portraits */}
       <Petal
-        color="#F7D8BD"
+        color="#C3CBB2"
         size={30}
         rotation={-20}
         className="hidden md:block absolute top-32 left-8 opacity-50 animate-float pointer-events-none"
       />
       <Petal
-        color="#C98262"
+        color="#9A7F84"
         size={24}
         rotation={45}
         className="hidden md:block absolute top-1/3 right-10 opacity-40 animate-float pointer-events-none"
       />
       <Petal
-        color="#DFB100"
+        color="#A39584"
         size={22}
         rotation={-50}
         className="hidden md:block absolute bottom-40 left-12 opacity-45 animate-float pointer-events-none"
@@ -94,7 +94,7 @@ export function Couple() {
         className="hidden md:block absolute bottom-20 right-16 opacity-35 animate-float pointer-events-none"
       />
       <Petal
-        color="#F5D1B2"
+        color="#B9A8B5"
         size={20}
         rotation={140}
         className="hidden md:block absolute top-1/2 left-6 opacity-30 animate-float pointer-events-none"
@@ -172,8 +172,8 @@ export function Couple() {
                         cy={cy}
                         variant="daisy"
                         size={1.4}
-                        color="#DC8000"
-                        centerColor="#DFB100"
+                        color="#8C7480"
+                        centerColor="#A39584"
                         animate={false}
                       />
                     </Bloom>
@@ -226,8 +226,8 @@ export function Couple() {
                               cy={0}
                               variant="daisy"
                               size={1.2}
-                              color="#DC8000"
-                              centerColor="#DFB100"
+                              color="#8C7480"
+                              centerColor="#A39584"
                               animate={false}
                             />
                           </svg>

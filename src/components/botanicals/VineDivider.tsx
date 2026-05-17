@@ -10,7 +10,7 @@ interface Props {
   className?: string
 }
 
-const DEFAULT_PALETTE = ['#DC8000', '#DFB100', '#AA9DA9', '#C98262']
+const DEFAULT_PALETTE = ['#8C7480', '#A39584', '#AA9DA9', '#9A7F84']
 
 // A wavy hand-drawn vine — smooth bezier across the full 800-unit width.
 const VINE_D = 'M 10 30 C 110 6 200 54 320 30 S 540 6 660 36 S 770 50 790 28'

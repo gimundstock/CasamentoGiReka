@@ -149,21 +149,21 @@ export function GiftShop({ guest }: Props) {
         className="hidden md:block absolute top-24 left-6 animate-float pointer-events-none"
         aria-hidden
       >
-        <Petal color="#F7D8BD" size={28} rotation={-18} />
+        <Petal color="#C3CBB2" size={28} rotation={-18} />
       </div>
       <div
         className="hidden md:block absolute top-40 right-10 animate-float pointer-events-none"
         style={{ animationDelay: '1.4s' }}
         aria-hidden
       >
-        <Petal color="#DFB100" size={22} rotation={32} />
+        <Petal color="#A39584" size={22} rotation={32} />
       </div>
       <div
         className="hidden md:block absolute bottom-32 left-12 animate-float pointer-events-none"
         style={{ animationDelay: '2.6s' }}
         aria-hidden
       >
-        <Petal color="#C98262" size={20} rotation={48} />
+        <Petal color="#9A7F84" size={20} rotation={48} />
       </div>
       <div
         className="hidden md:block absolute bottom-48 right-8 animate-float pointer-events-none"
@@ -472,7 +472,7 @@ function GiftModal(props: ModalProps) {
                         >
                           <path
                             d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z"
-                            fill="#F7D8BD"
+                            fill="#C3CBB2"
                             transform="translate(-6 0) rotate(-20)"
                           />
                         </svg>
@@ -652,7 +652,7 @@ function GiftModal(props: ModalProps) {
                       cx={-60}
                       cy={0}
                       variant="daisy"
-                      color="#DC9A32"
+                      color="#5A7956"
                       size={1.1}
                       animate={false}
                     />
@@ -662,7 +662,7 @@ function GiftModal(props: ModalProps) {
                       cx={-25}
                       cy={-12}
                       variant="cosmos"
-                      color="#C98262"
+                      color="#9A7F84"
                       size={1.2}
                       animate={false}
                     />
@@ -672,7 +672,7 @@ function GiftModal(props: ModalProps) {
                       cx={10}
                       cy={6}
                       variant="wild-rose"
-                      color="#DFB100"
+                      color="#A39584"
                       size={1.3}
                       animate={false}
                     />
@@ -702,14 +702,14 @@ function GiftModal(props: ModalProps) {
 
               {/* Drifting petals */}
               <div className="absolute top-4 left-6 animate-float pointer-events-none" aria-hidden>
-                <Petal color="#F7D8BD" size={18} rotation={-22} />
+                <Petal color="#C3CBB2" size={18} rotation={-22} />
               </div>
               <div
                 className="absolute top-8 right-8 animate-float pointer-events-none"
                 style={{ animationDelay: '1s' }}
                 aria-hidden
               >
-                <Petal color="#DFB100" size={14} rotation={28} />
+                <Petal color="#A39584" size={14} rotation={28} />
               </div>
 
               <h4 className="font-display italic text-3xl text-forest-deep mb-2">
@@ -784,7 +784,7 @@ function PrimaryButton({ onClick, disabled, submitting, children }: PrimaryButto
       >
         <path
           d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z"
-          fill="#F7D8BD"
+          fill="#C3CBB2"
           transform="translate(-7 0) rotate(-20)"
         />
       </svg>
@@ -821,7 +821,7 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
              L ${archInset} ${size / 2}
              A ${size / 2 - archInset} ${size / 2 - archInset} 0 0 1 ${size - archInset} ${size / 2}
              L ${size - archInset} ${size - archInset} Z`}
-          fill="#FAE6D4"
+          fill="#FAF3E3"
           opacity={0.85}
         />
         {/* Arch outline */}
@@ -849,11 +849,11 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
           cx={size - 16}
           cy={size - 14}
           variant="filler"
-          color="#DC9A32"
+          color="#5A7956"
           size={0.9}
           animate={false}
         />
-        <Flower cx={size / 2} cy={20} variant="filler" color="#DFB100" size={0.9} animate={false} />
+        <Flower cx={size / 2} cy={20} variant="filler" color="#A39584" size={0.9} animate={false} />
       </svg>
 
       {/* QR centered inside arch */}

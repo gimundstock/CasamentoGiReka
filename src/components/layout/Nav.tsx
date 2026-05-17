@@ -97,8 +97,8 @@ export function Nav() {
                   cy={0}
                   variant="filler"
                   size={0.5}
-                  color="#DC8000"
-                  centerColor="#DFB100"
+                  color="#8C7480"
+                  centerColor="#A39584"
                   animate={false}
                 />
               </svg>
@@ -128,8 +128,8 @@ export function Nav() {
                           cy={0}
                           variant="filler"
                           size={0.4}
-                          color="#DC8000"
-                          centerColor="#DFB100"
+                          color="#8C7480"
+                          centerColor="#A39584"
                           animate={false}
                         />
                       </svg>
