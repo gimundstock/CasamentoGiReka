@@ -112,16 +112,16 @@ export function Hero2SaveDate() {
             sizeMax={140}
           />
 
-          {/* Persistent dahlia decoration on the left — static, like a
-              pinned flower that anchors the composition throughout the
-              save-the-date scroll. Sits behind the rising flower field
-              so the field flows past it. */}
+          {/* Persistent dahlia decoration anchored to the bottom-left —
+              static, like a pinned flower that holds the composition
+              throughout the save-the-date scroll. Sits behind the rising
+              flower field so the field flows past it. */}
           <img
-            src={DAHLIA_HERO_SRC}
+            src={`${import.meta.env.BASE_URL}flowers/Dahlia_x3.png`}
             alt=""
             aria-hidden
             draggable={false}
-            className="pointer-events-none absolute top-1/2 left-0 z-[1] h-[55vmin] w-[55vmin] -translate-x-1/3 -translate-y-1/2 object-contain"
+            className="pointer-events-none absolute bottom-0 left-0 z-[1] h-[55vmin] w-[55vmin] -translate-x-1/4 translate-y-1/4 object-contain"
           />
 
           {/* Hero dahlia — grows from a center point to its full size at
