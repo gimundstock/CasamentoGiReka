@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Nav } from './components/layout/Nav'
 import { NameEntry } from './components/sections/NameEntry'
 import { Welcome } from './components/sections/Welcome'
+import { WelcomeDaisy } from './components/sections/WelcomeDaisy'
 import { Couple } from './components/sections/Couple'
 import { WeddingInfo } from './components/sections/WeddingInfo'
 import { CityGuide } from './components/sections/CityGuide'
@@ -10,6 +11,15 @@ import { RSVP } from './components/sections/RSVP'
 import { GiftShop } from './components/sections/GiftShop'
 import { useGuest } from './hooks/useGuest'
 import { CONFIG } from './content.config'
+
+// `?hero=daisy` swaps in the bold poster-flower hero. Anything else falls
+// back to the default Saisei letter-flock Welcome. Both variants reuse the
+// same Guest prop so the rest of the page is identical.
+function pickHero(): 'saisei' | 'daisy' {
+  if (typeof window === 'undefined') return 'saisei'
+  const value = new URLSearchParams(window.location.search).get('hero')
+  return value === 'daisy' ? 'daisy' : 'saisei'
+}
 
 function Footer() {
   const { t } = useTranslation()
@@ -43,11 +53,13 @@ export default function App() {
     return <NameEntry state={state} onSubmit={lookupByName} />
   }
 
+  const Hero = pickHero() === 'daisy' ? WelcomeDaisy : Welcome
+
   return (
     <>
       <Nav />
       <main>
-        <Welcome guest={guest} />
+        <Hero guest={guest} />
         <Couple />
         <WeddingInfo />
         <CityGuide />
