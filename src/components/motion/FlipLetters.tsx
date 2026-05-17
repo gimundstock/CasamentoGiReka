@@ -10,9 +10,9 @@ interface Props {
   /** Initial delay before the auto-play starts. Default 0. */
   delay?: number
   /**
-   * Fraction of the total duration that the staggered starts are
-   * spread across. 0 = all letters start together. 1 = the last
-   * letter starts only at the very end. Default 0.5.
+   * Fraction of the total duration/scroll-range that staggered starts are
+   * spread across. 0 = all letters start together. 1 = the last letter
+   * starts only at the very end. Default 0.85 — strong stagger.
    */
   staggerRatio?: number
   /** Optional className applied to the outer wrapper span. */
@@ -23,15 +23,18 @@ interface Props {
   letterClassName?: string
   /** Scroll-driven mode: animation tied to this MotionValue from useScroll. */
   scrollProgress?: MotionValue<number>
-  /** Scroll range start (0–1). Used in scroll-driven mode. Default 0. */
+  /** Scroll range start (0–1). Default 0. */
   scrollStart?: number
-  /** Scroll range end (0–1). Used in scroll-driven mode. Default 1. */
+  /** Scroll range end (0–1). Default 1. */
   scrollEnd?: number
-  /**
-   * Gate the auto-play. `false` keeps letters edge-on, `true` plays,
-   * `undefined` auto-plays on mount (default).
-   */
+  /** Gate the auto-play. `false` keeps letters edge-on, `true` plays. */
   play?: boolean
+  /** Initial uniform scale per letter. Default 0.25 — letters grow as they flip. */
+  scaleFrom?: number
+  /** Final uniform scale. Default 1. */
+  scaleTo?: number
+  /** Fade letters in by interpolating opacity 0→1 alongside the flip. Default false. */
+  withFade?: boolean
 }
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -40,12 +43,13 @@ const LETTER_STYLE = {
   display: 'inline-block',
   transformOrigin: 'center',
   backfaceVisibility: 'hidden',
+  transformStyle: 'preserve-3d',
 } as const
 
 interface LetterToken {
   char: string
   isSpace: boolean
-  /** Index across all non-space letters in the text — drives the stagger. */
+  /** Index across all non-space letters — drives the stagger. */
   letterIndex: number
 }
 
@@ -58,38 +62,51 @@ interface ScrollLetterProps {
   scrollProgress: MotionValue<number>
   start: number
   end: number
+  scaleFrom: number
+  scaleTo: number
+  withFade: boolean
   className?: string
 }
 
-function ScrollLetter({ char, scrollProgress, start, end, className }: ScrollLetterProps) {
-  // Per-letter hooks are extracted into a sub-component so we don't break the
-  // rules-of-hooks (no hooks in loops).
+function ScrollLetter({
+  char,
+  scrollProgress,
+  start,
+  end,
+  scaleFrom,
+  scaleTo,
+  withFade,
+  className,
+}: ScrollLetterProps) {
+  // Per-letter hooks are extracted into a sub-component so we don't break
+  // the rules-of-hooks (no hooks in a map).
   const rotateY = useTransform(scrollProgress, [start, end], [90, 0])
   const scaleX = useTransform(scrollProgress, [start, end], [0, 1])
-  const opacity = useTransform(scrollProgress, [start, end], [0, 1])
+  const scale = useTransform(scrollProgress, [start, end], [scaleFrom, scaleTo])
+  const opacity = useTransform(scrollProgress, [start, end], withFade ? [0, 1] : [1, 1])
 
   return (
-    <motion.span className={className} style={{ ...LETTER_STYLE, rotateY, scaleX, opacity }}>
+    <motion.span className={className} style={{ ...LETTER_STYLE, rotateY, scaleX, scale, opacity }}>
       {char}
     </motion.span>
   )
 }
 
 /**
- * Saisei-style 3D letter-flip headline. Each character flips in from
- * edge-on (`rotateY: 90deg`) to face-on (`rotateY: 0deg`), combined with
- * a horizontal scale for emphasis. Letters start at staggered times but
- * all finish at the same instant — earlier letters animate longer than
- * later ones, so the line resolves in a single crisp beat.
+ * 3D letter-flip headline. Each character flips in from edge-on
+ * (`rotateY: 90deg`) to face-on (`rotateY: 0deg`), pairs with a
+ * horizontal scale for the flip emphasis, and grows from `scaleFrom`
+ * to `scaleTo` so letters get larger as they assemble. Letters start at
+ * staggered scroll/time points but all finish at the same instant — the
+ * line resolves in a single beat.
  *
- * Pass `scrollProgress` (from `useScroll`) to tie the flip to scroll
- * position instead of playing on mount.
+ * Pass `scrollProgress` (from `useScroll`) for scroll-driven mode.
  */
 export function FlipLetters({
   text,
   duration = 1.6,
   delay = 0,
-  staggerRatio = 0.5,
+  staggerRatio = 0.85,
   className,
   lineClassName,
   letterClassName,
@@ -97,6 +114,9 @@ export function FlipLetters({
   scrollStart = 0,
   scrollEnd = 1,
   play,
+  scaleFrom = 0.25,
+  scaleTo = 1,
+  withFade = false,
 }: Props) {
   const reduced = useReducedMotion()
 
@@ -124,22 +144,13 @@ export function FlipLetters({
       <span className={className}>
         {lines.map((line, li) => (
           <span key={li} className={`block ${lineClassName ?? ''}`}>
-            {line.letters.map((l) => l.char).join('') || ' '}
+            {line.letters.map((l) => l.char).join('') || ' '}
           </span>
         ))}
       </span>
     )
   }
 
-  // Stagger math (shared between modes):
-  //   - All letters finish at the same moment (`duration` for auto-play,
-  //     `scrollEnd` for scroll mode).
-  //   - Letter `i` starts at `i * step`, where
-  //         step = (window * staggerRatio) / max(totalLetters, 1)
-  //     so the last letter starts at `(N-1)/N * window * staggerRatio` and
-  //     still ends at the common finish point.
-  //   - Earlier letters take longer (more animation time), later ones are
-  //     quicker — they all hit the final frame together.
   const safeStagger = Math.max(0, Math.min(1, staggerRatio))
   const denom = Math.max(totalLetters, 1)
 
@@ -150,12 +161,12 @@ export function FlipLetters({
   return (
     <span
       className={className}
-      style={{ perspective: '800px' }}
+      style={{ perspective: '1000px' }}
       aria-label={text.replace(/\n/g, ' ')}
     >
       {lines.map((line, li) => (
         <span key={li} className={`block ${lineClassName ?? ''}`} aria-hidden>
-          {line.letters.length === 0 ? ' ' : null}
+          {line.letters.length === 0 ? ' ' : null}
           {line.letters.map((letter, ci) => {
             if (letter.isSpace) {
               return <span key={`${li}-${ci}`}> </span>
@@ -172,6 +183,9 @@ export function FlipLetters({
                   scrollProgress={scrollProgress}
                   start={start}
                   end={end}
+                  scaleFrom={scaleFrom}
+                  scaleTo={scaleTo}
+                  withFade={withFade}
                   className={letterClassName}
                 />
               )
@@ -179,8 +193,13 @@ export function FlipLetters({
 
             const letterStart = i * autoStep
             const letterDuration = Math.max(duration - letterStart, 0.001)
-            const initial = { rotateY: 90, scaleX: 0, opacity: 0 }
-            const final = { rotateY: 0, scaleX: 1, opacity: 1 }
+            const initial = {
+              rotateY: 90,
+              scaleX: 0,
+              scale: scaleFrom,
+              opacity: withFade ? 0 : 1,
+            }
+            const final = { rotateY: 0, scaleX: 1, scale: scaleTo, opacity: 1 }
             const animate = play === false ? initial : final
 
             return (

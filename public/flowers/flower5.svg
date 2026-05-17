@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-50 -50 100 100" width="80" height="80">
+  <!-- Sun-burst marigold: dense amber rays + dark eye -->
+  <g>
+    <g transform="rotate(0)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(30)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(60)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(90)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(120)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(150)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(180)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(210)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(240)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(270)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(300)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+    <g transform="rotate(330)"><path d="M -2 -16 L 0 -42 L 2 -16 Z" fill="#D89A35" /></g>
+  </g>
+  <circle cx="0" cy="0" r="14" fill="#FFF4E8" />
+  <circle cx="0" cy="0" r="9" fill="#3D3229" />
+</svg>

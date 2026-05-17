@@ -12,12 +12,17 @@ interface Props {
   /** Palette to cycle through (hex colors). Default uses the new Saisei palette. */
   palette?: string[]
   /**
-   * What kind of item to render. 'petal' uses the Petal botanical;
-   * 'flower' uses small Flower instances (filler variant).
-   * Default 'petal'.
+   * What kind of item to render.
+   * - 'petal' — Petal botanical SVG (default)
+   * - 'flower' — small Flower SVG, filler variant
+   * - 'image' — render <img> elements; requires the `images` prop. Use this
+   *   to drop placeholder PNG/JPG/SVG files that you can swap for real
+   *   flower photos later.
    */
-  variant?: 'petal' | 'flower'
-  /** Min/max item size. Defaults are reasonable for a backdrop. */
+  variant?: 'petal' | 'flower' | 'image'
+  /** Image URLs to cycle through. Required when variant === 'image'. */
+  images?: string[]
+  /** Min/max item size. */
   sizeMin?: number
   sizeMax?: number
   className?: string
@@ -29,6 +34,7 @@ interface FieldItem {
   size: number
   rotation: number
   scrollStart: number
+  imageSrc: string | null
 }
 
 const DEFAULT_PALETTE = ['#A88A9D', '#B9AFC1', '#C58A7A', '#D89A35', '#B96F52', '#B8C2A3']
@@ -36,21 +42,17 @@ const DEFAULT_PALETTE = ['#A88A9D', '#B9AFC1', '#C58A7A', '#D89A35', '#B96F52', 
 const RISE_SPAN = 0.4
 
 function pseudoRandom(seed: number): number {
-  // Deterministic per-item randomness so the field is stable across mounts.
   const x = Math.sin(seed * 12.9898) * 43758.5453
   return x - Math.floor(x)
 }
 
 interface FloatItemProps {
   item: FieldItem
-  variant: 'petal' | 'flower'
+  variant: 'petal' | 'flower' | 'image'
   scrollProgress: MotionValue<number>
 }
 
 function FloatItem({ item, variant, scrollProgress }: FloatItemProps) {
-  // Per-item useTransform must live in a sub-component so the hook isn't
-  // called inside a map. Items rise from below the viewport to above it
-  // as scrollProgress crosses their staggered window.
   const end = Math.min(item.scrollStart + RISE_SPAN, 1)
   const y = useTransform(scrollProgress, [item.scrollStart, end], ['120vh', '-120vh'])
 
@@ -60,7 +62,19 @@ function FloatItem({ item, variant, scrollProgress }: FloatItemProps) {
       style={{ left: `${item.leftPercent}%`, top: 0, y }}
       aria-hidden
     >
-      {variant === 'petal' ? (
+      {variant === 'image' && item.imageSrc ? (
+        <img
+          src={item.imageSrc}
+          alt=""
+          width={item.size}
+          height={item.size}
+          style={{
+            transform: `rotate(${item.rotation}deg)`,
+            display: 'block',
+            objectFit: 'contain',
+          }}
+        />
+      ) : variant === 'petal' ? (
         <Petal color={item.color} size={item.size} rotation={item.rotation} />
       ) : (
         <svg
@@ -86,19 +100,22 @@ function FloatItem({ item, variant, scrollProgress }: FloatItemProps) {
 }
 
 /**
- * Saisei-style floating petal/flower field. Renders an absolutely-positioned,
- * full-bleed layer of small botanicals whose vertical position is tied to a
- * `scrollProgress` motion value. Each item is staggered so the field appears
- * to rise continuously as the user scrolls.
+ * Saisei-style floating petal/flower/image field. Renders an absolutely
+ * positioned, full-bleed layer of items whose vertical position is tied
+ * to a `scrollProgress` motion value. Each item is staggered so the field
+ * appears to rise continuously.
  *
- * Layout/colors are deterministic per-mount via a seeded PRNG. Respects
- * prefers-reduced-motion (renders nothing when reduced).
+ * Pass `variant='image'` + an `images` array (file paths in /public) for
+ * placeholder-image mode — useful for dropping real flower photos in.
+ *
+ * Layout/colors are deterministic per-mount. Respects prefers-reduced-motion.
  */
 export function FloatField({
   scrollProgress,
   count = 12,
   palette = DEFAULT_PALETTE,
   variant = 'petal',
+  images,
   sizeMin = 10,
   sizeMax = 22,
   className,
@@ -106,18 +123,14 @@ export function FloatField({
   const reduced = useReducedMotion()
 
   const items = useMemo<FieldItem[]>(() => {
-    // Stagger: each item starts its rise at a unique offset within
-    // [0, 0.7], leaving 0.3 of scrollProgress for the last starter to
-    // fully rise out of view. Spreading starts evenly (rather than
-    // randomly) guarantees a continuous flow with no clumping.
     const maxStart = 0.7
+    const usingImages = variant === 'image' && images && images.length > 0
     return Array.from({ length: count }, (_, i) => {
       const r1 = pseudoRandom(i + 1)
       const r2 = pseudoRandom(i + 101)
       const r3 = pseudoRandom(i + 211)
       const r4 = pseudoRandom(i + 307)
       const evenStart = count > 1 ? (i / (count - 1)) * maxStart : 0
-      // Jitter the start a little so the rise feels organic, not mechanical.
       const jitter = (r4 - 0.5) * (maxStart / Math.max(count, 1)) * 0.6
       const scrollStart = Math.min(maxStart, Math.max(0, evenStart + jitter))
       return {
@@ -126,9 +139,10 @@ export function FloatField({
         size: sizeMin + r3 * (sizeMax - sizeMin),
         rotation: r1 * 360,
         scrollStart,
+        imageSrc: usingImages ? (images[i % images.length] as string) : null,
       }
     })
-  }, [count, palette, sizeMin, sizeMax])
+  }, [count, palette, sizeMin, sizeMax, variant, images])
 
   if (reduced) return null
 
