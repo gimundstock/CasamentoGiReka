@@ -14,9 +14,13 @@ export default {
         // The literal hexes #4E784F / #3F6041 / #ADB897 inside SVG
         // vines, stems, and leaves are unchanged — they stay green so
         // the only green on the page is the botanical illustration.
-        peach: '#6B5560', // was peach — now medium plum-violet (body bg)
-        'peach-light': '#7A6470', // was peach-light — now lighter violet (cards, elevated bg)
-        'peach-warm': '#5C4750', // was peach-warm — now deep plum (deeper bg accents)
+        // Lighter dusty plum so the page reads "soft twilight" instead of
+        // "deep velvet". `peach-warm` aliased to the same value as `peach`
+        // so the one section that uses bg-peach-warm (GiftShop) reads
+        // identically to the rest — no per-section color variation.
+        peach: '#8B7280', // canvas (body bg, every section bg)
+        'peach-light': '#9D8593', // lighter — elevated cards inside sections
+        'peach-warm': '#8B7280', // aliased to peach so sections don't drift
         forest: '#F4DBC4', // was forest green — now warm peach (body text)
         'forest-deep': '#FAE8D6', // was forest-deep — now light peach (headings, CTA bg)
         mauve: '#EDD2BB', // was mauve grey — now medium peach (subtitles)
