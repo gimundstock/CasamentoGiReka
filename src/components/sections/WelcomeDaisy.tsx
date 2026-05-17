@@ -1,32 +1,25 @@
-import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion, useScroll } from 'framer-motion'
 import type { Guest } from '../../types'
 import { CONFIG } from '../../content.config'
-import { useReducedMotion } from '../motion/useReducedMotion'
 import { LetterFlock } from '../motion/LetterFlock'
 import { MaskReveal } from '../motion/MaskReveal'
+import { useArmedOnScroll } from '../motion/useArmedOnScroll'
 
 interface Props {
   guest: Guest
 }
 
-// Big bold geometric daisy/marigold — six rounded cream petals around a
-// dense amber sun-burst with a small cream eye. Slowly rotates on the
-// page so the bg never sits still.
+// Big bold geometric daisy/marigold. Sits still — no auto-rotation.
 function Daisy({ className }: { className?: string }) {
-  const reduced = useReducedMotion()
   const petals = Array.from({ length: 6 })
   const spikes = Array.from({ length: 48 })
 
   return (
-    <motion.svg
+    <svg
       viewBox="-260 -260 520 520"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-hidden
-      animate={reduced ? undefined : { rotate: 360 }}
-      transition={reduced ? undefined : { duration: 120, ease: 'linear', repeat: Infinity }}
     >
       {petals.map((_, i) => {
         const angle = (i * 360) / petals.length
@@ -56,21 +49,13 @@ function Daisy({ className }: { className?: string }) {
       })}
 
       <circle cx={0} cy={0} r={30} fill="#FFF4E8" />
-    </motion.svg>
+    </svg>
   )
 }
 
 export function WelcomeDaisy({ guest }: Props) {
   const { t, i18n } = useTranslation()
-  const sectionRef = useRef<HTMLElement>(null)
-
-  // Drive every block's reveal from how far the hero has scrolled past the
-  // top of the viewport. The poster sits assembled at the very top of the
-  // page; everything stamps in as the user scrolls.
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  })
+  const armed = useArmedOnScroll()
 
   const weddingDate = new Date(CONFIG.wedding.date)
 
@@ -87,7 +72,6 @@ export function WelcomeDaisy({ guest }: Props) {
 
   return (
     <section
-      ref={sectionRef}
       id="welcome"
       className="relative min-h-screen overflow-hidden bg-terracotta flex items-center justify-center px-6 py-20"
     >
@@ -97,12 +81,7 @@ export function WelcomeDaisy({ guest }: Props) {
 
       <div className="relative z-10 w-full max-w-5xl mx-auto">
         <div className="absolute -top-4 left-0 sm:-top-8">
-          <MaskReveal
-            direction="up"
-            scrollProgress={scrollYProgress}
-            scrollStart={0}
-            scrollEnd={0.12}
-          >
+          <MaskReveal direction="up" delay={0.1} play={armed}>
             <div className="bg-peach-light text-terracotta px-4 sm:px-6 py-3 sm:py-4">
               <p className="font-sans text-[0.7rem] sm:text-xs tracking-[0.4em] uppercase">
                 Save the Date
@@ -112,32 +91,17 @@ export function WelcomeDaisy({ guest }: Props) {
         </div>
 
         <div className="absolute top-1/2 right-0 -translate-y-1/2 flex flex-col items-end gap-3">
-          <MaskReveal
-            direction="left"
-            scrollProgress={scrollYProgress}
-            scrollStart={0.08}
-            scrollEnd={0.22}
-          >
+          <MaskReveal direction="left" delay={0.3} play={armed}>
             <span className="block bg-peach-light text-terracotta px-5 sm:px-7 py-2 sm:py-3 font-display italic text-5xl sm:text-7xl md:text-8xl leading-none">
               {day}
             </span>
           </MaskReveal>
-          <MaskReveal
-            direction="left"
-            scrollProgress={scrollYProgress}
-            scrollStart={0.14}
-            scrollEnd={0.28}
-          >
+          <MaskReveal direction="left" delay={0.5} play={armed}>
             <span className="block bg-forest-deep text-peach-light px-4 sm:px-6 py-2 sm:py-3 font-sans tracking-[0.4em] text-base sm:text-xl">
               {month}
             </span>
           </MaskReveal>
-          <MaskReveal
-            direction="left"
-            scrollProgress={scrollYProgress}
-            scrollStart={0.2}
-            scrollEnd={0.34}
-          >
+          <MaskReveal direction="left" delay={0.7} play={armed}>
             <span className="block bg-peach-light text-terracotta px-4 sm:px-6 py-1 sm:py-2 font-display italic text-2xl sm:text-3xl">
               {year}
             </span>
@@ -145,21 +109,17 @@ export function WelcomeDaisy({ guest }: Props) {
         </div>
 
         <div className="absolute -bottom-2 left-0 right-0 sm:right-auto">
-          <MaskReveal
-            direction="up"
-            scrollProgress={scrollYProgress}
-            scrollStart={0.26}
-            scrollEnd={0.4}
-          >
+          <MaskReveal direction="up" delay={0.9} play={armed}>
             <div className="bg-peach-light text-terracotta px-5 sm:px-7 py-3 sm:py-4 inline-block">
               <p className="font-display italic text-2xl sm:text-4xl md:text-5xl leading-none">
                 <LetterFlock
                   text={`${CONFIG.couple.bride} & ${CONFIG.couple.groom}`}
-                  scrollProgress={scrollYProgress}
-                  scrollSpan={0.3}
+                  delay={1.2}
+                  stagger={0.04}
                   spreadX={60}
                   spreadY={30}
                   spreadRotate={6}
+                  play={armed}
                 />
               </p>
             </div>
@@ -170,12 +130,7 @@ export function WelcomeDaisy({ guest }: Props) {
       </div>
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center pointer-events-none">
-        <MaskReveal
-          direction="up"
-          scrollProgress={scrollYProgress}
-          scrollStart={0.4}
-          scrollEnd={0.55}
-        >
+        <MaskReveal direction="up" delay={1.5} play={armed}>
           <p className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-peach-light/80">
             {t('welcome.greeting', { name: guest.groupName })}
           </p>

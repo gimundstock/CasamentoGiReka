@@ -21,6 +21,11 @@ interface Props {
   scrollStart?: number
   /** Scroll progress at which the reveal completes (0–1). Default 0.5. */
   scrollEnd?: number
+  /**
+   * Gates the timeline-based reveal. `false` keeps it hidden, `true` plays
+   * the reveal once, `undefined` falls back to whileInView auto-play.
+   */
+  play?: boolean
 }
 
 const INITIAL: Record<Direction, string> = {
@@ -79,6 +84,7 @@ export function MaskReveal({
   scrollProgress,
   scrollStart = 0,
   scrollEnd = 0.5,
+  play,
 }: Props) {
   const reduced = useReducedMotion()
 
@@ -97,6 +103,21 @@ export function MaskReveal({
       >
         {children}
       </ScrollMask>
+    )
+  }
+
+  // play === false → stay hidden. play === true → play the reveal.
+  // play === undefined → fall back to whileInView auto-play.
+  if (play !== undefined) {
+    return (
+      <motion.div
+        className={className}
+        initial={{ clipPath: INITIAL[direction] }}
+        animate={{ clipPath: play ? REVEALED : INITIAL[direction] }}
+        transition={{ duration, delay, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {children}
+      </motion.div>
     )
   }
 

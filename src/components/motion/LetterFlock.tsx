@@ -35,6 +35,13 @@ interface Props {
    * Letters past that point continue staggering until ~1.0.
    */
   scrollSpan?: number
+  /**
+   * Gates the timeline-based animation. Useful for triggering the flock
+   * from an external event (e.g. first scroll). When `false`, letters
+   * stay at their scattered initial pose. When `true` or undefined, the
+   * flock plays its entrance once.
+   */
+  play?: boolean
 }
 
 interface LetterSeed {
@@ -105,6 +112,7 @@ export function LetterFlock({
   letterClassName,
   scrollProgress,
   scrollSpan = 0.4,
+  play,
 }: Props) {
   const reduced = useReducedMotion()
 
@@ -175,18 +183,23 @@ export function LetterFlock({
                 />
               )
             }
+            const final = { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }
+            const initial = {
+              x: seed.x,
+              y: seed.y,
+              rotate: seed.rotate,
+              scale: seed.scale,
+              opacity: 0,
+            }
+            // play === false → stay scattered. play === true or undefined
+            // → animate to final (undefined keeps the original auto-play).
+            const animate = play === false ? initial : final
             return (
               <motion.span
                 key={`${wi}-${li}`}
                 className={`inline-block ${letterClassName ?? ''}`}
-                initial={{
-                  x: seed.x,
-                  y: seed.y,
-                  rotate: seed.rotate,
-                  scale: seed.scale,
-                  opacity: 0,
-                }}
-                animate={{ x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }}
+                initial={initial}
+                animate={animate}
                 transition={{ duration, delay: seed.delay, ease: EASE }}
                 aria-hidden
               >
