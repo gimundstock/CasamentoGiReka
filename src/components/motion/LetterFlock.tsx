@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useTransform, type MotionValue } from 'framer-motion'
 import { useReducedMotion } from './useReducedMotion'
 
 interface Props {
@@ -7,11 +7,11 @@ interface Props {
   text: string
   /** Element rendered around each letter — defaults to `span`. */
   as?: 'span' | 'div'
-  /** Initial delay before the flock starts. */
+  /** Initial delay before the flock starts (auto-play mode only). */
   delay?: number
   /** Delay added between successive letters. */
   stagger?: number
-  /** Per-letter motion duration. */
+  /** Per-letter motion duration (auto-play mode only). */
   duration?: number
   /** Max random horizontal offset (px). */
   spreadX?: number
@@ -22,6 +22,19 @@ interface Props {
   className?: string
   /** Optional className applied to each letter span. */
   letterClassName?: string
+  /**
+   * When provided, the flock becomes scroll-driven: each letter
+   * interpolates from its scattered initial pose to the final pose as
+   * `scrollProgress` moves from 0 → 1. Letters stagger so they settle at
+   * slightly different scroll positions.
+   */
+  scrollProgress?: MotionValue<number>
+  /**
+   * Fraction of scrollProgress that each letter takes to fully assemble.
+   * Default 0.4 — so a letter that starts at progress 0 finishes at 0.4.
+   * Letters past that point continue staggering until ~1.0.
+   */
+  scrollSpan?: number
 }
 
 interface LetterSeed {
@@ -42,11 +55,42 @@ function pseudoRandom(seed: number): number {
   return x - Math.floor(x)
 }
 
+interface ScrollLetterProps {
+  seed: LetterSeed
+  scrollProgress: MotionValue<number>
+  start: number
+  end: number
+  className?: string
+}
+
+function ScrollLetter({ seed, scrollProgress, start, end, className }: ScrollLetterProps) {
+  // Each letter owns its own derived motion values so the assembly is
+  // continuous and tied directly to scroll position.
+  const x = useTransform(scrollProgress, [start, end], [seed.x, 0])
+  const y = useTransform(scrollProgress, [start, end], [seed.y, 0])
+  const rotate = useTransform(scrollProgress, [start, end], [seed.rotate, 0])
+  const scale = useTransform(scrollProgress, [start, end], [seed.scale, 1])
+  const opacity = useTransform(scrollProgress, [start, end], [0, 1])
+
+  return (
+    <motion.span
+      className={`inline-block ${className ?? ''}`}
+      style={{ x, y, rotate, scale, opacity }}
+      aria-hidden
+    >
+      {seed.char}
+    </motion.span>
+  )
+}
+
 /**
  * Saisei-style letter-flock entrance. Each character lands from a random
  * offset/rotation/scale into its final position with a staggered ease.
  * Words are kept together via inline-block wrappers so line breaks fall
  * between words, not mid-word.
+ *
+ * Pass `scrollProgress` (from `useScroll`) to drive the assembly from
+ * scroll position instead of playing on mount.
  */
 export function LetterFlock({
   text,
@@ -59,6 +103,8 @@ export function LetterFlock({
   spreadRotate = 14,
   className,
   letterClassName,
+  scrollProgress,
+  scrollSpan = 0.4,
 }: Props) {
   const reduced = useReducedMotion()
 
@@ -100,29 +146,55 @@ export function LetterFlock({
     return <span className={className}>{text}</span>
   }
 
+  // Pre-compute per-letter scroll ranges if in scroll-driven mode. Stagger
+  // letters so they don't all assemble simultaneously — gives the same
+  // "flock landing" feel as the timeline mode, just tied to scroll.
+  const nonSpaceCount = seeds.filter((s) => !s.isSpace).length
+  const perLetterOffset =
+    scrollProgress && nonSpaceCount > 1 ? (1 - scrollSpan) / (nonSpaceCount - 1) : 0
+
+  let letterIndex = 0
+
   return (
     <span className={className} aria-label={text}>
       {words.map((word, wi) => (
         <span key={wi} className="inline-block whitespace-nowrap">
-          {word.map((seed, li) => (
-            <motion.span
-              key={`${wi}-${li}`}
-              className={`inline-block ${letterClassName ?? ''}`}
-              initial={{
-                x: seed.x,
-                y: seed.y,
-                rotate: seed.rotate,
-                scale: seed.scale,
-                opacity: 0,
-              }}
-              animate={{ x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }}
-              transition={{ duration, delay: seed.delay, ease: EASE }}
-              aria-hidden
-            >
-              {seed.char}
-            </motion.span>
-          ))}
-          {wi < words.length - 1 && <span aria-hidden>{' '}</span>}
+          {word.map((seed, li) => {
+            const i = letterIndex++
+            if (scrollProgress) {
+              const start = i * perLetterOffset
+              const end = Math.min(start + scrollSpan, 1)
+              return (
+                <ScrollLetter
+                  key={`${wi}-${li}`}
+                  seed={seed}
+                  scrollProgress={scrollProgress}
+                  start={start}
+                  end={end}
+                  className={letterClassName}
+                />
+              )
+            }
+            return (
+              <motion.span
+                key={`${wi}-${li}`}
+                className={`inline-block ${letterClassName ?? ''}`}
+                initial={{
+                  x: seed.x,
+                  y: seed.y,
+                  rotate: seed.rotate,
+                  scale: seed.scale,
+                  opacity: 0,
+                }}
+                animate={{ x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }}
+                transition={{ duration, delay: seed.delay, ease: EASE }}
+                aria-hidden
+              >
+                {seed.char}
+              </motion.span>
+            )
+          })}
+          {wi < words.length - 1 && <span aria-hidden> </span>}
         </span>
       ))}
     </span>

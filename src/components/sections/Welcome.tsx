@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useScroll } from 'framer-motion'
 import type { Guest } from '../../types'
 import { CONFIG } from '../../content.config'
 import { LetterFlock } from '../motion/LetterFlock'
@@ -34,6 +35,16 @@ function useCountdown(targetDate: string) {
 export function Welcome({ guest }: Props) {
   const { t, i18n } = useTranslation()
   const countdown = useCountdown(CONFIG.wedding.date)
+  const sectionRef = useRef<HTMLElement>(null)
+
+  // Drive the hero's reveals from how far the section has scrolled past the
+  // top of the viewport. Animation starts the instant the user scrolls and
+  // completes by the time roughly the hero's height has scrolled past.
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  })
+
   const base = import.meta.env.BASE_URL
   const photoSrc = guest.hasPhoto
     ? `${base}photos/${guest.guestId}.jpg`
@@ -59,11 +70,12 @@ export function Welcome({ guest }: Props) {
 
   return (
     <section
+      ref={sectionRef}
       id="welcome"
       className="relative min-h-screen bg-peach flex flex-col items-center justify-center px-6 py-32 md:py-40"
     >
       <div className="w-full max-w-5xl mx-auto text-center">
-        <MaskReveal direction="up" delay={0.1}>
+        <MaskReveal direction="up" scrollProgress={scrollYProgress} scrollEnd={0.12}>
           <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest mb-12 md:mb-16">
             {t('welcome.invitation')}
           </p>
@@ -71,20 +83,28 @@ export function Welcome({ guest }: Props) {
 
         <h1 className="font-display italic text-forest-deep leading-[0.95]">
           <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-[9rem]">
-            <LetterFlock text={CONFIG.couple.bride} delay={0.4} stagger={0.05} />
+            <LetterFlock
+              text={CONFIG.couple.bride}
+              scrollProgress={scrollYProgress}
+              scrollSpan={0.25}
+            />
           </span>
-          <MaskReveal direction="up" delay={1.1}>
+          <MaskReveal direction="up" scrollProgress={scrollYProgress} scrollEnd={0.18}>
             <span className="block font-display not-italic text-xl sm:text-2xl md:text-3xl text-mauve tracking-[0.6em] my-4 md:my-6">
               &amp;
             </span>
           </MaskReveal>
           <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-[9rem]">
-            <LetterFlock text={CONFIG.couple.groom} delay={1.3} stagger={0.05} />
+            <LetterFlock
+              text={CONFIG.couple.groom}
+              scrollProgress={scrollYProgress}
+              scrollSpan={0.25}
+            />
           </span>
         </h1>
 
         <div className="mt-14 md:mt-20">
-          <MaskReveal direction="up" delay={2.0}>
+          <MaskReveal direction="up" scrollProgress={scrollYProgress} scrollEnd={0.35}>
             <div className="mx-auto w-px h-12 bg-forest-deep/30 mb-6" />
             <p className="font-display italic text-2xl md:text-3xl text-forest-deep mb-2">
               {dateLine}
