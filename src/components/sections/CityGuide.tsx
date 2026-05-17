@@ -1,147 +1,299 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { WildflowerDecor } from '../ui/WildflowerDecor'
+import { RevealOnScroll } from '../motion/RevealOnScroll'
+import { Bloom } from '../motion/Bloom'
+import { Flower, Petal, VineDivider } from '../botanicals'
 import { CONFIG } from '../../content.config'
 
-type Tab = 'hotels' | 'transport' | 'restaurants' | 'tourism'
+// Tiny golden flower used as a star — a small inline SVG with a filler
+// flower so the rating reads as botanical rather than generic.
+function FlowerStar() {
+  return (
+    <svg
+      viewBox="-8 -8 16 16"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-3.5 h-3.5"
+      aria-hidden
+    >
+      <Flower variant="filler" cx={0} cy={0} color="#DFB100" size={0.6} animate={false} />
+    </svg>
+  )
+}
+
+// Small leaf-like accent to sit next to category headings.
+function HeadingLeaf({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 40 24"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden
+    >
+      <path
+        d="M 4 18 C 12 4 28 4 36 18"
+        stroke="#4E784F"
+        strokeWidth={1.2}
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M 14 14 C 18 8 24 8 28 14 C 24 20 18 20 14 14 Z"
+        fill="#ADB897"
+        opacity={0.9}
+      />
+    </svg>
+  )
+}
+
+// Reusable "paper note" wrapper for all city items.
+function PaperNote({
+  children,
+  delay = 0,
+  className = '',
+}: {
+  children: React.ReactNode
+  delay?: number
+  className?: string
+}) {
+  return (
+    <RevealOnScroll delay={delay}>
+      <div
+        className={`relative bg-peach-light/85 border border-sage/30 rounded-2xl p-5 shadow-[0_2px_18px_-12px_rgba(63,96,65,0.45)] transition-all duration-500 hover:scale-[1.01] hover:shadow-[0_8px_28px_-14px_rgba(63,96,65,0.55)] ${className}`}
+      >
+        <div className="absolute inset-0 bg-paper opacity-40 pointer-events-none rounded-2xl" />
+        <div className="relative">{children}</div>
+      </div>
+    </RevealOnScroll>
+  )
+}
+
+function CategoryHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-center gap-3 mb-8">
+      <HeadingLeaf className="w-8 h-5 -scale-x-100 opacity-80" />
+      <h3 className="font-display italic text-3xl text-forest-deep">{children}</h3>
+      <HeadingLeaf className="w-8 h-5 opacity-80" />
+    </div>
+  )
+}
+
+function CategoryDivider() {
+  return (
+    <div className="my-16 flex justify-center">
+      <VineDivider
+        width={600}
+        height={50}
+        flowerCount={3}
+        className="mx-auto opacity-60"
+      />
+    </div>
+  )
+}
 
 export function CityGuide() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
-  const [tab, setTab] = useState<Tab>('hotels')
-
-  const tabs: Tab[] = ['hotels', 'transport', 'restaurants', 'tourism']
 
   return (
-    <section id="city" className="relative bg-white py-24 overflow-hidden">
-      <WildflowerDecor variant="top" className="h-16" opacity={0.2} />
+    <section id="city" className="relative bg-peach-light overflow-hidden py-24 md:py-32">
+      {/* Watercolor washes */}
+      <div className="absolute inset-0 bg-wash-mauve opacity-[0.35] pointer-events-none" />
+      <div className="absolute inset-0 bg-paper opacity-30 pointer-events-none" />
 
-      <div className="max-w-5xl mx-auto px-6 pt-8">
-        <div className="text-center mb-12">
-          <p className="font-sans text-xs tracking-widest uppercase text-amber mb-3">Brasil</p>
-          <h2 className="font-serif text-4xl md:text-5xl text-forest italic">{t('city.title')}</h2>
-          <p className="font-sans text-sm text-mauve mt-3">{t('city.subtitle')}</p>
-        </div>
+      {/* Edge petals */}
+      <Petal
+        color="#F7D8BD"
+        size={32}
+        rotation={-25}
+        className="absolute top-24 left-6 opacity-50 animate-float pointer-events-none"
+      />
+      <Petal
+        color="#C98262"
+        size={26}
+        rotation={40}
+        className="absolute top-44 right-10 opacity-40 animate-float pointer-events-none"
+      />
+      <Petal
+        color="#DFB100"
+        size={22}
+        rotation={15}
+        className="absolute bottom-32 left-12 opacity-45 animate-float pointer-events-none"
+      />
+      <Petal
+        color="#AA9DA9"
+        size={28}
+        rotation={-60}
+        className="absolute bottom-20 right-8 opacity-35 animate-float pointer-events-none"
+      />
+      <Petal
+        color="#F5D1B2"
+        size={20}
+        rotation={120}
+        className="absolute top-1/2 left-4 opacity-30 animate-float pointer-events-none"
+      />
+      <Petal
+        color="#C98262"
+        size={24}
+        rotation={-100}
+        className="absolute top-1/3 right-4 opacity-30 animate-float pointer-events-none"
+      />
 
-        {/* Tabs */}
-        <div className="flex justify-center gap-2 mb-10">
-          {tabs.map((tabKey) => (
-            <button
-              key={tabKey}
-              onClick={() => setTab(tabKey)}
-              className={`px-5 py-2 rounded-full font-sans text-xs tracking-widest uppercase transition-colors ${
-                tab === tabKey
-                  ? 'bg-forest text-peach'
-                  : 'border border-forest/30 text-forest/60 hover:border-forest/60 hover:text-forest'
-              }`}
-            >
-              {t(`city.${tabKey}`)}
-            </button>
+      <div className="relative max-w-5xl mx-auto px-6">
+        {/* Heading */}
+        <RevealOnScroll>
+          <div className="text-center mb-16">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <svg
+                viewBox="-12 -12 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
+                aria-hidden
+              >
+                <Bloom>
+                  <Flower
+                    variant="cosmos"
+                    cx={0}
+                    cy={0}
+                    color="#AA9DA9"
+                    centerColor="#DFB100"
+                    size={0.6}
+                    animate={false}
+                  />
+                </Bloom>
+              </svg>
+              <h2 className="font-display italic text-5xl md:text-6xl text-forest-deep">
+                {t('city.title')}
+              </h2>
+              <svg
+                viewBox="-12 -12 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
+                aria-hidden
+              >
+                <Bloom delay={0.2}>
+                  <Flower
+                    variant="cosmos"
+                    cx={0}
+                    cy={0}
+                    color="#AA9DA9"
+                    centerColor="#DFB100"
+                    size={0.6}
+                    animate={false}
+                  />
+                </Bloom>
+              </svg>
+            </div>
+            <p className="font-serif italic text-mauve text-lg md:text-xl">
+              {t('city.subtitle')}
+            </p>
+          </div>
+        </RevealOnScroll>
+
+        {/* HOTELS */}
+        <CategoryHeading>{t('city.hotels')}</CategoryHeading>
+        <div className="grid sm:grid-cols-2 gap-6">
+          {CONFIG.cityGuide.hotels.map((h, i) => (
+            <PaperNote key={`hotel-${i}`} delay={i * 0.05}>
+              <div className="flex items-start justify-between mb-3 gap-3">
+                <h4 className="font-display text-lg text-forest-deep leading-tight">{h.name}</h4>
+                <div className="flex gap-0.5 shrink-0 mt-1">
+                  {[...Array(h.stars)].map((_, j) => (
+                    <FlowerStar key={j} />
+                  ))}
+                </div>
+              </div>
+              <p className="font-serif italic text-sm text-mauve mb-4 leading-relaxed">
+                {lang === 'pt' ? h.description_pt : h.description_en}
+              </p>
+              <div className="flex items-end justify-between gap-3 flex-wrap">
+                <span className="font-serif italic text-xs text-forest/60">{h.address}</span>
+                <span className="font-display text-base text-honey">{h.priceRange}</span>
+              </div>
+              {h.url && (
+                <a
+                  href={h.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block font-serif italic text-sm text-forest-deep underline underline-offset-4 decoration-sage/70 hover:decoration-forest-deep transition-colors"
+                >
+                  {lang === 'pt' ? 'Ver hotel →' : 'View hotel →'}
+                </a>
+              )}
+            </PaperNote>
           ))}
         </div>
 
-        {/* Hotels */}
-        {tab === 'hotels' && (
-          <div className="grid sm:grid-cols-2 gap-6">
-            {CONFIG.cityGuide.hotels.map((h, i) => (
-              <div key={i} className="bg-peach/50 rounded-2xl p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-serif text-xl text-forest">{h.name}</h3>
-                  <div className="flex gap-0.5 ml-2 shrink-0">
-                    {[...Array(h.stars)].map((_, j) => (
-                      <svg key={j} className="w-3.5 h-3.5" fill="#DFB100" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                </div>
-                <p className="font-sans text-sm text-mauve mb-3 leading-relaxed">
-                  {lang === 'pt' ? h.description_pt : h.description_en}
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="font-sans text-xs text-forest/60">{h.address}</span>
-                  <span className="font-sans text-xs font-semibold text-amber">{h.priceRange}</span>
-                </div>
-                {h.url && (
-                  <a
-                    href={h.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-block font-sans text-xs text-forest underline underline-offset-2"
-                  >
-                    Ver hotel →
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        <CategoryDivider />
 
-        {/* Transport */}
-        {tab === 'transport' && (
-          <div className="grid sm:grid-cols-3 gap-6">
-            {CONFIG.cityGuide.transport.map((tr, i) => (
-              <div key={i} className="bg-sage/20 rounded-2xl p-6 text-center">
-                <div className="text-4xl mb-4">{tr.icon}</div>
-                <h3 className="font-serif text-lg text-forest mb-3">
-                  {lang === 'pt' ? tr.type_pt : tr.type_en}
-                </h3>
-                <p className="font-sans text-sm text-mauve leading-relaxed">
-                  {lang === 'pt' ? tr.description_pt : tr.description_en}
-                </p>
+        {/* TRANSPORT */}
+        <CategoryHeading>{t('city.transport')}</CategoryHeading>
+        <div className="grid sm:grid-cols-3 gap-6">
+          {CONFIG.cityGuide.transport.map((tr, i) => (
+            <PaperNote key={`tr-${i}`} delay={i * 0.05} className="text-center">
+              <div className="text-4xl mb-3" aria-hidden>
+                {tr.icon}
               </div>
-            ))}
-          </div>
-        )}
+              <h4 className="font-display text-lg text-forest-deep mb-2">
+                {lang === 'pt' ? tr.type_pt : tr.type_en}
+              </h4>
+              <p className="font-serif italic text-sm text-mauve leading-relaxed">
+                {lang === 'pt' ? tr.description_pt : tr.description_en}
+              </p>
+            </PaperNote>
+          ))}
+        </div>
 
-        {/* Restaurants */}
-        {tab === 'restaurants' && (
-          <div className="grid sm:grid-cols-2 gap-6">
-            {CONFIG.cityGuide.restaurants.map((r, i) => (
-              <div key={i} className="bg-peach/50 rounded-2xl p-6">
-                <h3 className="font-serif text-xl text-forest mb-1">{r.name}</h3>
-                <span className="inline-block font-sans text-xs tracking-wide uppercase text-amber mb-3">
-                  {lang === 'pt' ? r.cuisine_pt : r.cuisine_en}
-                </span>
-                <p className="font-sans text-sm text-mauve mb-3 leading-relaxed">
-                  {lang === 'pt' ? r.description_pt : r.description_en}
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="font-sans text-xs text-forest/60">{r.address}</span>
-                  <span className="font-sans text-xs font-semibold text-amber">{r.priceRange}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <CategoryDivider />
 
-        {/* Tourism */}
-        {tab === 'tourism' && (
-          <div className="grid sm:grid-cols-2 gap-6">
-            {CONFIG.cityGuide.tourism.map((place, i) => (
-              <div key={i} className="bg-sage/20 rounded-2xl p-6">
-                <h3 className="font-serif text-xl text-forest mb-3">{place.name}</h3>
-                <p className="font-sans text-sm text-mauve mb-3 leading-relaxed">
-                  {lang === 'pt' ? place.description_pt : place.description_en}
-                </p>
-                <span className="font-sans text-xs text-forest/60">{place.address}</span>
-                {place.url && (
-                  <a
-                    href={place.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 block font-sans text-xs text-forest underline underline-offset-2"
-                  >
-                    {lang === 'pt' ? 'Saiba mais →' : 'Learn more →'}
-                  </a>
-                )}
+        {/* RESTAURANTS */}
+        <CategoryHeading>{t('city.restaurants')}</CategoryHeading>
+        <div className="grid sm:grid-cols-2 gap-6">
+          {CONFIG.cityGuide.restaurants.map((r, i) => (
+            <PaperNote key={`r-${i}`} delay={i * 0.05}>
+              <h4 className="font-display text-lg text-forest-deep mb-1 leading-tight">
+                {r.name}
+              </h4>
+              <span className="inline-block font-serif italic text-xs tracking-wide text-honey mb-3">
+                {lang === 'pt' ? r.cuisine_pt : r.cuisine_en}
+              </span>
+              <p className="font-serif italic text-sm text-mauve mb-4 leading-relaxed">
+                {lang === 'pt' ? r.description_pt : r.description_en}
+              </p>
+              <div className="flex items-end justify-between gap-3 flex-wrap">
+                <span className="font-serif italic text-xs text-forest/60">{r.address}</span>
+                <span className="font-display text-base text-honey">{r.priceRange}</span>
               </div>
-            ))}
-          </div>
-        )}
+            </PaperNote>
+          ))}
+        </div>
+
+        <CategoryDivider />
+
+        {/* TOURISM */}
+        <CategoryHeading>{t('city.tourism')}</CategoryHeading>
+        <div className="grid sm:grid-cols-2 gap-6">
+          {CONFIG.cityGuide.tourism.map((place, i) => (
+            <PaperNote key={`t-${i}`} delay={i * 0.05}>
+              <h4 className="font-display text-lg text-forest-deep mb-3 leading-tight">
+                {place.name}
+              </h4>
+              <p className="font-serif italic text-sm text-mauve mb-3 leading-relaxed">
+                {lang === 'pt' ? place.description_pt : place.description_en}
+              </p>
+              <span className="font-serif italic text-xs text-forest/60">{place.address}</span>
+              {place.url && (
+                <a
+                  href={place.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 block font-serif italic text-sm text-forest-deep underline underline-offset-4 decoration-sage/70 hover:decoration-forest-deep transition-colors"
+                >
+                  {lang === 'pt' ? 'Saiba mais →' : 'Learn more →'}
+                </a>
+              )}
+            </PaperNote>
+          ))}
+        </div>
       </div>
-
-      <WildflowerDecor variant="bottom" className="h-16 mt-8" opacity={0.2} />
     </section>
   )
 }
