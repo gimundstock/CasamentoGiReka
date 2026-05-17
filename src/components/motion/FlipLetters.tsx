@@ -53,6 +53,20 @@ interface Props {
   scaleVariance?: number
   /** Final scale. Default 1. */
   scaleTo?: number
+  /**
+   * Fade letters in toward the end of their travel. When true, each
+   * letter is fully transparent while it's still travelling and only
+   * fades in over the final stretch — so letters appear as they reach
+   * their resting position rather than being visible mid-flight.
+   */
+  withFade?: boolean
+  /**
+   * Where in each letter's own window the fade-in starts (0–1, relative
+   * to that letter's travel). Default 0.6 — letters stay invisible for
+   * the first 60% of their journey and fade in over the last 40%, so the
+   * appearance lands right as they reach their resting position.
+   */
+  fadeStartRatio?: number
 }
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -60,7 +74,7 @@ const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 const LETTER_STYLE = {
   display: 'inline-block',
   transformOrigin: 'center',
-  willChange: 'transform',
+  willChange: 'transform, opacity',
 } as const
 
 interface LetterToken {
@@ -94,6 +108,8 @@ interface ScrollLetterProps {
   initialRotate: number
   initialScale: number
   scaleTo: number
+  withFade: boolean
+  fadeStartRatio: number
   className?: string
 }
 
@@ -107,6 +123,8 @@ function ScrollLetter({
   initialRotate,
   initialScale,
   scaleTo,
+  withFade,
+  fadeStartRatio,
   className,
 }: ScrollLetterProps) {
   // Per-letter hooks live in a sub-component so we don't break rules-of-hooks
@@ -116,9 +134,16 @@ function ScrollLetter({
   const y = useTransform(scrollProgress, [start, end], [initialY, 0])
   const rotate = useTransform(scrollProgress, [start, end], [initialRotate, 0])
   const scale = useTransform(scrollProgress, [start, end], [initialScale, scaleTo])
+  // When withFade, opacity ramps 0 → 1 over the LAST stretch of the
+  // letter's travel (starting at `fadeStartRatio` of the way in). Before
+  // that, useTransform clamps the output to 0 so the letter is fully
+  // invisible during the early travel. When withFade is off, opacity
+  // is just constant 1.
+  const fadeStart = start + (end - start) * fadeStartRatio
+  const opacity = useTransform(scrollProgress, [fadeStart, end], withFade ? [0, 1] : [1, 1])
 
   return (
-    <motion.span className={className} style={{ ...LETTER_STYLE, x, y, rotate, scale }}>
+    <motion.span className={className} style={{ ...LETTER_STYLE, x, y, rotate, scale, opacity }}>
       {char}
     </motion.span>
   )
@@ -152,6 +177,8 @@ export function FlipLetters({
   scaleFrom = 0.3,
   scaleVariance = 0.8,
   scaleTo = 1,
+  withFade = false,
+  fadeStartRatio = 0.6,
 }: Props) {
   const reduced = useReducedMotion()
 
@@ -238,6 +265,8 @@ export function FlipLetters({
                   initialRotate={letter.initialRotate}
                   initialScale={letter.initialScale}
                   scaleTo={scaleTo}
+                  withFade={withFade}
+                  fadeStartRatio={fadeStartRatio}
                   className={letterClassName}
                 />
               )
@@ -250,8 +279,9 @@ export function FlipLetters({
               y: letter.initialY,
               rotate: letter.initialRotate,
               scale: letter.initialScale,
+              opacity: withFade ? 0 : 1,
             }
-            const final = { x: 0, y: 0, rotate: 0, scale: scaleTo }
+            const final = { x: 0, y: 0, rotate: 0, scale: scaleTo, opacity: 1 }
             const animate = play === false ? initial : final
 
             return (
