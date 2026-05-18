@@ -67,10 +67,13 @@ const DAHLIA_ANCHOR_SRC = `${import.meta.env.BASE_URL}flowers/Dahlia_x3.png`
  *   0.20 → 0.27  countdown digits scatter-collect
  *   0.24 → 0.30  countdown labels mask-reveal
  *   0.30 → 0.40  red dahlia grows from scale 0 → 1 (-20° → 0° unwind)
- *   0.40 → 0.46  save-the-date content fades out (text + anchor + field)
- *   0.43 → 0.48  "OUR STORY / The Couple" heading fades in
- *   0.50 → 0.85  photo cascade (RisingCards staggered across this range)
+ *   0.40 → 0.46  save-the-date layer fades out (text + anchor + field)
+ *   0.46 → 0.50  GAP — only the red dahlia is visible (sequencing buffer)
+ *   0.50 → 0.58  "OUR STORY / The Couple" heading mask-reveals
+ *   0.40 → 0.85  dahlia spins 0° → 360° behind everything
+ *   0.55 → 0.85  photo cascade (RisingCards staggered across this range)
  *   0.85 → 1.00  dahlia zooms scale 1 → 6, transitioning to WeddingInfo
+ *   0.93 → 1.00  couple heading fades back out so the zoom has clean canvas
  */
 export function HeroSaveDateCouple() {
   const { t, i18n } = useTranslation()
@@ -83,24 +86,23 @@ export function HeroSaveDateCouple() {
     offset: ['start start', 'end end'],
   })
 
-  // Dahlia: stays at 0 through the text reveal, grows 0.30 → 0.40, holds
-  // at 1 through the cross-fade and cascade, then zooms to 6 during the
-  // final ZoomMorph phase. Multi-keyframe keeps it as ONE motion value.
+  // Dahlia scale: held at 0 through the text reveal, grows 0.30 → 0.40,
+  // holds at 1 through the cross-fade and cascade, then zooms to 6 in
+  // the final morph. ONE motion value across the whole flow.
   const dahliaScale = useTransform(scrollYProgress, [0, 0.3, 0.4, 0.85, 1], [0, 0, 1, 1, 6])
-  const dahliaRotate = useTransform(scrollYProgress, [0.3, 0.4], [-20, 0])
+  // Rotation: -20° at the start of the grow, unwinds to 0° as the bloom
+  // settles, then a full slow 0° → 360° spin while the photo cascade
+  // plays past it (matches what the old Hero 3 had).
+  const dahliaRotate = useTransform(scrollYProgress, [0.3, 0.4, 0.85], [-20, 0, 360])
 
-  // Save-the-date content (text + anchor dahlia + flower field) fades out
-  // once the red dahlia has bloomed. The couple heading fades in just
-  // after, with a small overlap so the screen is never empty.
+  // Save-the-date layer (text + anchor dahlia + flower field) fades out
+  // fully BEFORE the couple heading starts coming in — small gap in
+  // between where only the red dahlia is visible, so there's never a
+  // moment of two competing layers.
   const saveDateOpacity = useTransform(scrollYProgress, [0.4, 0.46], [1, 0])
-  const coupleHeadingOpacity = useTransform(scrollYProgress, [0.43, 0.48], [0, 1])
-  // Heading fades back out at the very end so the daisy zoom has clean
-  // canvas to morph into the next section.
-  const coupleHeadingOpacityOut = useTransform(scrollYProgress, [0.93, 1], [1, 0])
-  const coupleHeadingOpacityFinal = useTransform(
-    [coupleHeadingOpacity, coupleHeadingOpacityOut] as const,
-    ([fadeIn, fadeOut]) => Math.min(fadeIn as number, fadeOut as number)
-  )
+  // Couple heading fades back out at the very end so the dahlia zoom
+  // has a clean canvas to morph into "The Big Day".
+  const coupleHeadingFadeOut = useTransform(scrollYProgress, [0.93, 1], [1, 0])
 
   const weddingDate = new Date(CONFIG.wedding.date)
   const dateLine = weddingDate
@@ -117,12 +119,13 @@ export function HeroSaveDateCouple() {
     2
   )} : ${pad(countdown.seconds, 2)}`
 
-  // Cascade math — same shape as the standalone Hero 3 had, just shifted
-  // into the [0.5, 0.85] window of the combined progress range.
+  // Cascade math — same shape as the standalone Hero 3 had, shifted to
+  // start just AFTER the couple heading lands so the photos enter as
+  // the heading is settling, not while it's still revealing.
   const milestones = CONFIG.story?.milestones ?? []
   const N = milestones.length
-  const cascadeStart = 0.5
-  const cascadeWindow = 0.35
+  const cascadeStart = 0.55
+  const cascadeWindow = 0.3
   const perCard = N > 0 ? cascadeWindow / N : cascadeWindow
   const riseSpan = perCard * 1.6
 
@@ -222,17 +225,33 @@ export function HeroSaveDateCouple() {
             </div>
           </motion.div>
 
-          {/* ── Couple heading — fades in at 0.43-0.48, sits over the dahlia ── */}
+          {/* ── Couple heading — mask-reveals at 0.50-0.58 after the
+              save-the-date layer is fully gone, and the outer opacity
+              wrapper handles the final fade-out before the zoom. ── */}
           <motion.div
             className="pointer-events-none absolute inset-x-0 top-0 z-30 px-6 pt-16 text-center md:pt-20"
-            style={{ opacity: coupleHeadingOpacityFinal }}
+            style={{ opacity: coupleHeadingFadeOut }}
           >
-            <p className="font-sans text-forest mb-4 text-[0.65rem] tracking-[0.4em] uppercase">
-              {t('couple.ourStory')}
-            </p>
-            <h2 className="font-display text-forest-deep text-3xl italic md:text-5xl">
-              {t('couple.title')}
-            </h2>
+            <MaskReveal
+              direction="up"
+              scrollProgress={scrollYProgress}
+              scrollStart={0.5}
+              scrollEnd={0.56}
+            >
+              <p className="font-sans text-forest mb-4 text-[0.65rem] tracking-[0.4em] uppercase">
+                {t('couple.ourStory')}
+              </p>
+            </MaskReveal>
+            <MaskReveal
+              direction="up"
+              scrollProgress={scrollYProgress}
+              scrollStart={0.52}
+              scrollEnd={0.58}
+            >
+              <h2 className="font-display text-forest-deep text-3xl italic md:text-5xl">
+                {t('couple.title')}
+              </h2>
+            </MaskReveal>
           </motion.div>
 
           {/* ── Photo cascade — RisingCards in the [0.5, 0.85] window ── */}
