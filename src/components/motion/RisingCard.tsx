@@ -64,11 +64,15 @@ export function RisingCard({
 
   // Hooks must run unconditionally; they're harmless when `reduced` is true.
   const y = useTransform(scrollProgress, [scrollStart, scrollEnd], [startY, endY])
-  const opacity = useTransform(
-    scrollProgress,
-    [scrollStart, fadeIn, fadeOut, scrollEnd],
-    [0, 1, 1, 0]
-  )
+  // Function-form useTransform — the 4-keyframe array form (`[s,fi,fo,e] →
+  // [0,1,1,0]`) failed to subscribe in framer-motion 12 here, leaving
+  // opacity pinned at 0. A custom transformer is reliable.
+  const opacity = useTransform(scrollProgress, (v: number) => {
+    if (v <= scrollStart || v >= scrollEnd) return 0
+    if (v < fadeIn) return (v - scrollStart) / (fadeIn - scrollStart)
+    if (v > fadeOut) return 1 - (v - fadeOut) / (scrollEnd - fadeOut)
+    return 1
+  })
 
   const imageOrderClass = captionSide === 'left' ? 'md:order-2' : 'md:order-1'
   const captionOrderClass = captionSide === 'left' ? 'md:order-1' : 'md:order-2'
@@ -80,7 +84,8 @@ export function RisingCard({
           src={imageSrc}
           alt={imageAlt}
           className="aspect-[3/4] w-full object-cover"
-          loading="lazy"
+          loading="eager"
+          decoding="async"
         />
       </div>
       {caption && (

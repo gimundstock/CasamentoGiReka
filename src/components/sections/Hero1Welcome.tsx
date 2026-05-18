@@ -37,20 +37,29 @@ export function Hero1Welcome({ guest }: Props) {
 
       {/* Text column — right on desktop, below on mobile */}
       <div className="flex w-full flex-1 items-center justify-center px-6 py-16 md:px-10 md:py-0">
-        <div className="w-full max-w-xl text-center">
-          <h1 className="sr-only">{altText}</h1>
+        <div className="relative w-full max-w-xl text-center">
           <img
-            src={`${base}flowers/title.png`}
-            alt={altText}
-            className="mx-auto w-full max-w-md md:max-w-lg lg:max-w-xl"
+            src={`${base}flowers/lavender.png`}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-1/2 z-0 w-[120%] max-w-none -translate-x-1/2 -translate-y-[55%] opacity-40 select-none"
           />
+          <h1 className="font-display text-forest-deep relative z-10 leading-[0.95]">
+            <span className="block text-6xl italic sm:text-7xl md:text-8xl lg:text-9xl">
+              {CONFIG.couple.bride}
+            </span>
+            <span className="mt-3 block text-5xl italic sm:text-6xl md:mt-4 md:text-7xl lg:text-8xl">
+              <span className="text-mauve font-display mr-3 not-italic">&amp;</span>
+              {CONFIG.couple.groom}
+            </span>
+          </h1>
 
-          <div className="bg-forest-deep/30 mx-auto my-8 h-px w-12 md:my-10" />
+          <div className="bg-forest-deep/30 relative z-10 mx-auto my-8 h-px w-12 md:my-10" />
 
-          <p className="font-serif text-forest text-lg italic md:text-xl">
+          <p className="font-serif text-forest relative z-10 text-2xl italic md:text-3xl lg:text-4xl">
             {t('welcome.greeting', { name: guest.groupName })}
           </p>
-          <p className="font-sans text-forest mt-4 text-sm tracking-[0.25em] uppercase">
+          <p className="font-sans text-forest relative z-10 mt-4 text-sm tracking-[0.25em] uppercase">
             {t('welcome.invitation')}
           </p>
         </div>

@@ -29,21 +29,31 @@ export function NameEntry({ state, onSubmit }: Props) {
         <LanguageToggle />
       </div>
 
-      <div className="animate-fade-in w-full max-w-md text-center">
+      <div className="animate-fade-in relative w-full max-w-md text-center">
         <img
-          src={`${base}flowers/title.png`}
-          alt={`${CONFIG.couple.bride} & ${CONFIG.couple.groom}`}
-          className="mx-auto mb-12 w-full max-w-xs"
+          src={`${base}flowers/lavender.png`}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 left-1/2 z-0 w-[130%] max-w-none -translate-x-1/2 -translate-y-[20%] opacity-40 select-none"
         />
+        <div className="relative z-10">
+          <div className="font-display text-forest-deep mb-2 text-6xl italic leading-[0.95]">
+            {CONFIG.couple.bride}
+          </div>
+          <div className="font-display text-forest-deep mb-12 text-5xl italic leading-[0.95]">
+            <span className="text-mauve mr-2 not-italic">&amp;</span>
+            {CONFIG.couple.groom}
+          </div>
+        </div>
 
-        <h1 className="font-display text-forest-deep mb-4 text-3xl italic">
+        <h1 className="font-display text-forest-deep relative z-10 mb-4 text-3xl italic">
           {t('nameEntry.welcome')}
         </h1>
-        <p className="font-serif text-forest italic mb-10 text-base leading-relaxed">
+        <p className="font-serif text-forest relative z-10 italic mb-10 text-base leading-relaxed">
           {t('nameEntry.subtitle')}
         </p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="relative z-10">
           <input
             ref={inputRef}
             type="text"
