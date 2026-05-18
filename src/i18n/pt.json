@@ -35,9 +35,11 @@
   },
   "wedding": {
     "title": "O Grande Dia",
+    "tagline": "Sob o céu aberto do cerrado, ao pôr do sol",
     "date": "Data",
     "time": "Horário",
     "venue": "Local",
+    "address": "Endereço",
     "dresscode": "Traje",
     "directions": "Como chegar",
     "ceremony": "Cerimônia"
@@ -67,8 +69,13 @@
     "submitting": "Enviando...",
     "successTitle": "Confirmação enviada!",
     "successText": "Mal podemos esperar para celebrar com você!",
+    "alreadyTitle": "Você já confirmou",
     "alreadySubmitted": "Sua presença já foi confirmada. Obrigado!",
-    "error": "Erro ao enviar. Tente novamente."
+    "errorTitle": "Algo deu errado",
+    "error": "Erro ao enviar. Tente novamente.",
+    "kicker": "Um pedido com carinho",
+    "letterOpening": "Querido(a) convidado(a),",
+    "letterClose": "Com amor"
   },
   "gifts": {
     "title": "Lista de Presentes",
@@ -94,7 +101,16 @@
     "successText": "Obrigado pelo carinho! Um e-mail de confirmação foi enviado para você.",
     "error": "Erro ao confirmar. Tente novamente.",
     "noCotas": "Nenhuma cota selecionada",
-    "emailRequired": "Por favor, informe seu e-mail"
+    "emailRequired": "Por favor, informe seu e-mail",
+    "soldOutStamp": "esgotado",
+    "price": "Valor",
+    "fromPrice": "A partir de",
+    "stepKicker": "Presente escolhido",
+    "successKicker": "Recebido com carinho",
+    "summary": "Resumo",
+    "total": "Total",
+    "done": "Concluído",
+    "close": "Fechar"
   },
   "footer": {
     "made": "Feito com amor",

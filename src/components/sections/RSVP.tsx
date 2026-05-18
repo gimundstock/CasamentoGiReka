@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { WildflowerDecor } from '../ui/WildflowerDecor'
 import { submitRSVP } from '../../api/sheets'
 import type { Guest, RSVPAttendee } from '../../types'
 import { CONFIG } from '../../content.config'
+import { MaskReveal } from '../motion/MaskReveal'
+import { RevealOnScroll } from '../motion/RevealOnScroll'
 
 const RSVP_STORAGE_KEY = 'wedding_rsvp_submitted'
 
@@ -51,77 +52,90 @@ export function RSVP({ guest }: Props) {
   }
 
   if (submitted) {
+    const isAlready = alreadySubmitted
+    const title = isAlready ? t('rsvp.alreadyTitle') : t('rsvp.successTitle')
+    const body = isAlready ? t('rsvp.alreadySubmitted') : t('rsvp.successText')
+
     return (
-      <section id="rsvp" className="relative bg-sage/20 py-24 overflow-hidden">
-        <WildflowerDecor variant="top" className="h-16" opacity={0.25} />
-        <div className="max-w-lg mx-auto px-6 text-center py-16">
-          <div className="text-5xl mb-6">🌸</div>
-          <h2 className="font-serif text-3xl text-forest italic mb-3">{t('rsvp.successTitle')}</h2>
-          <p className="font-sans text-mauve">{t('rsvp.successText')}</p>
+      <section id="rsvp" className="bg-peach py-32 md:py-48">
+        <div className="max-w-2xl mx-auto px-6 text-center">
+          <MaskReveal direction="up">
+            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber mb-6">
+              {t('rsvp.kicker')}
+            </p>
+            <h2 className="font-display italic text-5xl md:text-7xl text-forest-deep mb-12">
+              {title}
+            </h2>
+            <p className="font-serif italic text-lg md:text-xl text-forest leading-relaxed">
+              {body}
+            </p>
+          </MaskReveal>
         </div>
-        <WildflowerDecor variant="bottom" className="h-16" opacity={0.25} />
       </section>
     )
   }
 
   return (
-    <section id="rsvp" className="relative bg-sage/20 py-24 overflow-hidden">
-      <WildflowerDecor variant="top" className="h-16" opacity={0.25} />
+    <section id="rsvp" className="bg-peach py-32 md:py-48">
+      <div className="max-w-2xl mx-auto px-6">
+        <MaskReveal direction="up" delay={0.05}>
+          <div className="text-center mb-20 md:mb-24">
+            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber mb-6">
+              {t('rsvp.kicker')}
+            </p>
+            <h2 className="font-display italic text-5xl md:text-7xl text-forest-deep">
+              {t('rsvp.title')}
+            </h2>
+            <p className="font-serif italic text-mauve text-lg md:text-xl mt-6">
+              {t('rsvp.subtitle', { date: rsvpDeadline })}
+            </p>
+          </div>
+        </MaskReveal>
 
-      <div className="max-w-2xl mx-auto px-6 pt-8">
-        <div className="text-center mb-12">
-          <p className="font-sans text-xs tracking-widest uppercase text-amber mb-3">
-            {t('nav.rsvp')}
-          </p>
-          <h2 className="font-serif text-4xl md:text-5xl text-forest italic">{t('rsvp.title')}</h2>
-          <p className="font-sans text-sm text-mauve mt-3">
-            {t('rsvp.subtitle', { date: rsvpDeadline })}
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Attendees */}
-          <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-12">
+          <div className="space-y-12">
             {attendees.map((attendee, i) => (
-              <div key={i} className="bg-white/80 rounded-2xl p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-serif text-lg text-forest">{attendee.name}</span>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateAttendee(i, 'attending', true)}
-                      className={`px-4 py-1.5 rounded-full font-sans text-xs tracking-wide transition-colors ${
-                        attendee.attending
-                          ? 'bg-forest text-peach'
-                          : 'border border-forest/30 text-forest/60 hover:border-forest/60'
-                      }`}
-                    >
-                      {t('rsvp.attending')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateAttendee(i, 'attending', false)}
-                      className={`px-4 py-1.5 rounded-full font-sans text-xs tracking-wide transition-colors ${
-                        !attendee.attending
-                          ? 'bg-mauve text-white'
-                          : 'border border-mauve/30 text-mauve/60 hover:border-mauve/60'
-                      }`}
-                    >
-                      {t('rsvp.notAttending')}
-                    </button>
-                  </div>
-                </div>
+              <RevealOnScroll key={i} delay={i * 0.1}>
+                <div className="border-t border-forest-deep/15 pt-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 mb-6">
+                    <span className="font-display italic text-2xl md:text-3xl text-forest-deep">
+                      {attendee.name}
+                    </span>
 
-                {attendee.attending && (
-                  <div>
-                    <label className="font-sans text-xs tracking-widest uppercase text-mauve block mb-2">
-                      {t('rsvp.menu')}
-                    </label>
+                    <div className="flex gap-3 text-[0.65rem] tracking-[0.35em] uppercase font-sans">
+                      <button
+                        type="button"
+                        onClick={() => updateAttendee(i, 'attending', true)}
+                        aria-pressed={attendee.attending}
+                        className={`pb-1 border-b transition-colors ${
+                          attendee.attending
+                            ? 'text-forest-deep border-forest-deep'
+                            : 'text-forest/50 border-transparent hover:text-forest-deep'
+                        }`}
+                      >
+                        {t('rsvp.attending')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateAttendee(i, 'attending', false)}
+                        aria-pressed={!attendee.attending}
+                        className={`pb-1 border-b transition-colors ${
+                          !attendee.attending
+                            ? 'text-forest-deep border-forest-deep'
+                            : 'text-forest/50 border-transparent hover:text-forest-deep'
+                        }`}
+                      >
+                        {t('rsvp.notAttending')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {attendee.attending && (
                     <select
                       value={attendee.menu}
                       onChange={(e) => updateAttendee(i, 'menu', e.target.value)}
                       required={attendee.attending}
-                      className="w-full px-4 py-2.5 rounded-xl border border-sage/40 bg-peach/30 font-sans text-sm text-forest focus:outline-none focus:border-forest/50 transition-colors"
+                      className="w-full bg-transparent border-b border-forest-deep/20 py-3 font-serif italic text-base text-forest-deep focus:outline-none focus:border-forest-deep/60 transition-colors"
                     >
                       <option value="">{t('rsvp.menuPlaceholder')}</option>
                       {CONFIG.menuOptions.map((opt) => (
@@ -130,56 +144,60 @@ export function RSVP({ guest }: Props) {
                         </option>
                       ))}
                     </select>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </RevealOnScroll>
             ))}
           </div>
 
-          {/* Song request */}
-          <div className="bg-white/80 rounded-2xl p-5">
-            <label className="font-sans text-xs tracking-widest uppercase text-mauve block mb-2">
-              {t('rsvp.song')}
-            </label>
-            <input
-              type="text"
-              value={songRequest}
-              onChange={(e) => setSongRequest(e.target.value)}
-              placeholder={t('rsvp.songPlaceholder')}
-              className="w-full px-4 py-2.5 rounded-xl border border-sage/40 bg-peach/30 font-sans text-sm text-forest placeholder-mauve/40 focus:outline-none focus:border-forest/50 transition-colors"
-            />
+          <RevealOnScroll>
+            <div className="border-t border-forest-deep/15 pt-8">
+              <label className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest block mb-3">
+                {t('rsvp.song')}
+              </label>
+              <input
+                type="text"
+                value={songRequest}
+                onChange={(e) => setSongRequest(e.target.value)}
+                placeholder={t('rsvp.songPlaceholder')}
+                className="w-full bg-transparent border-b border-forest-deep/20 py-3 font-serif italic text-base text-forest-deep placeholder:text-forest/40 focus:outline-none focus:border-forest-deep/60 transition-colors"
+              />
+            </div>
+          </RevealOnScroll>
+
+          <RevealOnScroll>
+            <div className="border-t border-forest-deep/15 pt-8">
+              <label className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest block mb-3">
+                {t('rsvp.message')}
+              </label>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder={t('rsvp.messagePlaceholder', {
+                  bride: CONFIG.couple.bride,
+                  groom: CONFIG.couple.groom,
+                })}
+                rows={4}
+                className="w-full bg-transparent border-b border-forest-deep/20 py-3 font-serif italic text-base text-forest-deep placeholder:text-forest/40 focus:outline-none focus:border-forest-deep/60 transition-colors resize-none"
+              />
+            </div>
+          </RevealOnScroll>
+
+          {error && <p className="font-serif italic text-terracotta text-center">{error}</p>}
+
+          <div className="text-center pt-8">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-forest-deep text-peach-light font-sans inline-block px-14 py-4 text-xs tracking-[0.35em] uppercase transition-opacity hover:opacity-90 disabled:opacity-40"
+            >
+              <span className={submitting ? 'animate-breath' : undefined}>
+                {submitting ? t('rsvp.submitting') : t('rsvp.submit')}
+              </span>
+            </button>
           </div>
-
-          {/* Message */}
-          <div className="bg-white/80 rounded-2xl p-5">
-            <label className="font-sans text-xs tracking-widest uppercase text-mauve block mb-2">
-              {t('rsvp.message')}
-            </label>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={t('rsvp.messagePlaceholder', {
-                bride: CONFIG.couple.bride,
-                groom: CONFIG.couple.groom,
-              })}
-              rows={4}
-              className="w-full px-4 py-2.5 rounded-xl border border-sage/40 bg-peach/30 font-sans text-sm text-forest placeholder-mauve/40 focus:outline-none focus:border-forest/50 transition-colors resize-none"
-            />
-          </div>
-
-          {error && <p className="text-sm text-amber text-center font-sans">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-4 rounded-full bg-forest text-peach font-sans text-sm tracking-widest uppercase hover:bg-forest/90 transition-colors disabled:opacity-60"
-          >
-            {submitting ? t('rsvp.submitting') : t('rsvp.submit')}
-          </button>
         </form>
       </div>
-
-      <WildflowerDecor variant="bottom" className="h-16 mt-8" opacity={0.25} />
     </section>
   )
 }

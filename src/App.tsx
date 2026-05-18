@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Nav } from './components/layout/Nav'
 import { NameEntry } from './components/sections/NameEntry'
-import { Welcome } from './components/sections/Welcome'
-import { Couple } from './components/sections/Couple'
+import { Hero1Welcome } from './components/sections/Hero1Welcome'
+import { HeroSaveDateCouple } from './components/sections/HeroSaveDateCouple'
 import { WeddingInfo } from './components/sections/WeddingInfo'
 import { CityGuide } from './components/sections/CityGuide'
 import { RSVP } from './components/sections/RSVP'
@@ -14,18 +14,12 @@ import { CONFIG } from './content.config'
 function Footer() {
   const { t } = useTranslation()
   return (
-    <footer className="bg-forest text-peach py-10 text-center relative overflow-hidden">
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <svg viewBox="0 0 400 100" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-          <circle cx="50" cy="50" r="20" fill="#ADB897" />
-          <circle cx="350" cy="50" r="20" fill="#ADB897" />
-        </svg>
-      </div>
-      <p className="font-serif text-3xl italic mb-2">
-        {CONFIG.couple.bride} & {CONFIG.couple.groom}
+    <footer className="bg-forest-deep text-peach-light py-20 text-center">
+      <p className="font-display italic text-3xl md:text-4xl mb-3">
+        {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
       </p>
-      <p className="font-sans text-xs tracking-widest text-peach/60 uppercase">
-        {t('footer.made')} ♥
+      <p className="font-sans text-[0.65rem] tracking-[0.35em] text-peach-light/50 uppercase">
+        {t('footer.made')} <span className="animate-breath inline-block">♥</span>
       </p>
     </footer>
   )
@@ -35,12 +29,10 @@ export default function App() {
   const { state, lookupByName } = useGuest()
   const { i18n } = useTranslation()
 
-  // Update <html lang> attribute when language changes
   useEffect(() => {
     document.documentElement.lang = i18n.language === 'pt' ? 'pt-BR' : 'en'
   }, [i18n.language])
 
-  // Update page title
   useEffect(() => {
     document.title = `${CONFIG.couple.bride} & ${CONFIG.couple.groom} — Casamento`
   }, [])
@@ -55,8 +47,8 @@ export default function App() {
     <>
       <Nav />
       <main>
-        <Welcome guest={guest} />
-        <Couple />
+        <Hero1Welcome guest={guest} />
+        <HeroSaveDateCouple />
         <WeddingInfo />
         <CityGuide />
         <RSVP guest={guest} />

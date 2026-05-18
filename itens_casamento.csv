@@ -1,0 +1,98 @@
+Categoria,Decisao,Prioridade (E/D/O),Opcoes,Nossa escolha,Notas
+Espaco,Onde casar,,"Chacara / espaco com jardim / casa de eventos / outro",,Item mais disputado em DF
+Espaco,Dia da semana,,"Sexta / Sabado / Domingo",,Sex e Dom -20-30%
+Espaco,Periodo da festa,,"Almoco / Tarde-cerimonia + jantar / So noite",,Tarde reduz horas de bar e iluminacao
+Espaco,Mes,,"Mai-Jul (baixa) / Ago-Set / Out-Abr (alta + chuva)",,Baixa temporada -25%
+Espaco,Plano B contra chuva,,"Tenda toda area / Tenda so pista+buffet / Sem tenda",,Out-mar tem chuvas torrenciais
+Espaco,Pista de danca montada,,"Sim / Nao (gramado) / Inclusa no espaco",,
+Espaco,Valet,,"Sim / Nao / So placa indicando estacionamento",,
+Comida,Estilo do menu,,"Jantar sentado / Coquetel volante / Brunch / Almoco",,Coquetel -30-40% vs jantar
+Comida,Numero de pratos quentes,,"1 / 2 / 3+",,Cada prato extra +R$30-60/pessoa
+Comida,Ilhas gastronomicas,,"Sim quais / Nao",,Ex: queijos charcutaria paella risoto
+Comida,Mesa de cafe e cha ao final,,"Sim / Nao",,
+Comida,Cardapio infantil,,"Sim cortesia / Cobrado / Sem criancas",,
+Comida,Acomodar restricoes alimentares,,"Sim (vegano sem-gluten alergicos) / Nao oferecer",,Sinalizar no RSVP
+Bebidas,Modelo de bebida,,"Open bar fechado / Consignado / Mix / Cash bar",,Consignado -25-35%
+Bebidas,Cerveja,,"Premium / Standard / Mix",,
+Bebidas,Vinho,,"Sim / Nao",,
+Bebidas,Espumante de brinde,,"Nacional / Importado / Sem brinde formal",,Nacional -70% vs champagne
+Bebidas,Destilados premium,,"Sim (gin whisky) / So nacionais / Nao",,
+Bebidas,Drinks autorais,,"Sim quantos / Nao",,1-2 receitas impressionam e custam menos
+Bebidas,Cafe espresso ao final,,"Sim / Nao",,
+Doces,Bolo,,"Cenografico+sheet cake / Bolo real andares / Naked cake / Sem bolo",,Cenografico+sheet -40%
+Doces,Quantos andares,,"1 / 2 / 3+",,
+Doces,Mesa de doces finos,,"Sim quantos sabores / Nao",,4-5 sabores em vez de 8-10
+Doces,Bem-casado,,"Sim quantos por convidado / Nao",,Pode fazer dupla funcao com lembrancinha
+Decoracao,Arco / altar floral,,"Sim grande / Sim simples / Sem arco",,
+Decoracao,Caminho da noiva,,"Petalas / Tapete / Velas / Nada",,
+Decoracao,Centros de mesa,,"Todas as mesas / Parcial / Minimalistas / Nenhum",,Parcial economiza
+Decoracao,Decoracao da entrada / boas-vindas,,"Elaborada / Simples / Nada",,
+Decoracao,Backdrop fotografico,,"Sim / Nao",,
+Decoracao,Placas de sinalizacao,,"Sim (mesa noivos banheiros mapa) / Nao",,
+Decoracao,Buque da noiva,,"Sim qual estilo / Sem",,
+Decoracao,Buque de lancamento,,"Sim (mais barato) / Joga o principal / Pula tradicao",,
+Decoracao,Corsage/boutonniere maes e padrinhos,,"Sim / Nao",,
+Decoracao,Reaproveitar arranjos cerimonia para recepcao,,"Sim / Nao",,Economia significativa
+Decoracao,Tema floral,,"Wildflower/flores do campo / Tropical / Classico / Outro",,Wildflower combina com outdoor e -70%
+Iluminacao,Estilo de iluminacao,,"Cenica completa / String lights + ambiente / Basica",,String lights -2/3 do custo
+Iluminacao,Telao / projecao,,"Sim / Nao",,
+Som,Som da cerimonia,,"DJ usa o mesmo / Musicos ao vivo / Cantor solo",,
+Som,Som da recepcao,,"DJ / Banda / DJ + musico ao vivo (sax violino)",,DJ+sax momentos chave economiza vs banda
+Foto,Quantos fotografos,,"1 / 2 / 2 + assistente",,
+Foto,Making-of,,"Completo (noiva e noivo) / So um lado / Nao",,
+Foto,Pre-wedding / ensaio,,"Sim / Nao",,
+Foto,Album,,"Digital / Impresso fine art / Ambos / Nenhum",,Digital -800-2500
+Foto,Cabine de fotos / Polaroid,,"Sim / Nao",,
+Video,Filmagem,,"Sim / Nao",,
+Video,Tipo de video,,"So highlight 3-5min / Highlight + filme 15-20min / Cinema completo",,
+Video,Drone,,"Sim / Nao",,Combina com outdoor
+Video,Same day edit (video curto na festa),,"Sim / Nao",,
+Cerimonial,Modalidade da assessoria,,"Completa 6-12 meses / Parcial 2-3 meses / Day-of / Sem assessoria",,Day-of e o minimo recomendado
+Cerimonial,Celebrante simbolico,,"Profissional contratado / Amigo da familia / Sem celebrante",,Sem religioso isso ganha peso
+Vestido,Modelo de aquisicao,,"Aluguel pronto / Aluguel grife / Sob medida / Segunda mao / Comprar pronto",,Aluguel -4-10k
+Vestido,Vestido secundario pra dancar,,"Sim / Nao",,
+Vestido,Veu,,"Longo / Curto / Sem veu",,
+Vestido,Acessorios,,"Minimo / Completos (brinco colar tiara)",,
+Vestido,Lingerie / espartilho especial,,"Sim / Nao",,
+Traje noivo,Modelo de aquisicao,,"Aluguel / Sob medida / Comprar pronto",,Aluguel -1500-4500
+Traje noivo,Estilo,,"Terno classico / Linho ou algodao claro (outdoor) / Smoking",,Linho combina com outdoor
+Traje noivo,Pajens / daminhas,,"Sim / Nao",,
+Traje noivo,Combinar trajes dos padrinhos,,"Sim oferecemos / So sugerimos cor / Livre",,
+Beleza,Pacote da noiva,,"Cabelo+make+dia da noiva spa / So cabelo+make / DIY/amiga",,
+Beleza,Maquiagem maes e madrinhas,,"Voces pagam / Elas pagam / Livre",,Combinar antecipado
+Beleza,Estetica previa,,"Sim (limpeza pele etc) / Nao",,
+Beleza,Extensao de cilios,,"Sim / Nao",,
+Beleza,Retoque na festa (3-4h depois),,"Sim / Nao",,
+Beleza,Cabelo do noivo,,"Barbeiro especial / Normal",,
+Papelaria,Save-the-date,,"Digital / Impresso / Nao envia",,Voces ja tem site
+Papelaria,Convite,,"100% digital / Digital + impressos chave (10-15) / Impresso pra todos",,
+Papelaria,Menu de mesa,,"Sim / Nao",,
+Papelaria,Plano de mesas (seating chart),,"Sim / Nao mesa livre",,
+Papelaria,Programa da cerimonia,,"Sim / Nao",,
+Lembrancinhas,Lembrancinha pros convidados,,"Sim qual / Bem-casado faz papel duplo / Sem",,Sache de sementes combina com tema
+Lembrancinhas,Welcome bag pros de fora,,"Sim / Nao",,
+Lembrancinhas,Kit ressaca (final da festa),,"Sim / Nao",,
+Lembrancinhas,Chinelos pra dancar,,"Sim / Nao",,
+Lembrancinhas,Leques (cerimonia diurna),,"Sim / Nao",,
+Lembrancinhas,Repelente disponivel,,"Sim / Nao",,Recomendado em chacara
+Lembrancinhas,Guarda-chuvas pros convidados,,"Sim / Nao",,Plano B chuva
+Transporte,Carro do casal,,"Classico / Moderno premium / Proprio decorado / Uber Black / Sem carro especial",,
+Transporte,Decoracao do carro,,"Sim / Nao",,
+Transporte,Van/transporte para padrinhos e pais,,"Sim / Nao",,Util se chacara afastada
+Transporte,Bloqueio hotel pra convidados de fora,,"Sim oferecer com desconto / Nao",,
+Hospedagem,Hotel noite anterior (noivos),,"Sim / Nao",,
+Hospedagem,Hotel pos-festa (noivos),,"Sim / Nao",,
+Hospedagem,Translado pos-festa,,"Sim / Nao",,
+Documentacao,Quando casar civil,,"Antes em cartorio / No dia com oficial externo",,Antes economiza ~R$1500
+Documentacao,Regime de bens,,"Comunhao parcial (padrao) / Comunhao universal / Separacao total / Participacao final",,Outros que parcial exigem pacto antenupcial
+Aliancas,Peso e material,,"3-4g ouro 18k / 5-6g / com diamante",,3-4g -30%
+Aliancas,Cor do ouro,,"Amarelo / Branco / Rose",,
+Aliancas,Gravacao,,"Data / Nomes / Frase / Sem gravacao",,
+Aliancas,Almofada / caixa de aliancas,,"Sim / Nao",,
+Pre-evento,Cha de panela / cha bar,,"Sim / Nao",,Madrinhas costumam pagar
+Pre-evento,Despedida de solteira(o),,"Sim / Nao",,
+Pre-evento,Mesversario / 6 meses pra casar,,"Sim / Nao",,
+Pre-evento,Jantar de ensaio na vespera,,"Sim convidados de fora / Sim familia / Nao",,
+Pos-evento,Lua de mel,,"Internacional / Brasil / Minimoon 3-4 dias / Adiar",,Reservar 5-10% do orcamento total
+Pos-evento,Seguro viagem da lua de mel,,"Sim / Nao",,
+Reservas,Reserva 5-10% pra imprevistos,,"Sim 5% / Sim 10% / Sem reserva",,Recomendado essencial

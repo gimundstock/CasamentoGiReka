@@ -35,9 +35,11 @@
   },
   "wedding": {
     "title": "The Big Day",
+    "tagline": "Under the open cerrado sky, at golden hour",
     "date": "Date",
     "time": "Time",
     "venue": "Venue",
+    "address": "Address",
     "dresscode": "Dress Code",
     "directions": "Get Directions",
     "ceremony": "Ceremony"
@@ -67,8 +69,13 @@
     "submitting": "Sending...",
     "successTitle": "RSVP confirmed!",
     "successText": "We can't wait to celebrate with you!",
+    "alreadyTitle": "Already confirmed",
     "alreadySubmitted": "Your attendance has already been confirmed. Thank you!",
-    "error": "Error submitting. Please try again."
+    "errorTitle": "Something went wrong",
+    "error": "Error submitting. Please try again.",
+    "kicker": "A heartfelt request",
+    "letterOpening": "Dear friend,",
+    "letterClose": "With love"
   },
   "gifts": {
     "title": "Gift Registry",
@@ -94,7 +101,16 @@
     "successText": "Thank you for your kindness! A confirmation email has been sent to you.",
     "error": "Error confirming. Please try again.",
     "noCotas": "No shares selected",
-    "emailRequired": "Please enter your email"
+    "emailRequired": "Please enter your email",
+    "soldOutStamp": "sold out",
+    "price": "Price",
+    "fromPrice": "From",
+    "stepKicker": "Selected gift",
+    "successKicker": "Received with love",
+    "summary": "Summary",
+    "total": "Total",
+    "done": "Done",
+    "close": "Close"
   },
   "footer": {
     "made": "Made with love",
