@@ -45,7 +45,7 @@ const FLOWER_IMAGES = [
   `${import.meta.env.BASE_URL}flowers/red_dahlia_x1.png`,
 ]
 
-const DAHLIA_HERO_SRC = `${import.meta.env.BASE_URL}flowers/red_dahlia_x3.png`
+const DAHLIA_HERO_SRC = `${import.meta.env.BASE_URL}flowers/red_dahlia_2.svg`
 const DAHLIA_ANCHOR_SRC = `${import.meta.env.BASE_URL}flowers/Dahlia_x3.png`
 
 /**
@@ -110,9 +110,10 @@ export function HeroSaveDateCouple() {
   })
   // Scale grows from 0 to 1 over 0.22–0.40 (an 18 % scroll window — long
   // enough on an 800vh stage to be obviously visible), holds at 1 all the
-  // way through the cascade, and only zooms out to 6 in the final 0.90–1.0
-  // window AFTER the last story card has passed.
-  const dahliaScale = useTransform(scrollYProgress, [0, 0.22, 0.4, 0.9, 1], [0, 0, 1, 1, 6])
+  // way through the cascade, then zooms HARD from 0.90 → 1.0 (scale 1 → 14)
+  // so the dahlia's yellow center fully dominates the frame before the
+  // hand-off to HeroBigDay.
+  const dahliaScale = useTransform(scrollYProgress, [0, 0.22, 0.4, 0.9, 1], [0, 0, 1, 1, 18])
   // Rotation: hold at -20° until grow begins, unwind to 0° as it grows,
   // hold at 0° during the save-date fade-out, then spin a full 720° (two
   // turns) starting the moment the couple heading appears so the dahlia
@@ -139,6 +140,16 @@ export function HeroSaveDateCouple() {
     if (v < 0.92) return 1
     if (v < 1) return 1 - (v - 0.92) / 0.08
     return 0
+  })
+
+  // Dahlia-center yellow safety overlay. As the dahlia zooms out to scale 6
+  // its CENTER (the yellow disc) fills the viewport, but anti-aliased edges
+  // and any peach showing through can leave non-yellow pixels. This overlay
+  // ramps to opacity 1 over the very last sliver of scroll so HeroBigDay's
+  // matching yellow background meets a clean, solid frame at the boundary.
+  const yellowMaskOpacity = useTransform(scrollYProgress, (v: number) => {
+    if (v < 0.96) return 0
+    return Math.min(1, (v - 0.96) / 0.04)
   })
 
   const weddingDate = new Date(CONFIG.wedding.date)
@@ -311,6 +322,15 @@ export function HeroSaveDateCouple() {
               {t('couple.title')}
             </h2>
           </motion.div>
+
+          {/* ── z-40  Yellow safety overlay — guarantees a clean solid yellow
+                    frame at the very end of this section, matching the
+                    starting bg of HeroBigDay so the transition is seamless. ── */}
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-40"
+            style={{ backgroundColor: '#FCCC1D', opacity: yellowMaskOpacity }}
+          />
         </div>
       </div>
     </section>
