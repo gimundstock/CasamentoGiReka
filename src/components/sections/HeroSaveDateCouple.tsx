@@ -38,6 +38,7 @@ const FLOWER_IMAGES = [
   `${import.meta.env.BASE_URL}flowers/dahlia_x1.png`,
   `${import.meta.env.BASE_URL}flowers/flower_x1.png`,
   `${import.meta.env.BASE_URL}flowers/flower_x3.png`,
+  `${import.meta.env.BASE_URL}flowers/lavender.png`,
   `${import.meta.env.BASE_URL}flowers/purpel_flower_x3.png`,
   `${import.meta.env.BASE_URL}flowers/purple_flower_x1.png`,
   `${import.meta.env.BASE_URL}flowers/purple_flower_x2.png`,
@@ -203,6 +204,7 @@ export function HeroSaveDateCouple() {
                 scrollEnd={0.1}
                 staggerRatio={0.95}
                 scaleFrom={0.15}
+                fadeIn={0.45}
                 className="font-display text-forest-deep block text-6xl leading-[1] italic md:text-8xl lg:text-9xl"
                 lineClassName="block"
               />
@@ -214,6 +216,7 @@ export function HeroSaveDateCouple() {
                   scrollEnd={0.15}
                   staggerRatio={0.9}
                   scaleFrom={0.2}
+                  fadeIn={0.45}
                   className="font-display text-forest-deep block text-4xl italic md:text-6xl"
                 />
                 <FlipLetters
@@ -223,6 +226,7 @@ export function HeroSaveDateCouple() {
                   scrollEnd={0.2}
                   staggerRatio={0.9}
                   scaleFrom={0.3}
+                  fadeIn={0.45}
                   className="font-display text-forest-deep block text-2xl tabular-nums italic md:text-4xl"
                 />
                 <MaskReveal
@@ -280,13 +284,11 @@ export function HeroSaveDateCouple() {
                   photoWidthClass="max-w-md"
                   caption={
                     <div>
-                      <div className="font-display text-forest-deep text-5xl leading-none italic md:text-7xl">
+                      <div className="font-display text-5xl leading-none italic md:text-7xl">
                         {m.year}
                       </div>
-                      <div className="font-display text-forest-deep mt-3 text-2xl italic md:text-3xl">
-                        {title}
-                      </div>
-                      <div className="font-serif text-forest mt-4 max-w-md text-base leading-relaxed italic md:text-lg">
+                      <div className="font-display mt-3 text-2xl italic md:text-3xl">{title}</div>
+                      <div className="font-serif mt-4 max-w-md text-base leading-relaxed italic opacity-90 md:text-lg">
                         {text}
                       </div>
                     </div>

@@ -74,8 +74,37 @@ export function RisingCard({
     return 1
   })
 
+  // Caption color goes WHITE when the card is overlapping the central
+  // dahlia, so the text stays readable on top of the red bloom. Assumes
+  // startY / endY are 'Nvh' strings (the default). The card content is
+  // flex-centered inside a 100vh div, so its on-screen vertical center
+  // is roughly (y + 50vh). White is applied when |y| < 40vh (content
+  // center in [10vh, 90vh] — almost the full viewport, matching the
+  // dahlia overlap), with a smooth fade to the dark color over 20vh.
+  const startYVh = parseFloat(startY)
+  const endYVh = parseFloat(endY)
+  const captionColor = useTransform(scrollProgress, (v: number) => {
+    const t = Math.max(0, Math.min(1, (v - scrollStart) / (scrollEnd - scrollStart)))
+    const yVh = startYVh + (endYVh - startYVh) * t
+    const absY = Math.abs(yVh)
+    let weight = 1
+    if (absY > 40) weight = Math.max(0, 1 - (absY - 40) / 20)
+    // Interpolate text-forest-deep #3D3229 (61,50,41) → white (255,255,255)
+    const r = Math.round(61 + (255 - 61) * weight)
+    const g = Math.round(50 + (255 - 50) * weight)
+    const b = Math.round(41 + (255 - 41) * weight)
+    return `rgb(${r}, ${g}, ${b})`
+  })
+
   const imageOrderClass = captionSide === 'left' ? 'md:order-2' : 'md:order-1'
   const captionOrderClass = captionSide === 'left' ? 'md:order-1' : 'md:order-2'
+  // When the caption sits to the LEFT of the image, right-align the text
+  // so the end of each line meets the image — otherwise short lines leave
+  // whitespace between the caption container's right edge and the image,
+  // making it look like there's extra space compared to the right-side
+  // variant.
+  const captionAlignClass =
+    captionSide === 'left' ? 'md:items-end md:text-right' : 'md:items-start md:text-left'
 
   const inner = (
     <div className="flex w-full flex-col items-center gap-6 md:flex-row md:items-center md:justify-center md:gap-10">
@@ -89,9 +118,12 @@ export function RisingCard({
         />
       </div>
       {caption && (
-        <div className={`flex w-full max-w-sm flex-col gap-2 text-[#4E784F] ${captionOrderClass}`}>
+        <motion.div
+          className={`flex w-full max-w-sm flex-col gap-2 ${captionAlignClass} ${captionOrderClass}`}
+          style={{ color: captionColor }}
+        >
           {caption}
-        </div>
+        </motion.div>
       )}
     </div>
   )
