@@ -5,7 +5,6 @@ import { NameEntry } from './components/sections/NameEntry'
 import { Hero1Welcome } from './components/sections/Hero1Welcome'
 import { HeroSaveDateCouple } from './components/sections/HeroSaveDateCouple'
 import { HeroBigDay } from './components/sections/HeroBigDay'
-import { WeddingInfo } from './components/sections/WeddingInfo'
 import { CityGuide } from './components/sections/CityGuide'
 import { RSVP } from './components/sections/RSVP'
 import { GiftShop } from './components/sections/GiftShop'
@@ -51,7 +50,6 @@ export default function App() {
         <Hero1Welcome guest={guest} />
         <HeroSaveDateCouple />
         <HeroBigDay />
-        <WeddingInfo />
         <CityGuide />
         <RSVP guest={guest} />
         <GiftShop guest={guest} />

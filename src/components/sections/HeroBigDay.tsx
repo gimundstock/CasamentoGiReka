@@ -158,7 +158,7 @@ export function HeroBigDay() {
   const addressTail = addressParts.slice(1).join(', ')
 
   return (
-    <section id="big-day" className="relative">
+    <section id="wedding" className="relative">
       <div ref={stageRef} className="relative h-[400vh]">
         <div className="bg-peach-light sticky top-0 h-screen overflow-hidden">
           {/* ── z-0  Solid yellow flood — meets HeroSaveDateCouple's last
