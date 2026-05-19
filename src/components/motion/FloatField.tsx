@@ -33,6 +33,20 @@ interface Props {
    * Default 0 (all items start below viewport, classic rise-from-below).
    */
   prefill?: number
+  /**
+   * Bias items toward the LEFT half of the viewport. 0 = uniform across
+   * full width (default). 0.5 = clamp into the left 50 %. 1 = clamp into
+   * the leftmost sliver. Use to even out the field on the left when the
+   * primary pass happens to cluster right.
+   */
+  leftBias?: number
+  /**
+   * Top guard, percent of the field's parent height. The bounding box of
+   * the field starts this far down from the parent's top, so flowers can
+   * never visually drift into the upper region (where typography sits).
+   * Default 0 (field spans the whole parent).
+   */
+  topGuardPct?: number
   className?: string
 }
 
@@ -140,6 +154,8 @@ export function FloatField({
   sizeMin = 10,
   sizeMax = 22,
   prefill = 0,
+  leftBias = 0,
+  topGuardPct = 0,
   className,
 }: Props) {
   const reduced = useReducedMotion()
@@ -171,23 +187,35 @@ export function FloatField({
         const jitter = (r4 - 0.5) * (MAX_START / Math.max(remaining, 1)) * 0.6
         scrollStart = Math.min(MAX_START, Math.max(0, evenStart + jitter))
       }
+      // Apply leftBias: clamp the horizontal distribution into the left
+      // (1 - leftBias) fraction of the viewport. e.g. leftBias=0.5 keeps
+      // items in left 50 %; leftBias=0 spans the full width.
+      const leftSpan = Math.max(0.05, 1 - leftBias)
+      const leftPercent = r1 * 100 * leftSpan
+      const imageSrc = usingImages ? (images[i % images.length] as string) : null
+      // Lavender always renders upright — rotating it makes it look like
+      // a fallen sprig instead of a standing flower. Other species get
+      // the random rotation.
+      const isUpright = imageSrc !== null && imageSrc.includes('lavender')
+      const rotation = isUpright ? 0 : r1 * 360
       return {
-        leftPercent: r1 * 100,
+        leftPercent,
         color: palette[Math.floor(r2 * palette.length) % palette.length] as string,
         size: sizeMin + r3 * (sizeMax - sizeMin),
-        rotation: r1 * 360,
+        rotation,
         scrollStart,
-        imageSrc: usingImages ? (images[i % images.length] as string) : null,
+        imageSrc,
       }
     })
-  }, [count, palette, sizeMin, sizeMax, variant, images, prefill])
+  }, [count, palette, sizeMin, sizeMax, variant, images, prefill, leftBias])
 
   if (reduced) return null
 
   return (
     <div
       aria-hidden
-      className={`pointer-events-none absolute inset-0 overflow-hidden ${className ?? ''}`}
+      className={`pointer-events-none absolute inset-x-0 bottom-0 overflow-hidden ${className ?? ''}`}
+      style={{ top: `${topGuardPct}%` }}
     >
       {items.map((item, i) => (
         <FloatItem key={i} item={item} variant={variant} scrollProgress={scrollProgress} />

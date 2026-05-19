@@ -32,17 +32,18 @@ function pad(value: number, width: number): string {
   return String(value).padStart(width, '0')
 }
 
+// Floating-field flowers — only the x1 (single-bloom) variants. They're
+// smaller and lighter than the x2/x3 clusters, which is what we want for
+// the drifting background field. The big center bloom and the bottom-left
+// anchor stay on their dedicated images (DAHLIA_HERO_SRC, DAHLIA_ANCHOR_SRC).
 const FLOWER_IMAGES = [
-  `${import.meta.env.BASE_URL}flowers/Dahlia_x3.png`,
-  `${import.meta.env.BASE_URL}flowers/camomile_x3.png`,
+  `${import.meta.env.BASE_URL}flowers/camomile_x1.png`,
   `${import.meta.env.BASE_URL}flowers/dahlia_x1.png`,
   `${import.meta.env.BASE_URL}flowers/flower_x1.png`,
-  `${import.meta.env.BASE_URL}flowers/flower_x3.png`,
   `${import.meta.env.BASE_URL}flowers/lavender.png`,
-  `${import.meta.env.BASE_URL}flowers/purpel_flower_x3.png`,
   `${import.meta.env.BASE_URL}flowers/purple_flower_x1.png`,
-  `${import.meta.env.BASE_URL}flowers/purple_flower_x2.png`,
   `${import.meta.env.BASE_URL}flowers/red_dahlia_x1.png`,
+  `${import.meta.env.BASE_URL}flowers/sunflower_x1.png`,
 ]
 
 const DAHLIA_HERO_SRC = `${import.meta.env.BASE_URL}flowers/red_dahlia_2.svg`
@@ -183,6 +184,15 @@ export function HeroSaveDateCouple() {
   return (
     <section id="couple" className="relative bg-peach">
       <div ref={stageRef} className="relative h-[900vh]">
+        {/* Inner anchor for the Nav "Save the Date" link — placed at scroll
+            progress ~0.22 (800vh * 0.22 = 176vh into the stage), the moment
+            the SAVE/THE/DATE typography is fully assembled. Empty 1px div
+            so scrollIntoView lands the user exactly there. */}
+        <div
+          id="save-the-date"
+          className="pointer-events-none absolute h-px w-px"
+          style={{ top: '176vh' }}
+        />
         <div className="sticky top-0 h-screen overflow-hidden">
           {/* ── z-0  Save-the-date layer (FloatField + anchor + text)
                     Wrapped as one motion.div so opacity fades the whole
@@ -199,6 +209,22 @@ export function HeroSaveDateCouple() {
               sizeMin={70}
               sizeMax={140}
               prefill={0.4}
+              topGuardPct={0}
+            />
+            {/* Second pass of flowers concentrated on the left half so the
+                left side doesn't feel sparse — the primary field above
+                tends to cluster right by chance of the pseudo-random
+                distribution. */}
+            <FloatField
+              scrollProgress={scrollYProgress}
+              count={12}
+              variant="image"
+              images={FLOWER_IMAGES}
+              sizeMin={60}
+              sizeMax={120}
+              prefill={0.4}
+              leftBias={0.5}
+              topGuardPct={0}
             />
             <img
               src={DAHLIA_ANCHOR_SRC}

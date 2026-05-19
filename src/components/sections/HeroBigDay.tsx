@@ -160,6 +160,14 @@ export function HeroBigDay() {
   return (
     <section id="wedding" className="relative">
       <div ref={stageRef} className="relative h-[400vh]">
+        {/* Inner anchor for the Nav "The Wedding" link — placed at scroll
+            progress ~0.95 (300vh * 0.95 = 285vh into the stage), the
+            moment the info panel + sun-set landscape are fully shown. */}
+        <div
+          id="big-day"
+          className="pointer-events-none absolute h-px w-px"
+          style={{ top: '285vh' }}
+        />
         <div className="bg-peach-light sticky top-0 h-screen overflow-hidden">
           {/* ── z-0  Solid yellow flood — meets HeroSaveDateCouple's last
                     frame, then fades out as the sun shrinks. ── */}

@@ -3,14 +3,44 @@ import { useTranslation } from 'react-i18next'
 import { LanguageToggle } from '../ui/LanguageToggle'
 import { CONFIG } from '../../content.config'
 
-const sections = ['couple', 'wedding', 'city', 'rsvp', 'gifts'] as const
-type SectionId = (typeof sections)[number]
+// Each nav item carries three ids:
+//   observe — the outer section element the IntersectionObserver watches
+//             to highlight the active link
+//   anchor  — the element the click scrolls to; for the two long pinned
+//             heroes this is an inner anchor placed mid-stage so the user
+//             lands at the "fully shown" moment, not at the very start
+//             of the animation
+//   key     — i18n key under `nav.*`
+const sections = [
+  { observe: 'couple', anchor: 'save-the-date', key: 'saveTheDate' },
+  { observe: 'wedding', anchor: 'big-day', key: 'wedding' },
+  { observe: 'city', anchor: 'city', key: 'city' },
+  { observe: 'rsvp', anchor: 'rsvp', key: 'rsvp' },
+  { observe: 'gifts', anchor: 'gifts', key: 'gifts' },
+] as const
+type ObserveId = (typeof sections)[number]['observe']
+
+// Module-level so React's purity rule doesn't flag performance.now() —
+// this function never runs during render, only in event handlers.
+function smoothScrollToY(targetY: number, duration = 1300) {
+  const startY = window.scrollY
+  const distance = targetY - startY
+  if (Math.abs(distance) < 1) return
+  const startTime = performance.now()
+  function step(now: number) {
+    const t = Math.min((now - startTime) / duration, 1)
+    const eased = 1 - Math.pow(1 - t, 3)
+    window.scrollTo(0, startY + distance * eased)
+    if (t < 1) requestAnimationFrame(step)
+  }
+  requestAnimationFrame(step)
+}
 
 export function Nav() {
   const { t } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [activeSection, setActiveSection] = useState<SectionId | null>(null)
+  const [activeSection, setActiveSection] = useState<ObserveId | null>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -19,15 +49,16 @@ export function Nav() {
   }, [])
 
   useEffect(() => {
+    const observeIds = sections.map((s) => s.observe) as readonly string[]
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
         if (visible.length > 0) {
-          const id = visible[0].target.id as SectionId
-          if ((sections as readonly string[]).includes(id)) {
-            setActiveSection(id)
+          const id = visible[0].target.id
+          if (observeIds.includes(id)) {
+            setActiveSection(id as ObserveId)
           }
         }
       },
@@ -35,7 +66,7 @@ export function Nav() {
     )
 
     const els: HTMLElement[] = []
-    for (const id of sections) {
+    for (const id of observeIds) {
       const el = document.getElementById(id)
       if (el) {
         observer.observe(el)
@@ -50,7 +81,14 @@ export function Nav() {
   }, [])
 
   function scrollTo(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    const el = document.getElementById(id)
+    if (!el) return
+    // Custom smooth scroll with a FIXED duration. Native `scrollTo({
+    // behavior: 'smooth' })` scales its duration with distance, which
+    // makes long jumps (top → big-day anchor several thousand pixels
+    // away) take multiple sluggish seconds.
+    const targetY = window.scrollY + el.getBoundingClientRect().top
+    smoothScrollToY(targetY)
     setMenuOpen(false)
   }
 
@@ -71,16 +109,16 @@ export function Nav() {
 
         <div className="hidden md:flex items-center gap-10">
           {sections.map((s) => {
-            const isActive = activeSection === s
+            const isActive = activeSection === s.observe
             return (
               <button
-                key={s}
-                onClick={() => scrollTo(s)}
+                key={s.observe}
+                onClick={() => scrollTo(s.anchor)}
                 className={`font-sans text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
                   isActive ? 'text-forest-deep' : 'text-forest/60 hover:text-forest-deep'
                 }`}
               >
-                {t(`nav.${s}`)}
+                {t(`nav.${s.key}`)}
               </button>
             )
           })}
@@ -118,16 +156,16 @@ export function Nav() {
         <div className="bg-peach border-t border-forest-deep/15 md:hidden">
           <div className="flex flex-col gap-5 px-6 py-8">
             {sections.map((s) => {
-              const isActive = activeSection === s
+              const isActive = activeSection === s.observe
               return (
                 <button
-                  key={s}
-                  onClick={() => scrollTo(s)}
+                  key={s.observe}
+                  onClick={() => scrollTo(s.anchor)}
                   className={`font-sans text-left text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
                     isActive ? 'text-forest-deep' : 'text-forest/60 hover:text-forest-deep'
                   }`}
                 >
-                  {t(`nav.${s}`)}
+                  {t(`nav.${s.key}`)}
                 </button>
               )
             })}
