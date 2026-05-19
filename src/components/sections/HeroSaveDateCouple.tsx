@@ -32,19 +32,21 @@ function pad(value: number, width: number): string {
   return String(value).padStart(width, '0')
 }
 
+// Floating-field flowers — only the x1 (single-bloom) variants. They're
+// smaller and lighter than the x2/x3 clusters, which is what we want for
+// the drifting background field. The big center bloom and the bottom-left
+// anchor stay on their dedicated images (DAHLIA_HERO_SRC, DAHLIA_ANCHOR_SRC).
 const FLOWER_IMAGES = [
-  `${import.meta.env.BASE_URL}flowers/Dahlia_x3.png`,
-  `${import.meta.env.BASE_URL}flowers/camomile_x3.png`,
+  `${import.meta.env.BASE_URL}flowers/camomile_x1.png`,
   `${import.meta.env.BASE_URL}flowers/dahlia_x1.png`,
   `${import.meta.env.BASE_URL}flowers/flower_x1.png`,
-  `${import.meta.env.BASE_URL}flowers/flower_x3.png`,
-  `${import.meta.env.BASE_URL}flowers/purpel_flower_x3.png`,
+  `${import.meta.env.BASE_URL}flowers/lavender.png`,
   `${import.meta.env.BASE_URL}flowers/purple_flower_x1.png`,
-  `${import.meta.env.BASE_URL}flowers/purple_flower_x2.png`,
   `${import.meta.env.BASE_URL}flowers/red_dahlia_x1.png`,
+  `${import.meta.env.BASE_URL}flowers/sunflower_x1.png`,
 ]
 
-const DAHLIA_HERO_SRC = `${import.meta.env.BASE_URL}flowers/red_dahlia_x3.png`
+const DAHLIA_HERO_SRC = `${import.meta.env.BASE_URL}flowers/red_dahlia_2.svg`
 const DAHLIA_ANCHOR_SRC = `${import.meta.env.BASE_URL}flowers/Dahlia_x3.png`
 
 /**
@@ -109,9 +111,10 @@ export function HeroSaveDateCouple() {
   })
   // Scale grows from 0 to 1 over 0.22–0.40 (an 18 % scroll window — long
   // enough on an 800vh stage to be obviously visible), holds at 1 all the
-  // way through the cascade, and only zooms out to 6 in the final 0.90–1.0
-  // window AFTER the last story card has passed.
-  const dahliaScale = useTransform(scrollYProgress, [0, 0.22, 0.4, 0.9, 1], [0, 0, 1, 1, 6])
+  // way through the cascade, then zooms HARD from 0.90 → 1.0 (scale 1 → 14)
+  // so the dahlia's yellow center fully dominates the frame before the
+  // hand-off to HeroBigDay.
+  const dahliaScale = useTransform(scrollYProgress, [0, 0.22, 0.4, 0.9, 1], [0, 0, 1, 1, 18])
   // Rotation: hold at -20° until grow begins, unwind to 0° as it grows,
   // hold at 0° during the save-date fade-out, then spin a full 720° (two
   // turns) starting the moment the couple heading appears so the dahlia
@@ -138,6 +141,16 @@ export function HeroSaveDateCouple() {
     if (v < 0.92) return 1
     if (v < 1) return 1 - (v - 0.92) / 0.08
     return 0
+  })
+
+  // Dahlia-center yellow safety overlay. As the dahlia zooms out to scale 6
+  // its CENTER (the yellow disc) fills the viewport, but anti-aliased edges
+  // and any peach showing through can leave non-yellow pixels. This overlay
+  // ramps to opacity 1 over the very last sliver of scroll so HeroBigDay's
+  // matching yellow background meets a clean, solid frame at the boundary.
+  const yellowMaskOpacity = useTransform(scrollYProgress, (v: number) => {
+    if (v < 0.96) return 0
+    return Math.min(1, (v - 0.96) / 0.04)
   })
 
   const weddingDate = new Date(CONFIG.wedding.date)
@@ -171,6 +184,15 @@ export function HeroSaveDateCouple() {
   return (
     <section id="couple" className="relative bg-peach">
       <div ref={stageRef} className="relative h-[900vh]">
+        {/* Inner anchor for the Nav "Save the Date" link — placed at scroll
+            progress ~0.22 (800vh * 0.22 = 176vh into the stage), the moment
+            the SAVE/THE/DATE typography is fully assembled. Empty 1px div
+            so scrollIntoView lands the user exactly there. */}
+        <div
+          id="save-the-date"
+          className="pointer-events-none absolute h-px w-px"
+          style={{ top: '176vh' }}
+        />
         <div className="sticky top-0 h-screen overflow-hidden">
           {/* ── z-0  Save-the-date layer (FloatField + anchor + text)
                     Wrapped as one motion.div so opacity fades the whole
@@ -187,6 +209,22 @@ export function HeroSaveDateCouple() {
               sizeMin={70}
               sizeMax={140}
               prefill={0.4}
+              topGuardPct={0}
+            />
+            {/* Second pass of flowers concentrated on the left half so the
+                left side doesn't feel sparse — the primary field above
+                tends to cluster right by chance of the pseudo-random
+                distribution. */}
+            <FloatField
+              scrollProgress={scrollYProgress}
+              count={12}
+              variant="image"
+              images={FLOWER_IMAGES}
+              sizeMin={60}
+              sizeMax={120}
+              prefill={0.4}
+              leftBias={0.5}
+              topGuardPct={0}
             />
             <img
               src={DAHLIA_ANCHOR_SRC}
@@ -203,6 +241,7 @@ export function HeroSaveDateCouple() {
                 scrollEnd={0.1}
                 staggerRatio={0.95}
                 scaleFrom={0.15}
+                fadeIn={0.45}
                 className="font-display text-forest-deep block text-6xl leading-[1] italic md:text-8xl lg:text-9xl"
                 lineClassName="block"
               />
@@ -214,6 +253,7 @@ export function HeroSaveDateCouple() {
                   scrollEnd={0.15}
                   staggerRatio={0.9}
                   scaleFrom={0.2}
+                  fadeIn={0.45}
                   className="font-display text-forest-deep block text-4xl italic md:text-6xl"
                 />
                 <FlipLetters
@@ -223,6 +263,7 @@ export function HeroSaveDateCouple() {
                   scrollEnd={0.2}
                   staggerRatio={0.9}
                   scaleFrom={0.3}
+                  fadeIn={0.45}
                   className="font-display text-forest-deep block text-2xl tabular-nums italic md:text-4xl"
                 />
                 <MaskReveal
@@ -280,13 +321,11 @@ export function HeroSaveDateCouple() {
                   photoWidthClass="max-w-md"
                   caption={
                     <div>
-                      <div className="font-display text-forest-deep text-5xl leading-none italic md:text-7xl">
+                      <div className="font-display text-5xl leading-none italic md:text-7xl">
                         {m.year}
                       </div>
-                      <div className="font-display text-forest-deep mt-3 text-2xl italic md:text-3xl">
-                        {title}
-                      </div>
-                      <div className="font-serif text-forest mt-4 max-w-md text-base leading-relaxed italic md:text-lg">
+                      <div className="font-display mt-3 text-2xl italic md:text-3xl">{title}</div>
+                      <div className="font-serif mt-4 max-w-md text-base leading-relaxed italic opacity-90 md:text-lg">
                         {text}
                       </div>
                     </div>
@@ -309,6 +348,15 @@ export function HeroSaveDateCouple() {
               {t('couple.title')}
             </h2>
           </motion.div>
+
+          {/* ── z-40  Yellow safety overlay — guarantees a clean solid yellow
+                    frame at the very end of this section, matching the
+                    starting bg of HeroBigDay so the transition is seamless. ── */}
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-40"
+            style={{ backgroundColor: '#FCCC1D', opacity: yellowMaskOpacity }}
+          />
         </div>
       </div>
     </section>

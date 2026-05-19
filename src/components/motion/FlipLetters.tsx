@@ -53,6 +53,14 @@ interface Props {
   scaleVariance?: number
   /** Final scale. Default 1. */
   scaleTo?: number
+  /**
+   * If set, each letter fades in from opacity 0 → 1 over the LATER part
+   * of its gather window. The value (0–1) is the fraction of the window
+   * where the letter is still invisible — fading begins after this point
+   * and completes at the window's end. Use ~0.5 for a fade-in that
+   * starts halfway through the gather.
+   */
+  fadeIn?: number
 }
 
 const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -94,6 +102,7 @@ interface ScrollLetterProps {
   initialRotate: number
   initialScale: number
   scaleTo: number
+  fadeStartRatio: number | null
   className?: string
 }
 
@@ -107,6 +116,7 @@ function ScrollLetter({
   initialRotate,
   initialScale,
   scaleTo,
+  fadeStartRatio,
   className,
 }: ScrollLetterProps) {
   // Per-letter hooks live in a sub-component so we don't break rules-of-hooks
@@ -116,9 +126,22 @@ function ScrollLetter({
   const y = useTransform(scrollProgress, [start, end], [initialY, 0])
   const rotate = useTransform(scrollProgress, [start, end], [initialRotate, 0])
   const scale = useTransform(scrollProgress, [start, end], [initialScale, scaleTo])
+  // Function-form useTransform so opacity reliably subscribes to scroll
+  // in framer-motion 12 (the keyframe-array form has a subscription bug
+  // for opacity here). Letter is invisible until `fadeStartRatio` of the
+  // way through its gather, then fades up to 1 by the end. If
+  // fadeStartRatio is null the letter is always fully visible.
+  const opacity = useTransform(scrollProgress, (v: number) => {
+    if (fadeStartRatio === null) return 1
+    if (v <= start) return 0
+    if (v >= end) return 1
+    const t = (v - start) / (end - start)
+    if (t <= fadeStartRatio) return 0
+    return (t - fadeStartRatio) / (1 - fadeStartRatio)
+  })
 
   return (
-    <motion.span className={className} style={{ ...LETTER_STYLE, x, y, rotate, scale }}>
+    <motion.span className={className} style={{ ...LETTER_STYLE, x, y, rotate, scale, opacity }}>
       {char}
     </motion.span>
   )
@@ -152,6 +175,7 @@ export function FlipLetters({
   scaleFrom = 0.3,
   scaleVariance = 0.8,
   scaleTo = 1,
+  fadeIn,
 }: Props) {
   const reduced = useReducedMotion()
 
@@ -238,6 +262,7 @@ export function FlipLetters({
                   initialRotate={letter.initialRotate}
                   initialScale={letter.initialScale}
                   scaleTo={scaleTo}
+                  fadeStartRatio={fadeIn ?? null}
                   className={letterClassName}
                 />
               )
