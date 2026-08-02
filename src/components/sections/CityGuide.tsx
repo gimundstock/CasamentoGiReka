@@ -1,8 +1,7 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useScroll } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { MaskReveal } from '../motion/MaskReveal'
-import { RevealOnScroll } from '../motion/RevealOnScroll'
 import { BrasiliaLineArt } from './BrasiliaLineArt'
 import { CONFIG } from '../../content.config'
 
@@ -26,43 +25,54 @@ export function CityGuide() {
   // section: the art sits well below the section's top, so a section-relative
   // window finishes drawing before the art is even on screen. Here 0 is the
   // art entering from the bottom and 1 is it centred — it draws as you watch.
-  // The ref goes on the column, not the sticky child, so the numbers stay sane
-  // once the child pins.
   const artRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: artRef,
     offset: ['start end', 'center center'],
   })
 
+  // The entries scroll inside their own box, so a tab switch has to rewind it —
+  // otherwise the new category opens partway down.
+  const listRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: 0 })
+  }, [tab])
+
   return (
-    <section id="city" className="bg-peach py-32 md:py-48">
-      <div className="max-w-6xl mx-auto px-6">
-        <MaskReveal direction="up" delay={0.05}>
-          <div className="text-center mb-16 md:mb-20">
-            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest mb-6">
+    // On md+ the section is locked to the viewport and the ENTRIES scroll
+    // inside their own box, so the art stays put and keeps its centred
+    // relationship with the text. Below md that would leave the list around
+    // 300px tall, so every height/overflow rule is md:-gated and small screens
+    // fall back to ordinary page flow.
+    <section id="city" className="bg-peach py-24 md:h-[100svh] md:overflow-hidden md:py-0">
+      <div className="max-w-6xl mx-auto px-6 md:h-full md:pt-24 md:pb-12 md:flex md:flex-col">
+        <MaskReveal direction="up" delay={0.05} className="md:shrink-0">
+          <div className="text-center mb-12 md:mb-10">
+            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest mb-4">
               Brasília
             </p>
-            <h2 className="font-display italic text-5xl md:text-7xl text-forest-deep">
+            <h2 className="font-display italic text-4xl md:text-5xl text-forest-deep">
               {t('city.title')}
             </h2>
-            <p className="font-serif italic text-mauve text-lg md:text-xl mt-6">
+            <p className="font-serif italic text-mauve text-base md:text-lg mt-4">
               {t('city.subtitle')}
             </p>
           </div>
         </MaskReveal>
 
-        <div className="grid md:grid-cols-12 gap-12 md:gap-16">
-          {/* Art slot — left */}
-          <div ref={artRef} className="md:col-span-5 lg:col-span-5">
-            <div className="md:sticky md:top-24" aria-hidden>
-              <BrasiliaLineArt progress={scrollYProgress} />
-            </div>
+        <div className="grid md:grid-cols-12 gap-12 md:gap-16 md:flex-1 md:min-h-0">
+          {/* Art slot — left. Centred in the column and never scrolls. */}
+          <div
+            ref={artRef}
+            className="md:col-span-5 lg:col-span-5 md:h-full md:flex md:items-center md:justify-center md:min-h-0"
+          >
+            <BrasiliaLineArt progress={scrollYProgress} />
           </div>
 
-          {/* Tabs + content — right */}
-          <div className="md:col-span-7 lg:col-span-7">
-            <MaskReveal direction="up" delay={0.1}>
-              <div className="flex flex-wrap justify-end gap-x-8 gap-y-3 mb-12 md:mb-16 border-b border-forest-deep/15 pb-6">
+          {/* Tabs + scrolling entries — right */}
+          <div className="md:col-span-7 lg:col-span-7 md:flex md:flex-col md:min-h-0">
+            <MaskReveal direction="up" delay={0.1} className="md:shrink-0">
+              <div className="flex flex-wrap justify-end gap-x-8 gap-y-3 mb-8 border-b border-forest-deep/15 pb-6">
                 {TABS.map((tabKey) => {
                   const active = tab === tabKey
                   return (
@@ -70,7 +80,11 @@ export function CityGuide() {
                       key={tabKey}
                       onClick={() => setTab(tabKey)}
                       aria-pressed={active}
-                      className={`font-sans text-[0.65rem] tracking-[0.35em] uppercase transition-colors pb-2 -mb-[1.625rem] border-b ${
+                      // The negative margin drops the underline onto the row's
+                      // bottom border, which only lines up while the tabs sit
+                      // on ONE line. Below md they wrap, so it is md-gated —
+                      // otherwise row one's underline lands on row two's text.
+                      className={`font-sans text-[0.65rem] tracking-[0.35em] uppercase transition-colors pb-2 md:-mb-[1.625rem] border-b ${
                         active
                           ? 'text-forest-deep border-forest-deep'
                           : 'text-forest/60 border-transparent hover:text-forest-deep'
@@ -83,11 +97,32 @@ export function CityGuide() {
               </div>
             </MaskReveal>
 
-            {tab === 'hotels' && (
-              <div className="space-y-12 md:space-y-16">
-                {CONFIG.cityGuide.hotels.map((h, i) => (
-                  <RevealOnScroll key={`hotel-${i}`} delay={i * 0.05}>
-                    <article className="border-t border-forest-deep/15 pt-8 md:pt-10">
+            {/*
+              The scrolling region. `min-h-0` matters: flex items default to
+              `min-height: auto`, so without it this box grows to fit its
+              content instead of clipping and never scrolls.
+
+              Deliberately no per-entry RevealOnScroll — inside a clipped
+              container, `whileInView` observers reason about the ancestor's
+              clip, which is the same trap that kept MaskReveal hidden. Inside
+              a fixed panel the entries should simply be there.
+            */}
+            <div
+              ref={listRef}
+              tabIndex={0}
+              role="region"
+              aria-label={t('city.listLabel')}
+              // pb clears the bottom fade — without it the last entry's final
+              // line sits under the gradient and reads as greyed out.
+              className="scroll-soft md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-4 md:pb-8"
+            >
+              {tab === 'hotels' && (
+                <div className="space-y-12 md:space-y-16">
+                  {CONFIG.cityGuide.hotels.map((h, i) => (
+                    <article
+                      key={`hotel-${i}`}
+                      className="border-t border-forest-deep/15 pt-8 md:pt-10"
+                    >
                       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
                         <h3 className="font-display italic text-2xl md:text-3xl text-forest-deep">
                           {h.name}
@@ -112,16 +147,17 @@ export function CityGuide() {
                         </a>
                       )}
                     </article>
-                  </RevealOnScroll>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            {tab === 'transport' && (
-              <div className="grid sm:grid-cols-2 gap-12 md:gap-16">
-                {CONFIG.cityGuide.transport.map((tr, i) => (
-                  <RevealOnScroll key={`tr-${i}`} delay={i * 0.05}>
-                    <article className="border-t border-forest-deep/15 pt-8 md:pt-10">
+              {tab === 'transport' && (
+                <div className="grid sm:grid-cols-2 gap-12 md:gap-16">
+                  {CONFIG.cityGuide.transport.map((tr, i) => (
+                    <article
+                      key={`tr-${i}`}
+                      className="border-t border-forest-deep/15 pt-8 md:pt-10"
+                    >
                       <div className="text-2xl mb-4" aria-hidden>
                         {tr.icon}
                       </div>
@@ -132,16 +168,17 @@ export function CityGuide() {
                         {lang === 'pt' ? tr.description_pt : tr.description_en}
                       </p>
                     </article>
-                  </RevealOnScroll>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            {tab === 'restaurants' && (
-              <div className="space-y-12 md:space-y-16">
-                {CONFIG.cityGuide.restaurants.map((r, i) => (
-                  <RevealOnScroll key={`r-${i}`} delay={i * 0.05}>
-                    <article className="border-t border-forest-deep/15 pt-8 md:pt-10">
+              {tab === 'restaurants' && (
+                <div className="space-y-12 md:space-y-16">
+                  {CONFIG.cityGuide.restaurants.map((r, i) => (
+                    <article
+                      key={`r-${i}`}
+                      className="border-t border-forest-deep/15 pt-8 md:pt-10"
+                    >
                       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-2">
                         <h3 className="font-display italic text-2xl md:text-3xl text-forest-deep">
                           {r.name}
@@ -158,16 +195,17 @@ export function CityGuide() {
                         <span className="font-display text-lg text-amber">{r.priceRange}</span>
                       </div>
                     </article>
-                  </RevealOnScroll>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            {tab === 'tourism' && (
-              <div className="space-y-12 md:space-y-16">
-                {CONFIG.cityGuide.tourism.map((place, i) => (
-                  <RevealOnScroll key={`t-${i}`} delay={i * 0.05}>
-                    <article className="border-t border-forest-deep/15 pt-8 md:pt-10">
+              {tab === 'tourism' && (
+                <div className="space-y-12 md:space-y-16">
+                  {CONFIG.cityGuide.tourism.map((place, i) => (
+                    <article
+                      key={`t-${i}`}
+                      className="border-t border-forest-deep/15 pt-8 md:pt-10"
+                    >
                       <h3 className="font-display italic text-2xl md:text-3xl text-forest-deep mb-3">
                         {place.name}
                       </h3>
@@ -188,10 +226,10 @@ export function CityGuide() {
                         </a>
                       )}
                     </article>
-                  </RevealOnScroll>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

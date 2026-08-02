@@ -52,7 +52,8 @@
     "restaurants": "Where to Eat",
     "tourism": "Tourism",
     "stars": "stars",
-    "perNight": "/night"
+    "perNight": "/night",
+    "listLabel": "List of recommendations — scroll for more"
   },
   "rsvp": {
     "title": "RSVP",

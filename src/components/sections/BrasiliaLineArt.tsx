@@ -14,7 +14,10 @@ import { useReducedMotion } from '../motion/useReducedMotion'
  * shared baseline: both monuments sit on it, the branch crosses it.
  */
 
-const VIEWBOX = '0 0 440 560'
+// Cropped to the drawing's own bounds (y 190–552) rather than starting at 0:
+// the empty headroom used to push the art low in its column once the panel
+// started centring it vertically.
+const VIEWBOX = '0 176 440 390'
 const GROUND_Y = 430
 
 // ── Catedral ───────────────────────────────────────────────
@@ -194,7 +197,7 @@ export function BrasiliaLineArt({ progress }: { progress: MotionValue<number> })
       viewBox={VIEWBOX}
       aria-hidden
       preserveAspectRatio="xMidYMid meet"
-      className="block w-full h-auto select-none overflow-visible"
+      className="block h-full w-full select-none overflow-visible"
     >
       {reduced
         ? STROKES.map((s, i) => (

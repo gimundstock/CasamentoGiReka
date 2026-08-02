@@ -63,3 +63,46 @@
     background-position: center;
   }
 }
+
+@layer utilities {
+  /* Scrolling region that reads as part of the page rather than as a widget:
+     a hairline thumb, and top/bottom fades so it is legible that more content
+     exists past the edge. The fades only apply where the box actually
+     scrolls (md and up) — below that the list is in normal page flow. */
+  .scroll-soft {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 138, 157, 0.4) transparent;
+  }
+
+  .scroll-soft::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .scroll-soft::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-soft::-webkit-scrollbar-thumb {
+    background-color: rgba(168, 138, 157, 0.4);
+    border-radius: 2px;
+  }
+
+  @media (min-width: 768px) {
+    .scroll-soft {
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 16px,
+        #000 calc(100% - 24px),
+        transparent 100%
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 16px,
+        #000 calc(100% - 24px),
+        transparent 100%
+      );
+    }
+  }
+}

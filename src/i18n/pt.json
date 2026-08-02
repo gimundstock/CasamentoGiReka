@@ -52,7 +52,8 @@
     "restaurants": "Onde Comer",
     "tourism": "Turismo",
     "stars": "estrelas",
-    "perNight": "/noite"
+    "perNight": "/noite",
+    "listLabel": "Lista de recomendações — role para ver mais"
   },
   "rsvp": {
     "title": "Confirmação de Presença",
