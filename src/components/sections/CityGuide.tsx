@@ -108,9 +108,10 @@ export function CityGuide() {
             <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest mb-4">
               {t('city.kicker')}
             </p>
-            {/* text-5xl/md:text-7xl is the shared section-heading size — RSVP
-                and GiftShop use the same. Do not tune it locally. */}
-            <h2 className="font-display italic text-5xl md:text-7xl text-forest-deep">
+            {/* Deliberately smaller than the text-5xl/md:text-7xl that RSVP and
+                GiftShop use. Those sections own a whole scrolling page; this one
+                is a fixed-height panel, and at 72px the heading ate the list. */}
+            <h2 className="font-display italic text-3xl md:text-4xl text-forest-deep">
               {t('city.title')}
             </h2>
             <p className="font-serif italic text-mauve text-base md:text-lg mt-4">
@@ -120,16 +121,26 @@ export function CityGuide() {
         </MaskReveal>
 
         <div className="grid md:grid-cols-12 gap-12 md:gap-16 md:flex-1 md:min-h-0">
-          {/* Art slot — left. Centred in the column and never scrolls. */}
+          {/*
+            Art slot — left. On md+ the drawing is deliberately far wider than
+            its column and absolutely positioned, so it bleeds right and passes
+            BEHIND the entries. The section's overflow-hidden trims whatever
+            leaves the panel. It never scrolls, and it is pointer-transparent so
+            the overlap cannot swallow clicks on the cards.
+          */}
           <div
             ref={artRef}
-            className="md:col-span-5 lg:col-span-5 md:h-full md:flex md:items-center md:justify-center md:min-h-0"
+            className="md:col-span-5 lg:col-span-5 md:h-full md:min-h-0 md:relative"
           >
-            <CathedralArt progress={scrollYProgress} />
+            <CathedralArt
+              progress={scrollYProgress}
+              className="w-full h-auto md:absolute md:top-1/2 md:-left-[12%] md:w-[190%] md:max-w-none md:-translate-y-1/2 md:pointer-events-none"
+            />
           </div>
 
-          {/* Tabs + scrolling entries — right */}
-          <div className="md:col-span-7 lg:col-span-7 md:flex md:flex-col md:min-h-0">
+          {/* Tabs + scrolling entries — right. z-10 keeps the text above the
+              drawing where the two overlap. */}
+          <div className="md:col-span-7 lg:col-span-7 md:flex md:flex-col md:min-h-0 md:relative md:z-10">
             <MaskReveal direction="up" delay={0.1} className="md:shrink-0">
               <div className="flex flex-wrap justify-end gap-x-8 gap-y-3 mb-6 border-b border-forest-deep/15 pb-6">
                 {TABS.map((tabKey) => {

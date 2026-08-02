@@ -18,7 +18,13 @@ const REVEAL_START = 0.1
 const REVEAL_END = 0.85
 const FEATHER = 18 // width of the soft front, in % of the image
 
-export function CathedralArt({ progress }: { progress: MotionValue<number> }) {
+export function CathedralArt({
+  progress,
+  className = '',
+}: {
+  progress: MotionValue<number>
+  className?: string
+}) {
   const reduced = useReducedMotion()
 
   // Start below 0 and finish past 100 so the drawing is fully hidden at the
@@ -32,7 +38,7 @@ export function CathedralArt({ progress }: { progress: MotionValue<number> }) {
   const maskImage = useMotionTemplate`linear-gradient(to right, #000 ${trail}%, transparent ${lead}%)`
 
   if (reduced) {
-    return <img src={SRC} alt="" aria-hidden className="block w-full h-auto select-none" />
+    return <img src={SRC} alt="" aria-hidden className={`block select-none ${className}`} />
   }
 
   return (
@@ -40,7 +46,7 @@ export function CathedralArt({ progress }: { progress: MotionValue<number> }) {
       src={SRC}
       alt=""
       aria-hidden
-      className="block w-full h-auto select-none"
+      className={`block select-none ${className}`}
       style={{ maskImage, WebkitMaskImage: maskImage }}
     />
   )
