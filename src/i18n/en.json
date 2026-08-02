@@ -53,7 +53,8 @@
     "tourism": "Tourism",
     "stars": "stars",
     "perNight": "/night",
-    "listLabel": "List of recommendations — scroll for more"
+    "listLabel": "List of recommendations — scroll for more",
+    "kicker": "For those travelling in"
   },
   "rsvp": {
     "title": "RSVP",

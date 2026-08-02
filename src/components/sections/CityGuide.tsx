@@ -43,9 +43,11 @@ function Entry({
   linkLabel?: string
 }) {
   return (
-    <article className="border-t border-forest-deep/15 pt-8 md:pt-10">
+    <article className="border-t border-forest-deep/15 pt-6 md:pt-8">
       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
-        <h3 className="font-display italic text-2xl md:text-3xl text-forest-deep">{title}</h3>
+        {/* Kept a step below the section's h2 — at the same size the page
+            loses its hierarchy and every name competes with the heading. */}
+        <h3 className="font-display italic text-xl md:text-2xl text-forest-deep">{title}</h3>
         {meta}
       </div>
       <p className="font-serif italic text-base text-forest leading-relaxed max-w-2xl">
@@ -100,16 +102,16 @@ export function CityGuide() {
     // 300px tall, so every height/overflow rule is md:-gated and small screens
     // fall back to ordinary page flow.
     <section id="city" className="bg-peach py-24 md:h-[100svh] md:overflow-hidden md:py-0">
-      <div className="max-w-6xl mx-auto px-6 md:h-full md:pt-24 md:pb-12 md:flex md:flex-col">
+      <div className="max-w-6xl mx-auto px-6 md:h-full md:pt-20 md:pb-10 md:flex md:flex-col">
         <MaskReveal direction="up" delay={0.05} className="md:shrink-0">
-          <div className="text-center mb-12 md:mb-10">
-            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest mb-4">
-              Brasília
+          <div className="text-center mb-8 md:mb-6">
+            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest mb-3">
+              {t('city.kicker')}
             </p>
-            <h2 className="font-display italic text-3xl md:text-4xl text-forest-deep">
+            <h2 className="font-display italic text-2xl md:text-3xl text-forest-deep">
               {t('city.title')}
             </h2>
-            <p className="font-serif italic text-mauve text-base md:text-lg mt-4">
+            <p className="font-serif italic text-mauve text-sm md:text-base mt-2">
               {t('city.subtitle')}
             </p>
           </div>
@@ -127,7 +129,7 @@ export function CityGuide() {
           {/* Tabs + scrolling entries — right */}
           <div className="md:col-span-7 lg:col-span-7 md:flex md:flex-col md:min-h-0">
             <MaskReveal direction="up" delay={0.1} className="md:shrink-0">
-              <div className="flex flex-wrap justify-end gap-x-8 gap-y-3 mb-8 border-b border-forest-deep/15 pb-6">
+              <div className="flex flex-wrap justify-end gap-x-8 gap-y-3 mb-6 border-b border-forest-deep/15 pb-6">
                 {TABS.map((tabKey) => {
                   const active = tab === tabKey
                   return (
@@ -171,7 +173,7 @@ export function CityGuide() {
               // line sits under the gradient and reads as greyed out.
               className="scroll-soft md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-4 md:pb-8"
             >
-              <div className="space-y-12 md:space-y-16">
+              <div className="space-y-8 md:space-y-10">
                 {tab === 'hotels' &&
                   CONFIG.cityGuide.hotels.map((h, i) => (
                     <Entry

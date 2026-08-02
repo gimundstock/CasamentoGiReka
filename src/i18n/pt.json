@@ -53,7 +53,8 @@
     "tourism": "Turismo",
     "stars": "estrelas",
     "perNight": "/noite",
-    "listLabel": "Lista de recomendações — role para ver mais"
+    "listLabel": "Lista de recomendações — role para ver mais",
+    "kicker": "Para quem vem de longe"
   },
   "rsvp": {
     "title": "Confirmação de Presença",
