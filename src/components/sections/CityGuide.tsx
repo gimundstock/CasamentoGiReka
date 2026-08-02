@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useScroll } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { MaskReveal } from '../motion/MaskReveal'
@@ -13,6 +13,61 @@ function StarRow({ count }: { count: number }) {
     <span className="font-sans text-xs tracking-widest text-amber" aria-label={`${count} stars`}>
       {'★'.repeat(count)}
     </span>
+  )
+}
+
+/**
+ * One entry, shared by all four tabs. Transport used to render its own way —
+ * two columns, an emoji, a smaller heading, no footer — so switching to it felt
+ * like landing on a different page.
+ *
+ * `meta` is the optional right-hand item on the title line (stars, cuisine).
+ * The footer row is dropped entirely when an entry has neither address nor
+ * value, so transport keeps the shape without showing empty furniture.
+ */
+function Entry({
+  title,
+  meta,
+  description,
+  address,
+  value,
+  href,
+  linkLabel,
+}: {
+  title: string
+  meta?: ReactNode
+  description: string
+  address?: string
+  value?: string
+  href?: string
+  linkLabel?: string
+}) {
+  return (
+    <article className="border-t border-forest-deep/15 pt-8 md:pt-10">
+      <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
+        <h3 className="font-display italic text-2xl md:text-3xl text-forest-deep">{title}</h3>
+        {meta}
+      </div>
+      <p className="font-serif italic text-base text-forest leading-relaxed max-w-2xl">
+        {description}
+      </p>
+      {(address || value) && (
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <span className="font-sans text-xs text-forest/60">{address}</span>
+          {value && <span className="font-display text-lg text-amber">{value}</span>}
+        </div>
+      )}
+      {href && (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-block font-sans text-[0.65rem] tracking-[0.35em] uppercase text-forest-deep border-b border-forest-deep/40 pb-1 hover:border-forest-deep transition-colors"
+        >
+          {linkLabel}
+        </a>
+      )}
+    </article>
   )
 }
 
@@ -51,7 +106,7 @@ export function CityGuide() {
             <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest mb-4">
               Brasília
             </p>
-            <h2 className="font-display italic text-4xl md:text-5xl text-forest-deep">
+            <h2 className="font-display italic text-3xl md:text-4xl text-forest-deep">
               {t('city.title')}
             </h2>
             <p className="font-serif italic text-mauve text-base md:text-lg mt-4">
@@ -116,119 +171,58 @@ export function CityGuide() {
               // line sits under the gradient and reads as greyed out.
               className="scroll-soft md:flex-1 md:min-h-0 md:overflow-y-auto md:pr-4 md:pb-8"
             >
-              {tab === 'hotels' && (
-                <div className="space-y-12 md:space-y-16">
-                  {CONFIG.cityGuide.hotels.map((h, i) => (
-                    <article
+              <div className="space-y-12 md:space-y-16">
+                {tab === 'hotels' &&
+                  CONFIG.cityGuide.hotels.map((h, i) => (
+                    <Entry
                       key={`hotel-${i}`}
-                      className="border-t border-forest-deep/15 pt-8 md:pt-10"
-                    >
-                      <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
-                        <h3 className="font-display italic text-2xl md:text-3xl text-forest-deep">
-                          {h.name}
-                        </h3>
-                        <StarRow count={h.stars} />
-                      </div>
-                      <p className="font-serif italic text-base text-forest leading-relaxed max-w-2xl">
-                        {lang === 'pt' ? h.description_pt : h.description_en}
-                      </p>
-                      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                        <span className="font-sans text-xs text-forest/60">{h.address}</span>
-                        <span className="font-display text-lg text-amber">{h.priceRange}</span>
-                      </div>
-                      {h.url && (
-                        <a
-                          href={h.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 inline-block font-sans text-[0.65rem] tracking-[0.35em] uppercase text-forest-deep border-b border-forest-deep/40 pb-1 hover:border-forest-deep transition-colors"
-                        >
-                          {lang === 'pt' ? 'Ver hotel' : 'View hotel'}
-                        </a>
-                      )}
-                    </article>
+                      title={h.name}
+                      meta={<StarRow count={h.stars} />}
+                      description={lang === 'pt' ? h.description_pt : h.description_en}
+                      address={h.address}
+                      value={h.priceRange}
+                      href={h.url}
+                      linkLabel={lang === 'pt' ? 'Ver hotel' : 'View hotel'}
+                    />
                   ))}
-                </div>
-              )}
 
-              {tab === 'transport' && (
-                <div className="grid sm:grid-cols-2 gap-12 md:gap-16">
-                  {CONFIG.cityGuide.transport.map((tr, i) => (
-                    <article
+                {tab === 'transport' &&
+                  CONFIG.cityGuide.transport.map((tr, i) => (
+                    <Entry
                       key={`tr-${i}`}
-                      className="border-t border-forest-deep/15 pt-8 md:pt-10"
-                    >
-                      <div className="text-2xl mb-4" aria-hidden>
-                        {tr.icon}
-                      </div>
-                      <h3 className="font-display italic text-xl text-forest-deep mb-3">
-                        {lang === 'pt' ? tr.type_pt : tr.type_en}
-                      </h3>
-                      <p className="font-serif italic text-base text-forest leading-relaxed">
-                        {lang === 'pt' ? tr.description_pt : tr.description_en}
-                      </p>
-                    </article>
+                      title={lang === 'pt' ? tr.type_pt : tr.type_en}
+                      description={lang === 'pt' ? tr.description_pt : tr.description_en}
+                    />
                   ))}
-                </div>
-              )}
 
-              {tab === 'restaurants' && (
-                <div className="space-y-12 md:space-y-16">
-                  {CONFIG.cityGuide.restaurants.map((r, i) => (
-                    <article
+                {tab === 'restaurants' &&
+                  CONFIG.cityGuide.restaurants.map((r, i) => (
+                    <Entry
                       key={`r-${i}`}
-                      className="border-t border-forest-deep/15 pt-8 md:pt-10"
-                    >
-                      <div className="flex flex-wrap items-baseline justify-between gap-3 mb-2">
-                        <h3 className="font-display italic text-2xl md:text-3xl text-forest-deep">
-                          {r.name}
-                        </h3>
+                      title={r.name}
+                      meta={
                         <span className="font-sans text-xs tracking-widest uppercase text-amber">
                           {lang === 'pt' ? r.cuisine_pt : r.cuisine_en}
                         </span>
-                      </div>
-                      <p className="font-serif italic text-base text-forest leading-relaxed max-w-2xl">
-                        {lang === 'pt' ? r.description_pt : r.description_en}
-                      </p>
-                      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                        <span className="font-sans text-xs text-forest/60">{r.address}</span>
-                        <span className="font-display text-lg text-amber">{r.priceRange}</span>
-                      </div>
-                    </article>
+                      }
+                      description={lang === 'pt' ? r.description_pt : r.description_en}
+                      address={r.address}
+                      value={r.priceRange}
+                    />
                   ))}
-                </div>
-              )}
 
-              {tab === 'tourism' && (
-                <div className="space-y-12 md:space-y-16">
-                  {CONFIG.cityGuide.tourism.map((place, i) => (
-                    <article
+                {tab === 'tourism' &&
+                  CONFIG.cityGuide.tourism.map((place, i) => (
+                    <Entry
                       key={`t-${i}`}
-                      className="border-t border-forest-deep/15 pt-8 md:pt-10"
-                    >
-                      <h3 className="font-display italic text-2xl md:text-3xl text-forest-deep mb-3">
-                        {place.name}
-                      </h3>
-                      <p className="font-serif italic text-base text-forest leading-relaxed max-w-2xl">
-                        {lang === 'pt' ? place.description_pt : place.description_en}
-                      </p>
-                      <span className="mt-4 block font-sans text-xs text-forest/60">
-                        {place.address}
-                      </span>
-                      {place.url && (
-                        <a
-                          href={place.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 inline-block font-sans text-[0.65rem] tracking-[0.35em] uppercase text-forest-deep border-b border-forest-deep/40 pb-1 hover:border-forest-deep transition-colors"
-                        >
-                          {lang === 'pt' ? 'Saiba mais' : 'Learn more'}
-                        </a>
-                      )}
-                    </article>
+                      title={place.name}
+                      description={lang === 'pt' ? place.description_pt : place.description_en}
+                      address={place.address}
+                      href={place.url}
+                      linkLabel={lang === 'pt' ? 'Saiba mais' : 'Learn more'}
+                    />
                   ))}
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
