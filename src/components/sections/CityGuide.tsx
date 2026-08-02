@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useScroll } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { MaskReveal } from '../motion/MaskReveal'
 import { RevealOnScroll } from '../motion/RevealOnScroll'
+import { BrasiliaLineArt } from './BrasiliaLineArt'
 import { CONFIG } from '../../content.config'
 
 type Tab = 'hotels' | 'transport' | 'restaurants' | 'tourism'
@@ -19,6 +21,18 @@ export function CityGuide() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
   const [tab, setTab] = useState<Tab>('hotels')
+
+  // Drives the line art's draw-on. Measured against the ART COLUMN, not the
+  // section: the art sits well below the section's top, so a section-relative
+  // window finishes drawing before the art is even on screen. Here 0 is the
+  // art entering from the bottom and 1 is it centred — it draws as you watch.
+  // The ref goes on the column, not the sticky child, so the numbers stay sane
+  // once the child pins.
+  const artRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: artRef,
+    offset: ['start end', 'center center'],
+  })
 
   return (
     <section id="city" className="bg-peach py-32 md:py-48">
@@ -39,9 +53,9 @@ export function CityGuide() {
 
         <div className="grid md:grid-cols-12 gap-12 md:gap-16">
           {/* Art slot — left */}
-          <div className="md:col-span-5 lg:col-span-5">
+          <div ref={artRef} className="md:col-span-5 lg:col-span-5">
             <div className="md:sticky md:top-24" aria-hidden>
-              {/* TODO: drop art here */}
+              <BrasiliaLineArt progress={scrollYProgress} />
             </div>
           </div>
 
