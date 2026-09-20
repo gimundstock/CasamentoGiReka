@@ -16,7 +16,7 @@
     "error": "Error fetching invitation. Please try again."
   },
   "welcome": {
-    "greeting": "Hello, {{name}}!",
+    "greeting": "Hello, {{name}}!",
     "invitation": "You are invited to celebrate with us",
     "seats": "Your table has {{count}} reserved seat",
     "seats_plural": "Your table has {{count}} reserved seats",
@@ -27,7 +27,8 @@
       "seconds": "seconds",
       "title": "Countdown"
     },
-    "scrollDown": "Scroll down"
+    "scrollDown": "Scroll down",
+    "notYou": "Not you? Enter a different name"
   },
   "couple": {
     "title": "The Couple",

@@ -101,7 +101,7 @@ export function Nav() {
       <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="font-display text-forest-deep text-xl italic tracking-wide"
+          className="font-display text-title text-xl tracking-wide"
           aria-label="Top"
         >
           {CONFIG.couple.bride[0]} &amp; {CONFIG.couple.groom[0]}
@@ -115,7 +115,7 @@ export function Nav() {
                 key={s.observe}
                 onClick={() => scrollTo(s.anchor)}
                 className={`font-sans text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
-                  isActive ? 'text-forest-deep' : 'text-forest/60 hover:text-forest-deep'
+                  isActive ? 'text-title' : 'text-title/60 hover:text-title'
                 }`}
               >
                 {t(`nav.${s.key}`)}
@@ -162,7 +162,7 @@ export function Nav() {
                   key={s.observe}
                   onClick={() => scrollTo(s.anchor)}
                   className={`font-sans text-left text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
-                    isActive ? 'text-forest-deep' : 'text-forest/60 hover:text-forest-deep'
+                    isActive ? 'text-title' : 'text-title/60 hover:text-title'
                   }`}
                 >
                   {t(`nav.${s.key}`)}

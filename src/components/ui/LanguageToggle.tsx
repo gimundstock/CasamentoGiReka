@@ -10,7 +10,7 @@ export function LanguageToggle() {
   return (
     <button
       onClick={toggle}
-      className="text-xs font-sans tracking-widest uppercase text-forest border border-forest/40 px-3 py-1 rounded-full hover:bg-forest hover:text-peach transition-colors duration-200"
+      className="text-xs font-sans tracking-widest uppercase text-cta border border-cta/40 px-3 py-1 rounded-full hover:bg-cta hover:text-peach transition-colors duration-200"
       aria-label="Switch language"
     >
       {t('language')}

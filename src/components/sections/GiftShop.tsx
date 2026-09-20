@@ -125,17 +125,15 @@ export function GiftShop({ guest }: Props) {
             <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber mb-6">
               {t('nav.gifts')}
             </p>
-            <h2 className="font-display italic text-5xl md:text-7xl text-forest-deep">
-              {t('gifts.title')}
-            </h2>
-            <p className="font-serif italic text-mauve text-lg md:text-xl mt-6 max-w-xl mx-auto leading-relaxed">
+            <h2 className="font-display text-2xl md:text-3xl text-title">{t('gifts.title')}</h2>
+            <p className="font-serif text-title text-lg md:text-xl mt-6 max-w-xl mx-auto leading-relaxed">
               {t('gifts.subtitle')}
             </p>
           </div>
         </MaskReveal>
 
         {loading ? (
-          <div className="text-center py-16 text-mauve font-serif italic">…</div>
+          <div className="text-center py-16 text-title font-serif">…</div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             {gifts.map((gift, i) => (
@@ -211,24 +209,24 @@ function GiftCard({ gift, lang, onOpen, t }: GiftCardProps) {
         />
         {isSoldOut && (
           <div className="absolute inset-0 flex items-center justify-center bg-peach/70">
-            <span className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-forest-deep">
+            <span className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
               {t('gifts.soldOutStamp')}
             </span>
           </div>
         )}
       </div>
 
-      <h3 className="font-display italic text-xl text-forest-deep leading-snug">{name}</h3>
+      <h3 className="font-display text-xl text-title leading-snug">{name}</h3>
       {description && (
-        <p className="font-serif italic text-sm text-forest mt-2 leading-relaxed line-clamp-2">
+        <p className="font-serif text-sm text-title mt-2 leading-relaxed line-clamp-2">
           {description}
         </p>
       )}
 
       <div className="mt-4 flex items-baseline justify-between gap-3">
-        <p className="font-display text-lg text-amber">
+        <p className="font-sans tabular-nums text-lg text-amber">
           {gift.total > 1 && (
-            <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-forest mr-2">
+            <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mr-2">
               {t('gifts.fromPrice')}
             </span>
           )}
@@ -236,7 +234,7 @@ function GiftCard({ gift, lang, onOpen, t }: GiftCardProps) {
         </p>
 
         {!isSoldOut && isPartial && (
-          <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-forest">
+          <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title">
             {t('gifts.partiallyAvailable', {
               available: gift.available,
               total: gift.total,
@@ -292,16 +290,16 @@ function GiftModal(props: ModalProps) {
               <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-honey mb-1">
                 {step === 'success' ? t('gifts.successKicker') : t('gifts.stepKicker')}
               </p>
-              <h3 className="font-display italic text-2xl text-forest-deep">{giftName}</h3>
+              <h3 className="font-display text-2xl text-title">{giftName}</h3>
               {step !== 'success' && (
-                <p className="font-serif italic text-sm text-mauve mt-1">
+                <p className="font-serif text-sm text-title mt-1">
                   {lang === 'pt' ? gift.description_pt : gift.description_en}
                 </p>
               )}
             </div>
             <button
               onClick={props.onClose}
-              className="text-mauve/70 hover:text-forest-deep transition-colors shrink-0 mt-1"
+              className="text-title/70 hover:text-title transition-colors shrink-0 mt-1"
               aria-label={t('gifts.close')}
             >
               <svg
@@ -319,7 +317,7 @@ function GiftModal(props: ModalProps) {
           {/* ── Step: cotas selector ── */}
           {step === 'cotas' && (
             <>
-              <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-mauve mb-4">
+              <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-4">
                 {t('gifts.cotasTitle')}
               </p>
 
@@ -334,11 +332,11 @@ function GiftModal(props: ModalProps) {
                   let chipClass = ''
 
                   if (isSold) {
-                    chipClass = `${baseChip} bg-sage/20 text-mauve line-through cursor-not-allowed opacity-60`
+                    chipClass = `${baseChip} bg-sage/20 text-title line-through cursor-not-allowed opacity-60`
                   } else if (isSelected) {
                     chipClass = `${baseChip} bg-forest-deep text-peach-light shadow-[0_4px_14px_rgba(63,96,65,0.25)]`
                   } else {
-                    chipClass = `${baseChip} bg-white/60 border border-sage/40 text-forest hover:border-forest/40 hover:bg-white/80`
+                    chipClass = `${baseChip} bg-white/60 border border-sage/40 text-title hover:border-forest/40 hover:bg-white/80`
                   }
 
                   return (
@@ -370,7 +368,7 @@ function GiftModal(props: ModalProps) {
                           isSelected
                             ? 'text-peach-light/90 font-semibold'
                             : isSold
-                              ? 'text-mauve'
+                              ? 'text-title'
                               : 'text-honey font-semibold'
                         }
                       >
@@ -382,7 +380,7 @@ function GiftModal(props: ModalProps) {
               </div>
 
               {selectedCotas.length > 0 && (
-                <p className="text-center font-serif italic text-base text-forest-deep mb-5">
+                <p className="text-center font-serif text-base text-title mb-5">
                   {t('gifts.totalSelected', { amount: props.totalAmount.toFixed(2) })}
                 </p>
               )}
@@ -399,7 +397,7 @@ function GiftModal(props: ModalProps) {
           {/* ── Step: PIX QR ── */}
           {step === 'pix' && (
             <>
-              <p className="font-serif italic text-sm text-mauve text-center mb-6 leading-relaxed">
+              <p className="font-serif text-sm text-title text-center mb-6 leading-relaxed">
                 {t('gifts.pixInstructions')}
               </p>
 
@@ -419,16 +417,16 @@ function GiftModal(props: ModalProps) {
                 </ArchQrFrame>
               </div>
 
-              <p className="text-center font-display text-3xl text-honey mb-1">
+              <p className="text-center font-sans tabular-nums text-3xl text-honey mb-1">
                 R$ {props.totalAmount.toFixed(2)}
               </p>
-              <p className="text-center font-serif italic text-xs text-mauve mb-6">
+              <p className="text-center font-serif text-xs text-title mb-6">
                 {selectedCotas.map((c) => (lang === 'pt' ? c.label_pt : c.label_en)).join(' + ')}
               </p>
 
               <button
                 onClick={props.onCopyPix}
-                className="w-full mb-3 inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-sage/50 text-forest hover:bg-sage/20 font-sans text-xs tracking-widest uppercase transition-colors"
+                className="w-full mb-3 inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-sage/50 text-title hover:bg-sage/20 font-sans text-xs tracking-widest uppercase transition-colors"
               >
                 <svg
                   className="w-4 h-4"
@@ -442,7 +440,7 @@ function GiftModal(props: ModalProps) {
                   <path d="M5 15V6a1 1 0 0 1 1-1h9" />
                 </svg>
                 {pixCopied ? (
-                  <span className="animate-bloom inline-block text-forest-deep">
+                  <span className="animate-bloom inline-block text-title">
                     {t('gifts.pixCopied')}
                   </span>
                 ) : (
@@ -456,7 +454,7 @@ function GiftModal(props: ModalProps) {
                 <div className="mt-3 text-center">
                   <button
                     onClick={props.onBack}
-                    className="font-sans text-xs tracking-widest uppercase text-mauve hover:text-forest-deep transition-colors"
+                    className="font-sans text-xs tracking-widest uppercase text-title hover:text-title transition-colors"
                   >
                     {t('gifts.back')}
                   </button>
@@ -470,7 +468,7 @@ function GiftModal(props: ModalProps) {
             <>
               <div className="space-y-5 mb-6">
                 <div>
-                  <label className="font-sans text-[10px] tracking-[0.3em] uppercase text-mauve block mb-2">
+                  <label className="font-sans text-[10px] tracking-[0.3em] uppercase text-title block mb-2">
                     {t('gifts.cardMessage')}
                   </label>
                   <textarea
@@ -478,12 +476,12 @@ function GiftModal(props: ModalProps) {
                     onChange={(e) => props.onCardMessageChange(e.target.value)}
                     placeholder={t('gifts.cardPlaceholder')}
                     rows={4}
-                    className="w-full px-5 py-4 rounded-2xl border border-sage/40 bg-white/70 font-serif italic text-base text-forest-deep placeholder:text-mauve placeholder:italic focus:outline-none focus:border-forest/60 focus:bg-white/90 resize-none transition-colors"
+                    className="w-full px-5 py-4 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title placeholder: focus:outline-none focus:border-forest/60 focus:bg-white/90 resize-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="font-sans text-[10px] tracking-[0.3em] uppercase text-mauve block mb-2">
+                  <label className="font-sans text-[10px] tracking-[0.3em] uppercase text-title block mb-2">
                     {t('gifts.yourEmail')}
                   </label>
                   <input
@@ -492,15 +490,13 @@ function GiftModal(props: ModalProps) {
                     onChange={(e) => props.onEmailChange(e.target.value)}
                     placeholder={t('gifts.emailPlaceholder')}
                     required
-                    className="w-full px-5 py-3.5 rounded-2xl border border-sage/40 bg-white/70 font-serif italic text-base text-forest-deep placeholder:text-mauve placeholder:italic focus:outline-none focus:border-forest/60 focus:bg-white/90 transition-colors"
+                    className="w-full px-5 py-3.5 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title placeholder: focus:outline-none focus:border-forest/60 focus:bg-white/90 transition-colors"
                   />
                 </div>
               </div>
 
               {error && (
-                <p className="text-sm text-terracotta text-center mb-4 font-serif italic">
-                  {error}
-                </p>
+                <p className="text-sm text-terracotta text-center mb-4 font-serif">{error}</p>
               )}
 
               <PrimaryButton
@@ -514,7 +510,7 @@ function GiftModal(props: ModalProps) {
               <div className="mt-3 text-center">
                 <button
                   onClick={props.onBack}
-                  className="font-sans text-xs tracking-widest uppercase text-mauve hover:text-forest-deep transition-colors"
+                  className="font-sans text-xs tracking-widest uppercase text-title hover:text-title transition-colors"
                 >
                   {t('gifts.back')}
                 </button>
@@ -599,37 +595,35 @@ function GiftModal(props: ModalProps) {
                 <Petal color="#C58A7A" size={14} rotation={28} />
               </div>
 
-              <h4 className="font-display italic text-3xl text-forest-deep mb-2">
-                {t('gifts.successTitle')}
-              </h4>
-              <p className="font-serif italic text-mauve mb-6 leading-relaxed max-w-xs mx-auto">
+              <h4 className="font-display text-3xl text-title mb-2">{t('gifts.successTitle')}</h4>
+              <p className="font-serif text-title mb-6 leading-relaxed max-w-xs mx-auto">
                 {t('gifts.successText')}
               </p>
 
               {/* Receipt */}
               <div className="bg-white/60 border border-sage/30 rounded-2xl p-5 text-left mb-6">
-                <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-mauve mb-2">
+                <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-2">
                   {t('gifts.summary')}
                 </p>
-                <p className="font-display italic text-xl text-forest-deep">{giftName}</p>
+                <p className="font-display text-xl text-title">{giftName}</p>
                 {selectedCotas.map((c) => (
                   <div key={c.cotaId} className="flex justify-between mt-1.5">
-                    <span className="font-serif italic text-sm text-mauve">
+                    <span className="font-serif text-sm text-title">
                       {lang === 'pt' ? c.label_pt : c.label_en}
                     </span>
                     <span className="font-sans text-sm font-semibold text-honey">R$ {c.price}</span>
                   </div>
                 ))}
                 <div className="border-t border-sage/30 mt-3 pt-2 flex justify-between">
-                  <span className="font-sans text-xs uppercase tracking-widest text-forest-deep">
+                  <span className="font-sans text-xs uppercase tracking-widest text-title">
                     {t('gifts.total')}
                   </span>
-                  <span className="font-display text-lg text-honey">
+                  <span className="font-sans tabular-nums text-lg text-honey">
                     R$ {props.totalAmount.toFixed(2)}
                   </span>
                 </div>
                 {cardMessage && (
-                  <p className="mt-4 font-serif italic text-sm text-mauve border-l-2 border-sage/60 pl-3">
+                  <p className="mt-4 font-serif text-sm text-title border-l-2 border-sage/60 pl-3">
                     “{cardMessage}”
                   </p>
                 )}

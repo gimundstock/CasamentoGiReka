@@ -229,12 +229,12 @@ export function HeroBigDay() {
             className="absolute inset-x-0 z-40 flex items-center px-8 md:px-12"
             style={{ opacity: infoOpacity, top: '2vh', bottom: '56vh' }}
           >
-            <dl className="text-forest-deep mx-auto grid w-full max-w-[1600px] grid-cols-2 gap-x-8 gap-y-6 text-center md:grid-cols-4 md:gap-x-10">
+            <dl className="text-title mx-auto grid w-full max-w-[1600px] grid-cols-2 gap-x-8 gap-y-6 text-center md:grid-cols-4 md:gap-x-10">
               <div>
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
                   {t('wedding.date')}
                 </dt>
-                <dd className="font-display mt-2 text-lg leading-tight md:text-2xl">
+                <dd className="font-sans tabular-nums mt-2 text-lg leading-tight md:text-2xl">
                   {dateStr}
                   <br />
                   {CONFIG.wedding.time}
@@ -244,7 +244,7 @@ export function HeroBigDay() {
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
                   {t('wedding.venue')}
                 </dt>
-                <dd className="font-display mt-2 text-lg leading-tight md:text-2xl">
+                <dd className="font-sans tabular-nums mt-2 text-lg leading-tight md:text-2xl">
                   {CONFIG.wedding.venue}
                 </dd>
               </div>
@@ -252,7 +252,7 @@ export function HeroBigDay() {
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
                   {t('wedding.address')}
                 </dt>
-                <dd className="font-display mt-2 text-lg leading-tight md:text-2xl">
+                <dd className="font-sans tabular-nums mt-2 text-lg leading-tight md:text-2xl">
                   {addressHead}
                   {addressTail && (
                     <>
@@ -265,7 +265,7 @@ export function HeroBigDay() {
                   href={CONFIG.wedding.mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-forest-deep border-forest-deep/50 hover:border-forest-deep font-sans mt-3 inline-block border-b pb-0.5 text-[0.6rem] tracking-[0.3em] uppercase transition-colors"
+                  className="text-title border-forest-deep/50 hover:border-forest-deep font-sans mt-3 inline-block border-b pb-0.5 text-[0.6rem] tracking-[0.3em] uppercase transition-colors"
                 >
                   {t('wedding.directions')}
                 </a>
@@ -274,7 +274,7 @@ export function HeroBigDay() {
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
                   {t('wedding.dresscode')}
                 </dt>
-                <dd className="font-display mt-2 text-lg leading-tight md:text-2xl">
+                <dd className="font-sans tabular-nums mt-2 text-lg leading-tight md:text-2xl">
                   {dressCodeHead}
                   {dressCodeTail && (
                     <>
@@ -302,10 +302,10 @@ export function HeroBigDay() {
               y: '-100%',
             }}
           >
-            <p className="font-sans text-forest mb-3 text-[0.65rem] tracking-[0.4em] uppercase md:mb-4">
+            <p className="font-sans text-title mb-3 text-[0.65rem] tracking-[0.4em] uppercase md:mb-4">
               {t('wedding.tagline')}
             </p>
-            <h2 className="font-display text-forest-deep text-3xl whitespace-nowrap italic md:text-5xl lg:text-6xl">
+            <h2 className="font-display text-title text-2xl whitespace-nowrap md:text-3xl">
               {t('wedding.title')}
             </h2>
           </motion.div>

@@ -242,7 +242,7 @@ export function HeroSaveDateCouple() {
                 staggerRatio={0.95}
                 scaleFrom={0.15}
                 fadeIn={0.45}
-                className="font-display text-forest-deep block text-6xl leading-[1] italic md:text-8xl lg:text-9xl"
+                className="font-sans text-title block text-6xl leading-[1.05] font-light tracking-[0.12em] md:text-8xl lg:text-9xl"
                 lineClassName="block"
               />
               <div className="flex flex-col items-center gap-6 md:gap-8">
@@ -254,7 +254,7 @@ export function HeroSaveDateCouple() {
                   staggerRatio={0.9}
                   scaleFrom={0.2}
                   fadeIn={0.45}
-                  className="font-display text-forest-deep block text-4xl italic md:text-6xl"
+                  className="font-sans text-title block text-4xl font-light tracking-[0.12em] md:text-6xl"
                 />
                 <FlipLetters
                   text={countdownText}
@@ -264,7 +264,7 @@ export function HeroSaveDateCouple() {
                   staggerRatio={0.9}
                   scaleFrom={0.3}
                   fadeIn={0.45}
-                  className="font-display text-forest-deep block text-2xl tabular-nums italic md:text-4xl"
+                  className="font-sans text-title block text-2xl tabular-nums md:text-4xl"
                 />
                 <MaskReveal
                   direction="up"
@@ -272,7 +272,7 @@ export function HeroSaveDateCouple() {
                   scrollStart={0.18}
                   scrollEnd={0.22}
                 >
-                  <p className="font-sans text-forest text-[0.6rem] tracking-[0.4em] uppercase">
+                  <p className="font-sans text-title text-[0.6rem] tracking-[0.4em] uppercase">
                     {t('welcome.countdown.days')} · {t('welcome.countdown.hours')} ·{' '}
                     {t('welcome.countdown.minutes')} · {t('welcome.countdown.seconds')}
                   </p>
@@ -321,11 +321,11 @@ export function HeroSaveDateCouple() {
                   photoWidthClass="max-w-md"
                   caption={
                     <div>
-                      <div className="font-display text-5xl leading-none italic md:text-7xl">
+                      <div className="font-sans tabular-nums text-5xl leading-none md:text-7xl">
                         {m.year}
                       </div>
-                      <div className="font-display mt-3 text-2xl italic md:text-3xl">{title}</div>
-                      <div className="font-serif mt-4 max-w-md text-base leading-relaxed italic opacity-90 md:text-lg">
+                      <div className="font-display mt-3 text-2xl md:text-3xl">{title}</div>
+                      <div className="font-serif mt-4 max-w-md text-base leading-relaxed opacity-90 md:text-lg">
                         {text}
                       </div>
                     </div>
@@ -341,12 +341,10 @@ export function HeroSaveDateCouple() {
             className="pointer-events-none absolute inset-x-0 top-0 z-30 px-6 pt-16 text-center md:pt-20"
             style={{ opacity: coupleHeadingOpacity }}
           >
-            <p className="font-sans text-forest mb-4 text-[0.65rem] tracking-[0.4em] uppercase">
+            <p className="font-sans text-title mb-4 text-[0.65rem] tracking-[0.4em] uppercase">
               {t('couple.ourStory')}
             </p>
-            <h2 className="font-display text-forest-deep text-3xl italic md:text-5xl">
-              {t('couple.title')}
-            </h2>
+            <h2 className="font-display text-title text-2xl md:text-3xl">{t('couple.title')}</h2>
           </motion.div>
 
           {/* ── z-40  Yellow safety overlay — guarantees a clean solid yellow
