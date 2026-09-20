@@ -29,11 +29,12 @@ export const CONFIG = {
 
   // ── Wedding Day ──────────────────────────────────────────
   wedding: {
-    date: '2027-04-28', // ISO format YYYY-MM-DD
+    date: '2027-06-05', // ISO format YYYY-MM-DD
     time: '17h30',
-    venue: 'Nome do Local',
-    address: 'Endereço completo, Brasília, DF',
-    mapsUrl: 'https://maps.google.com/?q=Brasilia',
+    venue: 'Clube do Congresso',
+    address: 'SHIN QI 16 Área Especial, Brasília - DF, 71530-200',
+    mapsUrl:
+      'https://maps.google.com/?q=Clube+do+Congresso+SHIN+QI+16+Área+Especial+Lago+Norte+Brasília+DF+71530-200',
     dresscode_pt: 'Traje social — tons terrosos e naturais',
     dresscode_en: 'Smart casual — earth tones and natural colours',
     rsvpDeadline: '2027-02-28', // ISO format YYYY-MM-DD

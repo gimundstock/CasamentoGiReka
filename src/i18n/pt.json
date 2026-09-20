@@ -52,7 +52,9 @@
     "restaurants": "Onde Comer",
     "tourism": "Turismo",
     "stars": "estrelas",
-    "perNight": "/noite"
+    "perNight": "/noite",
+    "listLabel": "Lista de recomendações — role para ver mais",
+    "kicker": "Para quem vem de longe"
   },
   "rsvp": {
     "title": "Confirmação de Presença",
