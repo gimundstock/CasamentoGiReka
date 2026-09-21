@@ -7,7 +7,7 @@
     "gifts": "Presentes"
   },
   "nameEntry": {
-    "welcome": "Bem-vindo(a)",
+    "welcome": "Bem-vindo",
     "subtitle": "Digite seu nome para acessar o convite personalizado",
     "placeholder": "Seu nome...",
     "button": "Entrar",
@@ -16,7 +16,7 @@
     "error": "Erro ao buscar convite. Tente novamente."
   },
   "welcome": {
-    "greeting": "Olá, {{name}}!",
+    "greeting": "Olá, {{name}}!",
     "invitation": "Você está convidado(a) para celebrar conosco",
     "seats": "Sua mesa tem {{count}} lugar reservado",
     "seats_plural": "Sua mesa tem {{count}} lugares reservados",
@@ -27,7 +27,8 @@
       "seconds": "segundos",
       "title": "Contagem regressiva"
     },
-    "scrollDown": "Rolar para baixo"
+    "scrollDown": "Rolar para baixo",
+    "notYou": "Não é você? Digitar outro nome"
   },
   "couple": {
     "title": "O Casal",

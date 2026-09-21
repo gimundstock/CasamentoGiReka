@@ -47,16 +47,14 @@ function Entry({
       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-2">
         {/* text-xl matches the card headings in GiftShop — entry names are the
             same size across sections, a step below the section's h2. */}
-        <h3 className="font-display italic text-xl text-forest-deep">{title}</h3>
+        <h3 className="font-display text-xl text-title">{title}</h3>
         {meta}
       </div>
-      <p className="font-serif italic text-base text-forest leading-relaxed max-w-2xl">
-        {description}
-      </p>
+      <p className="font-serif text-base text-title leading-relaxed max-w-2xl">{description}</p>
       {(address || value) && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <span className="font-sans text-xs text-forest/60">{address}</span>
-          {value && <span className="font-display text-lg text-amber">{value}</span>}
+          <span className="font-sans text-xs text-title/60">{address}</span>
+          {value && <span className="font-sans tabular-nums text-lg text-amber">{value}</span>}
         </div>
       )}
       {href && (
@@ -64,7 +62,7 @@ function Entry({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 inline-block font-sans text-[0.65rem] tracking-[0.35em] uppercase text-forest-deep border-b border-forest-deep/40 pb-1 hover:border-forest-deep transition-colors"
+          className="mt-3 inline-block font-sans text-[0.65rem] tracking-[0.35em] uppercase text-title border-b border-forest-deep/40 pb-1 hover:border-forest-deep transition-colors"
         >
           {linkLabel}
         </a>
@@ -105,18 +103,14 @@ export function CityGuide() {
       <div className="max-w-6xl mx-auto px-6 md:h-full md:pt-24 md:pb-12 md:flex md:flex-col">
         <MaskReveal direction="up" delay={0.05} className="md:shrink-0">
           <div className="text-center mb-12 md:mb-10">
-            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest mb-4">
+            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-title mb-4">
               {t('city.kicker')}
             </p>
             {/* Deliberately smaller than the text-5xl/md:text-7xl that RSVP and
                 GiftShop use. Those sections own a whole scrolling page; this one
                 is a fixed-height panel, and at 72px the heading ate the list. */}
-            <h2 className="font-display italic text-3xl md:text-4xl text-forest-deep">
-              {t('city.title')}
-            </h2>
-            <p className="font-serif italic text-mauve text-base md:text-lg mt-4">
-              {t('city.subtitle')}
-            </p>
+            <h2 className="font-display text-2xl md:text-3xl text-title">{t('city.title')}</h2>
+            <p className="font-serif text-title text-base md:text-lg mt-4">{t('city.subtitle')}</p>
           </div>
         </MaskReveal>
 
@@ -156,8 +150,8 @@ export function CityGuide() {
                       // otherwise row one's underline lands on row two's text.
                       className={`font-sans text-[0.65rem] tracking-[0.35em] uppercase transition-colors pb-2 md:-mb-[1.625rem] border-b ${
                         active
-                          ? 'text-forest-deep border-forest-deep'
-                          : 'text-forest/60 border-transparent hover:text-forest-deep'
+                          ? 'text-title border-forest-deep'
+                          : 'text-title/60 border-transparent hover:text-title'
                       }`}
                     >
                       {t(`city.${tabKey}`)}

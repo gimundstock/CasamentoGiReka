@@ -89,7 +89,7 @@ export function RisingCard({
     const absY = Math.abs(yVh)
     let weight = 1
     if (absY > 40) weight = Math.max(0, 1 - (absY - 40) / 20)
-    // Interpolate text-forest-deep #3D3229 (61,50,41) → white (255,255,255)
+    // Interpolate text-title #3D3229 (61,50,41) → white (255,255,255)
     const r = Math.round(61 + (255 - 61) * weight)
     const g = Math.round(50 + (255 - 50) * weight)
     const b = Math.round(41 + (255 - 41) * weight)

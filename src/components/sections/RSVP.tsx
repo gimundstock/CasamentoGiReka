@@ -63,12 +63,8 @@ export function RSVP({ guest }: Props) {
             <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber mb-6">
               {t('rsvp.kicker')}
             </p>
-            <h2 className="font-display italic text-5xl md:text-7xl text-forest-deep mb-12">
-              {title}
-            </h2>
-            <p className="font-serif italic text-lg md:text-xl text-forest leading-relaxed">
-              {body}
-            </p>
+            <h2 className="font-display text-2xl md:text-3xl text-title mb-12">{title}</h2>
+            <p className="font-serif text-lg md:text-xl text-title leading-relaxed">{body}</p>
           </MaskReveal>
         </div>
       </section>
@@ -83,10 +79,8 @@ export function RSVP({ guest }: Props) {
             <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber mb-6">
               {t('rsvp.kicker')}
             </p>
-            <h2 className="font-display italic text-5xl md:text-7xl text-forest-deep">
-              {t('rsvp.title')}
-            </h2>
-            <p className="font-serif italic text-mauve text-lg md:text-xl mt-6">
+            <h2 className="font-display text-2xl md:text-3xl text-title">{t('rsvp.title')}</h2>
+            <p className="font-serif text-title text-lg md:text-xl mt-6">
               {t('rsvp.subtitle', { date: rsvpDeadline })}
             </p>
           </div>
@@ -98,7 +92,7 @@ export function RSVP({ guest }: Props) {
               <RevealOnScroll key={i} delay={i * 0.1}>
                 <div className="border-t border-forest-deep/15 pt-8">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 mb-6">
-                    <span className="font-display italic text-2xl md:text-3xl text-forest-deep">
+                    <span className="font-display text-2xl md:text-3xl text-title">
                       {attendee.name}
                     </span>
 
@@ -109,8 +103,8 @@ export function RSVP({ guest }: Props) {
                         aria-pressed={attendee.attending}
                         className={`pb-1 border-b transition-colors ${
                           attendee.attending
-                            ? 'text-forest-deep border-forest-deep'
-                            : 'text-forest/50 border-transparent hover:text-forest-deep'
+                            ? 'text-title border-forest-deep'
+                            : 'text-title/50 border-transparent hover:text-title'
                         }`}
                       >
                         {t('rsvp.attending')}
@@ -121,8 +115,8 @@ export function RSVP({ guest }: Props) {
                         aria-pressed={!attendee.attending}
                         className={`pb-1 border-b transition-colors ${
                           !attendee.attending
-                            ? 'text-forest-deep border-forest-deep'
-                            : 'text-forest/50 border-transparent hover:text-forest-deep'
+                            ? 'text-title border-forest-deep'
+                            : 'text-title/50 border-transparent hover:text-title'
                         }`}
                       >
                         {t('rsvp.notAttending')}
@@ -135,7 +129,7 @@ export function RSVP({ guest }: Props) {
                       value={attendee.menu}
                       onChange={(e) => updateAttendee(i, 'menu', e.target.value)}
                       required={attendee.attending}
-                      className="w-full bg-transparent border-b border-forest-deep/20 py-3 font-serif italic text-base text-forest-deep focus:outline-none focus:border-forest-deep/60 transition-colors"
+                      className="w-full bg-transparent border-b border-forest-deep/20 py-3 font-serif text-base text-title focus:outline-none focus:border-forest-deep/60 transition-colors"
                     >
                       <option value="">{t('rsvp.menuPlaceholder')}</option>
                       {CONFIG.menuOptions.map((opt) => (
@@ -152,7 +146,7 @@ export function RSVP({ guest }: Props) {
 
           <RevealOnScroll>
             <div className="border-t border-forest-deep/15 pt-8">
-              <label className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest block mb-3">
+              <label className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-title block mb-3">
                 {t('rsvp.song')}
               </label>
               <input
@@ -160,14 +154,14 @@ export function RSVP({ guest }: Props) {
                 value={songRequest}
                 onChange={(e) => setSongRequest(e.target.value)}
                 placeholder={t('rsvp.songPlaceholder')}
-                className="w-full bg-transparent border-b border-forest-deep/20 py-3 font-serif italic text-base text-forest-deep placeholder:text-forest/40 focus:outline-none focus:border-forest-deep/60 transition-colors"
+                className="w-full bg-transparent border-b border-forest-deep/20 py-3 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep/60 transition-colors"
               />
             </div>
           </RevealOnScroll>
 
           <RevealOnScroll>
             <div className="border-t border-forest-deep/15 pt-8">
-              <label className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-forest block mb-3">
+              <label className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-title block mb-3">
                 {t('rsvp.message')}
               </label>
               <textarea
@@ -178,12 +172,12 @@ export function RSVP({ guest }: Props) {
                   groom: CONFIG.couple.groom,
                 })}
                 rows={4}
-                className="w-full bg-transparent border-b border-forest-deep/20 py-3 font-serif italic text-base text-forest-deep placeholder:text-forest/40 focus:outline-none focus:border-forest-deep/60 transition-colors resize-none"
+                className="w-full bg-transparent border-b border-forest-deep/20 py-3 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep/60 transition-colors resize-none"
               />
             </div>
           </RevealOnScroll>
 
-          {error && <p className="font-serif italic text-terracotta text-center">{error}</p>}
+          {error && <p className="font-serif text-terracotta text-center">{error}</p>}
 
           <div className="text-center pt-8">
             <button

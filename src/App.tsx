@@ -15,7 +15,7 @@ function Footer() {
   const { t } = useTranslation()
   return (
     <footer className="bg-forest-deep text-peach-light py-20 text-center">
-      <p className="font-display italic text-3xl md:text-4xl mb-3">
+      <p className="font-display text-3xl md:text-4xl mb-3">
         {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
       </p>
       <p className="font-sans text-[0.65rem] tracking-[0.35em] text-peach-light/50 uppercase">
@@ -26,7 +26,7 @@ function Footer() {
 }
 
 export default function App() {
-  const { state, lookupByName } = useGuest()
+  const { state, lookupByName, reset } = useGuest()
   const { i18n } = useTranslation()
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function App() {
     <>
       <Nav />
       <main>
-        <Hero1Welcome guest={guest} />
+        <Hero1Welcome guest={guest} onReset={reset} />
         <HeroSaveDateCouple />
         <HeroBigDay />
         <CityGuide />

@@ -10,12 +10,14 @@ export default {
         // with dark warm-brown text and green/rose/amber accents.
         //
         // Canvas (bg-peach*)
-        peach: '#F8E8D8', // primary background (body, sections)
+        peach: '#FBFAF8', // primary background (body, sections) — off-white
         'peach-light': '#FFF4E8', // paper / card background (lightest)
         'peach-warm': '#F3D2B8', // secondary background (deeper accents)
         // Text (text-forest*, text-mauve*)
         forest: '#7A6758', // secondary text (body)
         'forest-deep': '#3D3229', // primary text (headings, CTA bg)
+        title: '#535351', // todo o texto do site
+        cta: '#69B4DF', // botões de ação — azul da aquarela do convite, hsl(202 65% 64%)
         mauve: '#A88A9D', // muted mauve — subtitle / accent
         'mauve-light': '#B9AFC1', // faded lilac — soft text / decoration
         // Greens — used for botanical detail (leaves, vines, sage borders)
@@ -28,9 +30,27 @@ export default {
         honey: '#D89A35', // alias of amber — prices, countdown numbers
       },
       fontFamily: {
+        // As três fontes do save the date. Ver @font-face em src/index.css.
+        //   títulos    → Amsterdam (script)
+        //   subtítulos → Arbotek (sans geométrica)
+        //   texto      → Geralda, com Cormorant Garamond atrás
+        //
+        // Amsterdam — script dos títulos. Garamond fica atrás só para cobrir
+        // glifos que a fonte não tem (° º).
+        display: ['Amsterdam', '"Cormorant Garamond"', 'cursive'],
+        script: ['Amsterdam', '"Cormorant Garamond"', 'cursive'],
+        // Jost — subtítulos, datas, números, interface. A script não é legível
+        // em número nem em rótulo pequeno; tudo isso vem para cá. Substituiu a
+        // Arbotek, cujo S maiúsculo era desenhado como uma barra diagonal
+        // ("Silva" saía "/ilva") — inviável num site cheio de nomes próprios.
+        sans: ['Jost', 'system-ui', 'sans-serif'],
+        // Cormorant Garamond — corpo de texto. É uma serifada de texto, com
+        // itálico e vários pesos reais; a Geralda, de corte único e desenho de
+        // display, não sustentava leitura em tamanho pequeno.
         serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-        sans: ['"Lato"', 'system-ui', 'sans-serif'],
-        display: ['"Fraunces"', '"Cormorant Garamond"', 'Georgia', 'serif'],
+        garamond: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        // Geralda continua disponível para uso pontual: font-geralda.
+        geralda: ['Geralda', '"Cormorant Garamond"', 'Georgia', 'serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.8s ease-out forwards',
