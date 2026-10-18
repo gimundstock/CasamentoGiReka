@@ -676,6 +676,38 @@ export const CONFIG = {
         },
       ],
     },
+    {
+      giftId: 'gift_014',
+      name_pt: 'Espelho para o Hall',
+      name_en: 'Hall Mirror',
+      description_pt: 'Espelho para o hall de entrada da nossa casa.',
+      description_en: 'A mirror for the entrance hall of our home.',
+      imageUrl: '/gifts/espelho-hall.jpg',
+      cotas: [
+        {
+          cotaId: 'cota_014_a',
+          label_pt: 'Espelho para o Hall',
+          label_en: 'Hall Mirror',
+          price: 400,
+        },
+      ],
+    },
+    {
+      giftId: 'gift_015',
+      name_pt: 'Jantar Romântico',
+      name_en: 'Romantic Dinner',
+      description_pt: 'Um jantar a dois para celebrar o começo da nossa vida juntos.',
+      description_en: 'A dinner for two to celebrate the start of our life together.',
+      imageUrl: '/gifts/jantar-romantico.jpg',
+      cotas: [
+        {
+          cotaId: 'cota_015_a',
+          label_pt: 'Jantar Romântico',
+          label_en: 'Romantic Dinner',
+          price: 350,
+        },
+      ],
+    },
   ],
 }
 
