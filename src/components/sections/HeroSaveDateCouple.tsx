@@ -261,7 +261,7 @@ export function HeroSaveDateCouple() {
             alt=""
             aria-hidden
             draggable={false}
-            className="pointer-events-none absolute top-1/2 left-1/2 z-10 h-[100vmin] w-[100vmin]"
+            className="pointer-events-none absolute top-1/2 left-1/2 z-10 h-[78vmin] w-[78vmin]"
             style={{
               x: '-50%',
               y: '-50%',
