@@ -5,7 +5,7 @@ import { CONFIG } from '../../content.config'
 import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
-import { RisingCard } from '../motion/RisingCard'
+import { OrbitingStory } from '../motion/OrbitingStory'
 
 function useCountdown(targetDate: string) {
   const [diff, setDiff] = useState(0)
@@ -100,7 +100,7 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
  *   0.54 → 0.62  HEADING HOLD — daisy is spinning, heading is fully
  *                present, story title is established BEFORE any photo
  *                begins to rise.
- *   0.62 → 0.90  photo cascade rises past the daisy — a 28 % window
+ *   0.62 → 0.90  story milestones orbit the daisy clockwise with it — a 28 % window
  *                (~224vh of scroll) so each milestone has time on screen
  *                for the reader to take in the caption.
  *   0.364 → 0.90 flower spins 0° → 1080° behind the heading + cascade
@@ -209,17 +209,25 @@ export function HeroSaveDateCouple() {
   )} : ${pad(countdown.seconds, 2)}`
 
   const milestones = CONFIG.story?.milestones ?? []
-  const N = milestones.length
-  // Cascade runs over a long window so each milestone is on screen long
-  // enough to be read, and finishes precisely at 0.90 (the scroll point
-  // where the daisy zoom-out begins). perCard is solved so the LAST card
-  // ends at cascadeEnd: start + (N-1)*perCard + perCard*(1+overlap) =
-  // cascadeEnd  →  perCard = (cascadeEnd - cascadeStart) / (N + overlap).
-  const cascadeStart = CASCADE_AT
-  const cascadeEnd = 0.9
-  const cascadeOverlap = 0.6
-  const perCard = N > 0 ? (cascadeEnd - cascadeStart) / (N + cascadeOverlap) : 0.1
-  const riseSpan = perCard * (1 + cascadeOverlap)
+  // The milestones orbit the flower from the first photo on and must be
+  // gone by 0.90, where the daisy zoom-out begins.
+  const orbitItems = milestones.map((m) => {
+    const title = lang === 'pt' ? m.title_pt : m.title_en
+    const text = lang === 'pt' ? m.text_pt : m.text_en
+    return {
+      imageSrc: `${import.meta.env.BASE_URL}photos/${m.photo}`,
+      imageAlt: title,
+      caption: (
+        <div>
+          <div className="font-sans text-3xl leading-none tabular-nums md:text-6xl">{m.year}</div>
+          <div className="font-display mt-2 text-xl md:mt-3 md:text-3xl">{title}</div>
+          <div className="font-serif mt-2 text-sm leading-snug opacity-90 md:mt-4 md:text-lg md:leading-relaxed">
+            {text}
+          </div>
+        </div>
+      ),
+    }
+  })
 
   return (
     <section id="couple" className="relative bg-peach">
@@ -313,40 +321,15 @@ export function HeroSaveDateCouple() {
             }}
           />
 
-          {/* ── z-20  Photo cascade — RisingCards rising past the daisy ── */}
+          {/* ── z-20  Story milestones orbiting the daisy, clockwise with it ── */}
           <div className="pointer-events-none absolute inset-0 z-20">
-            {milestones.map((m, i) => {
-              const scrollStart = cascadeStart + i * perCard
-              const scrollEnd = scrollStart + riseSpan
-              const captionSide: 'left' | 'right' = i % 2 === 0 ? 'right' : 'left'
-              const imageSrc = `${import.meta.env.BASE_URL}photos/${m.photo}`
-              const title = lang === 'pt' ? m.title_pt : m.title_en
-              const text = lang === 'pt' ? m.text_pt : m.text_en
-
-              return (
-                <RisingCard
-                  key={`milestone-${i}`}
-                  scrollProgress={scrollYProgress}
-                  scrollStart={scrollStart}
-                  scrollEnd={scrollEnd}
-                  imageSrc={imageSrc}
-                  imageAlt={title}
-                  captionSide={captionSide}
-                  photoWidthClass="max-w-[22.4rem]"
-                  caption={
-                    <div>
-                      <div className="font-sans tabular-nums text-5xl leading-none md:text-7xl">
-                        {m.year}
-                      </div>
-                      <div className="font-display mt-3 text-2xl md:text-3xl">{title}</div>
-                      <div className="font-serif mt-4 max-w-md text-base leading-relaxed opacity-90 md:text-lg">
-                        {text}
-                      </div>
-                    </div>
-                  }
-                />
-              )
-            })}
+            <OrbitingStory
+              items={orbitItems}
+              scrollProgress={scrollYProgress}
+              scrollStart={CASCADE_AT}
+              scrollEnd={0.9}
+              degPerProgress={SPIN_DEG / (SPIN_END - GROW_END)}
+            />
           </div>
 
           {/* ── z-30  Story heading — plain opacity fade in/out, sits on
