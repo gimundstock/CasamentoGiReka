@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { LanguageToggle } from '../ui/LanguageToggle'
 import type { GuestState } from '../../hooks/useGuest'
 
-// const base = import.meta.env.BASE_URL // volta junto com a lavanda
+const base = import.meta.env.BASE_URL
 
 interface Props {
   state: GuestState
@@ -23,14 +23,14 @@ export function NameEntry({ state, onSubmit }: Props) {
   const isLoading = state.status === 'loading'
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-peach px-6">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-peach px-6 pb-24 md:pb-40">
       <div className="absolute top-6 right-6 z-20">
         <LanguageToggle />
       </div>
 
       <div className="animate-fade-in relative w-full max-w-md text-center">
         {/* Lavanda escondida temporariamente. Para trazer de volta, descomente
-            este bloco e a linha `const base` no topo do arquivo.
+            este bloco.
         <img
           src={`${base}flowers/lavender.png`}
           alt=""
@@ -75,6 +75,16 @@ export function NameEntry({ state, onSubmit }: Props) {
           </button>
         </form>
       </div>
+
+      {/* Faixa de flores do campo apoiada na base da tela. O fundo da imagem
+          é transparente, então ela assenta direto sobre o pêssego. No celular
+          ela ganha altura fixa e corta as laterais para não ficar fina demais. */}
+      <img
+        src={`${base}flowers/wildflower_border.webp`}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-40 w-full object-cover object-bottom select-none md:h-auto"
+      />
     </div>
   )
 }
