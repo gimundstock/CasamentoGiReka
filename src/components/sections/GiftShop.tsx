@@ -249,7 +249,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
         </div>
       </div>
 
-      <h3 className="font-display text-xl text-title leading-snug">{name}</h3>
+      <h3 className="font-display text-xl lowercase text-title leading-snug">{name}</h3>
       {description && (
         <p className="font-serif text-sm text-title mt-2 leading-relaxed line-clamp-2">
           {description}
@@ -323,7 +323,7 @@ function GiftModal(props: ModalProps) {
               <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-honey mb-1">
                 {step === 'success' ? t('gifts.successKicker') : t('gifts.stepKicker')}
               </p>
-              <h3 className="font-display text-2xl text-title">{giftName}</h3>
+              <h3 className="font-display text-2xl lowercase text-title">{giftName}</h3>
               {step !== 'success' && (
                 <p className="font-serif text-sm text-title mt-1">
                   {lang === 'pt' ? gift.description_pt : gift.description_en}
@@ -638,7 +638,7 @@ function GiftModal(props: ModalProps) {
                 <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-2">
                   {t('gifts.summary')}
                 </p>
-                <p className="font-display text-xl text-title">{giftName}</p>
+                <p className="font-display text-xl lowercase text-title">{giftName}</p>
                 {selectedCotas.map((c) => (
                   <div key={c.cotaId} className="flex justify-between mt-1.5">
                     <span className="font-serif text-sm text-title">
