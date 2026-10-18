@@ -596,6 +596,54 @@ export const CONFIG = {
         },
       ],
     },
+    {
+      giftId: 'gift_009',
+      name_pt: 'Suporte e Banquinho de Piano',
+      name_en: 'Piano Stand and Bench',
+      description_pt: 'Suporte e banquinho para o nosso piano.',
+      description_en: 'Stand and bench for our piano.',
+      imageUrl: '/gifts/piano.jpg',
+      cotas: [
+        {
+          cotaId: 'cota_009_a',
+          label_pt: 'Suporte e Banquinho de Piano',
+          label_en: 'Piano Stand and Bench',
+          price: 600,
+        },
+      ],
+    },
+    {
+      giftId: 'gift_010',
+      name_pt: 'Banco de Madeira',
+      name_en: 'Wooden Bench',
+      description_pt: 'Banco de madeira para a nossa casa.',
+      description_en: 'A wooden bench for our home.',
+      imageUrl: '/gifts/banco.jpg',
+      cotas: [
+        {
+          cotaId: 'cota_010_a',
+          label_pt: 'Banco de Madeira',
+          label_en: 'Wooden Bench',
+          price: 300,
+        },
+      ],
+    },
+    {
+      giftId: 'gift_011',
+      name_pt: 'Estante de Madeira',
+      name_en: 'Wooden Bookshelf',
+      description_pt: 'Estante de madeira para os nossos livros e lembranças.',
+      description_en: 'A wooden bookshelf for our books and keepsakes.',
+      imageUrl: '/gifts/estante.jpg',
+      cotas: [
+        {
+          cotaId: 'cota_011_a',
+          label_pt: 'Estante de Madeira',
+          label_en: 'Wooden Bookshelf',
+          price: 400,
+        },
+      ],
+    },
   ],
 }
 
