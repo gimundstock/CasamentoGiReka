@@ -644,6 +644,38 @@ export const CONFIG = {
         },
       ],
     },
+    {
+      giftId: 'gift_012',
+      name_pt: 'Tapete para o Escritório',
+      name_en: 'Office Rug',
+      description_pt: 'Tapete para deixar o nosso escritório mais aconchegante.',
+      description_en: 'A rug to make our office cozier.',
+      imageUrl: '/gifts/tapete-escritorio.jpg',
+      cotas: [
+        {
+          cotaId: 'cota_012_a',
+          label_pt: 'Tapete para o Escritório',
+          label_en: 'Office Rug',
+          price: 300,
+        },
+      ],
+    },
+    {
+      giftId: 'gift_013',
+      name_pt: 'Tapete para o Hall',
+      name_en: 'Hall Rug',
+      description_pt: 'Tapete para receber as visitas no hall de entrada.',
+      description_en: 'A rug to welcome guests in our entrance hall.',
+      imageUrl: '/gifts/tapete-hall.jpg',
+      cotas: [
+        {
+          cotaId: 'cota_013_a',
+          label_pt: 'Tapete para o Hall',
+          label_en: 'Hall Rug',
+          price: 300,
+        },
+      ],
+    },
   ],
 }
 
