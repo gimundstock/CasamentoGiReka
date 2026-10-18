@@ -109,13 +109,17 @@ export function RisingCard({
   const inner = (
     <div className="flex w-full flex-col items-center gap-6 md:flex-row md:items-center md:justify-center md:gap-10">
       <div className={`w-full ${photoWidthClass} ${imageOrderClass}`}>
-        <img
-          src={imageSrc}
-          alt={imageAlt}
-          className="aspect-[3/4] w-full object-cover"
-          loading="eager"
-          decoding="async"
-        />
+        {/* Polaroid frame, same as the welcome carousel: white border, thicker
+            bottom edge, soft shadow. */}
+        <div className="rounded-[3px] bg-white p-3 pb-14 shadow-[0_22px_50px_-12px_rgba(0,0,0,0.45)]">
+          <img
+            src={imageSrc}
+            alt={imageAlt}
+            className="aspect-[4/5] w-full rounded-[1px] object-cover"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
       </div>
       {caption && (
         <motion.div

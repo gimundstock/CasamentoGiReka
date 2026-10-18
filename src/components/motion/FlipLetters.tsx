@@ -21,6 +21,12 @@ interface Props {
   lineClassName?: string
   /** Optional className applied to each letter span. */
   letterClassName?: string
+  /**
+   * Optional classNames for the word spaces, in order of appearance within
+   * a line (first space, second space, …). Lets one gap be tightened or
+   * widened without touching the others, e.g. `['', '-ml-[0.2em]']`.
+   */
+  spaceClassNames?: string[]
   /** Scroll-driven mode: animation tied to this MotionValue from useScroll. */
   scrollProgress?: MotionValue<number>
   /** Scroll range start (0–1). Default 0. */
@@ -84,6 +90,13 @@ interface LetterToken {
 
 interface LineToken {
   letters: LetterToken[]
+}
+
+/** Which space this is within its line: 0 for the first, 1 for the second… */
+function spaceIndexAt(line: LineToken, charIndex: number): number {
+  let n = 0
+  for (let i = 0; i < charIndex; i++) if (line.letters[i].isSpace) n += 1
+  return n
 }
 
 function pseudoRandom(seed: number): number {
@@ -165,6 +178,7 @@ export function FlipLetters({
   className,
   lineClassName,
   letterClassName,
+  spaceClassNames,
   scrollProgress,
   scrollStart = 0,
   scrollEnd = 1,
@@ -223,7 +237,17 @@ export function FlipLetters({
       <span className={className}>
         {lines.map((line, li) => (
           <span key={li} className={`block ${lineClassName ?? ''}`}>
-            {line.letters.map((l) => l.char).join('') || ' '}
+            {line.letters.length === 0
+              ? ' '
+              : line.letters.map((l, ci) =>
+                  l.isSpace ? (
+                    <span key={ci} className={spaceClassNames?.[spaceIndexAt(line, ci)]}>
+                      {' '}
+                    </span>
+                  ) : (
+                    l.char
+                  )
+                )}
           </span>
         ))}
       </span>
@@ -243,7 +267,11 @@ export function FlipLetters({
           {line.letters.length === 0 ? ' ' : null}
           {line.letters.map((letter, ci) => {
             if (letter.isSpace) {
-              return <span key={`${li}-${ci}`}> </span>
+              return (
+                <span key={`${li}-${ci}`} className={spaceClassNames?.[spaceIndexAt(line, ci)]}>
+                  {' '}
+                </span>
+              )
             }
             const i = letter.letterIndex
 

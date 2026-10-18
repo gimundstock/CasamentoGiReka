@@ -44,12 +44,31 @@ const FALLING_PETALS = Array.from(
   (_, i) => `${FALLING_BASE}/petal_${String(i).padStart(2, '0')}.webp`
 )
 
-// The bloom that grows, spins behind the story and zooms into The Big Day.
-// Its yellow center is what fills the frame on the zoom-out.
-// The bloom grows from 0 and stops at 80 % of its full size, then spins.
+// The bloom grows from 0 and stops at 80 % of its full size, then spins up
+// to the zoom into The Big Day. Its yellow center is what fills the frame
+// on the zoom-out.
 // Growth is linear over 0.22 → 0.40, so 80 % is reached at 0.22 + 0.8 * 0.18.
 const HOLD_SCALE = 0.8
 const GROW_END = 0.22 + 0.18 * HOLD_SCALE
+const SPIN_END = 0.9
+const SPIN_DEG = 1080
+
+// Scroll length. The stage was 800vh of pinned scroll; 45vh of the dead
+// stretch between the story heading appearing (progress 0.48) and the
+// first photo starting to rise was removed. Every other phase keeps its
+// old length in vh. All the 0–1 values below stay on the OLD timeline;
+// `scrollYProgress` (see the component) maps the real scroll onto it.
+const OLD_SCROLL_VH = 800
+const CUT_VH = 45
+const SCROLL_VH = OLD_SCROLL_VH - CUT_VH
+const HEADING_AT = 0.48
+// The first photo used to start rising at 0.62, when the flower had turned
+// ~516°. It now starts when the flower has turned 45° less.
+const CASCADE_AT = 0.62 - (45 / SPIN_DEG) * (SPIN_END - GROW_END)
+// Real-scroll fractions where the shortened stretch begins and ends.
+const REAL_GAP_START = (HEADING_AT * OLD_SCROLL_VH) / SCROLL_VH
+const REAL_GAP_END =
+  REAL_GAP_START + ((CASCADE_AT - HEADING_AT) * OLD_SCROLL_VH - CUT_VH) / SCROLL_VH
 
 const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
 
@@ -68,7 +87,7 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
  * Scroll choreography (progress 0 → 1):
  *   0.00 → 0.48  wildflowers and petals fall one by one (time-based,
  *                pushed further by the scroll)
- *   0.00 → 0.10  SAVE / THE / DATE letters scatter-collect
+ *   0.00 → 0.10  "Save the Date" letters scatter-collect
  *   0.10 → 0.15  date line scatter-collects
  *   0.15 → 0.20  countdown digits scatter-collect
  *   0.18 → 0.22  countdown labels mask-reveal
@@ -100,9 +119,20 @@ export function HeroSaveDateCouple() {
   const countdown = useCountdown(CONFIG.wedding.date)
 
   const stageRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
+  const { scrollYProgress: realProgress } = useScroll({
     target: stageRef,
     offset: ['start start', 'end end'],
+  })
+  // Old-timeline progress (see OLD_SCROLL_VH): identical to the real scroll
+  // up to the story heading and again from the first photo on, with the
+  // stretch in between played faster.
+  const scrollYProgress = useTransform(realProgress, (s: number) => {
+    if (s <= REAL_GAP_START) return (s * SCROLL_VH) / OLD_SCROLL_VH
+    if (s <= REAL_GAP_END) {
+      const t = (s - REAL_GAP_START) / (REAL_GAP_END - REAL_GAP_START)
+      return HEADING_AT + t * (CASCADE_AT - HEADING_AT)
+    }
+    return CASCADE_AT + ((s - REAL_GAP_END) * SCROLL_VH) / OLD_SCROLL_VH
   })
 
   // Daisy. Opacity is pinned to 0 from scroll start until the grow
@@ -129,7 +159,11 @@ export function HeroSaveDateCouple() {
   // The moment the grow stops (GROW_END) it starts spinning — 1080° (three
   // turns) all the way to the zoom — so it is visibly alive through the
   // save-the-date fade, the heading and the cascade.
-  const daisyRotate = useTransform(scrollYProgress, [0, 0.22, GROW_END, 0.9], [-20, -20, 0, 1080])
+  const daisyRotate = useTransform(
+    scrollYProgress,
+    [0, 0.22, GROW_END, SPIN_END],
+    [-20, -20, 0, SPIN_DEG]
+  )
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
   // reliability reason as the daisy opacity above.
@@ -181,7 +215,7 @@ export function HeroSaveDateCouple() {
   // where the daisy zoom-out begins). perCard is solved so the LAST card
   // ends at cascadeEnd: start + (N-1)*perCard + perCard*(1+overlap) =
   // cascadeEnd  →  perCard = (cascadeEnd - cascadeStart) / (N + overlap).
-  const cascadeStart = 0.62
+  const cascadeStart = CASCADE_AT
   const cascadeEnd = 0.9
   const cascadeOverlap = 0.6
   const perCard = N > 0 ? (cascadeEnd - cascadeStart) / (N + cascadeOverlap) : 0.1
@@ -189,7 +223,7 @@ export function HeroSaveDateCouple() {
 
   return (
     <section id="couple" className="relative bg-peach">
-      <div ref={stageRef} className="relative h-[900vh]">
+      <div ref={stageRef} className="relative" style={{ height: `${SCROLL_VH + 100}vh` }}>
         {/* Inner anchor for the Nav "Save the Date" link — placed at scroll
             progress ~0.22 (800vh * 0.22 = 176vh into the stage), the moment
             the SAVE/THE/DATE typography is fully assembled. Empty 1px div
@@ -212,16 +246,17 @@ export function HeroSaveDateCouple() {
               petals={FALLING_PETALS}
               scrollProgress={scrollYProgress}
             />
-            <div className="relative flex h-full flex-col items-center justify-center gap-16 px-6 text-center md:gap-24">
+            <div className="relative flex h-full flex-col items-center justify-center gap-14 px-6 pt-16 text-center md:gap-20">
               <FlipLetters
-                text={'SAVE\nTHE\nDATE'}
+                text="Save the Date"
+                spaceClassNames={['', '-ml-[0.3em]']}
                 scrollProgress={scrollYProgress}
                 scrollStart={0}
                 scrollEnd={0.1}
                 staggerRatio={0.95}
                 scaleFrom={0.15}
                 fadeIn={0.45}
-                className="font-sans text-title block text-6xl leading-[1.05] font-light tracking-[0.12em] md:text-8xl lg:text-9xl"
+                className="font-display text-title block text-[2.6rem] leading-[1.3] whitespace-nowrap sm:text-6xl md:text-7xl lg:text-8xl"
                 lineClassName="block"
               />
               <div className="flex flex-col items-center gap-6 md:gap-8">
@@ -233,7 +268,7 @@ export function HeroSaveDateCouple() {
                   staggerRatio={0.9}
                   scaleFrom={0.2}
                   fadeIn={0.45}
-                  className="font-sans text-title block text-4xl font-light tracking-[0.12em] md:text-6xl"
+                  className="font-sans text-title block text-[1.8rem] leading-[1.4] font-light tracking-[0.12em] md:text-5xl md:leading-none"
                 />
                 <FlipLetters
                   text={countdownText}
@@ -297,7 +332,7 @@ export function HeroSaveDateCouple() {
                   imageSrc={imageSrc}
                   imageAlt={title}
                   captionSide={captionSide}
-                  photoWidthClass="max-w-md"
+                  photoWidthClass="max-w-[22.4rem]"
                   caption={
                     <div>
                       <div className="font-sans tabular-nums text-5xl leading-none md:text-7xl">
@@ -314,16 +349,15 @@ export function HeroSaveDateCouple() {
             })}
           </div>
 
-          {/* ── z-30  Couple heading — plain opacity fade in/out, sits on
+          {/* ── z-30  Story heading — plain opacity fade in/out, sits on
                     top of everything once the save-the-date is gone. ── */}
           <motion.div
             className="pointer-events-none absolute inset-x-0 top-0 z-30 px-6 pt-16 text-center md:pt-20"
             style={{ opacity: coupleHeadingOpacity }}
           >
-            <p className="font-sans text-title mb-4 text-[0.65rem] tracking-[0.4em] uppercase">
+            <h2 className="font-display text-title text-[1.3125rem] lowercase md:text-[1.575rem]">
               {t('couple.ourStory')}
-            </p>
-            <h2 className="font-display text-title text-2xl md:text-3xl">{t('couple.title')}</h2>
+            </h2>
           </motion.div>
 
           {/* ── z-40  Yellow safety overlay — guarantees a clean solid yellow
