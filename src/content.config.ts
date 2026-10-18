@@ -374,6 +374,38 @@ export const CONFIG = {
         { cotaId: 'cota_005_e', label_pt: 'Cota R$ 100', label_en: 'R$ 100 Share', price: 100 },
       ],
     },
+    {
+      giftId: 'gift_006',
+      name_pt: 'Jogo de Toalhas',
+      name_en: 'Towel Set',
+      description_pt: 'Jogo de toalhas de banho macias e felpudas.',
+      description_en: 'Soft, fluffy bath towel set.',
+      imageUrl: '/gifts/toalhas.jpg',
+      cotas: [
+        {
+          cotaId: 'cota_006_a',
+          label_pt: 'Jogo de Toalhas',
+          label_en: 'Towel Set',
+          price: 350,
+        },
+      ],
+    },
+    {
+      giftId: 'gift_007',
+      name_pt: 'Tapetes para Casa',
+      name_en: 'Home Rugs',
+      description_pt: 'Tapetes para deixar nosso lar mais aconchegante.',
+      description_en: 'Rugs to make our home cozier.',
+      imageUrl: '/gifts/tapetes.jpg',
+      cotas: [
+        {
+          cotaId: 'cota_007_a',
+          label_pt: 'Tapetes para Casa',
+          label_en: 'Home Rugs',
+          price: 450,
+        },
+      ],
+    },
   ],
 }
 
