@@ -31,9 +31,11 @@ function pad(value: number, width: number): string {
   return String(value).padStart(width, '0')
 }
 
-// Hanging wildflowers with loose petals, transparent background. Drawn
-// twice (front + mirrored back layer) so the fall has some depth.
-const FALLING_FLOWERS_SRC = `${import.meta.env.BASE_URL}flowers/falling_flowers.webp`
+// Scattered wildflowers and loose petals, transparent background. Tiled as
+// a repeating pattern (the source is only 687px wide, so stretching it
+// would blur) and drawn twice — a front layer and a smaller, fainter,
+// mirrored back layer — so the fall has some depth.
+const FALLING_FLOWERS_URL = `url(${import.meta.env.BASE_URL}flowers/falling_flowers.webp)`
 
 // The bloom that grows, spins behind the story and zooms into The Big Day.
 // Its yellow center is what fills the frame on the zoom-out.
@@ -52,8 +54,8 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/camomile_x1.png`
  * the next section.
  *
  * Scroll choreography (progress 0 → 1):
- *   0.00 → 0.45  hanging wildflowers fall in from above the viewport
- *                (front layer travels further than the mirrored back one)
+ *   0.00 → 0.48  tiled wildflowers fall continuously (front layer
+ *                travels further than the mirrored back one)
  *   0.00 → 0.10  SAVE / THE / DATE letters scatter-collect
  *   0.10 → 0.15  date line scatter-collects
  *   0.15 → 0.20  countdown digits scatter-collect
@@ -117,20 +119,12 @@ export function HeroSaveDateCouple() {
     [-20, -20, 0, 0, 720]
   )
 
-  // Falling wildflowers. Both layers start mostly above the viewport and
-  // drop as the reader scrolls; the front layer travels further, so it
-  // reads as closer. They fade out with the rest of the save-the-date
-  // layer at 0.42–0.48.
-  const fallFrontY = useTransform(
-    scrollYProgress,
-    [0, 0.45],
-    ['calc(-75% + 0vh)', 'calc(0% + 55vh)']
-  )
-  const fallBackY = useTransform(
-    scrollYProgress,
-    [0, 0.45],
-    ['calc(-60% + 0vh)', 'calc(0% + 25vh)']
-  )
+  // Falling wildflowers. The tiled pattern slides down as the reader
+  // scrolls, so the flowers keep falling for the whole save-the-date
+  // stretch; the front layer travels further than the back one, so it
+  // reads as closer. They fade out with the rest of the layer at 0.42–0.48.
+  const fallFrontY = useTransform(scrollYProgress, (v: number) => `${v * 3200}px`)
+  const fallBackY = useTransform(scrollYProgress, (v: number) => `${v * 1600}px`)
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
   // reliability reason as the daisy opacity above.
@@ -208,21 +202,23 @@ export function HeroSaveDateCouple() {
             className="pointer-events-none absolute inset-0 z-0"
             style={{ opacity: saveDateOpacity }}
           >
-            <motion.img
-              src={FALLING_FLOWERS_SRC}
-              alt=""
+            <motion.div
               aria-hidden
-              draggable={false}
-              className="pointer-events-none absolute top-0 left-1/2 w-[max(100%,900px)] max-w-none opacity-60"
-              style={{ x: '-50%', y: fallBackY, scaleX: -1 }}
+              className="absolute inset-0 -scale-x-100 opacity-50"
+              style={{
+                backgroundImage: FALLING_FLOWERS_URL,
+                backgroundSize: '420px auto',
+                backgroundPositionY: fallBackY,
+              }}
             />
-            <motion.img
-              src={FALLING_FLOWERS_SRC}
-              alt=""
+            <motion.div
               aria-hidden
-              draggable={false}
-              className="pointer-events-none absolute top-0 left-1/2 w-[max(110%,1000px)] max-w-none"
-              style={{ x: '-50%', y: fallFrontY }}
+              className="absolute inset-0"
+              style={{
+                backgroundImage: FALLING_FLOWERS_URL,
+                backgroundSize: '640px auto',
+                backgroundPositionY: fallFrontY,
+              }}
             />
             <div className="relative flex h-full flex-col items-center justify-center gap-16 px-6 text-center md:gap-24">
               <FlipLetters
