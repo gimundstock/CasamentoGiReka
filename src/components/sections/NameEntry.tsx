@@ -83,7 +83,7 @@ export function NameEntry({ state, onSubmit }: Props) {
         src={`${base}flowers/wildflower_border.webp`}
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-40 w-full object-cover object-bottom select-none md:h-auto"
+        className="pointer-events-none absolute inset-x-0 -bottom-[5px] z-0 h-40 w-full object-cover object-bottom select-none md:h-auto"
       />
     </div>
   )
