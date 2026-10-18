@@ -46,7 +46,12 @@ const FALLING_PETALS = Array.from(
 
 // The bloom that grows, spins behind the story and zooms into The Big Day.
 // Its yellow center is what fills the frame on the zoom-out.
-const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/camomile_x1.png`
+// The bloom grows from 0 and stops at 80 % of its full size, then spins.
+// Growth is linear over 0.22 → 0.40, so 80 % is reached at 0.22 + 0.8 * 0.18.
+const HOLD_SCALE = 0.8
+const GROW_END = 0.22 + 0.18 * HOLD_SCALE
+
+const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
 
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
@@ -67,9 +72,9 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/camomile_x1.png`
  *   0.10 → 0.15  date line scatter-collects
  *   0.15 → 0.20  countdown digits scatter-collect
  *   0.18 → 0.22  countdown labels mask-reveal
- *   0.22 → 0.40  daisy GROWS from the center (scale 0 → 1, -20° → 0°
- *                unwind) — a long 18 % scroll window (~144vh of scrolling)
- *                so the grow is unmistakable.
+ *   0.22 → 0.364 flower GROWS from the center to 80 % of its full size
+ *                (scale 0 → 0.8, -20° → 0° unwind), then stops growing
+ *                and starts spinning right away.
  *   0.42 → 0.48  save-the-date layer fades out completely (1 → 0)
  *   0.48 → 0.54  "OUR STORY / The Couple" heading fades in (0 → 1) —
  *                kicks off the moment save-the-date is gone.
@@ -79,7 +84,7 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/camomile_x1.png`
  *   0.62 → 0.90  photo cascade rises past the daisy — a 28 % window
  *                (~224vh of scroll) so each milestone has time on screen
  *                for the reader to take in the caption.
- *   0.54 → 0.90  daisy spins 0° → 720° behind the heading + cascade
+ *   0.364 → 0.90 flower spins 0° → 1080° behind the heading + cascade
  *                — keeps the flower visibly alive while the story plays.
  *   0.90 → 1.00  daisy zooms scale 1 → 6 into "The Big Day" — only
  *                AFTER the last cascade card has scrolled past the top.
@@ -115,16 +120,16 @@ export function HeroSaveDateCouple() {
   // way through the cascade, then zooms HARD from 0.90 → 1.0 (scale 1 → 14)
   // so the daisy's yellow center fully dominates the frame before the
   // hand-off to HeroBigDay.
-  const daisyScale = useTransform(scrollYProgress, [0, 0.22, 0.4, 0.9, 1], [0, 0, 1, 1, 18])
-  // Rotation: hold at -20° until grow begins, unwind to 0° as it grows,
-  // hold at 0° during the save-date fade-out, then spin a full 720° (two
-  // turns) starting the moment the couple heading appears so the daisy
-  // is visibly alive while the heading sits and the cascade plays.
-  const daisyRotate = useTransform(
+  const daisyScale = useTransform(
     scrollYProgress,
-    [0, 0.22, 0.4, 0.54, 0.9],
-    [-20, -20, 0, 0, 720]
+    [0, 0.22, GROW_END, 0.9, 1],
+    [0, 0, HOLD_SCALE, HOLD_SCALE, 18]
   )
+  // Rotation: hold at -20° until grow begins and unwind to 0° as it grows.
+  // The moment the grow stops (GROW_END) it starts spinning — 1080° (three
+  // turns) all the way to the zoom — so it is visibly alive through the
+  // save-the-date fade, the heading and the cascade.
+  const daisyRotate = useTransform(scrollYProgress, [0, 0.22, GROW_END, 0.9], [-20, -20, 0, 1080])
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
   // reliability reason as the daisy opacity above.
