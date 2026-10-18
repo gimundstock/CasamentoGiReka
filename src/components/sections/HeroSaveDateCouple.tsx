@@ -31,10 +31,9 @@ function pad(value: number, width: number): string {
   return String(value).padStart(width, '0')
 }
 
-// Scattered wildflowers and loose petals, transparent background. Tiled as
-// a repeating pattern (the source is only 687px wide, so stretching it
-// would blur) and drawn twice — a front layer and a smaller, fainter,
-// mirrored back layer — so the fall has some depth.
+// Sparse wildflower pattern with loose petals, transparent background.
+// Tiled as a repeating background (the source is only 572px wide, so
+// stretching it would blur) and slid down with the scroll.
 const FALLING_FLOWERS_URL = `url(${import.meta.env.BASE_URL}flowers/falling_flowers.webp)`
 
 // The bloom that grows, spins behind the story and zooms into The Big Day.
@@ -54,8 +53,7 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/camomile_x1.png`
  * the next section.
  *
  * Scroll choreography (progress 0 → 1):
- *   0.00 → 0.48  tiled wildflowers fall continuously (front layer
- *                travels further than the mirrored back one)
+ *   0.00 → 0.48  tiled wildflower pattern falls continuously
  *   0.00 → 0.10  SAVE / THE / DATE letters scatter-collect
  *   0.10 → 0.15  date line scatter-collects
  *   0.15 → 0.20  countdown digits scatter-collect
@@ -121,10 +119,8 @@ export function HeroSaveDateCouple() {
 
   // Falling wildflowers. The tiled pattern slides down as the reader
   // scrolls, so the flowers keep falling for the whole save-the-date
-  // stretch; the front layer travels further than the back one, so it
-  // reads as closer. They fade out with the rest of the layer at 0.42–0.48.
-  const fallFrontY = useTransform(scrollYProgress, (v: number) => `${v * 3200}px`)
-  const fallBackY = useTransform(scrollYProgress, (v: number) => `${v * 1600}px`)
+  // stretch. They fade out with the rest of the layer at 0.42–0.48.
+  const fallY = useTransform(scrollYProgress, (v: number) => `${v * 3200}px`)
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
   // reliability reason as the daisy opacity above.
@@ -204,20 +200,11 @@ export function HeroSaveDateCouple() {
           >
             <motion.div
               aria-hidden
-              className="absolute inset-0 -scale-x-100 opacity-50"
-              style={{
-                backgroundImage: FALLING_FLOWERS_URL,
-                backgroundSize: '420px auto',
-                backgroundPositionY: fallBackY,
-              }}
-            />
-            <motion.div
-              aria-hidden
               className="absolute inset-0"
               style={{
                 backgroundImage: FALLING_FLOWERS_URL,
-                backgroundSize: '640px auto',
-                backgroundPositionY: fallFrontY,
+                backgroundSize: '520px auto',
+                backgroundPositionY: fallY,
               }}
             />
             <div className="relative flex h-full flex-col items-center justify-center gap-16 px-6 text-center md:gap-24">
