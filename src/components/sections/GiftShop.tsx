@@ -217,14 +217,14 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
       type="button"
       onClick={() => !isSoldOut && onOpen()}
       disabled={isSoldOut}
-      className={`group block w-full text-left ${
+      className={`group mx-auto block w-full max-w-[16rem] text-left ${
         isSoldOut ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
       }`}
     >
       {/* Polaroid frame, same as the story photos: white border, thicker
           bottom edge, soft shadow. Tilts a little, straightens on hover. */}
       <div
-        className={`mb-6 rounded-[3px] bg-white p-3 pb-14 shadow-[0_22px_50px_-12px_rgba(0,0,0,0.45)] transition-transform duration-500 group-hover:rotate-0 ${
+        className={`mb-6 rounded-[3px] bg-white p-2.5 pb-10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] transition-transform duration-500 group-hover:rotate-0 ${
           index % 2 === 0 ? '-rotate-[1.5deg]' : 'rotate-[1.5deg]'
         }`}
       >
