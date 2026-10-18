@@ -138,7 +138,7 @@ export function GiftShop({ guest }: Props) {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             {gifts.map((gift, i) => (
               <RevealOnScroll key={gift.giftId} delay={i * 0.05}>
-                <GiftCard gift={gift} lang={lang} onOpen={() => openGift(gift)} t={t} />
+                <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
               </RevealOnScroll>
             ))}
           </div>
@@ -172,16 +172,40 @@ export function GiftShop({ guest }: Props) {
   )
 }
 
+// ─── Placeholder photo ───────────────────────────────────────────────────────
+
+// Gifts without a photo yet show one of the falling wildflowers on cream
+// paper inside the polaroid, so the grid still reads as a set of photos.
+const PLACEHOLDER_FLOWERS = [0, 3, 5, 8, 11].map(
+  (i) => `${import.meta.env.BASE_URL}flowers/falling/flower_${String(i).padStart(2, '0')}.webp`
+)
+
+function GiftPlaceholder({ seed }: { seed: number }) {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-peach-light">
+      <img
+        src={PLACEHOLDER_FLOWERS[seed % PLACEHOLDER_FLOWERS.length]}
+        alt=""
+        aria-hidden
+        className="w-1/2 opacity-80"
+        style={{ rotate: `${((seed * 37) % 60) - 30}deg` }}
+      />
+    </div>
+  )
+}
+
 // ─── Gift card ───────────────────────────────────────────────────────────────
 
 interface GiftCardProps {
   gift: Gift
+  index: number
   lang: 'pt' | 'en'
   onOpen: () => void
   t: (key: string, opts?: Record<string, unknown>) => string
 }
 
-function GiftCard({ gift, lang, onOpen, t }: GiftCardProps) {
+function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
+  const [imageFailed, setImageFailed] = useState(!gift.imageUrl)
   const isSoldOut = gift.available === 0
   const isPartial = gift.total > 1 && gift.available < gift.total && !isSoldOut
   const name = lang === 'pt' ? gift.name_pt : gift.name_en
@@ -197,23 +221,32 @@ function GiftCard({ gift, lang, onOpen, t }: GiftCardProps) {
         isSoldOut ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
       }`}
     >
-      <div className="aspect-[4/5] overflow-hidden mb-5 relative">
-        <img
-          src={gift.imageUrl}
-          alt={name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-          onError={(e) => {
-            const el = e.currentTarget as HTMLImageElement
-            el.style.display = 'none'
-          }}
-        />
-        {isSoldOut && (
-          <div className="absolute inset-0 flex items-center justify-center bg-peach/70">
-            <span className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
-              {t('gifts.soldOutStamp')}
-            </span>
-          </div>
-        )}
+      {/* Polaroid frame, same as the story photos: white border, thicker
+          bottom edge, soft shadow. Tilts a little, straightens on hover. */}
+      <div
+        className={`mb-6 rounded-[3px] bg-white p-3 pb-14 shadow-[0_22px_50px_-12px_rgba(0,0,0,0.45)] transition-transform duration-500 group-hover:rotate-0 ${
+          index % 2 === 0 ? '-rotate-[1.5deg]' : 'rotate-[1.5deg]'
+        }`}
+      >
+        <div className="relative aspect-[4/5] overflow-hidden rounded-[1px]">
+          {imageFailed ? (
+            <GiftPlaceholder seed={index} />
+          ) : (
+            <img
+              src={gift.imageUrl}
+              alt={name}
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+              onError={() => setImageFailed(true)}
+            />
+          )}
+          {isSoldOut && (
+            <div className="absolute inset-0 flex items-center justify-center bg-peach/70">
+              <span className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
+                {t('gifts.soldOutStamp')}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       <h3 className="font-display text-xl text-title leading-snug">{name}</h3>
