@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
+import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
 import { RisingCard } from '../motion/RisingCard'
@@ -31,10 +32,17 @@ function pad(value: number, width: number): string {
   return String(value).padStart(width, '0')
 }
 
-// Sparse wildflower pattern with loose petals, transparent background.
-// Tiled as a repeating background (the source is only 572px wide, so
-// stretching it would blur) and slid down with the scroll.
-const FALLING_FLOWERS_URL = `url(${import.meta.env.BASE_URL}flowers/falling_flowers.webp)`
+// Individual wildflowers and loose petals cut from the wildflower pattern,
+// transparent background. They fall one by one in FallingFlowers.
+const FALLING_BASE = `${import.meta.env.BASE_URL}flowers/falling`
+const FALLING_FLOWERS = Array.from(
+  { length: 14 },
+  (_, i) => `${FALLING_BASE}/flower_${String(i).padStart(2, '0')}.webp`
+)
+const FALLING_PETALS = Array.from(
+  { length: 10 },
+  (_, i) => `${FALLING_BASE}/petal_${String(i).padStart(2, '0')}.webp`
+)
 
 // The bloom that grows, spins behind the story and zooms into The Big Day.
 // Its yellow center is what fills the frame on the zoom-out.
@@ -53,7 +61,8 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/camomile_x1.png`
  * the next section.
  *
  * Scroll choreography (progress 0 → 1):
- *   0.00 → 0.48  tiled wildflower pattern falls continuously
+ *   0.00 → 0.48  wildflowers and petals fall one by one (time-based,
+ *                pushed further by the scroll)
  *   0.00 → 0.10  SAVE / THE / DATE letters scatter-collect
  *   0.10 → 0.15  date line scatter-collects
  *   0.15 → 0.20  countdown digits scatter-collect
@@ -116,11 +125,6 @@ export function HeroSaveDateCouple() {
     [0, 0.22, 0.4, 0.54, 0.9],
     [-20, -20, 0, 0, 720]
   )
-
-  // Falling wildflowers. The tiled pattern slides down as the reader
-  // scrolls, so the flowers keep falling for the whole save-the-date
-  // stretch. They fade out with the rest of the layer at 0.42–0.48.
-  const fallY = useTransform(scrollYProgress, (v: number) => `${v * 3200}px`)
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
   // reliability reason as the daisy opacity above.
@@ -198,14 +202,10 @@ export function HeroSaveDateCouple() {
             className="pointer-events-none absolute inset-0 z-0"
             style={{ opacity: saveDateOpacity }}
           >
-            <motion.div
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                backgroundImage: FALLING_FLOWERS_URL,
-                backgroundSize: '520px auto',
-                backgroundPositionY: fallY,
-              }}
+            <FallingFlowers
+              flowers={FALLING_FLOWERS}
+              petals={FALLING_PETALS}
+              scrollProgress={scrollYProgress}
             />
             <div className="relative flex h-full flex-col items-center justify-center gap-16 px-6 text-center md:gap-24">
               <FlipLetters
