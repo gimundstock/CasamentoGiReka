@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
 import { FlipLetters } from '../motion/FlipLetters'
-import { FloatField } from '../motion/FloatField'
 import { MaskReveal } from '../motion/MaskReveal'
 import { RisingCard } from '../motion/RisingCard'
 
@@ -32,55 +31,48 @@ function pad(value: number, width: number): string {
   return String(value).padStart(width, '0')
 }
 
-// Floating-field flowers — only the x1 (single-bloom) variants. They're
-// smaller and lighter than the x2/x3 clusters, which is what we want for
-// the drifting background field. The big center bloom and the bottom-left
-// anchor stay on their dedicated images (DAHLIA_HERO_SRC, DAHLIA_ANCHOR_SRC).
-const FLOWER_IMAGES = [
-  `${import.meta.env.BASE_URL}flowers/camomile_x1.png`,
-  `${import.meta.env.BASE_URL}flowers/dahlia_x1.png`,
-  `${import.meta.env.BASE_URL}flowers/flower_x1.png`,
-  `${import.meta.env.BASE_URL}flowers/lavender.png`,
-  `${import.meta.env.BASE_URL}flowers/purple_flower_x1.png`,
-  `${import.meta.env.BASE_URL}flowers/red_dahlia_x1.png`,
-  `${import.meta.env.BASE_URL}flowers/sunflower_x1.png`,
-]
+// Hanging wildflowers with loose petals, transparent background. Drawn
+// twice (front + mirrored back layer) so the fall has some depth.
+const FALLING_FLOWERS_SRC = `${import.meta.env.BASE_URL}flowers/falling_flowers.webp`
 
-const DAHLIA_HERO_SRC = `${import.meta.env.BASE_URL}flowers/red_dahlia_2.svg`
-const DAHLIA_ANCHOR_SRC = `${import.meta.env.BASE_URL}flowers/Dahlia_x3.png`
+// The bloom that grows, spins behind the story and zooms into The Big Day.
+// Its yellow center is what fills the frame on the zoom-out.
+const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/camomile_x1.png`
 
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
  *
  * One pinned section (900vh outer, 100vh sticky inner = 800vh of locked
- * scroll). The long scroll span is deliberate — it gives the dahlia grow
+ * scroll). The long scroll span is deliberate — it gives the daisy grow
  * enough physical scroll distance to actually be perceived, and lets each
  * fade settle before the next layer starts.
  *
- * The red dahlia is one persistent motion.img across the whole flow — it
+ * The daisy is one persistent motion.img across the whole flow — it
  * grows in, holds while the fades and cascade play, then zooms out into
  * the next section.
  *
  * Scroll choreography (progress 0 → 1):
+ *   0.00 → 0.45  hanging wildflowers fall in from above the viewport
+ *                (front layer travels further than the mirrored back one)
  *   0.00 → 0.10  SAVE / THE / DATE letters scatter-collect
  *   0.10 → 0.15  date line scatter-collects
  *   0.15 → 0.20  countdown digits scatter-collect
  *   0.18 → 0.22  countdown labels mask-reveal
- *   0.22 → 0.40  red dahlia GROWS from the center (scale 0 → 1, -20° → 0°
+ *   0.22 → 0.40  daisy GROWS from the center (scale 0 → 1, -20° → 0°
  *                unwind) — a long 18 % scroll window (~144vh of scrolling)
  *                so the grow is unmistakable.
  *   0.42 → 0.48  save-the-date layer fades out completely (1 → 0)
  *   0.48 → 0.54  "OUR STORY / The Couple" heading fades in (0 → 1) —
  *                kicks off the moment save-the-date is gone.
- *   0.54 → 0.62  HEADING HOLD — dahlia is spinning, heading is fully
+ *   0.54 → 0.62  HEADING HOLD — daisy is spinning, heading is fully
  *                present, story title is established BEFORE any photo
  *                begins to rise.
- *   0.62 → 0.90  photo cascade rises past the dahlia — a 28 % window
+ *   0.62 → 0.90  photo cascade rises past the daisy — a 28 % window
  *                (~224vh of scroll) so each milestone has time on screen
  *                for the reader to take in the caption.
- *   0.54 → 0.90  red dahlia spins 0° → 720° behind the heading + cascade
+ *   0.54 → 0.90  daisy spins 0° → 720° behind the heading + cascade
  *                — keeps the flower visibly alive while the story plays.
- *   0.90 → 1.00  red dahlia zooms scale 1 → 6 into "The Big Day" — only
+ *   0.90 → 1.00  daisy zooms scale 1 → 6 into "The Big Day" — only
  *                AFTER the last cascade card has scrolled past the top.
  *   0.92 → 1.00  couple heading fades back out so the zoom has clean canvas
  *
@@ -99,12 +91,12 @@ export function HeroSaveDateCouple() {
     offset: ['start start', 'end end'],
   })
 
-  // Red dahlia. Opacity is pinned to 0 from scroll start until the grow
+  // Daisy. Opacity is pinned to 0 from scroll start until the grow
   // begins (0.22), then fades up to 1 in a quick 4 % window, then stays at
   // 1 for the rest of the section. Function-form useTransform — the
   // multi-keyframe array form is unreliable for opacity in this
   // framer-motion 12 setup (verified via headless test).
-  const dahliaOpacity = useTransform(scrollYProgress, (v: number) => {
+  const daisyOpacity = useTransform(scrollYProgress, (v: number) => {
     if (v < 0.22) return 0
     if (v < 0.26) return (v - 0.22) / 0.04
     return 1
@@ -112,21 +104,36 @@ export function HeroSaveDateCouple() {
   // Scale grows from 0 to 1 over 0.22–0.40 (an 18 % scroll window — long
   // enough on an 800vh stage to be obviously visible), holds at 1 all the
   // way through the cascade, then zooms HARD from 0.90 → 1.0 (scale 1 → 14)
-  // so the dahlia's yellow center fully dominates the frame before the
+  // so the daisy's yellow center fully dominates the frame before the
   // hand-off to HeroBigDay.
-  const dahliaScale = useTransform(scrollYProgress, [0, 0.22, 0.4, 0.9, 1], [0, 0, 1, 1, 18])
+  const daisyScale = useTransform(scrollYProgress, [0, 0.22, 0.4, 0.9, 1], [0, 0, 1, 1, 18])
   // Rotation: hold at -20° until grow begins, unwind to 0° as it grows,
   // hold at 0° during the save-date fade-out, then spin a full 720° (two
-  // turns) starting the moment the couple heading appears so the dahlia
+  // turns) starting the moment the couple heading appears so the daisy
   // is visibly alive while the heading sits and the cascade plays.
-  const dahliaRotate = useTransform(
+  const daisyRotate = useTransform(
     scrollYProgress,
     [0, 0.22, 0.4, 0.54, 0.9],
     [-20, -20, 0, 0, 720]
   )
 
+  // Falling wildflowers. Both layers start mostly above the viewport and
+  // drop as the reader scrolls; the front layer travels further, so it
+  // reads as closer. They fade out with the rest of the save-the-date
+  // layer at 0.42–0.48.
+  const fallFrontY = useTransform(
+    scrollYProgress,
+    [0, 0.45],
+    ['calc(-75% + 0vh)', 'calc(0% + 55vh)']
+  )
+  const fallBackY = useTransform(
+    scrollYProgress,
+    [0, 0.45],
+    ['calc(-60% + 0vh)', 'calc(0% + 25vh)']
+  )
+
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
-  // reliability reason as the dahlia opacity above.
+  // reliability reason as the daisy opacity above.
   const saveDateOpacity = useTransform(scrollYProgress, (v: number) => {
     if (v < 0.42) return 1
     if (v < 0.48) return 1 - (v - 0.42) / 0.06
@@ -143,7 +150,7 @@ export function HeroSaveDateCouple() {
     return 0
   })
 
-  // Dahlia-center yellow safety overlay. As the dahlia zooms out to scale 6
+  // Daisy-center yellow safety overlay. As the daisy zooms out to scale 6
   // its CENTER (the yellow disc) fills the viewport, but anti-aliased edges
   // and any peach showing through can leave non-yellow pixels. This overlay
   // ramps to opacity 1 over the very last sliver of scroll so HeroBigDay's
@@ -172,7 +179,7 @@ export function HeroSaveDateCouple() {
   const N = milestones.length
   // Cascade runs over a long window so each milestone is on screen long
   // enough to be read, and finishes precisely at 0.90 (the scroll point
-  // where the dahlia zoom-out begins). perCard is solved so the LAST card
+  // where the daisy zoom-out begins). perCard is solved so the LAST card
   // ends at cascadeEnd: start + (N-1)*perCard + perCard*(1+overlap) =
   // cascadeEnd  →  perCard = (cascadeEnd - cascadeStart) / (N + overlap).
   const cascadeStart = 0.62
@@ -194,44 +201,28 @@ export function HeroSaveDateCouple() {
           style={{ top: '176vh' }}
         />
         <div className="sticky top-0 h-screen overflow-hidden">
-          {/* ── z-0  Save-the-date layer (FloatField + anchor + text)
+          {/* ── z-0  Save-the-date layer (falling flowers + text)
                     Wrapped as one motion.div so opacity fades the whole
                     group together at 0.40-0.46. ── */}
           <motion.div
             className="pointer-events-none absolute inset-0 z-0"
             style={{ opacity: saveDateOpacity }}
           >
-            <FloatField
-              scrollProgress={scrollYProgress}
-              count={30}
-              variant="image"
-              images={FLOWER_IMAGES}
-              sizeMin={70}
-              sizeMax={140}
-              prefill={0.4}
-              topGuardPct={0}
-            />
-            {/* Second pass of flowers concentrated on the left half so the
-                left side doesn't feel sparse — the primary field above
-                tends to cluster right by chance of the pseudo-random
-                distribution. */}
-            <FloatField
-              scrollProgress={scrollYProgress}
-              count={12}
-              variant="image"
-              images={FLOWER_IMAGES}
-              sizeMin={60}
-              sizeMax={120}
-              prefill={0.4}
-              leftBias={0.5}
-              topGuardPct={0}
-            />
-            <img
-              src={DAHLIA_ANCHOR_SRC}
+            <motion.img
+              src={FALLING_FLOWERS_SRC}
               alt=""
               aria-hidden
               draggable={false}
-              className="pointer-events-none absolute bottom-0 left-0 h-[55vmin] w-[55vmin] -translate-x-1/4 translate-y-1/4 object-contain"
+              className="pointer-events-none absolute top-0 left-1/2 w-[max(100%,900px)] max-w-none opacity-60"
+              style={{ x: '-50%', y: fallBackY, scaleX: -1 }}
+            />
+            <motion.img
+              src={FALLING_FLOWERS_SRC}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="pointer-events-none absolute top-0 left-1/2 w-[max(110%,1000px)] max-w-none"
+              style={{ x: '-50%', y: fallFrontY }}
             />
             <div className="relative flex h-full flex-col items-center justify-center gap-16 px-6 text-center md:gap-24">
               <FlipLetters
@@ -281,9 +272,9 @@ export function HeroSaveDateCouple() {
             </div>
           </motion.div>
 
-          {/* ── z-10  Red dahlia — single persistent element ── */}
+          {/* ── z-10  Daisy — single persistent element ── */}
           <motion.img
-            src={DAHLIA_HERO_SRC}
+            src={DAISY_HERO_SRC}
             alt=""
             aria-hidden
             draggable={false}
@@ -292,14 +283,14 @@ export function HeroSaveDateCouple() {
               x: '-50%',
               y: '-50%',
               objectFit: 'contain',
-              opacity: dahliaOpacity,
-              scale: dahliaScale,
-              rotate: dahliaRotate,
+              opacity: daisyOpacity,
+              scale: daisyScale,
+              rotate: daisyRotate,
               willChange: 'transform, opacity',
             }}
           />
 
-          {/* ── z-20  Photo cascade — RisingCards rising past the dahlia ── */}
+          {/* ── z-20  Photo cascade — RisingCards rising past the daisy ── */}
           <div className="pointer-events-none absolute inset-0 z-20">
             {milestones.map((m, i) => {
               const scrollStart = cascadeStart + i * perCard
