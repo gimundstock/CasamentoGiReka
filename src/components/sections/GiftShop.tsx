@@ -138,7 +138,7 @@ export function GiftShop({ guest }: Props) {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             {gifts.map((gift, i) => (
               <RevealOnScroll key={gift.giftId} delay={i * 0.05}>
-                <GiftCard gift={gift} lang={lang} onOpen={() => openGift(gift)} t={t} />
+                <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
               </RevealOnScroll>
             ))}
           </div>
@@ -172,16 +172,40 @@ export function GiftShop({ guest }: Props) {
   )
 }
 
+// ─── Placeholder photo ───────────────────────────────────────────────────────
+
+// Gifts without a photo yet show one of the falling wildflowers on cream
+// paper inside the polaroid, so the grid still reads as a set of photos.
+const PLACEHOLDER_FLOWERS = [0, 3, 5, 8, 11].map(
+  (i) => `${import.meta.env.BASE_URL}flowers/falling/flower_${String(i).padStart(2, '0')}.webp`
+)
+
+function GiftPlaceholder({ seed }: { seed: number }) {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-peach-light">
+      <img
+        src={PLACEHOLDER_FLOWERS[seed % PLACEHOLDER_FLOWERS.length]}
+        alt=""
+        aria-hidden
+        className="w-1/2 opacity-80"
+        style={{ rotate: `${((seed * 37) % 60) - 30}deg` }}
+      />
+    </div>
+  )
+}
+
 // ─── Gift card ───────────────────────────────────────────────────────────────
 
 interface GiftCardProps {
   gift: Gift
+  index: number
   lang: 'pt' | 'en'
   onOpen: () => void
   t: (key: string, opts?: Record<string, unknown>) => string
 }
 
-function GiftCard({ gift, lang, onOpen, t }: GiftCardProps) {
+function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
+  const [imageFailed, setImageFailed] = useState(!gift.imageUrl)
   const isSoldOut = gift.available === 0
   const isPartial = gift.total > 1 && gift.available < gift.total && !isSoldOut
   const name = lang === 'pt' ? gift.name_pt : gift.name_en
@@ -193,30 +217,39 @@ function GiftCard({ gift, lang, onOpen, t }: GiftCardProps) {
       type="button"
       onClick={() => !isSoldOut && onOpen()}
       disabled={isSoldOut}
-      className={`group block w-full text-left ${
+      className={`group mx-auto block w-full max-w-[16rem] text-left ${
         isSoldOut ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
       }`}
     >
-      <div className="aspect-[4/5] overflow-hidden mb-5 relative">
-        <img
-          src={gift.imageUrl}
-          alt={name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-          onError={(e) => {
-            const el = e.currentTarget as HTMLImageElement
-            el.style.display = 'none'
-          }}
-        />
-        {isSoldOut && (
-          <div className="absolute inset-0 flex items-center justify-center bg-peach/70">
-            <span className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
-              {t('gifts.soldOutStamp')}
-            </span>
-          </div>
-        )}
+      {/* Polaroid frame, same as the story photos: white border, thicker
+          bottom edge, soft shadow. Tilts a little, straightens on hover. */}
+      <div
+        className={`mb-6 rounded-[3px] bg-white p-2.5 pb-10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] transition-transform duration-500 group-hover:rotate-0 ${
+          index % 2 === 0 ? '-rotate-[1.5deg]' : 'rotate-[1.5deg]'
+        }`}
+      >
+        <div className="relative aspect-[4/5] overflow-hidden rounded-[1px]">
+          {imageFailed ? (
+            <GiftPlaceholder seed={index} />
+          ) : (
+            <img
+              src={gift.imageUrl}
+              alt={name}
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+              onError={() => setImageFailed(true)}
+            />
+          )}
+          {isSoldOut && (
+            <div className="absolute inset-0 flex items-center justify-center bg-peach/70">
+              <span className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
+                {t('gifts.soldOutStamp')}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <h3 className="font-display text-xl text-title leading-snug">{name}</h3>
+      <h3 className="font-display text-xl lowercase text-title leading-snug">{name}</h3>
       {description && (
         <p className="font-serif text-sm text-title mt-2 leading-relaxed line-clamp-2">
           {description}
@@ -290,7 +323,7 @@ function GiftModal(props: ModalProps) {
               <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-honey mb-1">
                 {step === 'success' ? t('gifts.successKicker') : t('gifts.stepKicker')}
               </p>
-              <h3 className="font-display text-2xl text-title">{giftName}</h3>
+              <h3 className="font-display text-2xl lowercase text-title">{giftName}</h3>
               {step !== 'success' && (
                 <p className="font-serif text-sm text-title mt-1">
                   {lang === 'pt' ? gift.description_pt : gift.description_en}
@@ -605,7 +638,7 @@ function GiftModal(props: ModalProps) {
                 <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-2">
                   {t('gifts.summary')}
                 </p>
-                <p className="font-display text-xl text-title">{giftName}</p>
+                <p className="font-display text-xl lowercase text-title">{giftName}</p>
                 {selectedCotas.map((c) => (
                   <div key={c.cotaId} className="flex justify-between mt-1.5">
                     <span className="font-serif text-sm text-title">
