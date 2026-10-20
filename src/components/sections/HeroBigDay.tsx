@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
 import { CerradoPaint } from './CerradoPaint'
+import { SUN_SIZE, SUN_YELLOW, sunPaint } from './sun'
 
 /**
  * Linear interpolation between two hex colors. Both must be 7-char `#RRGGBB`.
@@ -20,7 +21,6 @@ function lerpHex(a: string, b: string, t: number): string {
   return `rgb(${r}, ${g}, ${bl})`
 }
 
-const SUN_YELLOW = '#FCCC1D' // dahlia center — also the hand-off color from the previous hero
 const SUN_GOLD = '#EF960F' // mid-arc warm gold
 const SUN_DEEP = '#DF730F' // setting sun — warm orange (stops short of the deep brick #C85308)
 
@@ -86,27 +86,16 @@ function sunYAt(v: number): number {
 const PAINT_START = 0.28
 const PAINT_END = 0.82
 
-// Watercolor sun: a pale center, pigment pooled at the rim, a soft wobbly
-// edge and paper grain (the #sun-watercolor filter), so it sits in the
-// painting instead of on top of it.
-const sunPaint = {
-  backgroundImage:
-    'radial-gradient(circle at 48% 46%, rgba(255, 244, 200, 0.42) 0%, rgba(255, 236, 170, 0.16) 45%, rgba(255, 236, 170, 0) 66%)',
-  boxShadow: 'inset 0 0 1.2vmin 0.5vmin rgba(190, 76, 10, 0.4)',
-  filter: 'url(#sun-watercolor)',
-} as CSSProperties
-
 /**
- * "The Big Day" hero — picks up the dahlia-center yellow that HeroSaveDateCouple
- * ends on, blooms it out into a setting-sun cerrado scene, and reveals the wedding
- * info on top of the landscape.
+ * "The Big Day" hero — the cosmos center from HeroSaveDateCouple arrives as
+ * the sun, rises and travels a setting-sun arc over a watercolor cerrado
+ * that is painted in around it, then reveals the wedding info.
  *
  * Choreography (scroll progress 0 → 1, on a 400vh outer / 300vh of locked scroll):
- *   0.00 → 0.10  Hold solid yellow. Buffer beat so the seam with the previous
- *                section is invisible at any scroll speed.
- *   0.10 → 0.30  The yellow flood SHRINKS into a sun disc in the upper-left.
- *                Underneath, the peach background with a golden-hour gradient
- *                fades in. Visually: flood recedes into a sphere.
+ *   0.00 → 0.10  Hold the sun in the middle of the screen, exactly where the
+ *                cosmos center left it. Buffer beat so the seam with the
+ *                previous section is invisible at any scroll speed.
+ *   0.10 → 0.30  The sun rises to the upper-left as the landscape slides up.
  *   0.30 → 0.70  Sun arcs from upper-left → upper-right along a parabola.
  *                Color warms from yellow → orange-gold. End point: roughly
  *                where the palm tree used to stand in the cerrado.
@@ -133,29 +122,18 @@ export function HeroBigDay() {
     offset: ['start start', 'end end'],
   })
 
-  // Solid yellow flood — visible at the very start, fades out as the sun
-  // shrinks. Opacity hold for first 10 % so the seam with the previous
-  // section is forgiving of fast scrolls.
-  const floodOpacity = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.1) return 1
-    if (v < 0.3) return 1 - (v - 0.1) / 0.2
-    return 0
+  // Sun, phase 1: it arrives from HeroSaveDateCouple as the cosmos center,
+  // in the middle of the screen, holds there for the first 10 % (so the
+  // seam is forgiving of fast scrolls), then rises to the upper-left of
+  // the painting as the landscape slides up.
+  const riseT = (v: number) => Math.min(1, Math.max(0, (v - 0.1) / 0.2))
+  const sunRiseLeft = useTransform(scrollYProgress, (v: number) => {
+    const t = riseT(v)
+    return `calc(50% * ${1 - t} + ${artX(sunXAt(0.3))} * ${t})`
   })
-
-  // Golden-hour gradient underneath. Fades up as the flood recedes, peaks
-  // at sunset, holds through the info panel reveal.
-  // const gradientOpacity = useTransform(scrollYProgress, (v: number) => {
-  //   if (v < 0.1) return 0
-  //   if (v < 0.3) return (v - 0.1) / 0.2
-  //   return 1
-  // })
-
-  // Sun scale: starts huge (fills viewport, 14x base size) during the flood
-  // phase, shrinks to disc size by 0.30, stays at 1 thereafter.
-  const sunScale = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.1) return 14
-    if (v < 0.3) return 14 - ((v - 0.1) / 0.2) * 13
-    return 1
+  const sunRiseTop = useTransform(scrollYProgress, (v: number) => {
+    const t = riseT(v)
+    return `calc(50% * ${1 - t} + ${artY(sunYAt(0.3))} * ${t})`
   })
 
   // Sun position (percent of the artwork box, see sunXAt / sunYAt).
@@ -189,14 +167,11 @@ export function HeroBigDay() {
     return '0%'
   })
 
-  // Place the sun on screen from its artwork-box percentages (phase 1), or
-  // inside the masked artwork box (phase 2).
-  const sunLeft = useTransform(sunXPct, artX)
-  const sunTop = useTransform(sunYPct, artY)
+  // Sun, phase 2: position inside the masked artwork box.
   const sunLeftPct = useTransform(sunXPct, (x: number) => `${x}%`)
   const sunTopPct = useTransform(sunYPct, (y: number) => `${y}%`)
-  // Hand-off between the two sun elements when the sun settles into a disc
-  // (0.30): they match exactly there (scale 1, same position and color).
+  // Hand-off between the two sun elements at 0.30, where they match
+  // exactly (same position, size and color).
   const sunFloodOpacity = useTransform(scrollYProgress, (v: number) => (v < 0.3 ? 1 : 0))
   const sunArcOpacity = useTransform(scrollYProgress, (v: number) => (v < 0.3 ? 0 : 1))
 
@@ -231,14 +206,6 @@ export function HeroBigDay() {
           className="bg-peach-light sticky top-0 h-screen overflow-hidden [--art-top:44vh] md:[--art-top:14vh]"
           style={artVars}
         >
-          {/* ── z-0  Solid yellow flood — meets HeroSaveDateCouple's last
-                    frame, then fades out as the sun shrinks. ── */}
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-0"
-            style={{ backgroundColor: SUN_YELLOW, opacity: floodOpacity }}
-          />
-
           {/* ── z-10  Watercolor painting (sky and ground) — painted in
                     around the sun as it travels, so the color follows its
                     arc. Slides up with the line art. ── */}
@@ -309,22 +276,21 @@ export function HeroBigDay() {
             </filter>
           </svg>
 
-          {/* ── z-20  Sun disc, phase 1 — shrinks from a viewport-filling
-                    flood into a small disc. Unmasked, because it is bigger
-                    than the artwork at this point. ── */}
+          {/* ── z-20  Sun disc, phase 1 — the cosmos center from the
+                    previous section, rising from the middle of the screen
+                    to the upper-left. Unmasked: it starts outside the sky. ── */}
           <motion.div
             aria-hidden
             className="pointer-events-none absolute z-20 rounded-full"
             style={{
-              left: sunLeft,
-              top: sunTop,
-              width: '14vmin',
-              height: '14vmin',
+              left: sunRiseLeft,
+              top: sunRiseTop,
+              width: SUN_SIZE,
+              height: SUN_SIZE,
               x: '-50%',
               y: '-50%',
               backgroundColor: sunColor,
               ...sunPaint,
-              scale: sunScale,
               opacity: sunFloodOpacity,
               willChange: 'transform',
             }}
@@ -367,8 +333,8 @@ export function HeroBigDay() {
               style={{
                 left: sunLeftPct,
                 top: sunTopPct,
-                width: '14vmin',
-                height: '14vmin',
+                width: SUN_SIZE,
+                height: SUN_SIZE,
                 x: '-50%',
                 y: '-50%',
                 backgroundColor: sunColor,
