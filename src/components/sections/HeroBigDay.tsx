@@ -2,6 +2,7 @@ import { useRef, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
+import { CerradoPaint } from './CerradoPaint'
 
 /**
  * Linear interpolation between two hex colors. Both must be 7-char `#RRGGBB`.
@@ -24,12 +25,11 @@ const SUN_GOLD = '#EF960F' // mid-arc warm gold
 const SUN_DEEP = '#DF730F' // setting sun — warm orange (stops short of the deep brick #C85308)
 
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
-// revealed by a left → right sweep that follows the sun, the pencil line
+// painted in around the sun as it travels, the pencil line
 // art registered onto it (lines.webp), and a sky mask (sky-mask.webp) that
 // keeps the sun from showing over the hills. All are 1376 × 768.
 const ART_ASPECT = 1376 / 768
 const ART = `${import.meta.env.BASE_URL}cerrado`
-const PAGE_BG = '#FFF4E8' // the stage background (bg-peach-light)
 
 // Artwork box, full-bleed: at least as wide as the viewport and tall enough
 // to reach the bottom edge, hanging from --art-top (set on the stage; lower
@@ -80,19 +80,21 @@ function sunYAt(v: number): number {
   return SUN_SET_Y
 }
 
-// The watercolor sky is painted in as the sun travels: a soft vertical edge
-// sweeps left → right across the sky, a little ahead of the sun, from when
-// the sun settles into a disc (0.28) until the whole sky is colored (0.82).
-// The edge position is in artwork-box widths (-0.3 = off the left side,
-// 1.55 = off the right side). It is a plain transform on a gradient "veil"
-// above the sky, so the browser's compositor does the work.
-const SKY_SWEEP_START = 0.28
-const SKY_SWEEP_END = 0.82
-const SKY_EDGE_FROM = -0.3
-const SKY_EDGE_TO = 1.55
-// The veil is 3 box-widths wide: clear for the first third, a soft edge
-// centered at 40 %, opaque after. `VEIL_EDGE` is where that edge sits.
-const VEIL_EDGE = 1.2
+// The watercolor is painted in around the sun as it travels (see
+// CerradoPaint): from when the sun settles into a disc (0.28) until the
+// whole painting is colored (0.82).
+const PAINT_START = 0.28
+const PAINT_END = 0.82
+
+// Watercolor sun: a pale center, pigment pooled at the rim, a soft wobbly
+// edge and paper grain (the #sun-watercolor filter), so it sits in the
+// painting instead of on top of it.
+const sunPaint = {
+  backgroundImage:
+    'radial-gradient(circle at 48% 46%, rgba(255, 244, 200, 0.42) 0%, rgba(255, 236, 170, 0.16) 45%, rgba(255, 236, 170, 0) 66%)',
+  boxShadow: 'inset 0 0 1.2vmin 0.5vmin rgba(190, 76, 10, 0.4)',
+  filter: 'url(#sun-watercolor)',
+} as CSSProperties
 
 /**
  * "The Big Day" hero — picks up the dahlia-center yellow that HeroSaveDateCouple
@@ -114,8 +116,8 @@ const VEIL_EDGE = 1.2
  *
  * The landscape is two aligned layers cut from one watercolor painting
  * (public/cerrado/): the ground + line art, opaque so the sun sets behind
- * it, and the watercolor sky, which is painted in around the sun as it
- * travels (a growing, soft-edged circle mask centered on the sun).
+ * it, and the watercolor sky. The color spreads out from the sun and stays
+ * along its arc, widening as it goes (CerradoPaint).
  *
  * All opacity / color motion values use the FUNCTION form of useTransform
  * (`useTransform(scroll, v => ...)`) — the multi-keyframe array form has a
@@ -159,14 +161,6 @@ export function HeroBigDay() {
   // Sun position (percent of the artwork box, see sunXAt / sunYAt).
   const sunXPct = useTransform(scrollYProgress, sunXAt)
   const sunYPct = useTransform(scrollYProgress, sunYAt)
-
-  // Position of the veil's soft edge along the sky (see SKY_SWEEP_*), as a
-  // translate in % of the veil's own width (3 box-widths).
-  const veilX = useTransform(scrollYProgress, (v: number) => {
-    const t = Math.min(1, Math.max(0, (v - SKY_SWEEP_START) / (SKY_SWEEP_END - SKY_SWEEP_START)))
-    const edge = SKY_EDGE_FROM + t * (SKY_EDGE_TO - SKY_EDGE_FROM)
-    return `${(((edge - VEIL_EDGE) / 3) * 100).toFixed(3)}%`
-  })
 
   // Sun color: yellow → gold across the rise (0.30 → arc apex ~0.575),
   // then gold → deep sunset orange across the descent (apex → set 0.85).
@@ -245,30 +239,75 @@ export function HeroBigDay() {
             style={{ backgroundColor: SUN_YELLOW, opacity: floodOpacity }}
           />
 
-          {/* ── z-10  Watercolor painting (sky and ground) — a veil in the
-                    page color slides off it left → right as the sun
-                    travels, painting the landscape in. Slides up with the
-                    line art. ── */}
+          {/* ── z-10  Watercolor painting (sky and ground) — painted in
+                    around the sun as it travels, so the color follows its
+                    arc. Slides up with the line art. ── */}
           <motion.div
             aria-hidden
             className="pointer-events-none absolute z-10 overflow-hidden"
             style={{ ...artBox, y: cerradoY }}
           >
-            <img
+            <CerradoPaint
               src={`${ART}/paint.webp`}
-              alt=""
-              draggable={false}
-              className="h-full w-full max-w-none select-none"
-            />
-            <motion.div
-              className="absolute top-0 left-0 h-full w-[300%]"
-              style={{
-                x: veilX,
-                background: `linear-gradient(to right, rgba(255, 244, 232, 0) 36%, ${PAGE_BG} 44%)`,
-                willChange: 'transform',
-              }}
+              aspect={ART_ASPECT}
+              progress={scrollYProgress}
+              sunX={sunXAt}
+              sunY={sunYAt}
+              start={PAINT_START}
+              end={PAINT_END}
             />
           </motion.div>
+
+          {/* Watercolor texture for the sun: wobbly edge + paper grain. */}
+          <svg aria-hidden className="absolute h-0 w-0">
+            <filter id="sun-watercolor" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="soft" />
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.03"
+                numOctaves="3"
+                seed="4"
+                result="warp"
+              />
+              <feDisplacementMap
+                in="soft"
+                in2="warp"
+                scale="9"
+                xChannelSelector="R"
+                yChannelSelector="G"
+                result="shape"
+              />
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.85"
+                numOctaves="2"
+                seed="9"
+                result="grain"
+              />
+              <feColorMatrix
+                in="grain"
+                type="matrix"
+                values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.9 0 0 0 1.3"
+                result="grainAlpha"
+              />
+              {/* Mottling — the pigment settles unevenly, like the sky. */}
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.07"
+                numOctaves="2"
+                seed="2"
+                result="mottle"
+              />
+              <feColorMatrix
+                in="mottle"
+                type="matrix"
+                values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.1 0 0 0 1.45"
+                result="mottleAlpha"
+              />
+              <feComposite in="shape" in2="grainAlpha" operator="in" result="grained" />
+              <feComposite in="grained" in2="mottleAlpha" operator="in" />
+            </filter>
+          </svg>
 
           {/* ── z-20  Sun disc, phase 1 — shrinks from a viewport-filling
                     flood into a small disc. Unmasked, because it is bigger
@@ -284,6 +323,7 @@ export function HeroBigDay() {
               x: '-50%',
               y: '-50%',
               backgroundColor: sunColor,
+              ...sunPaint,
               scale: sunScale,
               opacity: sunFloodOpacity,
               willChange: 'transform',
@@ -307,6 +347,21 @@ export function HeroBigDay() {
               WebkitMaskRepeat: 'no-repeat',
             }}
           >
+            {/* Golden haze around the sun, so it glows into the painted light. */}
+            <motion.div
+              className="absolute rounded-full"
+              style={{
+                left: sunLeftPct,
+                top: sunTopPct,
+                width: '46vmin',
+                height: '46vmin',
+                x: '-50%',
+                y: '-50%',
+                background:
+                  'radial-gradient(circle, rgba(255, 226, 140, 0.45) 0%, rgba(255, 214, 120, 0.18) 35%, rgba(255, 214, 120, 0) 68%)',
+                opacity: sunArcOpacity,
+              }}
+            />
             <motion.div
               className="absolute rounded-full"
               style={{
@@ -317,6 +372,7 @@ export function HeroBigDay() {
                 x: '-50%',
                 y: '-50%',
                 backgroundColor: sunColor,
+                ...sunPaint,
                 opacity: sunArcOpacity,
                 willChange: 'transform',
               }}
