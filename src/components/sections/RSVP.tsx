@@ -430,7 +430,7 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
     // Bottom padding (a % of the width) keeps the text in the clear centre, above the painted flowers.
     <div
       className={`relative min-h-full flex flex-col items-center justify-center text-center text-title ${
-        wide ? 'pb-[9%]' : 'pt-20 pb-[38%]'
+        wide ? 'pb-[7%]' : 'pt-24 pb-[33%]'
       }`}
     >
       {/* The details, tucked into the top-right corner like a printed card's colophon. */}
@@ -459,7 +459,7 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
       </p>
       <p className="font-serif italic text-lg mt-3">{t('rsvp.inviteCelebrate')}</p>
 
-      <p className="font-serif italic text-title/70 mt-14">
+      <p className="font-serif italic text-title/70 mt-6">
         {t('rsvp.replyBy', { date: deadline })}
       </p>
     </div>
