@@ -453,13 +453,13 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         </span>
         {CONFIG.couple.groom}
       </h2>
-      <p className="font-serif italic text-lg mt-5">{t('rsvp.inviteRequest')}</p>
+      <p className="font-serif italic text-lg mt-8">{t('rsvp.inviteRequest')}</p>
       <p className="font-display text-2xl md:text-3xl leading-normal mt-4 mb-2 text-forest-deep">
         {guest.groupName}
       </p>
-      <p className="font-serif italic text-lg">{t('rsvp.inviteCelebrate')}</p>
+      <p className="font-serif italic text-lg mt-3">{t('rsvp.inviteCelebrate')}</p>
 
-      <p className="font-serif italic text-title/70 mt-8">
+      <p className="font-serif italic text-title/70 mt-14">
         {t('rsvp.replyBy', { date: deadline })}
       </p>
     </div>
