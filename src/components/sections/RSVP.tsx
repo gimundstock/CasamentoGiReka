@@ -515,7 +515,9 @@ function ReplyForm({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: bool
   if (submitted) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center text-center text-title">
-        <p className="font-serif text-3xl tracking-[0.3em] pl-[0.3em]">{t('rsvp.replyTitle')}</p>
+        <p className="font-display text-3xl md:text-4xl leading-[1.7] pt-3">
+          {t('rsvp.replyTitle')}
+        </p>
         <div className="my-6">
           <Sprig />
         </div>
@@ -537,8 +539,10 @@ function ReplyForm({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: bool
       }`}
     >
       <div>
-        <p className="font-serif text-3xl tracking-[0.3em]">{t('rsvp.replyTitle')}</p>
-        <p className="font-serif italic text-base mt-1 mb-4 text-title/80">
+        <p className="font-display text-3xl md:text-4xl leading-[1.7] pt-3">
+          {t('rsvp.replyTitle')}
+        </p>
+        <p className="font-serif italic text-base mt-7 mb-4 text-title/80">
           {t('rsvp.letterOpening')}
         </p>
 
