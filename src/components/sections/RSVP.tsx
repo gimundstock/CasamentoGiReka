@@ -1,19 +1,40 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AnimatePresence, motion } from 'framer-motion'
+import {
+  interpolate,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useScroll,
+  useTransform,
+  type MotionValue,
+} from 'framer-motion'
 import { submitRSVP } from '../../api/sheets'
 import type { Guest, RSVPAttendee } from '../../types'
 import { CONFIG } from '../../content.config'
-import { MaskReveal } from '../motion/MaskReveal'
 import { useReducedMotion } from '../motion/useReducedMotion'
 
 const RSVP_STORAGE_KEY = 'wedding_rsvp_submitted'
 const base = import.meta.env.BASE_URL
 const EASE_SOFT = [0.65, 0, 0.35, 1] as const
+const NAV_HEIGHT = 68
 
-// sealed → the flap swings open → the card slides out of the pocket → the
-// envelope gives way to the full-size invitation.
-type Stage = 'sealed' | 'opening' | 'rising' | 'open'
+/*
+ * Scroll timeline (progress through the pinned track):
+ *   0.00–0.06  the seal lifts away
+ *   0.06–0.30  the flap swings open
+ *   0.30–0.52  the invitation slides up out of the pocket
+ *   0.52–0.75  the envelope falls away while the invitation grows to full size
+ *   0.75–1.00  hold: the invitation sits still, ready to be turned over
+ */
+const T = {
+  sealGone: 0.06,
+  flapOpen: 0.3,
+  flapVertical: 0.18,
+  cardOut: 0.52,
+  settled: 0.75,
+}
+
 type Lang = 'pt' | 'en'
 
 interface Props {
@@ -25,215 +46,276 @@ function formatDate(iso: string, lang: Lang, opts: Intl.DateTimeFormatOptions) {
   return new Date(`${iso}T12:00:00`).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-GB', opts)
 }
 
+// ── Geometry ──────────────────────────────────────────────
+
+interface Geometry {
+  wide: boolean
+  /** Envelope width / height. */
+  ew: number
+  eh: number
+  /** Full-size card width / height. */
+  cw: number
+  ch: number
+  /** Card scale while it sits in the envelope. */
+  s0: number
+  /** Vertical offsets from the stage centre (px). */
+  envY: number
+  /** Where the envelope ends up once it has fallen away. */
+  envGoneY: number
+  cardInY: number
+  cardOutY: number
+  cardFinalY: number
+}
+
+function measure(w: number, h: number): Geometry {
+  const wide = w >= 768
+  const ew = Math.min(560, w * 0.88, h * 0.54)
+  const eh = ew / 1.5
+  // Landscape card on wide screens; on phones a landscape card would be
+  // unreadably small, so it stands upright instead.
+  const cw = wide ? Math.min(880, w * 0.9, (h - NAV_HEIGHT - 64) / 0.625) : w - 32
+  const ch = wide ? cw * 0.625 : h - NAV_HEIGHT - 40
+  const s0 = Math.min((ew * 0.86) / cw, (eh * 0.86) / ch)
+  const envY = h * 0.18
+  return {
+    wide,
+    ew,
+    eh,
+    cw,
+    ch,
+    s0,
+    envY,
+    envGoneY: envY + h * 0.75,
+    cardInY: envY + eh * 0.04,
+    // Fully clear of the pocket, so it can step in front of it without a pop.
+    cardOutY: envY - eh / 2 - (s0 * ch) / 2 - eh * 0.03,
+    cardFinalY: NAV_HEIGHT / 2,
+  }
+}
+
+/**
+ * Viewport size. Height only updates when the width does too: phone browsers
+ * shrink the height when the URL bar or keyboard shows, and the card must not
+ * resize under a guest who is typing.
+ */
+function useStageSize() {
+  const [size, setSize] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }))
+  useEffect(() => {
+    const onResize = () =>
+      setSize((prev) =>
+        prev.w === window.innerWidth ? prev : { w: window.innerWidth, h: window.innerHeight }
+      )
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return size
+}
+
+/**
+ * Function-form transform of scroll progress. Framer hands array-form opacity
+ * transforms of a `useScroll` value to the browser's native ScrollTimeline,
+ * which ignores the target's offsets and tracks whole-page scroll instead;
+ * a function transform stays on the JS path and follows this section.
+ */
+function useScrollRange(p: MotionValue<number>, input: number[], output: number[]) {
+  return useTransform(p, (v) => interpolate(input, output)(v))
+}
+
+/** Maps scroll progress onto geometry-dependent keyframes, read fresh each frame. */
+function useGeometryTransform(
+  p: MotionValue<number>,
+  geoRef: { current: Geometry },
+  input: number[],
+  pick: (g: Geometry) => number[]
+) {
+  return useTransform(p, (v) => interpolate(input, pick(geoRef.current))(v))
+}
+
+// ── Section ───────────────────────────────────────────────
+
 export function RSVP({ guest }: Props) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as Lang
   const reduced = useReducedMotion()
 
-  const [stage, setStage] = useState<Stage>('sealed')
-  const [flipped, setFlipped] = useState(false)
-  const cardRef = useRef<HTMLDivElement>(null)
+  const trackRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({ target: trackRef, offset: ['start start', 'end end'] })
+  const settled = useMotionValue(1)
+  const p = reduced ? settled : scrollYProgress
 
-  function flip(toBack: boolean) {
-    setFlipped(toBack)
-    // A tall back face can leave the card's top above the fold; bring it back.
-    const top = cardRef.current?.getBoundingClientRect().top ?? 0
-    if (top < 0) cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+  const { w, h } = useStageSize()
+  const geo = measure(w, h)
+  // Transforms read the latest geometry through a ref so a resize never
+  // remounts the card (and never loses what the guest has typed).
+  const geoRef = useRef(geo)
+  useLayoutEffect(() => {
+    geoRef.current = geo
+  })
+
+  const [flipped, setFlipped] = useState(false)
+  const [ready, setReady] = useState(reduced)
+  useMotionValueEvent(p, 'change', (v) => setReady(v >= T.settled - 0.02))
+
+  const envY = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.envY, g.envGoneY])
+  const envOpacity = useScrollRange(p, [T.cardOut + 0.05, T.settled], [1, 0])
+  const flapRotate = useScrollRange(p, [T.sealGone, T.flapOpen], [0, 180])
+  const flapZ = useTransform(p, (v) => (v > T.flapVertical ? 2 : 5))
+  const sealOpacity = useScrollRange(p, [0, T.sealGone], [1, 0])
+  const sealScale = useScrollRange(p, [0, T.sealGone], [1, 1.3])
+  const hintOpacity = useScrollRange(p, [0, 0.05], [1, 0])
+  const kickerOpacity = useScrollRange(p, [T.cardOut, T.cardOut + 0.1], [1, 0])
+
+  const cardY = useGeometryTransform(p, geoRef, [T.flapOpen, T.cardOut, T.settled], (g) => [
+    g.cardInY,
+    g.cardOutY,
+    g.cardFinalY,
+  ])
+  const cardScale = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.s0, 1])
+  const cardZ = useTransform(p, (v) => (v > T.cardOut - 0.01 ? 7 : 3))
+
+  const box = (width: number, height: number) => ({
+    width,
+    height,
+    left: '50%',
+    top: '50%',
+    marginLeft: -width / 2,
+    marginTop: -height / 2,
+  })
+  const envBox = { ...box(geo.ew, geo.eh), y: envY, opacity: envOpacity }
 
   return (
-    <section id="rsvp" className="bg-peach bg-paper relative overflow-hidden py-28 md:py-40">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
-        <MaskReveal direction="up" delay={0.05}>
-          <p className="text-center font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber mb-14 md:mb-20">
-            {t('rsvp.kicker')}
-          </p>
-        </MaskReveal>
+    <section
+      id="rsvp"
+      ref={trackRef}
+      className="relative bg-peach bg-paper"
+      style={{ height: reduced ? '100svh' : '320vh' }}
+    >
+      <div className="sticky top-0 h-[100svh] overflow-hidden">
+        <motion.p
+          className="absolute inset-x-0 text-center font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber"
+          style={{ top: NAV_HEIGHT + 32, opacity: kickerOpacity }}
+        >
+          {t('rsvp.kicker')}
+        </motion.p>
 
-        <AnimatePresence mode="wait" initial={false}>
-          {stage !== 'open' ? (
-            <motion.div
-              key="envelope"
-              // Headroom for the flap once it swings up above the envelope.
-              className="pt-24 md:pt-36"
-              exit={{ opacity: 0, y: 30, transition: { duration: reduced ? 0 : 0.5 } }}
-            >
-              <Envelope
-                stage={stage}
-                reduced={reduced}
-                onOpen={() => setStage('opening')}
-                onFlapOpen={() => setStage('rising')}
-                onRisen={() => setStage('open')}
+        {/* Envelope, built as sibling layers so the card can slot between them. */}
+        <motion.div
+          aria-hidden
+          className="absolute rounded-[3px] shadow-[0_24px_40px_-12px_rgba(61,50,41,0.3)]"
+          style={{
+            ...envBox,
+            zIndex: 1,
+            background: 'linear-gradient(180deg, #DDB394 0%, #E7C1A3 100%)',
+          }}
+        />
+        <motion.div
+          aria-hidden
+          className="absolute"
+          style={{ ...envBox, zIndex: 4, background: POCKET, clipPath: POCKET_CLIP }}
+        />
+        <motion.div
+          aria-hidden
+          className="absolute"
+          style={{
+            ...envBox,
+            zIndex: 4,
+            background: 'linear-gradient(0deg, #F4D6BD 0%, #F0CDB1 100%)',
+            clipPath: 'polygon(0 100%, 50% 44%, 100% 100%)',
+          }}
+        />
+        <motion.div
+          aria-hidden
+          className="absolute"
+          style={{ ...envBox, y: envY, opacity: envOpacity, zIndex: flapZ }}
+        >
+          <motion.div
+            className="absolute left-0 right-0 top-0 h-[60%]"
+            style={{
+              rotateX: flapRotate,
+              originY: 0,
+              transformPerspective: 1400,
+              clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
+              background: 'linear-gradient(180deg, #F2D3BA 0%, #EBC5A8 100%)',
+            }}
+          />
+        </motion.div>
+        <motion.div aria-hidden className="absolute" style={{ ...envBox, zIndex: 6 }}>
+          <motion.div
+            className="absolute left-1/2 top-[60%] -ml-8 -mt-8 sm:-ml-10 sm:-mt-10 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center"
+            style={{
+              opacity: sealOpacity,
+              scale: sealScale,
+              background:
+                'radial-gradient(circle at 35% 30%, #D58A6C 0%, #B96F52 45%, #8E4F39 100%)',
+              boxShadow:
+                'inset 0 0 0 4px rgba(142,79,57,0.55), inset 0 2px 6px rgba(255,220,200,0.35), 0 6px 14px rgba(61,50,41,0.3)',
+            }}
+          >
+            <span className="font-display text-xl sm:text-2xl text-[#F6DCC6] drop-shadow-[0_1px_0_rgba(80,40,30,0.5)] pt-1">
+              {CONFIG.couple.bride[0]}
+              {CONFIG.couple.groom[0]}
+            </span>
+          </motion.div>
+          <img
+            src={`${base}flowers/lavender.png`}
+            alt=""
+            className="pointer-events-none absolute -left-6 sm:-left-14 -top-10 w-20 sm:w-28 -rotate-[24deg] opacity-90"
+          />
+          <img
+            src={`${base}flowers/camomile_x1.png`}
+            alt=""
+            className="pointer-events-none absolute -right-4 sm:-right-10 -bottom-8 w-20 sm:w-28 rotate-12"
+          />
+          <motion.p
+            className="absolute inset-x-0 -bottom-16 text-center font-serif italic text-title/70 text-lg"
+            style={{ opacity: hintOpacity }}
+          >
+            <span className="animate-breath inline-block">{t('rsvp.envelopeHint')} ↓</span>
+          </motion.p>
+        </motion.div>
+
+        {/* The invitation. */}
+        <motion.div
+          className="absolute"
+          style={{
+            ...box(geo.cw, geo.ch),
+            y: cardY,
+            scale: cardScale,
+            zIndex: cardZ,
+          }}
+        >
+          <motion.div
+            className="grid h-full"
+            style={{ transformStyle: 'preserve-3d', transformPerspective: 2400 }}
+            animate={{ rotateY: flipped ? 180 : 0 }}
+            transition={{ duration: reduced ? 0 : 1.1, ease: EASE_SOFT }}
+          >
+            <CardFace hidden={flipped || !ready}>
+              <InvitationFront
+                guest={guest}
+                lang={lang}
+                wide={geo.wide}
+                onReply={() => setFlipped(true)}
               />
-              <p
-                className={`text-center font-serif italic text-title/70 text-lg mt-12 transition-opacity duration-700 ${
-                  stage === 'sealed' ? 'animate-breath' : 'opacity-0'
-                }`}
-              >
-                {t('rsvp.envelopeHint')}
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="card"
-              ref={cardRef}
-              className="mx-auto max-w-[540px] scroll-mt-24"
-              style={{ perspective: 2200 }}
-              initial={reduced ? false : { opacity: 0, y: 60, scale: 0.92 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <motion.div
-                className="grid"
-                style={{ transformStyle: 'preserve-3d' }}
-                animate={{ rotateY: flipped ? 180 : 0 }}
-                transition={{ duration: reduced ? 0 : 1.1, ease: EASE_SOFT }}
-              >
-                <CardFace hidden={flipped}>
-                  <InvitationFront guest={guest} lang={lang} onReply={() => flip(true)} />
-                </CardFace>
-                <CardFace hidden={!flipped} back>
-                  <ReplyForm guest={guest} lang={lang} onBack={() => flip(false)} />
-                </CardFace>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </CardFace>
+            <CardFace hidden={!flipped || !ready} back>
+              <ReplyForm
+                guest={guest}
+                lang={lang}
+                wide={geo.wide}
+                onBack={() => setFlipped(false)}
+              />
+            </CardFace>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )
 }
 
-// ── Envelope ──────────────────────────────────────────────
-
-interface EnvelopeProps {
-  stage: Stage
-  reduced: boolean
-  onOpen: () => void
-  onFlapOpen: () => void
-  onRisen: () => void
-}
-
-const SIDE_FLAP = 'linear-gradient(160deg, #F6DCC6 0%, #EFCBAE 60%, #E8BF9F 100%)'
-const MONOGRAM = `${CONFIG.couple.bride[0]}${CONFIG.couple.groom[0]}`
-
-function Envelope({ stage, reduced, onOpen, onFlapOpen, onRisen }: EnvelopeProps) {
-  const { t } = useTranslation()
-  const risen = stage === 'rising' || stage === 'open'
-  const [y, m, d] = CONFIG.wedding.date.split('-')
-
-  return (
-    <div className="relative mx-auto w-full max-w-[560px]">
-      {/* Wildflowers tucked around the envelope. */}
-      <img
-        src={`${base}flowers/lavender.png`}
-        alt=""
-        aria-hidden
-        className="pointer-events-none absolute -left-6 sm:-left-14 -top-10 w-20 sm:w-28 -rotate-[24deg] opacity-90"
-      />
-      <img
-        src={`${base}flowers/camomile_x1.png`}
-        alt=""
-        aria-hidden
-        className="pointer-events-none absolute -right-4 sm:-right-10 -bottom-8 w-20 sm:w-28 rotate-12 z-10"
-      />
-
-      <div className="relative aspect-[3/2] w-full drop-shadow-[0_24px_30px_rgba(61,50,41,0.22)]">
-        {/* Inside of the envelope. */}
-        <div
-          className="absolute inset-0 rounded-[3px]"
-          style={{ background: 'linear-gradient(180deg, #DDB394 0%, #E7C1A3 100%)' }}
-        />
-
-        {/* The invitation, sliding out once the flap is open. */}
-        <motion.div
-          className="absolute left-[7%] right-[7%] top-[6%] h-[90%] bg-peach-light bg-paper rounded-[2px] shadow-sm flex flex-col items-center pt-[7%] text-center"
-          style={{ zIndex: 2 }}
-          initial={false}
-          animate={{ y: risen ? '-58%' : '0%' }}
-          transition={{ duration: reduced ? 0 : 1.2, ease: EASE_SOFT }}
-          onAnimationComplete={() => {
-            if (stage === 'rising') setTimeout(onRisen, reduced ? 0 : 250)
-          }}
-        >
-          <div className="absolute inset-[6px] border border-amber/30 pointer-events-none" />
-          <p className="font-sans text-[0.5rem] sm:text-[0.6rem] tracking-[0.4em] uppercase text-title/60">
-            {d} · {m} · {y}
-          </p>
-          <p className="font-display text-2xl sm:text-4xl text-title mt-2 sm:mt-3">
-            {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
-          </p>
-        </motion.div>
-
-        {/* Pocket: two side flaps and the bottom flap. */}
-        <div
-          className="absolute inset-0"
-          style={{ zIndex: 3, clipPath: 'polygon(0 0, 52% 55%, 0 100%)', background: SIDE_FLAP }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            zIndex: 3,
-            clipPath: 'polygon(100% 0, 48% 55%, 100% 100%)',
-            background: SIDE_FLAP,
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            zIndex: 3,
-            clipPath: 'polygon(0 100%, 50% 44%, 100% 100%)',
-            background: 'linear-gradient(0deg, #F4D6BD 0%, #F0CDB1 100%)',
-          }}
-        />
-
-        {/* Top flap. Once it is past vertical it tucks behind the rising card. */}
-        <motion.div
-          className="absolute left-0 right-0 top-0 h-[60%]"
-          style={{
-            zIndex: risen ? 1 : 4,
-            originY: 0,
-            transformPerspective: 1400,
-            clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
-            background: 'linear-gradient(180deg, #F2D3BA 0%, #EBC5A8 100%)',
-          }}
-          initial={false}
-          animate={{ rotateX: stage === 'sealed' ? 0 : 180 }}
-          transition={{ duration: reduced ? 0 : 0.95, ease: EASE_SOFT }}
-          onAnimationComplete={() => {
-            if (stage === 'opening') onFlapOpen()
-          }}
-        />
-
-        {/* Wax seal. */}
-        <AnimatePresence>
-          {stage === 'sealed' && (
-            <motion.button
-              type="button"
-              onClick={onOpen}
-              aria-label={t('rsvp.openSeal')}
-              className="absolute left-[calc(50%-2rem)] top-[calc(60%-2rem)] sm:left-[calc(50%-2.5rem)] sm:top-[calc(60%-2.5rem)] w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cta focus-visible:ring-offset-2"
-              style={{
-                zIndex: 5,
-                background:
-                  'radial-gradient(circle at 35% 30%, #D58A6C 0%, #B96F52 45%, #8E4F39 100%)',
-                boxShadow:
-                  'inset 0 0 0 4px rgba(142,79,57,0.55), inset 0 2px 6px rgba(255,220,200,0.35), 0 6px 14px rgba(61,50,41,0.3)',
-              }}
-              whileHover={reduced ? undefined : { scale: 1.06 }}
-              whileTap={reduced ? undefined : { scale: 0.95 }}
-              exit={{ opacity: 0, scale: 1.25, transition: { duration: reduced ? 0 : 0.4 } }}
-            >
-              <span className="font-display text-xl sm:text-2xl text-[#F6DCC6] drop-shadow-[0_1px_0_rgba(80,40,30,0.5)] pt-1">
-                {MONOGRAM}
-              </span>
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  )
-}
+const POCKET = 'linear-gradient(160deg, #F6DCC6 0%, #EFCBAE 60%, #E8BF9F 100%)'
+// Two side flaps meeting the bottom flap, as one outline.
+const POCKET_CLIP = 'polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%)'
 
 // ── Card ──────────────────────────────────────────────────
 
@@ -248,7 +330,7 @@ function CardFace({
 }) {
   const ref = useRef<HTMLDivElement>(null)
 
-  // Keep the face that's turned away out of the tab order.
+  // Keep the face that's turned away (or still in the envelope) out of the tab order.
   useEffect(() => {
     if (ref.current) ref.current.inert = hidden
   }, [hidden])
@@ -257,7 +339,7 @@ function CardFace({
     <div
       ref={ref}
       aria-hidden={hidden}
-      className="relative bg-peach-light bg-paper rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] px-7 py-14 sm:px-14 sm:py-16 flex flex-col justify-center"
+      className="relative bg-peach-light bg-paper rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden"
       style={{
         gridArea: '1 / 1',
         backfaceVisibility: 'hidden',
@@ -268,7 +350,9 @@ function CardFace({
       {/* Classic double rule. */}
       <div className="pointer-events-none absolute inset-3 border border-amber/40" />
       <div className="pointer-events-none absolute inset-[18px] border border-amber/20" />
-      {children}
+      <div className="relative h-full overflow-y-auto overscroll-contain px-8 py-10 md:px-14 md:py-11">
+        {children}
+      </div>
     </div>
   )
 }
@@ -294,10 +378,12 @@ const CTA =
 function InvitationFront({
   guest,
   lang,
+  wide,
   onReply,
 }: {
   guest: Guest
   lang: Lang
+  wide: boolean
   onReply: () => void
 }) {
   const { t } = useTranslation()
@@ -310,41 +396,57 @@ function InvitationFront({
   const deadline = formatDate(CONFIG.wedding.rsvpDeadline, lang, { day: 'numeric', month: 'long' })
 
   return (
-    <div className="text-center text-title">
-      <p className="font-sans text-[0.6rem] sm:text-[0.65rem] tracking-[0.4em] uppercase text-title/70">
+    <div className="min-h-full flex flex-col items-center justify-center text-center text-title">
+      <p className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/70">
         {t('rsvp.inviteTogether')}
       </p>
-      <h2 className="font-display text-5xl sm:text-6xl leading-[1.45] mt-6">
+      <h2
+        className={`font-display leading-[1.45] mt-3 ${
+          wide ? 'text-[3.25rem] whitespace-nowrap' : 'text-5xl flex flex-col'
+        }`}
+      >
         {CONFIG.couple.bride}
-        <span className="block text-3xl sm:text-4xl text-amber leading-none -my-1">&amp;</span>
+        <span className={`text-amber ${wide ? 'text-4xl mx-4' : 'text-3xl leading-none -my-1'}`}>
+          &amp;
+        </span>
         {CONFIG.couple.groom}
       </h2>
-      <p className="font-serif italic text-lg sm:text-xl mt-8">{t('rsvp.inviteRequest')}</p>
-      <p className="font-display text-3xl sm:text-4xl leading-[1.7] mt-2 text-forest-deep">
+      <p className="font-serif italic text-lg mt-5">{t('rsvp.inviteRequest')}</p>
+      <p className="font-display text-3xl md:text-4xl leading-normal mt-5 mb-3 text-forest-deep">
         {guest.groupName}
       </p>
-      <p className="font-serif italic text-lg sm:text-xl mt-1">{t('rsvp.inviteCelebrate')}</p>
+      <p className="font-serif italic text-lg">{t('rsvp.inviteCelebrate')}</p>
 
-      <div className="my-9">
+      <div className="my-5">
         <Sprig />
       </div>
 
-      <p className="font-sans text-xs sm:text-sm tracking-[0.3em] uppercase">{date}</p>
-      <p className="font-serif text-lg mt-2">
-        {t('rsvp.inviteTime', { time: CONFIG.wedding.time })}
-      </p>
-      <p className="font-serif text-xl sm:text-2xl mt-6">{CONFIG.wedding.venue}</p>
-      <p className="font-sans text-[0.6rem] tracking-[0.35em] uppercase text-title/60 mt-2">
-        Brasília · DF
-      </p>
+      <div
+        className={`flex items-center ${
+          wide ? 'flex-row divide-x divide-amber/30' : 'flex-col gap-3'
+        }`}
+      >
+        <p className={`font-sans text-xs tracking-[0.3em] uppercase ${wide ? 'px-6' : ''}`}>
+          {date}
+        </p>
+        <p className={`font-serif text-lg ${wide ? 'px-6' : ''}`}>
+          {t('rsvp.inviteTime', { time: CONFIG.wedding.time })}
+        </p>
+        <p className={`font-serif text-lg ${wide ? 'px-6' : ''}`}>
+          {CONFIG.wedding.venue}
+          <span className="font-sans text-[0.6rem] tracking-[0.35em] uppercase text-title/60 ml-2">
+            Brasília
+          </span>
+        </p>
+      </div>
 
-      <p className="font-serif italic text-title/70 mt-10">
+      <p className="font-serif italic text-title/70 mt-6">
         {t('rsvp.replyBy', { date: deadline })}
       </p>
       <button
         type="button"
         onClick={onReply}
-        className={`group mt-5 inline-flex items-center gap-3 ${CTA}`}
+        className={`group mt-3 inline-flex items-center gap-3 ${CTA}`}
       >
         {t('rsvp.reply')}
         <span
@@ -361,10 +463,20 @@ function InvitationFront({
 // ── Reply form (back of the card) ─────────────────────────
 
 const FIELD =
-  'w-full bg-transparent border-b border-forest-deep/20 py-2.5 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep/60 transition-colors'
-const LABEL = 'font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/80 block mb-2'
+  'w-full bg-transparent border-b border-forest-deep/20 py-2 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep/60 transition-colors'
+const LABEL = 'font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/80 block mb-1'
 
-function ReplyForm({ guest, lang, onBack }: { guest: Guest; lang: Lang; onBack: () => void }) {
+function ReplyForm({
+  guest,
+  lang,
+  wide,
+  onBack,
+}: {
+  guest: Guest
+  lang: Lang
+  wide: boolean
+  onBack: () => void
+}) {
   const { t } = useTranslation()
   const storageKey = `${RSVP_STORAGE_KEY}_${guest.guestId}`
   const [alreadySubmitted] = useState(() => localStorage.getItem(storageKey) === 'true')
@@ -409,17 +521,15 @@ function ReplyForm({ guest, lang, onBack }: { guest: Guest; lang: Lang; onBack: 
 
   if (submitted) {
     return (
-      <div className="text-center text-title">
-        <p className="font-serif text-3xl sm:text-4xl tracking-[0.3em] pl-[0.3em]">
-          {t('rsvp.replyTitle')}
-        </p>
-        <div className="my-8">
+      <div className="min-h-full flex flex-col items-center justify-center text-center text-title">
+        <p className="font-serif text-3xl tracking-[0.3em] pl-[0.3em]">{t('rsvp.replyTitle')}</p>
+        <div className="my-6">
           <Sprig />
         </div>
-        <h3 className="font-serif text-2xl sm:text-3xl">
+        <h3 className="font-serif text-2xl md:text-3xl">
           {alreadySubmitted ? t('rsvp.alreadyTitle') : t('rsvp.successTitle')}
         </h3>
-        <p className="font-serif italic text-lg mt-4 mb-10">
+        <p className="font-serif italic text-lg mt-3 mb-8">
           {alreadySubmitted ? t('rsvp.alreadySubmitted') : t('rsvp.successText')}
         </p>
         {backLink}
@@ -428,60 +538,65 @@ function ReplyForm({ guest, lang, onBack }: { guest: Guest; lang: Lang; onBack: 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="text-title">
-      <div className="text-center mb-8">
-        <p className="font-serif text-3xl sm:text-4xl tracking-[0.3em] pl-[0.3em]">
-          {t('rsvp.replyTitle')}
-        </p>
-        <p className="font-serif italic text-base sm:text-lg mt-3 text-title/80">
+    <form
+      onSubmit={handleSubmit}
+      className={`text-title min-h-full ${
+        wide ? 'grid grid-cols-[1.2fr_1fr] gap-12' : 'flex flex-col gap-6'
+      }`}
+    >
+      <div>
+        <p className="font-serif text-3xl tracking-[0.3em]">{t('rsvp.replyTitle')}</p>
+        <p className="font-serif italic text-base mt-1 mb-4 text-title/80">
           {t('rsvp.letterOpening')}
         </p>
+
+        <div className="space-y-4">
+          {attendees.map((attendee, i) => (
+            <div key={i} className="border-t border-forest-deep/10 pt-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <span className="font-serif text-xl">{attendee.name}</span>
+                <div className="flex gap-3 text-[0.6rem] tracking-[0.3em] uppercase font-sans">
+                  {([true, false] as const).map((value) => (
+                    <button
+                      key={String(value)}
+                      type="button"
+                      onClick={() => updateAttendee(i, 'attending', value)}
+                      aria-pressed={attendee.attending === value}
+                      className={`pb-1 border-b transition-colors ${
+                        attendee.attending === value
+                          ? 'text-title border-forest-deep'
+                          : 'text-title/45 border-transparent hover:text-title'
+                      }`}
+                    >
+                      {value ? t('rsvp.attending') : t('rsvp.notAttending')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {attendee.attending && (
+                <select
+                  value={attendee.menu}
+                  onChange={(e) => updateAttendee(i, 'menu', e.target.value)}
+                  required
+                  aria-label={`${t('rsvp.menu')} — ${attendee.name}`}
+                  className={FIELD}
+                >
+                  <option value="">{t('rsvp.menuPlaceholder')}</option>
+                  {CONFIG.menuOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {lang === 'pt' ? opt.pt : opt.en}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-7">
-        {attendees.map((attendee, i) => (
-          <div key={i} className="border-t border-forest-deep/10 pt-5">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 mb-3">
-              <span className="font-serif text-xl sm:text-2xl">{attendee.name}</span>
-              <div className="flex gap-3 text-[0.6rem] tracking-[0.3em] uppercase font-sans">
-                {([true, false] as const).map((value) => (
-                  <button
-                    key={String(value)}
-                    type="button"
-                    onClick={() => updateAttendee(i, 'attending', value)}
-                    aria-pressed={attendee.attending === value}
-                    className={`pb-1 border-b transition-colors ${
-                      attendee.attending === value
-                        ? 'text-title border-forest-deep'
-                        : 'text-title/45 border-transparent hover:text-title'
-                    }`}
-                  >
-                    {value ? t('rsvp.attending') : t('rsvp.notAttending')}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {attendee.attending && (
-              <select
-                value={attendee.menu}
-                onChange={(e) => updateAttendee(i, 'menu', e.target.value)}
-                required
-                aria-label={`${t('rsvp.menu')} — ${attendee.name}`}
-                className={FIELD}
-              >
-                <option value="">{t('rsvp.menuPlaceholder')}</option>
-                {CONFIG.menuOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {lang === 'pt' ? opt.pt : opt.en}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-        ))}
-
-        <div className="border-t border-forest-deep/10 pt-5">
+      <div className={`flex flex-col gap-5 ${wide ? 'pt-14' : ''}`}>
+        <div>
           <label htmlFor="rsvp-song" className={LABEL}>
             {t('rsvp.song')}
           </label>
@@ -511,21 +626,21 @@ function ReplyForm({ guest, lang, onBack }: { guest: Guest; lang: Lang; onBack: 
             className={`${FIELD} resize-none`}
           />
         </div>
-      </div>
 
-      {error && <p className="font-serif text-terracotta text-center mt-6">{error}</p>}
+        {error && <p className="font-serif text-terracotta text-center">{error}</p>}
 
-      <div className="text-center mt-10 flex flex-col items-center gap-6">
-        <button
-          type="submit"
-          disabled={submitting}
-          className={`${CTA} disabled:opacity-50 disabled:hover:translate-y-0`}
-        >
-          <span className={submitting ? 'animate-breath' : undefined}>
-            {submitting ? t('rsvp.submitting') : t('rsvp.submit')}
-          </span>
-        </button>
-        {backLink}
+        <div className="mt-auto pt-2 flex flex-col items-center gap-4">
+          <button
+            type="submit"
+            disabled={submitting}
+            className={`${CTA} w-full disabled:opacity-50 disabled:hover:translate-y-0`}
+          >
+            <span className={submitting ? 'animate-breath' : undefined}>
+              {submitting ? t('rsvp.submitting') : t('rsvp.submit')}
+            </span>
+          </button>
+          {backLink}
+        </div>
       </div>
     </form>
   )
