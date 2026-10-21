@@ -1,7 +1,7 @@
 // The sun starts as the cosmos center in HeroSaveDateCouple and travels
 // on into HeroBigDay — both sections draw it with these.
 //
-// public/flowers/sun.webp is a flower-center photo cropped square around
+// public/flowers/sun.webp is a painted flower center (sun2), cropped square around
 // its middle; its spiky edge spans about 83 % of the image. SUN_SIZE is
 // the image box, so the sun itself is ~14vmin across — the size of the
 // cosmos center when the flower is scaled up at the hand-off.
