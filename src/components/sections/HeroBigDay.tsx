@@ -241,7 +241,7 @@ export function HeroBigDay() {
           style={{ top: '285vh' }}
         />
         <div
-          className="bg-peach-light sticky top-0 h-screen overflow-hidden [--art-top:44vh] md:[--art-top:14vh]"
+          className="bg-peach sticky top-0 h-screen overflow-hidden [--art-top:44vh] md:[--art-top:14vh]"
           style={artVars}
         >
           {/* ── z-10  Watercolor painting (sky and ground) — painted in
@@ -336,7 +336,7 @@ export function HeroBigDay() {
               opacity: infoOpacity,
               height: 'calc(var(--art-top) + var(--art-h) * 0.28)',
               background:
-                'linear-gradient(to bottom, rgba(255, 244, 232, 0.92) 0%, rgba(255, 244, 232, 0.8) 45%, rgba(255, 244, 232, 0) 100%)',
+                'linear-gradient(to bottom, rgba(251, 250, 248, 0.92) 0%, rgba(251, 250, 248, 0.8) 45%, rgba(251, 250, 248, 0) 100%)',
             }}
           />
 

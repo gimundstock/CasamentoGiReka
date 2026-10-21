@@ -244,13 +244,6 @@ export function HeroSaveDateCouple() {
     return 0
   })
 
-  // The page warms to HeroBigDay's paper color as the sun forms, so the two
-  // sections meet on the same background.
-  const paperOpacity = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.92) return 0
-    return Math.min(1, (v - 0.92) / 0.08)
-  })
-
   const weddingDate = new Date(CONFIG.wedding.date)
   const dateLine = weddingDate
     .toLocaleDateString(i18n.language === 'pt' ? 'pt-BR' : 'en-GB', {
@@ -360,13 +353,6 @@ export function HeroSaveDateCouple() {
               </div>
             </div>
           </motion.div>
-
-          {/* ── z-[5]  Paper — warms to HeroBigDay's background at the end. ── */}
-          <motion.div
-            aria-hidden
-            className="bg-peach-light pointer-events-none absolute inset-0 z-[5]"
-            style={{ opacity: paperOpacity }}
-          />
 
           {/* ── z-10  Daisy — single persistent element ── */}
           <motion.img
