@@ -77,7 +77,14 @@
     "error": "Erro ao enviar. Tente novamente.",
     "kicker": "Um pedido com carinho",
     "letterOpening": "Querido(a) convidado(a),",
-    "letterClose": "Com amor"
+    "letterClose": "Com amor",
+    "envelopeHint": "Role para abrir",
+    "inviteRequest": "têm a alegria de convidar",
+    "inviteCelebrate": "para a celebração do seu casamento",
+    "inviteTime": "às {{time}}",
+    "replyBy": "Pede-se confirmação até {{date}}",
+    "replyTitle": "R.S.V.P.",
+    "scrollToReply": "Role para responder"
   },
   "gifts": {
     "title": "Lista de Presentes",

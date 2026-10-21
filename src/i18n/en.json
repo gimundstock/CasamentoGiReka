@@ -77,7 +77,14 @@
     "error": "Error submitting. Please try again.",
     "kicker": "A heartfelt request",
     "letterOpening": "Dear friend,",
-    "letterClose": "With love"
+    "letterClose": "With love",
+    "envelopeHint": "Scroll to open",
+    "inviteRequest": "request the pleasure of the company of",
+    "inviteCelebrate": "at the celebration of their marriage",
+    "inviteTime": "at {{time}}",
+    "replyBy": "Kindly reply by {{date}}",
+    "replyTitle": "R.S.V.P.",
+    "scrollToReply": "Scroll to reply"
   },
   "gifts": {
     "title": "Gift Registry",
