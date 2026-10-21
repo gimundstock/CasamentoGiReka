@@ -84,7 +84,7 @@ function measure(w: number, h: number): Geometry {
   // Landscape card on wide screens; on phones a landscape card would be
   // unreadably small, so it stands upright instead.
   const cw = wide ? Math.min(880, w * 0.9, (h - NAV_HEIGHT - 64) / 0.625) : w - 32
-  const ch = wide ? cw * 0.625 : h - NAV_HEIGHT - 40
+  const ch = wide ? cw * 0.625 : h - NAV_HEIGHT - 80
   const s0 = Math.min((ew * 0.86) / cw, (eh * 0.86) / ch)
   const envY = h * 0.18
   return {
@@ -172,6 +172,11 @@ export function RSVP({ guest }: Props) {
   const sealOpacity = useScrollRange(p, [0, T.sealGone], [1, 0])
   const sealScale = useScrollRange(p, [0, T.sealGone], [1, 1.3])
   const hintOpacity = useScrollRange(p, [0, 0.05], [1, 0])
+  const replyHintOpacity = useScrollRange(
+    p,
+    [T.settled - 0.03, T.settled, T.flipStart, T.flipStart + 0.03],
+    [0, 1, 1, 0]
+  )
   const kickerOpacity = useScrollRange(p, [T.cardOut, T.cardOut + 0.1], [1, 0])
 
   const cardY = useGeometryTransform(p, geoRef, [T.flapOpen, T.cardOut, T.settled], (g) => [
@@ -284,6 +289,17 @@ export function RSVP({ guest }: Props) {
           </motion.p>
         </motion.div>
 
+        <motion.p
+          aria-hidden
+          className="absolute inset-x-0 text-center font-sans text-[0.6rem] tracking-[0.35em] uppercase text-cta"
+          style={{
+            top: `calc(50% + ${geo.cardFinalY + geo.ch / 2 + 16}px)`,
+            opacity: replyHintOpacity,
+          }}
+        >
+          <span className="animate-breath inline-block">{t('rsvp.scrollToReply')} ↓</span>
+        </motion.p>
+
         {/* The invitation. */}
         <motion.div
           className="absolute"
@@ -302,7 +318,7 @@ export function RSVP({ guest }: Props) {
               rotateY: cardFlip,
             }}
           >
-            <CardFace hidden={face !== 'front'}>
+            <CardFace hidden={face !== 'front'} image={`${base}flowers/invitation-bg.webp`}>
               <InvitationFront guest={guest} lang={lang} wide={geo.wide} />
             </CardFace>
             <CardFace hidden={face !== 'back'} back>
@@ -325,10 +341,13 @@ function CardFace({
   children,
   hidden,
   back,
+  image,
 }: {
   children: ReactNode
   hidden: boolean
   back?: boolean
+  /** Painted artwork for this face; replaces the paper and the ruled border. */
+  image?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -341,17 +360,24 @@ function CardFace({
     <div
       ref={ref}
       aria-hidden={hidden}
-      className="relative bg-peach-light bg-paper rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden"
+      className={`relative bg-peach-light rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden ${
+        image ? 'bg-cover bg-bottom' : 'bg-paper'
+      }`}
       style={{
+        backgroundImage: image ? `url(${image})` : undefined,
         gridArea: '1 / 1',
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden',
         transform: back ? 'rotateY(180deg)' : undefined,
       }}
     >
-      {/* Classic double rule. */}
-      <div className="pointer-events-none absolute inset-3 border border-amber/40" />
-      <div className="pointer-events-none absolute inset-[18px] border border-amber/20" />
+      {!image && (
+        <>
+          {/* Classic double rule. */}
+          <div className="pointer-events-none absolute inset-3 border border-amber/40" />
+          <div className="pointer-events-none absolute inset-[18px] border border-amber/20" />
+        </>
+      )}
       <div className="relative h-full overflow-y-auto overscroll-contain px-8 py-10 md:px-14 md:py-11">
         {children}
       </div>
@@ -388,17 +414,15 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
   const deadline = formatDate(CONFIG.wedding.rsvpDeadline, lang, { day: 'numeric', month: 'long' })
 
   return (
-    <div className="min-h-full flex flex-col items-center justify-center text-center text-title">
-      <p className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/70">
-        {t('rsvp.inviteTogether')}
-      </p>
+    // Bottom padding (a % of the width) keeps the text in the clear centre, above the painted flowers.
+    <div className="min-h-full flex flex-col items-center justify-center text-center text-title pb-[38%] md:pb-[20%]">
       <h2
-        className={`font-display leading-[1.45] mt-3 ${
-          wide ? 'text-[3.25rem] whitespace-nowrap' : 'text-5xl flex flex-col'
+        className={`font-display leading-[1.45] ${
+          wide ? 'text-[2.6rem] whitespace-nowrap' : 'text-4xl flex flex-col'
         }`}
       >
         {CONFIG.couple.bride}
-        <span className={`text-amber ${wide ? 'text-4xl mx-4' : 'text-3xl leading-none -my-1'}`}>
+        <span className={`text-amber ${wide ? 'text-3xl mx-3' : 'text-2xl leading-none -my-1'}`}>
           &amp;
         </span>
         {CONFIG.couple.groom}
@@ -409,7 +433,7 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
       </p>
       <p className="font-serif italic text-lg">{t('rsvp.inviteCelebrate')}</p>
 
-      <div className="my-5">
+      <div className="my-3">
         <Sprig />
       </div>
 
@@ -432,11 +456,8 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         </p>
       </div>
 
-      <p className="font-serif italic text-title/70 mt-6">
+      <p className="font-serif italic text-title/70 mt-4">
         {t('rsvp.replyBy', { date: deadline })}
-      </p>
-      <p className="font-sans text-[0.6rem] tracking-[0.35em] uppercase text-cta mt-6">
-        <span className="animate-breath inline-block">{t('rsvp.scrollToReply')} ↓</span>
       </p>
     </div>
   )
