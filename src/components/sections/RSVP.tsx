@@ -86,7 +86,7 @@ function measure(w: number, h: number): Geometry {
   const cw = wide ? Math.min(960, w * 0.92, (h - NAV_HEIGHT - 56) / 0.625) : w - 32
   const ch = wide ? cw * 0.625 : h - NAV_HEIGHT - 80
   const s0 = Math.min((ew * 0.86) / cw, (eh * 0.86) / ch)
-  const envY = h * 0.18
+  const envY = h * 0.1
   return {
     wide,
     ew,
@@ -216,11 +216,11 @@ export function RSVP({ guest }: Props) {
         {/* Envelope, built as sibling layers so the card can slot between them. */}
         <motion.div
           aria-hidden
-          className="absolute rounded-[3px] shadow-[0_24px_40px_-12px_rgba(61,50,41,0.3)]"
+          className="absolute rounded-[3px] shadow-[0_24px_40px_-12px_rgba(70,80,95,0.28)]"
           style={{
             ...envBox,
             zIndex: 1,
-            background: 'linear-gradient(180deg, #DDB394 0%, #E7C1A3 100%)',
+            background: 'linear-gradient(180deg, #C5CFD8 0%, #D3DCE3 100%)',
           }}
         />
         <motion.div
@@ -234,7 +234,7 @@ export function RSVP({ guest }: Props) {
           style={{
             ...envBox,
             zIndex: 4,
-            background: 'linear-gradient(0deg, #F4D6BD 0%, #F0CDB1 100%)',
+            background: 'linear-gradient(0deg, #F0F3F5 0%, #E6EBEF 100%)',
             clipPath: 'polygon(0 100%, 50% 44%, 100% 100%)',
           }}
         />
@@ -250,36 +250,22 @@ export function RSVP({ guest }: Props) {
               originY: 0,
               transformPerspective: 1400,
               clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
-              background: 'linear-gradient(180deg, #F2D3BA 0%, #EBC5A8 100%)',
+              background: 'linear-gradient(180deg, #EBEFF2 0%, #DCE3E8 100%)',
             }}
           />
         </motion.div>
         <motion.div aria-hidden className="absolute" style={{ ...envBox, zIndex: 6 }}>
-          <motion.div
-            className="absolute left-1/2 top-[60%] -ml-8 -mt-8 sm:-ml-10 sm:-mt-10 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center"
-            style={{
-              opacity: sealOpacity,
-              scale: sealScale,
-              background:
-                'radial-gradient(circle at 35% 30%, #D58A6C 0%, #B96F52 45%, #8E4F39 100%)',
-              boxShadow:
-                'inset 0 0 0 4px rgba(142,79,57,0.55), inset 0 2px 6px rgba(255,220,200,0.35), 0 6px 14px rgba(61,50,41,0.3)',
-            }}
-          >
-            <span className="font-display text-xl sm:text-2xl text-[#F6DCC6] drop-shadow-[0_1px_0_rgba(80,40,30,0.5)] pt-1">
-              {CONFIG.couple.bride[0]}
-              {CONFIG.couple.groom[0]}
-            </span>
-          </motion.div>
+          {/* The seal: a single white flower pressed where the flaps meet. */}
+          <motion.img
+            src={`${base}flowers/camomile_x1.png`}
+            alt=""
+            className="absolute left-1/2 top-[60%] -ml-11 -mt-11 sm:-ml-14 sm:-mt-14 w-[5.5rem] h-[5.5rem] sm:w-28 sm:h-28 drop-shadow-[0_6px_10px_rgba(70,80,95,0.25)]"
+            style={{ opacity: sealOpacity, scale: sealScale }}
+          />
           <img
             src={`${base}flowers/lavender.png`}
             alt=""
             className="pointer-events-none absolute -left-6 sm:-left-14 -top-10 w-20 sm:w-28 -rotate-[24deg] opacity-90"
-          />
-          <img
-            src={`${base}flowers/camomile_x1.png`}
-            alt=""
-            className="pointer-events-none absolute -right-4 sm:-right-10 -bottom-8 w-20 sm:w-28 rotate-12"
           />
           <motion.p
             className="absolute inset-x-0 -bottom-16 text-center font-serif italic text-title/70 text-lg"
@@ -335,7 +321,8 @@ export function RSVP({ guest }: Props) {
   )
 }
 
-const POCKET = 'linear-gradient(160deg, #F6DCC6 0%, #EFCBAE 60%, #E8BF9F 100%)'
+// Silvery paper, cooled toward the blue wash of the invitation's painting.
+const POCKET = 'linear-gradient(160deg, #F2F4F6 0%, #E4E9ED 60%, #D6DEE4 100%)'
 // Two side flaps meeting the bottom flap, as one outline.
 const POCKET_CLIP = 'polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%)'
 
@@ -381,7 +368,7 @@ function CardFace({
       ref={ref}
       aria-hidden={hidden}
       className={`relative rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden ${
-        image ? 'bg-[#FFFEFB]' : 'bg-peach-light bg-paper'
+        image ? 'bg-[#FFFEFB]' : 'bg-[#F6F6F5] bg-paper'
       }`}
       style={{
         gridArea: '1 / 1',
@@ -407,9 +394,8 @@ function CardFace({
         </>
       ) : (
         <>
-          {/* Classic double rule. */}
-          <div className="pointer-events-none absolute inset-3 border border-amber/40" />
-          <div className="pointer-events-none absolute inset-[18px] border border-amber/20" />
+          {/* The same gold rule as the front, on the painting's paper white. */}
+          <div className="pointer-events-none absolute inset-3 md:inset-4 border border-[#C9A464]" />
         </>
       )}
       <div className="relative h-full overflow-y-auto overscroll-contain px-8 py-10 md:px-14 md:py-11">
