@@ -84,9 +84,8 @@
     "inviteCelebrate": "at the celebration of their marriage",
     "inviteTime": "at {{time}}",
     "replyBy": "Kindly reply by {{date}}",
-    "reply": "Reply",
-    "backToInvite": "Back to the invitation",
-    "replyTitle": "R.S.V.P."
+    "replyTitle": "R.S.V.P.",
+    "scrollToReply": "Scroll to reply"
   },
   "gifts": {
     "title": "Gift Registry",

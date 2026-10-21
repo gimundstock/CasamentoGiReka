@@ -16,23 +16,33 @@ import { useReducedMotion } from '../motion/useReducedMotion'
 
 const RSVP_STORAGE_KEY = 'wedding_rsvp_submitted'
 const base = import.meta.env.BASE_URL
-const EASE_SOFT = [0.65, 0, 0.35, 1] as const
 const NAV_HEIGHT = 68
 
 /*
  * Scroll timeline (progress through the pinned track):
- *   0.00–0.06  the seal lifts away
- *   0.06–0.30  the flap swings open
- *   0.30–0.52  the invitation slides up out of the pocket
- *   0.52–0.75  the envelope falls away while the invitation grows to full size
- *   0.75–1.00  hold: the invitation sits still, ready to be turned over
+ *   0.00–0.04  the seal lifts away
+ *   0.04–0.20  the flap swings open
+ *   0.20–0.35  the invitation slides up out of the pocket
+ *   0.35–0.50  the envelope falls away while the invitation grows to full size
+ *   0.50–0.62  hold: the invitation, front side
+ *   0.62–0.78  the card turns over
+ *   0.78–1.00  hold: the reply form
  */
 const T = {
-  sealGone: 0.06,
-  flapOpen: 0.3,
-  flapVertical: 0.18,
-  cardOut: 0.52,
-  settled: 0.75,
+  sealGone: 0.04,
+  flapOpen: 0.2,
+  flapVertical: 0.12,
+  cardOut: 0.35,
+  settled: 0.5,
+  flipStart: 0.62,
+  flipEnd: 0.78,
+}
+
+/** Which face can be interacted with at a given progress. */
+function faceAt(v: number): 'none' | 'front' | 'back' {
+  if (v >= T.flipEnd - 0.01) return 'back'
+  if (v >= T.settled - 0.01 && v <= T.flipStart + 0.01) return 'front'
+  return 'none'
 }
 
 type Lang = 'pt' | 'en'
@@ -152,9 +162,8 @@ export function RSVP({ guest }: Props) {
     geoRef.current = geo
   })
 
-  const [flipped, setFlipped] = useState(false)
-  const [ready, setReady] = useState(reduced)
-  useMotionValueEvent(p, 'change', (v) => setReady(v >= T.settled - 0.02))
+  const [face, setFace] = useState(() => faceAt(p.get()))
+  useMotionValueEvent(p, 'change', (v) => setFace(faceAt(v)))
 
   const envY = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.envY, g.envGoneY])
   const envOpacity = useScrollRange(p, [T.cardOut + 0.05, T.settled], [1, 0])
@@ -171,6 +180,7 @@ export function RSVP({ guest }: Props) {
     g.cardFinalY,
   ])
   const cardScale = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.s0, 1])
+  const cardFlip = useScrollRange(p, [T.flipStart, T.flipEnd], [0, 180])
   const cardZ = useTransform(p, (v) => (v > T.cardOut - 0.01 ? 7 : 3))
 
   const box = (width: number, height: number) => ({
@@ -188,7 +198,7 @@ export function RSVP({ guest }: Props) {
       id="rsvp"
       ref={trackRef}
       className="relative bg-peach bg-paper"
-      style={{ height: reduced ? '100svh' : '320vh' }}
+      style={{ height: reduced ? '100svh' : '480vh' }}
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         <motion.p
@@ -286,25 +296,17 @@ export function RSVP({ guest }: Props) {
         >
           <motion.div
             className="grid h-full"
-            style={{ transformStyle: 'preserve-3d', transformPerspective: 2400 }}
-            animate={{ rotateY: flipped ? 180 : 0 }}
-            transition={{ duration: reduced ? 0 : 1.1, ease: EASE_SOFT }}
+            style={{
+              transformStyle: 'preserve-3d',
+              transformPerspective: 2400,
+              rotateY: cardFlip,
+            }}
           >
-            <CardFace hidden={flipped || !ready}>
-              <InvitationFront
-                guest={guest}
-                lang={lang}
-                wide={geo.wide}
-                onReply={() => setFlipped(true)}
-              />
+            <CardFace hidden={face !== 'front'}>
+              <InvitationFront guest={guest} lang={lang} wide={geo.wide} />
             </CardFace>
-            <CardFace hidden={!flipped || !ready} back>
-              <ReplyForm
-                guest={guest}
-                lang={lang}
-                wide={geo.wide}
-                onBack={() => setFlipped(false)}
-              />
+            <CardFace hidden={face !== 'back'} back>
+              <ReplyForm guest={guest} lang={lang} wide={geo.wide} />
             </CardFace>
           </motion.div>
         </motion.div>
@@ -375,17 +377,7 @@ function Sprig() {
 const CTA =
   'bg-cta text-peach-light font-sans px-10 py-4 text-xs tracking-[0.35em] uppercase transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-8px_rgba(105,180,223,0.7)]'
 
-function InvitationFront({
-  guest,
-  lang,
-  wide,
-  onReply,
-}: {
-  guest: Guest
-  lang: Lang
-  wide: boolean
-  onReply: () => void
-}) {
+function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: boolean }) {
   const { t } = useTranslation()
   const date = formatDate(CONFIG.wedding.date, lang, {
     weekday: 'long',
@@ -443,19 +435,9 @@ function InvitationFront({
       <p className="font-serif italic text-title/70 mt-6">
         {t('rsvp.replyBy', { date: deadline })}
       </p>
-      <button
-        type="button"
-        onClick={onReply}
-        className={`group mt-3 inline-flex items-center gap-3 ${CTA}`}
-      >
-        {t('rsvp.reply')}
-        <span
-          aria-hidden
-          className="inline-block transition-transform duration-700 group-hover:rotate-180"
-        >
-          ↻
-        </span>
-      </button>
+      <p className="font-sans text-[0.6rem] tracking-[0.35em] uppercase text-cta mt-6">
+        <span className="animate-breath inline-block">{t('rsvp.scrollToReply')} ↓</span>
+      </p>
     </div>
   )
 }
@@ -466,17 +448,7 @@ const FIELD =
   'w-full bg-transparent border-b border-forest-deep/20 py-2 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep/60 transition-colors'
 const LABEL = 'font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/80 block mb-1'
 
-function ReplyForm({
-  guest,
-  lang,
-  wide,
-  onBack,
-}: {
-  guest: Guest
-  lang: Lang
-  wide: boolean
-  onBack: () => void
-}) {
+function ReplyForm({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: boolean }) {
   const { t } = useTranslation()
   const storageKey = `${RSVP_STORAGE_KEY}_${guest.guestId}`
   const [alreadySubmitted] = useState(() => localStorage.getItem(storageKey) === 'true')
@@ -509,16 +481,6 @@ function ReplyForm({
     }
   }
 
-  const backLink = (
-    <button
-      type="button"
-      onClick={onBack}
-      className="font-sans text-[0.6rem] tracking-[0.35em] uppercase text-title/60 hover:text-title transition-colors border-b border-transparent hover:border-title/40 pb-0.5"
-    >
-      ↺ {t('rsvp.backToInvite')}
-    </button>
-  )
-
   if (submitted) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center text-center text-title">
@@ -529,10 +491,9 @@ function ReplyForm({
         <h3 className="font-serif text-2xl md:text-3xl">
           {alreadySubmitted ? t('rsvp.alreadyTitle') : t('rsvp.successTitle')}
         </h3>
-        <p className="font-serif italic text-lg mt-3 mb-8">
+        <p className="font-serif italic text-lg mt-3">
           {alreadySubmitted ? t('rsvp.alreadySubmitted') : t('rsvp.successText')}
         </p>
-        {backLink}
       </div>
     )
   }
@@ -639,7 +600,6 @@ function ReplyForm({
               {submitting ? t('rsvp.submitting') : t('rsvp.submit')}
             </span>
           </button>
-          {backLink}
         </div>
       </div>
     </form>

@@ -84,9 +84,8 @@
     "inviteCelebrate": "para a celebração do seu casamento",
     "inviteTime": "às {{time}}",
     "replyBy": "Pede-se confirmação até {{date}}",
-    "reply": "Responder",
-    "backToInvite": "Voltar ao convite",
-    "replyTitle": "R.S.V.P."
+    "replyTitle": "R.S.V.P.",
+    "scrollToReply": "Role para responder"
   },
   "gifts": {
     "title": "Lista de Presentes",
