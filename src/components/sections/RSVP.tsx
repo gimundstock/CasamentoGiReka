@@ -371,12 +371,20 @@ function CardFace({
       }}
     >
       {image ? (
-        // The painting sits inside a white margin, like a printed card, edged in
-        // the gold of its own brushwork.
-        <div
-          className="pointer-events-none absolute inset-3 md:inset-4 bg-cover bg-bottom border border-[#C9A464]"
-          style={{ backgroundImage: `url(${image})` }}
-        />
+        // The painting runs to the card's edge. Outside the gold rule it fades
+        // to 40%, so the margin reads as a soft border; inside, a full-strength
+        // copy of the same image is clipped to the rule so the two line up.
+        <>
+          <div
+            className="pointer-events-none absolute inset-0 bg-cover bg-bottom opacity-40"
+            style={{ backgroundImage: `url(${image})` }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-cover bg-bottom [clip-path:inset(12px)] md:[clip-path:inset(16px)]"
+            style={{ backgroundImage: `url(${image})` }}
+          />
+          <div className="pointer-events-none absolute inset-3 md:inset-4 border border-[#C9A464]" />
+        </>
       ) : (
         <>
           {/* Classic double rule. */}
