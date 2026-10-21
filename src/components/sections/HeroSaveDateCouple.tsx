@@ -81,16 +81,19 @@ const CENTER_Y = 48.1
 // 78 × 1200/1233 = 75.9vmin wide; the yellow center, stamen tips
 // included, reaches about 7.4 % of that from the middle.
 const CENTER_FRINGE_VMIN = 5.6
-// The sun is solid out to 92 % of its visible radius; past that is its soft
-// cream edge.
-const SUN_SOLID_VMIN = (SUN_BIG_VMIN / 2) * 0.92
-// End of the section: the flower zooms in (0.90 → 0.97) — the petals fly out
-// of the frame — until the cosmos center's stamens end exactly where the
-// sun's solid part does. Then the sun takes the center's place
-// (0.94 → 0.98), and HeroBigDay picks it up there.
+// Half of the sun's image box on screen at the hand-off. sun2 is not a
+// perfect circle: its solid body reaches at least 0.66 of this in every
+// direction, its bumps up to ~0.89.
+const SUN_HALF_BOX_VMIN = SUN_BIG_VMIN / 2 / 0.833
+// End of the section: the flower zooms in (0.90 → 0.96) — the petals fly out
+// of the frame — until the cosmos center, stamens included, fits inside the
+// sun's solid body, so the sun covers it completely: nothing pokes out
+// and nothing has to be cut away. The sun is revealed over it
+// (0.93 → 0.965), then the petals dissolve into the paper (0.965 → 1.00),
+// and HeroBigDay picks the sun up there.
 const ZOOM_START = 0.9
-const ZOOM_END = 0.97
-const ZOOM_SCALE = SUN_SOLID_VMIN / CENTER_FRINGE_VMIN
+const ZOOM_END = 0.96
+const ZOOM_SCALE = (SUN_HALF_BOX_VMIN * 0.64) / CENTER_FRINGE_VMIN
 
 function daisyScaleAt(v: number): number {
   if (v < 0.22) return 0
@@ -101,21 +104,16 @@ function daisyScaleAt(v: number): number {
   return HOLD_SCALE * Math.pow(ZOOM_SCALE / HOLD_SCALE, t)
 }
 
-// The sun reveal (0.94 → 0.98): radius of the revealed sun on screen, in
-// vmin. sun2 is not a perfect circle — its edge reaches out to ~0.89 of
-// its half-box (SUN_BIG_VMIN / 2 / 0.833 = 30vmin) — so the reveal grows a
-// little past that, and the whole sun is in before the mask is dropped.
-const SUN_REACH_VMIN = (SUN_BIG_VMIN / 2 / 0.833) * 0.93
+// The sun reveal (0.93 → 0.965): radius of the revealed sun on screen, in
+// vmin, growing a little past its furthest bump so the whole sun is in
+// before the mask is dropped.
+const REVEAL_START = 0.93
+const REVEAL_END = 0.965
 function sunRevealVmin(v: number): number {
-  const t = Math.min(1, Math.max(0, (v - 0.94) / 0.04))
-  return t * SUN_REACH_VMIN
+  const t = Math.min(1, Math.max(0, (v - REVEAL_START) / (REVEAL_END - REVEAL_START)))
+  return t * SUN_HALF_BOX_VMIN * 0.93
 }
-// The hole cut in the cosmos follows just behind the sun's revealed edge,
-// so the sun always overlaps it (no gap, no ring), and stops at the
-// cosmos center's edge.
-function centerHoleVmin(v: number): number {
-  return Math.min(Math.max(0, sunRevealVmin(v) - 1.2), SUN_SOLID_VMIN)
-}
+const DISSOLVE_START = 0.965
 
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
@@ -190,9 +188,16 @@ export function HeroSaveDateCouple() {
   const daisyOpacity = useTransform(scrollYProgress, (v: number) => {
     if (v < 0.22) return 0
     if (v < 0.26) return (v - 0.22) / 0.04
-    // At the very end the photographed center gives way to the painted sun.
-    if (v < 0.97) return 1
-    return Math.max(0, 1 - (v - 0.97) / 0.03)
+    // At the very end the petals dissolve around the sun (see petalBlur).
+    if (v < DISSOLVE_START) return 1
+    return Math.max(0, 1 - (v - DISSOLVE_START) / (1 - DISSOLVE_START))
+  })
+  // ...blurring as they fade, like a wash melting into wet paper rather
+  // than a photo fading out. In the image's own (unscaled) pixels.
+  const petalBlur = useTransform(scrollYProgress, (v: number) => {
+    if (v < DISSOLVE_START) return 'none'
+    const t = Math.min(1, (v - DISSOLVE_START) / (1 - DISSOLVE_START))
+    return `blur(${(8 * t).toFixed(2)}px)`
   })
   // Scale grows from 0 to 1 over 0.22–0.40 (an 18 % scroll window — long
   // enough on an 800vh stage to be obviously visible), holds at 1 all the
@@ -220,22 +225,15 @@ export function HeroSaveDateCouple() {
   })
   const unpinAt = SCROLL_VH / (SCROLL_VH + 100)
   const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) =>
-    past > unpinAt || v < 0.94 ? 0 : 1
+    past > unpinAt || v < REVEAL_START ? 0 : 1
   )
-  // The sun is revealed from the middle outward (0.94 → 0.98), and the
-  // cosmos center is cut away under it by the same circle — inside it only
-  // the new sun, outside only the flower, never the two mixed. Both masks
-  // are in each element's own (unscaled) units, hence the divisions.
+  // The sun is revealed from the middle outward over the cosmos center —
+  // solid inside a growing circle, never half-transparent over it. The
+  // mask is in the image's own (unscaled) units, hence the division.
   const sunReveal = useTransform(scrollYProgress, (v: number) => {
+    if (v >= REVEAL_END) return 'none'
     const r = sunRevealVmin(v) / SUN_BIG_SCALE
-    // At the end the whole sun shows, its soft edge included.
-    if (v >= 0.98) return 'none'
     return `radial-gradient(circle, #000 ${r.toFixed(2)}vmin, transparent ${(r + 0.3).toFixed(2)}vmin)`
-  })
-  const centerHole = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.94) return 'none'
-    const r = centerHoleVmin(v) / daisyScaleAt(v)
-    return `radial-gradient(circle at 50% ${CENTER_Y}%, transparent ${r.toFixed(2)}vmin, #000 ${(r + 0.1).toFixed(2)}vmin)`
   })
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
@@ -391,8 +389,7 @@ export function HeroSaveDateCouple() {
               x: '-50%',
               y: `-${CENTER_Y}%`,
               transformOrigin: `50% ${CENTER_Y}%`,
-              maskImage: centerHole,
-              WebkitMaskImage: centerHole,
+              filter: petalBlur,
               objectFit: 'contain',
               opacity: daisyOpacity,
               scale: daisyScale,
