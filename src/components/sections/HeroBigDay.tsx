@@ -2,34 +2,15 @@ import { useRef, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
-
-/**
- * Linear interpolation between two hex colors. Both must be 7-char `#RRGGBB`.
- */
-function lerpHex(a: string, b: string, t: number): string {
-  const ar = parseInt(a.slice(1, 3), 16)
-  const ag = parseInt(a.slice(3, 5), 16)
-  const ab = parseInt(a.slice(5, 7), 16)
-  const br = parseInt(b.slice(1, 3), 16)
-  const bg = parseInt(b.slice(3, 5), 16)
-  const bb = parseInt(b.slice(5, 7), 16)
-  const r = Math.round(ar + (br - ar) * t)
-  const g = Math.round(ag + (bg - ag) * t)
-  const bl = Math.round(ab + (bb - ab) * t)
-  return `rgb(${r}, ${g}, ${bl})`
-}
-
-const SUN_YELLOW = '#FCCC1D' // dahlia center — also the hand-off color from the previous hero
-const SUN_GOLD = '#EF960F' // mid-arc warm gold
-const SUN_DEEP = '#DF730F' // setting sun — warm orange (stops short of the deep brick #C85308)
+import { CerradoPaint } from './CerradoPaint'
+import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
-// revealed by a left → right sweep that follows the sun, the pencil line
+// painted in around the sun as it travels, the pencil line
 // art registered onto it (lines.webp), and a sky mask (sky-mask.webp) that
 // keeps the sun from showing over the hills. All are 1376 × 768.
 const ART_ASPECT = 1376 / 768
 const ART = `${import.meta.env.BASE_URL}cerrado`
-const PAGE_BG = '#FFF4E8' // the stage background (bg-peach-light)
 
 // Artwork box, full-bleed: at least as wide as the viewport and tall enough
 // to reach the bottom edge, hanging from --art-top (set on the stage; lower
@@ -80,31 +61,22 @@ function sunYAt(v: number): number {
   return SUN_SET_Y
 }
 
-// The watercolor sky is painted in as the sun travels: a soft vertical edge
-// sweeps left → right across the sky, a little ahead of the sun, from when
-// the sun settles into a disc (0.28) until the whole sky is colored (0.82).
-// The edge position is in artwork-box widths (-0.3 = off the left side,
-// 1.55 = off the right side). It is a plain transform on a gradient "veil"
-// above the sky, so the browser's compositor does the work.
-const SKY_SWEEP_START = 0.28
-const SKY_SWEEP_END = 0.82
-const SKY_EDGE_FROM = -0.3
-const SKY_EDGE_TO = 1.55
-// The veil is 3 box-widths wide: clear for the first third, a soft edge
-// centered at 40 %, opaque after. `VEIL_EDGE` is where that edge sits.
-const VEIL_EDGE = 1.2
+// The watercolor is painted in around the sun as it travels (see
+// CerradoPaint): from when the sun settles into a disc (0.28) until the
+// whole painting is colored (0.82).
+const PAINT_START = 0.28
+const PAINT_END = 0.82
 
 /**
- * "The Big Day" hero — picks up the dahlia-center yellow that HeroSaveDateCouple
- * ends on, blooms it out into a setting-sun cerrado scene, and reveals the wedding
- * info on top of the landscape.
+ * "The Big Day" hero — the cosmos center from HeroSaveDateCouple arrives as
+ * the sun, rises and travels a setting-sun arc over a watercolor cerrado
+ * that is painted in around it, then reveals the wedding info.
  *
  * Choreography (scroll progress 0 → 1, on a 400vh outer / 300vh of locked scroll):
- *   0.00 → 0.10  Hold solid yellow. Buffer beat so the seam with the previous
- *                section is invisible at any scroll speed.
- *   0.10 → 0.30  The yellow flood SHRINKS into a sun disc in the upper-left.
- *                Underneath, the peach background with a golden-hour gradient
- *                fades in. Visually: flood recedes into a sphere.
+ *   (seam)       The sun arrives from the previous section in the middle of
+ *                the screen and starts rising while the sections pass.
+ *   0.00 → 0.30  The landscape slides up while the sun rises and shrinks to
+ *                the upper-left.
  *   0.30 → 0.70  Sun arcs from upper-left → upper-right along a parabola.
  *                Color warms from yellow → orange-gold. End point: roughly
  *                where the palm tree used to stand in the cerrado.
@@ -114,8 +86,8 @@ const VEIL_EDGE = 1.2
  *
  * The landscape is two aligned layers cut from one watercolor painting
  * (public/cerrado/): the ground + line art, opaque so the sun sets behind
- * it, and the watercolor sky, which is painted in around the sun as it
- * travels (a growing, soft-edged circle mask centered on the sun).
+ * it, and the watercolor sky. The color spreads out from the sun and stays
+ * along its arc, widening as it goes (CerradoPaint).
  *
  * All opacity / color motion values use the FUNCTION form of useTransform
  * (`useTransform(scroll, v => ...)`) — the multi-keyframe array form has a
@@ -131,51 +103,65 @@ export function HeroBigDay() {
     offset: ['start start', 'end end'],
   })
 
-  // Solid yellow flood — visible at the very start, fades out as the sun
-  // shrinks. Opacity hold for first 10 % so the seam with the previous
-  // section is forgiving of fast scrolls.
-  const floodOpacity = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.1) return 1
-    if (v < 0.3) return 1 - (v - 0.1) / 0.2
-    return 0
+  // Sun, phase 1: it arrives from HeroSaveDateCouple as the zoomed-in
+  // cosmos center — big, in the middle of the screen. It is FIXED on
+  // screen from the moment that section unpins, through the 100vh where
+  // the two sections scroll past each other, so it never moves with the
+  // page or shows twice. `seam` runs from that moment (this stage's top
+  // at the viewport bottom) to the end; `ext` is the same scroll on this
+  // section's own 0 → 1 timeline, so it is -1/3 at the hand-off.
+  const { scrollYProgress: seam } = useScroll({
+    target: stageRef,
+    offset: ['start end', 'end end'],
   })
-
-  // Golden-hour gradient underneath. Fades up as the flood recedes, peaks
-  // at sunset, holds through the info panel reveal.
-  // const gradientOpacity = useTransform(scrollYProgress, (v: number) => {
-  //   if (v < 0.1) return 0
-  //   if (v < 0.3) return (v - 0.1) / 0.2
-  //   return 1
-  // })
-
-  // Sun scale: starts huge (fills viewport, 14x base size) during the flood
-  // phase, shrinks to disc size by 0.30, stays at 1 thereafter.
-  const sunScale = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.1) return 14
-    if (v < 0.3) return 14 - ((v - 0.1) / 0.2) * 13
-    return 1
+  const ext = useTransform(seam, (p: number) => (p * 4 - 1) / 3)
+  // Starts rising while the two sections are still passing each other
+  // (-0.15), and reaches the upper-left of the painting at its disc size
+  // as the landscape settles (0.30).
+  const riseT = (v: number) => Math.min(1, Math.max(0, (v + 0.15) / 0.45))
+  const sunRiseLeft = useTransform(ext, (v: number) => {
+    const t = riseT(v)
+    return `calc(50% * ${1 - t} + ${artX(sunXAt(0.3))} * ${t})`
   })
+  const sunRiseTop = useTransform(ext, (v: number) => {
+    const t = riseT(v)
+    return `calc(50% * ${1 - t} + ${artY(sunYAt(0.3))} * ${t})`
+  })
+  const sunRiseScale = useTransform(ext, (v: number) => Math.pow(SUN_BIG_SCALE, 1 - riseT(v)))
+  const sunRiseOpacity = useTransform([seam, ext], ([p, v]: number[]) => (p > 0 && v < 0.3 ? 1 : 0))
+  // Holds the hand-off rotation for the first few pixels of the seam,
+  // where the previous section's sun still overlaps this one.
+  const sunRiseRotate = useTransform(
+    ext,
+    (v: number) => SUN_HANDOFF_ROTATE + Math.max(0, v + 0.3) * 240
+  )
 
   // Sun position (percent of the artwork box, see sunXAt / sunYAt).
   const sunXPct = useTransform(scrollYProgress, sunXAt)
   const sunYPct = useTransform(scrollYProgress, sunYAt)
 
-  // Position of the veil's soft edge along the sky (see SKY_SWEEP_*), as a
-  // translate in % of the veil's own width (3 box-widths).
-  const veilX = useTransform(scrollYProgress, (v: number) => {
-    const t = Math.min(1, Math.max(0, (v - SKY_SWEEP_START) / (SKY_SWEEP_END - SKY_SWEEP_START)))
-    const edge = SKY_EDGE_FROM + t * (SKY_EDGE_TO - SKY_EDGE_FROM)
-    return `${(((edge - VEIL_EDGE) / 3) * 100).toFixed(3)}%`
+  // The sun warms as it travels: golden on the rise, deeper orange as it
+  // sets (0.30 → 0.85). It keeps turning slowly, carried on from the
+  // flower's spin.
+  // It also softens into the painting as it rises: a blur loosens the
+  // detail and a warm glow bleeds from its edge, like pigment on wet
+  // paper. Crisp while big at the hand-off, fully soft once in the sky.
+  // (`ext` is the same scroll as scrollYProgress, extended into the seam.)
+  const sunFilter = useTransform(ext, (v: number) => {
+    const t = Math.min(1, Math.max(0, (v - 0.3) / 0.55))
+    const soft = riseT(v)
+    return [
+      `hue-rotate(${(-16 * t).toFixed(1)}deg)`,
+      `saturate(${(1 + 0.35 * t).toFixed(2)})`,
+      `brightness(${(1 - 0.12 * t).toFixed(3)})`,
+      `blur(${(SUN_BLUR_FINAL * soft).toFixed(2)}px)`,
+      `drop-shadow(0 0 ${(9 * soft).toFixed(1)}px rgba(255, 196, 80, ${(0.6 * soft).toFixed(2)}))`,
+    ].join(' ')
   })
-
-  // Sun color: yellow → gold across the rise (0.30 → arc apex ~0.575),
-  // then gold → deep sunset orange across the descent (apex → set 0.85).
-  const sunColor = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.3) return SUN_YELLOW
-    if (v < 0.575) return lerpHex(SUN_YELLOW, SUN_GOLD, (v - 0.3) / 0.275)
-    if (v < 0.85) return lerpHex(SUN_GOLD, SUN_DEEP, (v - 0.575) / 0.275)
-    return SUN_DEEP
-  })
+  const sunRotate = useTransform(
+    scrollYProgress,
+    (v: number) => SUN_HANDOFF_ROTATE + Math.max(0, v + 0.3) * 240
+  )
 
   // Info panel fades in once the sun has set.
   const infoOpacity = useTransform(scrollYProgress, (v: number) => {
@@ -185,25 +171,20 @@ export function HeroBigDay() {
   })
 
   // Cerrado landscape SLIDES UP from below the viewport over the same
-  // window as the sun shrink (0.10 → 0.30). By the time the art is fully
+  // window as the sun shrink (0.00 → 0.30). By the time the art is fully
   // seated at the bottom, the sun has already settled into its disc form.
   // Value is a percentage of the image's own height — '100%' parks it
   // entirely below the bottom edge.
   const cerradoY = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.1) return '100%'
-    if (v < 0.3) return `${(1 - (v - 0.1) / 0.2) * 100}%`
+    if (v < 0.3) return `${(1 - v / 0.3) * 100}%`
     return '0%'
   })
 
-  // Place the sun on screen from its artwork-box percentages (phase 1), or
-  // inside the masked artwork box (phase 2).
-  const sunLeft = useTransform(sunXPct, artX)
-  const sunTop = useTransform(sunYPct, artY)
+  // Sun, phase 2: position inside the masked artwork box.
   const sunLeftPct = useTransform(sunXPct, (x: number) => `${x}%`)
   const sunTopPct = useTransform(sunYPct, (y: number) => `${y}%`)
-  // Hand-off between the two sun elements when the sun settles into a disc
-  // (0.30): they match exactly there (scale 1, same position and color).
-  const sunFloodOpacity = useTransform(scrollYProgress, (v: number) => (v < 0.3 ? 1 : 0))
+  // Hand-off between the two sun elements at 0.30, where they match
+  // exactly (same position, size, rotation and tint).
   const sunArcOpacity = useTransform(scrollYProgress, (v: number) => (v < 0.3 ? 0 : 1))
 
   const weddingDate = new Date(CONFIG.wedding.date)
@@ -228,67 +209,59 @@ export function HeroBigDay() {
         {/* Inner anchor for the Nav "The Wedding" link — placed at scroll
             progress ~0.95 (300vh * 0.95 = 285vh into the stage), the
             moment the info panel + sun-set landscape are fully shown. */}
+        {/* ── z-20  Sun, phase 1 — fixed on screen (see `seam`): the zoomed
+                  cosmos center, rising from the middle of the screen to the
+                  upper-left as it shrinks. Unmasked: it starts outside the
+                  sky. Sets the same art variables as the stage so its end
+                  point lands on the painting. ── */}
+        <motion.img
+          src={SUN_SRC}
+          alt=""
+          aria-hidden
+          draggable={false}
+          className="pointer-events-none fixed z-20 max-w-none select-none [--art-top:44vh] md:[--art-top:14vh]"
+          style={{
+            ...artVars,
+            left: sunRiseLeft,
+            top: sunRiseTop,
+            width: SUN_SIZE,
+            height: SUN_SIZE,
+            x: '-50%',
+            y: '-50%',
+            scale: sunRiseScale,
+            rotate: sunRiseRotate,
+            filter: sunFilter,
+            opacity: sunRiseOpacity,
+            willChange: 'transform',
+          }}
+        />
         <div
           id="big-day"
           className="pointer-events-none absolute h-px w-px"
           style={{ top: '285vh' }}
         />
         <div
-          className="bg-peach-light sticky top-0 h-screen overflow-hidden [--art-top:44vh] md:[--art-top:14vh]"
+          className="bg-peach sticky top-0 h-screen overflow-hidden [--art-top:44vh] md:[--art-top:14vh]"
           style={artVars}
         >
-          {/* ── z-0  Solid yellow flood — meets HeroSaveDateCouple's last
-                    frame, then fades out as the sun shrinks. ── */}
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-0"
-            style={{ backgroundColor: SUN_YELLOW, opacity: floodOpacity }}
-          />
-
-          {/* ── z-10  Watercolor painting (sky and ground) — a veil in the
-                    page color slides off it left → right as the sun
-                    travels, painting the landscape in. Slides up with the
-                    line art. ── */}
+          {/* ── z-10  Watercolor painting (sky and ground) — painted in
+                    around the sun as it travels, so the color follows its
+                    arc. Slides up with the line art. ── */}
           <motion.div
             aria-hidden
             className="pointer-events-none absolute z-10 overflow-hidden"
             style={{ ...artBox, y: cerradoY }}
           >
-            <img
+            <CerradoPaint
               src={`${ART}/paint.webp`}
-              alt=""
-              draggable={false}
-              className="h-full w-full max-w-none select-none"
-            />
-            <motion.div
-              className="absolute top-0 left-0 h-full w-[300%]"
-              style={{
-                x: veilX,
-                background: `linear-gradient(to right, rgba(255, 244, 232, 0) 36%, ${PAGE_BG} 44%)`,
-                willChange: 'transform',
-              }}
+              aspect={ART_ASPECT}
+              progress={scrollYProgress}
+              sunX={sunXAt}
+              sunY={sunYAt}
+              start={PAINT_START}
+              end={PAINT_END}
             />
           </motion.div>
-
-          {/* ── z-20  Sun disc, phase 1 — shrinks from a viewport-filling
-                    flood into a small disc. Unmasked, because it is bigger
-                    than the artwork at this point. ── */}
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute z-20 rounded-full"
-            style={{
-              left: sunLeft,
-              top: sunTop,
-              width: '14vmin',
-              height: '14vmin',
-              x: '-50%',
-              y: '-50%',
-              backgroundColor: sunColor,
-              scale: sunScale,
-              opacity: sunFloodOpacity,
-              willChange: 'transform',
-            }}
-          />
 
           {/* ── z-20  Sun disc, phase 2 — arcs across the sky and sets. It
                     lives inside a box masked to the sky, so it disappears
@@ -307,16 +280,35 @@ export function HeroBigDay() {
               WebkitMaskRepeat: 'no-repeat',
             }}
           >
+            {/* Golden haze around the sun, so it glows into the painted light. */}
             <motion.div
               className="absolute rounded-full"
               style={{
                 left: sunLeftPct,
                 top: sunTopPct,
-                width: '14vmin',
-                height: '14vmin',
+                width: '46vmin',
+                height: '46vmin',
                 x: '-50%',
                 y: '-50%',
-                backgroundColor: sunColor,
+                background:
+                  'radial-gradient(circle, rgba(255, 226, 140, 0.45) 0%, rgba(255, 214, 120, 0.18) 35%, rgba(255, 214, 120, 0) 68%)',
+                opacity: sunArcOpacity,
+              }}
+            />
+            <motion.img
+              src={SUN_SRC}
+              alt=""
+              draggable={false}
+              className="absolute max-w-none select-none"
+              style={{
+                left: sunLeftPct,
+                top: sunTopPct,
+                width: SUN_SIZE,
+                height: SUN_SIZE,
+                x: '-50%',
+                y: '-50%',
+                rotate: sunRotate,
+                filter: sunFilter,
                 opacity: sunArcOpacity,
                 willChange: 'transform',
               }}
@@ -344,7 +336,7 @@ export function HeroBigDay() {
               opacity: infoOpacity,
               height: 'calc(var(--art-top) + var(--art-h) * 0.28)',
               background:
-                'linear-gradient(to bottom, rgba(255, 244, 232, 0.92) 0%, rgba(255, 244, 232, 0.8) 45%, rgba(255, 244, 232, 0) 100%)',
+                'linear-gradient(to bottom, rgba(251, 250, 248, 0.92) 0%, rgba(251, 250, 248, 0.8) 45%, rgba(251, 250, 248, 0) 100%)',
             }}
           />
 

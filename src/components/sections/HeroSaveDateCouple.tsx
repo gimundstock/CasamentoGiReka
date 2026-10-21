@@ -6,6 +6,7 @@ import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
 import { OrbitingStory } from '../motion/OrbitingStory'
+import { SUN_BIG_SCALE, SUN_BIG_VMIN, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 function useCountdown(targetDate: string) {
   const [diff, setDiff] = useState(0)
@@ -45,8 +46,8 @@ const FALLING_PETALS = Array.from(
 )
 
 // The bloom grows from 0 and stops at 80 % of its full size, then spins up
-// to the zoom into The Big Day. Its yellow center is what fills the frame
-// on the zoom-out.
+// to the end of the section, where it zooms in and its yellow center
+// becomes the sun of The Big Day.
 // Growth is linear over 0.22 → 0.40, so 80 % is reached at 0.22 + 0.8 * 0.18.
 const HOLD_SCALE = 0.8
 const GROW_END = 0.22 + 0.18 * HOLD_SCALE
@@ -72,6 +73,38 @@ const REAL_GAP_END =
 
 const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
 
+// The yellow center of cosmos_hero.webp (1200 × 1233): centered across,
+// 48.1 % down, about 15 % of the image width. The flower spins and scales
+// around it, and it becomes the sun at the end of the section.
+const CENTER_Y = 48.1
+// In vmin of the 78vmin image box, before scaling: the image is drawn
+// 78 × 1200/1233 = 75.9vmin wide; the yellow center, stamen tips
+// included, reaches about 7.4 % of that from the middle.
+const CENTER_FRINGE_VMIN = 5.6
+// Half of the sun's image box on screen at the hand-off. sun2 is not a
+// perfect circle: its solid body reaches at least 0.66 of this in every
+// direction, its bumps up to ~0.89.
+const SUN_HALF_BOX_VMIN = SUN_BIG_VMIN / 2 / 0.833
+// The sun sits on the cosmos center throughout, sized so the center,
+// stamens included, fits inside the sun's solid body. At the end the flower
+// zooms in (0.90 → 0.96) until the sun is SUN_BIG_VMIN across, then the
+// petals dissolve into the paper (0.96 → 1.00), and HeroBigDay picks the
+// sun up there.
+const ZOOM_START = 0.9
+const ZOOM_END = 0.96
+const ZOOM_SCALE = (SUN_HALF_BOX_VMIN * 0.64) / CENTER_FRINGE_VMIN
+
+function daisyScaleAt(v: number): number {
+  if (v < 0.22) return 0
+  if (v < GROW_END) return ((v - 0.22) / (GROW_END - 0.22)) * HOLD_SCALE
+  if (v < ZOOM_START) return HOLD_SCALE
+  // Geometric, so the zoom feels even rather than rushing at the end.
+  const t = Math.min(1, (v - ZOOM_START) / (ZOOM_END - ZOOM_START))
+  return HOLD_SCALE * Math.pow(ZOOM_SCALE / HOLD_SCALE, t)
+}
+
+const DISSOLVE_START = 0.96
+
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
  *
@@ -81,8 +114,8 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
  * fade settle before the next layer starts.
  *
  * The daisy is one persistent motion.img across the whole flow — it
- * grows in, holds while the fades and cascade play, then zooms out into
- * the next section.
+ * grows in, holds while the fades and the story play, then zooms in and
+ * its center becomes the sun of the next section.
  *
  * Scroll choreography (progress 0 → 1):
  *   0.00 → 0.48  wildflowers and petals fall one by one (time-based,
@@ -105,9 +138,11 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
  *                for the reader to take in the caption.
  *   0.364 → 0.90 flower spins 0° → 1080° behind the heading + cascade
  *                — keeps the flower visibly alive while the story plays.
- *   0.90 → 1.00  daisy zooms scale 1 → 6 into "The Big Day" — only
+ *   0.90 → 1.00  the flower zooms in until its center — the sun, all
+ *                along — is SUN_BIG_VMIN across, then the petals dissolve
+ *                and HeroBigDay picks the sun up there — only
  *                AFTER the last cascade card has scrolled past the top.
- *   0.92 → 1.00  couple heading fades back out so the zoom has clean canvas
+ *   0.92 → 1.00  couple heading fades back out so the sun has clean canvas
  *
  * All opacity motion values use explicit 4-keyframe ramps that pin to 0
  * (or 1) at both ends of the scroll range — this prevents any layer from
@@ -143,27 +178,53 @@ export function HeroSaveDateCouple() {
   const daisyOpacity = useTransform(scrollYProgress, (v: number) => {
     if (v < 0.22) return 0
     if (v < 0.26) return (v - 0.22) / 0.04
-    return 1
+    // At the very end the petals dissolve around the sun (see petalBlur).
+    if (v < DISSOLVE_START) return 1
+    return Math.max(0, 1 - (v - DISSOLVE_START) / (1 - DISSOLVE_START))
+  })
+  // ...blurring as they fade, like a wash melting into wet paper rather
+  // than a photo fading out. In the image's own (unscaled) pixels.
+  const petalBlur = useTransform(scrollYProgress, (v: number) => {
+    if (v < DISSOLVE_START) return 'none'
+    const t = Math.min(1, (v - DISSOLVE_START) / (1 - DISSOLVE_START))
+    return `blur(${(8 * t).toFixed(2)}px)`
   })
   // Scale grows from 0 to 1 over 0.22–0.40 (an 18 % scroll window — long
   // enough on an 800vh stage to be obviously visible), holds at 1 all the
-  // way through the cascade, then zooms HARD from 0.90 → 1.0 (scale 1 → 14)
-  // so the daisy's yellow center fully dominates the frame before the
+  // way through the story, then zooms to ZOOM_SCALE over 0.90 → 0.97 so the
+  // yellow center reaches the sun's size before the
   // hand-off to HeroBigDay.
-  const daisyScale = useTransform(
-    scrollYProgress,
-    [0, 0.22, GROW_END, 0.9, 1],
-    [0, 0, HOLD_SCALE, HOLD_SCALE, 18]
-  )
+  const daisyScale = useTransform(scrollYProgress, daisyScaleAt)
   // Rotation: hold at -20° until grow begins and unwind to 0° as it grows.
   // The moment the grow stops (GROW_END) it starts spinning — 1080° (three
-  // turns) all the way to the zoom — so it is visibly alive through the
+  // turns) all the way to the end — so it is visibly alive through the
   // save-the-date fade, the heading and the cascade.
   const daisyRotate = useTransform(
     scrollYProgress,
-    [0, 0.22, GROW_END, SPIN_END],
-    [-20, -20, 0, SPIN_DEG]
+    [0, 0.22, GROW_END, SPIN_END, 1],
+    [-20, -20, 0, SPIN_DEG, SUN_HANDOFF_ROTATE]
   )
+
+  // The sun IS the cosmos center, all the way through: it sits on the
+  // flower's center, spinning and zooming with it, sized to cover it. At
+  // the end only the petals dissolve, and the sun is already there.
+  const sunScale = useTransform(daisyScale, (sc: number) => (sc * SUN_BIG_SCALE) / ZOOM_SCALE)
+  // Once this section unpins and starts scrolling away, HeroBigDay's sun
+  // (fixed on screen through the seam) has taken over — hide this one so
+  // the sun is never seen twice.
+  const { scrollYProgress: pastProgress } = useScroll({
+    target: stageRef,
+    offset: ['start start', 'end start'],
+  })
+  const unpinAt = SCROLL_VH / (SCROLL_VH + 100)
+  const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) => {
+    // A few pixels of overlap past the unpin, where both suns are identical
+    // and still (HeroBigDay holds its rotation there), so the hand-off has
+    // no gap and no jump.
+    if (past > unpinAt + 0.003 || v < 0.22) return 0
+    if (v < 0.26) return (v - 0.22) / 0.04
+    return 1
+  })
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
   // reliability reason as the daisy opacity above.
@@ -183,16 +244,6 @@ export function HeroSaveDateCouple() {
     return 0
   })
 
-  // Daisy-center yellow safety overlay. As the daisy zooms out to scale 6
-  // its CENTER (the yellow disc) fills the viewport, but anti-aliased edges
-  // and any peach showing through can leave non-yellow pixels. This overlay
-  // ramps to opacity 1 over the very last sliver of scroll so HeroBigDay's
-  // matching yellow background meets a clean, solid frame at the boundary.
-  const yellowMaskOpacity = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.96) return 0
-    return Math.min(1, (v - 0.96) / 0.04)
-  })
-
   const weddingDate = new Date(CONFIG.wedding.date)
   const dateLine = weddingDate
     .toLocaleDateString(i18n.language === 'pt' ? 'pt-BR' : 'en-GB', {
@@ -210,7 +261,7 @@ export function HeroSaveDateCouple() {
 
   const milestones = CONFIG.story?.milestones ?? []
   // The milestones orbit the flower from the first photo on and must be
-  // gone by 0.90, where the daisy zoom-out begins.
+  // gone by 0.90, where the zoom begins.
   const orbitItems = milestones.map((m) => {
     const title = lang === 'pt' ? m.title_pt : m.title_en
     const text = lang === 'pt' ? m.text_pt : m.text_en
@@ -312,12 +363,37 @@ export function HeroSaveDateCouple() {
             className="pointer-events-none absolute top-1/2 left-1/2 z-10 h-[78vmin] w-[78vmin]"
             style={{
               x: '-50%',
-              y: '-50%',
+              y: `-${CENTER_Y}%`,
+              transformOrigin: `50% ${CENTER_Y}%`,
+              filter: petalBlur,
               objectFit: 'contain',
               opacity: daisyOpacity,
               scale: daisyScale,
               rotate: daisyRotate,
               willChange: 'transform, opacity',
+            }}
+          />
+
+          {/* ── z-[11]  The sun — the cosmos's center from the start,
+                    (fixed, not absolute: when this section unpins, the
+                    browser scrolls it a frame before the hand-off runs, and
+                    the sun would bump up with it)
+                    spinning and zooming with the flower. Ends with the same
+                    size, place and rotation as where HeroBigDay starts. ── */}
+          <motion.img
+            src={SUN_SRC}
+            alt=""
+            aria-hidden
+            draggable={false}
+            className="pointer-events-none fixed top-1/2 left-1/2 z-[11] max-w-none select-none"
+            style={{
+              width: SUN_SIZE,
+              height: SUN_SIZE,
+              x: '-50%',
+              y: '-50%',
+              scale: sunScale,
+              rotate: daisyRotate,
+              opacity: sunOpacity,
             }}
           />
 
@@ -342,15 +418,6 @@ export function HeroSaveDateCouple() {
               {t('couple.ourStory')}
             </h2>
           </motion.div>
-
-          {/* ── z-40  Yellow safety overlay — guarantees a clean solid yellow
-                    frame at the very end of this section, matching the
-                    starting bg of HeroBigDay so the transition is seamless. ── */}
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-40"
-            style={{ backgroundColor: '#FCCC1D', opacity: yellowMaskOpacity }}
-          />
         </div>
       </div>
     </section>
