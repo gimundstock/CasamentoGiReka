@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
 import { CerradoPaint } from './CerradoPaint'
-import { SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
+import { SUN_BIG_SCALE, SUN_HANDOFF_ROTATE, SUN_SIZE } from './sun'
+import { SunImage, SunWatercolorFilter } from './SunImage'
 
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
 // painted in around the sun as it travels, the pencil line
@@ -103,19 +104,35 @@ export function HeroBigDay() {
     offset: ['start start', 'end end'],
   })
 
-  // Sun, phase 1: it arrives from HeroSaveDateCouple as the cosmos center,
-  // in the middle of the screen, holds there for the first 10 % (so the
-  // seam is forgiving of fast scrolls), then rises to the upper-left of
-  // the painting as the landscape slides up.
+  // Sun, phase 1: it arrives from HeroSaveDateCouple as the zoomed-in
+  // cosmos center — big, in the middle of the screen. It is FIXED on
+  // screen from the moment that section unpins, through the 100vh where
+  // the two sections scroll past each other, so it never moves with the
+  // page or shows twice. `seam` runs from that moment (this stage's top
+  // at the viewport bottom) to the end; `ext` is the same scroll on this
+  // section's own 0 → 1 timeline, so it is -1/3 at the hand-off.
+  const { scrollYProgress: seam } = useScroll({
+    target: stageRef,
+    offset: ['start end', 'end end'],
+  })
+  const ext = useTransform(seam, (p: number) => (p * 4 - 1) / 3)
+  // Holds until 0.10, then rises to the upper-left of the painting and
+  // shrinks to its disc size as the landscape slides up (0.10 → 0.30).
   const riseT = (v: number) => Math.min(1, Math.max(0, (v - 0.1) / 0.2))
-  const sunRiseLeft = useTransform(scrollYProgress, (v: number) => {
+  const sunRiseLeft = useTransform(ext, (v: number) => {
     const t = riseT(v)
     return `calc(50% * ${1 - t} + ${artX(sunXAt(0.3))} * ${t})`
   })
-  const sunRiseTop = useTransform(scrollYProgress, (v: number) => {
+  const sunRiseTop = useTransform(ext, (v: number) => {
     const t = riseT(v)
     return `calc(50% * ${1 - t} + ${artY(sunYAt(0.3))} * ${t})`
   })
+  const sunRiseScale = useTransform(ext, (v: number) => Math.pow(SUN_BIG_SCALE, 1 - riseT(v)))
+  const sunRiseOpacity = useTransform([seam, ext], ([p, v]: number[]) => (p > 0 && v < 0.3 ? 1 : 0))
+  const sunRiseRotate = useTransform(ext, (v: number) => SUN_HANDOFF_ROTATE + (v + 1 / 3) * 240)
+  // As it rises it turns from the photo into watercolor, so it belongs to
+  // the painting by the time it is in the sky.
+  const sunPaintAmount = useTransform(ext, riseT)
 
   // Sun position (percent of the artwork box, see sunXAt / sunYAt).
   const sunXPct = useTransform(scrollYProgress, sunXAt)
@@ -128,7 +145,10 @@ export function HeroBigDay() {
     const t = Math.min(1, Math.max(0, (v - 0.3) / 0.55))
     return `hue-rotate(${(-16 * t).toFixed(1)}deg) saturate(${(1 + 0.35 * t).toFixed(2)}) brightness(${(1 - 0.12 * t).toFixed(3)})`
   })
-  const sunRotate = useTransform(scrollYProgress, (v: number) => SUN_HANDOFF_ROTATE + v * 240)
+  const sunRotate = useTransform(
+    scrollYProgress,
+    (v: number) => SUN_HANDOFF_ROTATE + (v + 1 / 3) * 240
+  )
 
   // Info panel fades in once the sun has set.
   const infoOpacity = useTransform(scrollYProgress, (v: number) => {
@@ -153,7 +173,6 @@ export function HeroBigDay() {
   const sunTopPct = useTransform(sunYPct, (y: number) => `${y}%`)
   // Hand-off between the two sun elements at 0.30, where they match
   // exactly (same position, size, rotation and tint).
-  const sunFloodOpacity = useTransform(scrollYProgress, (v: number) => (v < 0.3 ? 1 : 0))
   const sunArcOpacity = useTransform(scrollYProgress, (v: number) => (v < 0.3 ? 0 : 1))
 
   const weddingDate = new Date(CONFIG.wedding.date)
@@ -178,6 +197,30 @@ export function HeroBigDay() {
         {/* Inner anchor for the Nav "The Wedding" link — placed at scroll
             progress ~0.95 (300vh * 0.95 = 285vh into the stage), the
             moment the info panel + sun-set landscape are fully shown. */}
+        {/* ── z-20  Sun, phase 1 — fixed on screen (see `seam`): the zoomed
+                  cosmos center, rising from the middle of the screen to the
+                  upper-left as it shrinks. Unmasked: it starts outside the
+                  sky. Sets the same art variables as the stage so its end
+                  point lands on the painting. ── */}
+        <SunWatercolorFilter />
+        <SunImage
+          paint={sunPaintAmount}
+          className="pointer-events-none fixed z-20 [--art-top:44vh] md:[--art-top:14vh]"
+          style={{
+            ...artVars,
+            left: sunRiseLeft,
+            top: sunRiseTop,
+            width: SUN_SIZE,
+            height: SUN_SIZE,
+            x: '-50%',
+            y: '-50%',
+            scale: sunRiseScale,
+            rotate: sunRiseRotate,
+            filter: sunFilter,
+            opacity: sunRiseOpacity,
+            willChange: 'transform',
+          }}
+        />
         <div
           id="big-day"
           className="pointer-events-none absolute h-px w-px"
@@ -205,29 +248,6 @@ export function HeroBigDay() {
               end={PAINT_END}
             />
           </motion.div>
-
-          {/* ── z-20  Sun disc, phase 1 — the cosmos center from the
-                    previous section, rising from the middle of the screen
-                    to the upper-left. Unmasked: it starts outside the sky. ── */}
-          <motion.img
-            src={SUN_SRC}
-            alt=""
-            aria-hidden
-            draggable={false}
-            className="pointer-events-none absolute z-20 max-w-none select-none"
-            style={{
-              left: sunRiseLeft,
-              top: sunRiseTop,
-              width: SUN_SIZE,
-              height: SUN_SIZE,
-              x: '-50%',
-              y: '-50%',
-              rotate: sunRotate,
-              filter: sunFilter,
-              opacity: sunFloodOpacity,
-              willChange: 'transform',
-            }}
-          />
 
           {/* ── z-20  Sun disc, phase 2 — arcs across the sky and sets. It
                     lives inside a box masked to the sky, so it disappears
@@ -261,11 +281,9 @@ export function HeroBigDay() {
                 opacity: sunArcOpacity,
               }}
             />
-            <motion.img
-              src={SUN_SRC}
-              alt=""
-              draggable={false}
-              className="absolute max-w-none select-none"
+            <SunImage
+              paint={sunPaintAmount}
+              className="absolute"
               style={{
                 left: sunLeftPct,
                 top: sunTopPct,

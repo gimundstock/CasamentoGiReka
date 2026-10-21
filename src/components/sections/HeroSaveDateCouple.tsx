@@ -6,7 +6,7 @@ import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
 import { OrbitingStory } from '../motion/OrbitingStory'
-import { SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
+import { SUN_BIG_SCALE, SUN_BIG_VMIN, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 function useCountdown(targetDate: string) {
   const [diff, setDiff] = useState(0)
@@ -46,8 +46,8 @@ const FALLING_PETALS = Array.from(
 )
 
 // The bloom grows from 0 and stops at 80 % of its full size, then spins up
-// to the end of the section, where its petals dissolve and its yellow
-// center becomes the sun of The Big Day.
+// to the end of the section, where it zooms in and its yellow center
+// becomes the sun of The Big Day.
 // Growth is linear over 0.22 → 0.40, so 80 % is reached at 0.22 + 0.8 * 0.18.
 const HOLD_SCALE = 0.8
 const GROW_END = 0.22 + 0.18 * HOLD_SCALE
@@ -81,13 +81,12 @@ const CENTER_Y = 48.1
 // 78 × 1200/1233 = 75.9vmin wide; the yellow, without the dark petal
 // bases around it, is about 14 % of that.
 const CENTER_RADIUS_VMIN = 5.4
-// Scale at which the center is exactly the sun's size (14vmin).
-const SUN_SCALE = 14 / (2 * CENTER_RADIUS_VMIN)
-// End of the section: the petals dissolve (0.90 → 0.97)
-// while the flower grows to SUN_SCALE, then the center turns into the
-// watercolor sun (0.95 → 1.00) that HeroBigDay picks up.
-const PETALS_IN_START = 0.9
-const PETALS_IN_END = 0.97
+// End of the section: the flower zooms in (0.90 → 0.97) until its center
+// is SUN_BIG_VMIN across — the petals fly out of the frame — then the sun
+// takes the center's place (0.95 → 1.00), and HeroBigDay picks it up there.
+const ZOOM_START = 0.9
+const ZOOM_END = 0.97
+const ZOOM_SCALE = SUN_BIG_VMIN / (2 * CENTER_RADIUS_VMIN)
 
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
@@ -98,8 +97,8 @@ const PETALS_IN_END = 0.97
  * fade settle before the next layer starts.
  *
  * The daisy is one persistent motion.img across the whole flow — it
- * grows in, holds while the fades and the story play, then its petals
- * dissolve and its center becomes the sun of the next section.
+ * grows in, holds while the fades and the story play, then zooms in and
+ * its center becomes the sun of the next section.
  *
  * Scroll choreography (progress 0 → 1):
  *   0.00 → 0.48  wildflowers and petals fall one by one (time-based,
@@ -122,9 +121,9 @@ const PETALS_IN_END = 0.97
  *                for the reader to take in the caption.
  *   0.364 → 0.90 flower spins 0° → 1080° behind the heading + cascade
  *                — keeps the flower visibly alive while the story plays.
- *   0.90 → 1.00  the petals dissolve and the flower grows until its center
- *                is the sun's size; the center turns into the watercolor
- *                sun that HeroBigDay picks up, on its paper color — only
+ *   0.90 → 1.00  the flower zooms in (petals fly out of frame) until its
+ *                center is SUN_BIG_VMIN across, and the sun image takes
+ *                the center's place; HeroBigDay picks it up there — only
  *                AFTER the last cascade card has scrolled past the top.
  *   0.92 → 1.00  couple heading fades back out so the sun has clean canvas
  *
@@ -168,14 +167,17 @@ export function HeroSaveDateCouple() {
   })
   // Scale grows from 0 to 1 over 0.22–0.40 (an 18 % scroll window — long
   // enough on an 800vh stage to be obviously visible), holds at 1 all the
-  // way through the story, then grows to SUN_SCALE over 0.90 → 0.97 so the
+  // way through the story, then zooms to ZOOM_SCALE over 0.90 → 0.97 so the
   // yellow center reaches the sun's size before the
   // hand-off to HeroBigDay.
-  const daisyScale = useTransform(
-    scrollYProgress,
-    [0, 0.22, GROW_END, PETALS_IN_START, PETALS_IN_END],
-    [0, 0, HOLD_SCALE, HOLD_SCALE, SUN_SCALE]
-  )
+  const daisyScale = useTransform(scrollYProgress, (v: number) => {
+    if (v < 0.22) return 0
+    if (v < GROW_END) return ((v - 0.22) / (GROW_END - 0.22)) * HOLD_SCALE
+    if (v < ZOOM_START) return HOLD_SCALE
+    // Geometric, so the zoom feels even rather than rushing at the end.
+    const t = Math.min(1, (v - ZOOM_START) / (ZOOM_END - ZOOM_START))
+    return HOLD_SCALE * Math.pow(ZOOM_SCALE / HOLD_SCALE, t)
+  })
   // Rotation: hold at -20° until grow begins and unwind to 0° as it grows.
   // The moment the grow stops (GROW_END) it starts spinning — 1080° (three
   // turns) all the way to the end — so it is visibly alive through the
@@ -186,17 +188,17 @@ export function HeroSaveDateCouple() {
     [-20, -20, 0, SPIN_DEG, SUN_HANDOFF_ROTATE]
   )
 
-  // The petals dissolve, leaving only the yellow center: a radial mask
-  // keeps the center solid while everything outside it fades away.
-  const petalMask = useTransform(scrollYProgress, (v: number) => {
-    const t = Math.min(1, Math.max(0, (v - PETALS_IN_START) / (PETALS_IN_END - PETALS_IN_START)))
-    const petals = (1 - t * t * (3 - 2 * t)).toFixed(3)
-    const r = CENTER_RADIUS_VMIN
-    return `radial-gradient(circle at 50% ${CENTER_Y}%, #000 ${r}vmin, rgba(0, 0, 0, ${petals}) ${r + 0.8}vmin)`
+  // The sun takes the center's place at the end of the zoom.
+  // Once this section unpins and starts scrolling away, HeroBigDay's sun
+  // (fixed on screen through the seam) has taken over — hide this one so
+  // the sun is never seen twice.
+  const { scrollYProgress: pastProgress } = useScroll({
+    target: stageRef,
+    offset: ['start start', 'end start'],
   })
-  // The sun takes the center's place as the petals finish dissolving.
-  const sunOpacity = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.95) return 0
+  const unpinAt = SCROLL_VH / (SCROLL_VH + 100)
+  const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) => {
+    if (past > unpinAt || v < 0.95) return 0
     return Math.min(1, (v - 0.95) / 0.04)
   })
 
@@ -242,7 +244,7 @@ export function HeroSaveDateCouple() {
 
   const milestones = CONFIG.story?.milestones ?? []
   // The milestones orbit the flower from the first photo on and must be
-  // gone by 0.90, where the petals start to dissolve.
+  // gone by 0.90, where the zoom begins.
   const orbitItems = milestones.map((m) => {
     const title = lang === 'pt' ? m.title_pt : m.title_en
     const text = lang === 'pt' ? m.text_pt : m.text_en
@@ -354,8 +356,6 @@ export function HeroSaveDateCouple() {
               y: `-${CENTER_Y}%`,
               transformOrigin: `50% ${CENTER_Y}%`,
               objectFit: 'contain',
-              maskImage: petalMask,
-              WebkitMaskImage: petalMask,
               opacity: daisyOpacity,
               scale: daisyScale,
               rotate: daisyRotate,
@@ -377,6 +377,7 @@ export function HeroSaveDateCouple() {
               height: SUN_SIZE,
               x: '-50%',
               y: '-50%',
+              scale: SUN_BIG_SCALE,
               rotate: daisyRotate,
               opacity: sunOpacity,
             }}
