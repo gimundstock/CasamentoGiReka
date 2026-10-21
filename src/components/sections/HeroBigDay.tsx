@@ -3,26 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
 import { CerradoPaint } from './CerradoPaint'
-import { SUN_SIZE, SUN_YELLOW, sunPaint } from './sun'
-
-/**
- * Linear interpolation between two hex colors. Both must be 7-char `#RRGGBB`.
- */
-function lerpHex(a: string, b: string, t: number): string {
-  const ar = parseInt(a.slice(1, 3), 16)
-  const ag = parseInt(a.slice(3, 5), 16)
-  const ab = parseInt(a.slice(5, 7), 16)
-  const br = parseInt(b.slice(1, 3), 16)
-  const bg = parseInt(b.slice(3, 5), 16)
-  const bb = parseInt(b.slice(5, 7), 16)
-  const r = Math.round(ar + (br - ar) * t)
-  const g = Math.round(ag + (bg - ag) * t)
-  const bl = Math.round(ab + (bb - ab) * t)
-  return `rgb(${r}, ${g}, ${bl})`
-}
-
-const SUN_GOLD = '#EF960F' // mid-arc warm gold
-const SUN_DEEP = '#DF730F' // setting sun — warm orange (stops short of the deep brick #C85308)
+import { SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
 // painted in around the sun as it travels, the pencil line
@@ -140,14 +121,14 @@ export function HeroBigDay() {
   const sunXPct = useTransform(scrollYProgress, sunXAt)
   const sunYPct = useTransform(scrollYProgress, sunYAt)
 
-  // Sun color: yellow → gold across the rise (0.30 → arc apex ~0.575),
-  // then gold → deep sunset orange across the descent (apex → set 0.85).
-  const sunColor = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.3) return SUN_YELLOW
-    if (v < 0.575) return lerpHex(SUN_YELLOW, SUN_GOLD, (v - 0.3) / 0.275)
-    if (v < 0.85) return lerpHex(SUN_GOLD, SUN_DEEP, (v - 0.575) / 0.275)
-    return SUN_DEEP
+  // The sun warms as it travels: golden on the rise, deeper orange as it
+  // sets (0.30 → 0.85). It keeps turning slowly, carried on from the
+  // flower's spin.
+  const sunFilter = useTransform(scrollYProgress, (v: number) => {
+    const t = Math.min(1, Math.max(0, (v - 0.3) / 0.55))
+    return `hue-rotate(${(-16 * t).toFixed(1)}deg) saturate(${(1 + 0.35 * t).toFixed(2)}) brightness(${(1 - 0.12 * t).toFixed(3)})`
   })
+  const sunRotate = useTransform(scrollYProgress, (v: number) => SUN_HANDOFF_ROTATE + v * 240)
 
   // Info panel fades in once the sun has set.
   const infoOpacity = useTransform(scrollYProgress, (v: number) => {
@@ -171,7 +152,7 @@ export function HeroBigDay() {
   const sunLeftPct = useTransform(sunXPct, (x: number) => `${x}%`)
   const sunTopPct = useTransform(sunYPct, (y: number) => `${y}%`)
   // Hand-off between the two sun elements at 0.30, where they match
-  // exactly (same position, size and color).
+  // exactly (same position, size, rotation and tint).
   const sunFloodOpacity = useTransform(scrollYProgress, (v: number) => (v < 0.3 ? 1 : 0))
   const sunArcOpacity = useTransform(scrollYProgress, (v: number) => (v < 0.3 ? 0 : 1))
 
@@ -225,63 +206,15 @@ export function HeroBigDay() {
             />
           </motion.div>
 
-          {/* Watercolor texture for the sun: wobbly edge + paper grain. */}
-          <svg aria-hidden className="absolute h-0 w-0">
-            <filter id="sun-watercolor" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="soft" />
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.03"
-                numOctaves="3"
-                seed="4"
-                result="warp"
-              />
-              <feDisplacementMap
-                in="soft"
-                in2="warp"
-                scale="9"
-                xChannelSelector="R"
-                yChannelSelector="G"
-                result="shape"
-              />
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.85"
-                numOctaves="2"
-                seed="9"
-                result="grain"
-              />
-              <feColorMatrix
-                in="grain"
-                type="matrix"
-                values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -0.9 0 0 0 1.3"
-                result="grainAlpha"
-              />
-              {/* Mottling — the pigment settles unevenly, like the sky. */}
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.07"
-                numOctaves="2"
-                seed="2"
-                result="mottle"
-              />
-              <feColorMatrix
-                in="mottle"
-                type="matrix"
-                values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.1 0 0 0 1.45"
-                result="mottleAlpha"
-              />
-              <feComposite in="shape" in2="grainAlpha" operator="in" result="grained" />
-              <feComposite in="grained" in2="mottleAlpha" operator="in" />
-            </filter>
-          </svg>
-
           {/* ── z-20  Sun disc, phase 1 — the cosmos center from the
                     previous section, rising from the middle of the screen
                     to the upper-left. Unmasked: it starts outside the sky. ── */}
-          <motion.div
+          <motion.img
+            src={SUN_SRC}
+            alt=""
             aria-hidden
-            className="pointer-events-none absolute z-20 rounded-full"
+            draggable={false}
+            className="pointer-events-none absolute z-20 max-w-none select-none"
             style={{
               left: sunRiseLeft,
               top: sunRiseTop,
@@ -289,8 +222,8 @@ export function HeroBigDay() {
               height: SUN_SIZE,
               x: '-50%',
               y: '-50%',
-              backgroundColor: sunColor,
-              ...sunPaint,
+              rotate: sunRotate,
+              filter: sunFilter,
               opacity: sunFloodOpacity,
               willChange: 'transform',
             }}
@@ -328,8 +261,11 @@ export function HeroBigDay() {
                 opacity: sunArcOpacity,
               }}
             />
-            <motion.div
-              className="absolute rounded-full"
+            <motion.img
+              src={SUN_SRC}
+              alt=""
+              draggable={false}
+              className="absolute max-w-none select-none"
               style={{
                 left: sunLeftPct,
                 top: sunTopPct,
@@ -337,8 +273,8 @@ export function HeroBigDay() {
                 height: SUN_SIZE,
                 x: '-50%',
                 y: '-50%',
-                backgroundColor: sunColor,
-                ...sunPaint,
+                rotate: sunRotate,
+                filter: sunFilter,
                 opacity: sunArcOpacity,
                 willChange: 'transform',
               }}

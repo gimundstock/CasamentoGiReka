@@ -6,7 +6,7 @@ import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
 import { OrbitingStory } from '../motion/OrbitingStory'
-import { SUN_SIZE, SUN_YELLOW, sunPaint } from './sun'
+import { SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 function useCountdown(targetDate: string) {
   const [diff, setDiff] = useState(0)
@@ -183,7 +183,7 @@ export function HeroSaveDateCouple() {
   const daisyRotate = useTransform(
     scrollYProgress,
     [0, 0.22, GROW_END, SPIN_END, 1],
-    [-20, -20, 0, SPIN_DEG, SPIN_DEG + 120]
+    [-20, -20, 0, SPIN_DEG, SUN_HANDOFF_ROTATE]
   )
 
   // The petals dissolve, leaving only the yellow center: a radial mask
@@ -194,7 +194,7 @@ export function HeroSaveDateCouple() {
     const r = CENTER_RADIUS_VMIN
     return `radial-gradient(circle at 50% ${CENTER_Y}%, #000 ${r}vmin, rgba(0, 0, 0, ${petals}) ${r + 0.8}vmin)`
   })
-  // The painted sun forms over the center as the petals finish drawing in.
+  // The sun takes the center's place as the petals finish dissolving.
   const sunOpacity = useTransform(scrollYProgress, (v: number) => {
     if (v < 0.95) return 0
     return Math.min(1, (v - 0.95) / 0.04)
@@ -363,18 +363,21 @@ export function HeroSaveDateCouple() {
             }}
           />
 
-          {/* ── z-[11]  The sun — the cosmos center, repainted in watercolor.
-                    Same size, place and color as where HeroBigDay starts. ── */}
-          <motion.div
+          {/* ── z-[11]  The sun — takes the place of the cosmos center,
+                    turning with the flower. Same size, place and rotation
+                    as where HeroBigDay starts. ── */}
+          <motion.img
+            src={SUN_SRC}
+            alt=""
             aria-hidden
-            className="pointer-events-none absolute top-1/2 left-1/2 z-[11] rounded-full"
+            draggable={false}
+            className="pointer-events-none absolute top-1/2 left-1/2 z-[11] max-w-none select-none"
             style={{
               width: SUN_SIZE,
               height: SUN_SIZE,
               x: '-50%',
               y: '-50%',
-              backgroundColor: SUN_YELLOW,
-              ...sunPaint,
+              rotate: daisyRotate,
               opacity: sunOpacity,
             }}
           />

@@ -1,16 +1,12 @@
-import type { CSSProperties } from 'react'
-
 // The sun starts as the cosmos center in HeroSaveDateCouple and travels
 // on into HeroBigDay — both sections draw it with these.
-export const SUN_YELLOW = '#FCCC1D'
-export const SUN_SIZE = '14vmin'
-
-// Watercolor sun: a pale center, pigment pooled at the rim, a soft wobbly
-// edge and paper grain (the #sun-watercolor filter, defined once in
-// HeroBigDay), so it sits in the painting instead of on top of it.
-export const sunPaint = {
-  backgroundImage:
-    'radial-gradient(circle at 48% 46%, rgba(255, 244, 200, 0.42) 0%, rgba(255, 236, 170, 0.16) 45%, rgba(255, 236, 170, 0) 66%)',
-  boxShadow: 'inset 0 0 1.2vmin 0.5vmin rgba(190, 76, 10, 0.4)',
-  filter: 'url(#sun-watercolor)',
-} as CSSProperties
+//
+// public/flowers/sun.webp is a flower-center photo cropped square around
+// its middle; its spiky edge spans about 83 % of the image. SUN_SIZE is
+// the image box, so the sun itself is ~14vmin across — the size of the
+// cosmos center when the flower is scaled up at the hand-off.
+export const SUN_SRC = `${import.meta.env.BASE_URL}flowers/sun.webp`
+export const SUN_SIZE = '16.8vmin'
+// The sun keeps turning with the flower: its rotation at the hand-off,
+// where HeroBigDay picks it up.
+export const SUN_HANDOFF_ROTATE = 1200
