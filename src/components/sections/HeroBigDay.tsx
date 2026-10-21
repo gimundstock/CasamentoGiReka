@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
 import { CerradoPaint } from './CerradoPaint'
-import { SUN_BIG_SCALE, SUN_HANDOFF_ROTATE, SUN_SIZE } from './sun'
-import { SunImage, SunWatercolorFilter } from './SunImage'
+import { SUN_BIG_SCALE, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
 // painted in around the sun as it travels, the pencil line
@@ -130,9 +129,6 @@ export function HeroBigDay() {
   const sunRiseScale = useTransform(ext, (v: number) => Math.pow(SUN_BIG_SCALE, 1 - riseT(v)))
   const sunRiseOpacity = useTransform([seam, ext], ([p, v]: number[]) => (p > 0 && v < 0.3 ? 1 : 0))
   const sunRiseRotate = useTransform(ext, (v: number) => SUN_HANDOFF_ROTATE + (v + 1 / 3) * 240)
-  // As it rises it turns from the photo into watercolor, so it belongs to
-  // the painting by the time it is in the sky.
-  const sunPaintAmount = useTransform(ext, riseT)
 
   // Sun position (percent of the artwork box, see sunXAt / sunYAt).
   const sunXPct = useTransform(scrollYProgress, sunXAt)
@@ -202,10 +198,12 @@ export function HeroBigDay() {
                   upper-left as it shrinks. Unmasked: it starts outside the
                   sky. Sets the same art variables as the stage so its end
                   point lands on the painting. ── */}
-        <SunWatercolorFilter />
-        <SunImage
-          paint={sunPaintAmount}
-          className="pointer-events-none fixed z-20 [--art-top:44vh] md:[--art-top:14vh]"
+        <motion.img
+          src={SUN_SRC}
+          alt=""
+          aria-hidden
+          draggable={false}
+          className="pointer-events-none fixed z-20 max-w-none select-none [--art-top:44vh] md:[--art-top:14vh]"
           style={{
             ...artVars,
             left: sunRiseLeft,
@@ -281,9 +279,11 @@ export function HeroBigDay() {
                 opacity: sunArcOpacity,
               }}
             />
-            <SunImage
-              paint={sunPaintAmount}
-              className="absolute"
+            <motion.img
+              src={SUN_SRC}
+              alt=""
+              draggable={false}
+              className="absolute max-w-none select-none"
               style={{
                 left: sunLeftPct,
                 top: sunTopPct,

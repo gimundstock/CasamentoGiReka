@@ -78,15 +78,35 @@ const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
 // around it, and it becomes the sun at the end of the section.
 const CENTER_Y = 48.1
 // In vmin of the 78vmin image box, before scaling: the image is drawn
-// 78 × 1200/1233 = 75.9vmin wide; the yellow, without the dark petal
-// bases around it, is about 14 % of that.
-const CENTER_RADIUS_VMIN = 5.4
-// End of the section: the flower zooms in (0.90 → 0.97) until its center
-// is SUN_BIG_VMIN across — the petals fly out of the frame — then the sun
-// takes the center's place (0.95 → 1.00), and HeroBigDay picks it up there.
+// 78 × 1200/1233 = 75.9vmin wide; the yellow center, stamen tips
+// included, reaches about 7.4 % of that from the middle.
+const CENTER_FRINGE_VMIN = 5.6
+// The sun is solid out to 92 % of its visible radius; past that is its soft
+// cream edge.
+const SUN_SOLID_VMIN = (SUN_BIG_VMIN / 2) * 0.92
+// End of the section: the flower zooms in (0.90 → 0.97) — the petals fly out
+// of the frame — until the cosmos center's stamens end exactly where the
+// sun's solid part does. Then the sun takes the center's place
+// (0.94 → 0.98), and HeroBigDay picks it up there.
 const ZOOM_START = 0.9
 const ZOOM_END = 0.97
-const ZOOM_SCALE = SUN_BIG_VMIN / (2 * CENTER_RADIUS_VMIN)
+const ZOOM_SCALE = SUN_SOLID_VMIN / CENTER_FRINGE_VMIN
+
+function daisyScaleAt(v: number): number {
+  if (v < 0.22) return 0
+  if (v < GROW_END) return ((v - 0.22) / (GROW_END - 0.22)) * HOLD_SCALE
+  if (v < ZOOM_START) return HOLD_SCALE
+  // Geometric, so the zoom feels even rather than rushing at the end.
+  const t = Math.min(1, (v - ZOOM_START) / (ZOOM_END - ZOOM_START))
+  return HOLD_SCALE * Math.pow(ZOOM_SCALE / HOLD_SCALE, t)
+}
+
+// The sun reveal (0.94 → 0.98): radius of the solid sun on screen, in vmin,
+// growing to the edge of the solid sun — where the cosmos center ends.
+function sunRevealVmin(v: number): number {
+  const t = Math.min(1, Math.max(0, (v - 0.94) / 0.04))
+  return t * SUN_SOLID_VMIN
+}
 
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
@@ -170,14 +190,7 @@ export function HeroSaveDateCouple() {
   // way through the story, then zooms to ZOOM_SCALE over 0.90 → 0.97 so the
   // yellow center reaches the sun's size before the
   // hand-off to HeroBigDay.
-  const daisyScale = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.22) return 0
-    if (v < GROW_END) return ((v - 0.22) / (GROW_END - 0.22)) * HOLD_SCALE
-    if (v < ZOOM_START) return HOLD_SCALE
-    // Geometric, so the zoom feels even rather than rushing at the end.
-    const t = Math.min(1, (v - ZOOM_START) / (ZOOM_END - ZOOM_START))
-    return HOLD_SCALE * Math.pow(ZOOM_SCALE / HOLD_SCALE, t)
-  })
+  const daisyScale = useTransform(scrollYProgress, daisyScaleAt)
   // Rotation: hold at -20° until grow begins and unwind to 0° as it grows.
   // The moment the grow stops (GROW_END) it starts spinning — 1080° (three
   // turns) all the way to the end — so it is visibly alive through the
@@ -200,13 +213,20 @@ export function HeroSaveDateCouple() {
   const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) =>
     past > unpinAt || v < 0.94 ? 0 : 1
   )
-  // The sun is revealed from the middle outward (0.94 → 0.98), solid inside
-  // a growing circle — never half-transparent over the cosmos center, which
-  // would show both textures at once.
+  // The sun is revealed from the middle outward (0.94 → 0.98), and the
+  // cosmos center is cut away under it by the same circle — inside it only
+  // the new sun, outside only the flower, never the two mixed. Both masks
+  // are in each element's own (unscaled) units, hence the divisions.
   const sunReveal = useTransform(scrollYProgress, (v: number) => {
-    const t = Math.min(1, Math.max(0, (v - 0.94) / 0.04))
-    const r = t * 115
-    return `radial-gradient(circle closest-side, #000 ${r.toFixed(1)}%, transparent ${(r + 15).toFixed(1)}%)`
+    const r = sunRevealVmin(v) / SUN_BIG_SCALE
+    // At the end the whole sun shows, its soft edge included.
+    if (v >= 0.98) return 'none'
+    return `radial-gradient(circle, #000 ${r.toFixed(2)}vmin, transparent ${(r + 0.15).toFixed(2)}vmin)`
+  })
+  const centerHole = useTransform(scrollYProgress, (v: number) => {
+    if (v < 0.94) return 'none'
+    const r = sunRevealVmin(v) / daisyScaleAt(v)
+    return `radial-gradient(circle at 50% ${CENTER_Y}%, transparent ${r.toFixed(2)}vmin, #000 ${(r + 0.25).toFixed(2)}vmin)`
   })
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
@@ -362,6 +382,8 @@ export function HeroSaveDateCouple() {
               x: '-50%',
               y: `-${CENTER_Y}%`,
               transformOrigin: `50% ${CENTER_Y}%`,
+              maskImage: centerHole,
+              WebkitMaskImage: centerHole,
               objectFit: 'contain',
               opacity: daisyOpacity,
               scale: daisyScale,
