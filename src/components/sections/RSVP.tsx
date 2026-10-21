@@ -420,7 +420,6 @@ const CTA =
 function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: boolean }) {
   const { t } = useTranslation()
   const date = formatDate(CONFIG.wedding.date, lang, {
-    weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -429,7 +428,20 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
 
   return (
     // Bottom padding (a % of the width) keeps the text in the clear centre, above the painted flowers.
-    <div className="min-h-full flex flex-col items-center justify-center text-center text-title pb-[38%] md:pb-[20%]">
+    <div
+      className={`relative min-h-full flex flex-col items-center justify-center text-center text-title ${
+        wide ? 'pb-[16%]' : 'pt-16 pb-[38%]'
+      }`}
+    >
+      {/* The details, tucked into the top-right corner like a printed card's colophon. */}
+      <div className="absolute top-0 right-0 text-right leading-snug">
+        <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase">{date}</p>
+        <p className="font-serif text-sm mt-1">
+          {t('rsvp.inviteTime', { time: CONFIG.wedding.time })}
+        </p>
+        <p className="font-serif text-sm">{CONFIG.wedding.venue}</p>
+      </div>
+
       <h2
         className={`font-display leading-[1.45] ${
           wide ? 'text-[2.6rem] whitespace-nowrap' : 'text-4xl flex flex-col'
@@ -442,33 +454,12 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         {CONFIG.couple.groom}
       </h2>
       <p className="font-serif italic text-lg mt-5">{t('rsvp.inviteRequest')}</p>
-      <p className="font-display text-3xl md:text-4xl leading-normal mt-5 mb-3 text-forest-deep">
+      <p className="font-display text-2xl md:text-3xl leading-normal mt-4 mb-2 text-forest-deep">
         {guest.groupName}
       </p>
       <p className="font-serif italic text-lg">{t('rsvp.inviteCelebrate')}</p>
 
-      <div className="h-6" />
-
-      <div
-        className={`flex items-center ${
-          wide ? 'flex-row divide-x divide-amber/30' : 'flex-col gap-3'
-        }`}
-      >
-        <p className={`font-sans text-xs tracking-[0.3em] uppercase ${wide ? 'px-6' : ''}`}>
-          {date}
-        </p>
-        <p className={`font-serif text-lg ${wide ? 'px-6' : ''}`}>
-          {t('rsvp.inviteTime', { time: CONFIG.wedding.time })}
-        </p>
-        <p className={`font-serif text-lg ${wide ? 'px-6' : ''}`}>
-          {CONFIG.wedding.venue}
-          <span className="font-sans text-[0.6rem] tracking-[0.35em] uppercase text-title/60 ml-2">
-            Brasília
-          </span>
-        </p>
-      </div>
-
-      <p className="font-serif italic text-title/70 mt-4">
+      <p className="font-serif italic text-title/70 mt-8">
         {t('rsvp.replyBy', { date: deadline })}
       </p>
     </div>
