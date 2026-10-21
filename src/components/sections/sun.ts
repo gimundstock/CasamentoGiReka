@@ -15,9 +15,6 @@ export const SUN_HANDOFF_ROTATE = 1200
 // it rises.
 export const SUN_BIG_VMIN = 32
 export const SUN_BIG_SCALE = SUN_BIG_VMIN / 14
-// The sun softens into watercolor: the blur starts while the petals are
-// still dissolving around it (HeroSaveDateCouple), is SUN_BLUR_HANDOFF at
-// the hand-off, and reaches SUN_BLUR_FINAL once it is in the sky
-// (HeroBigDay). In the image's own px — both sections draw it SUN_SIZE.
-export const SUN_BLUR_HANDOFF = 1.2
+// The sun softens into watercolor as it rises in HeroBigDay: crisp at the
+// hand-off, SUN_BLUR_FINAL (in the image's own px) once it is in the sky.
 export const SUN_BLUR_FINAL = 3.6

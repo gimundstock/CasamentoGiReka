@@ -6,14 +6,7 @@ import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
 import { OrbitingStory } from '../motion/OrbitingStory'
-import {
-  SUN_BIG_SCALE,
-  SUN_BIG_VMIN,
-  SUN_BLUR_HANDOFF,
-  SUN_HANDOFF_ROTATE,
-  SUN_SIZE,
-  SUN_SRC,
-} from './sun'
+import { SUN_BIG_SCALE, SUN_BIG_VMIN, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 function useCountdown(targetDate: string) {
   const [diff, setDiff] = useState(0)
@@ -216,11 +209,6 @@ export function HeroSaveDateCouple() {
   // flower's center, spinning and zooming with it, sized to cover it. At
   // the end only the petals dissolve, and the sun is already there.
   const sunScale = useTransform(daisyScale, (sc: number) => (sc * SUN_BIG_SCALE) / ZOOM_SCALE)
-  // It starts softening into watercolor while the petals dissolve around it.
-  const sunBlur = useTransform(scrollYProgress, (v: number) => {
-    const t = Math.min(1, Math.max(0, (v - DISSOLVE_START) / (1 - DISSOLVE_START)))
-    return `blur(${(SUN_BLUR_HANDOFF * t).toFixed(2)}px)`
-  })
   // Once this section unpins and starts scrolling away, HeroBigDay's sun
   // (fixed on screen through the seam) has taken over — hide this one so
   // the sun is never seen twice.
@@ -419,7 +407,6 @@ export function HeroSaveDateCouple() {
               y: '-50%',
               scale: sunScale,
               rotate: daisyRotate,
-              filter: sunBlur,
               opacity: sunOpacity,
             }}
           />
