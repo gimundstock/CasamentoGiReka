@@ -85,12 +85,11 @@ const CENTER_FRINGE_VMIN = 5.6
 // perfect circle: its solid body reaches at least 0.66 of this in every
 // direction, its bumps up to ~0.89.
 const SUN_HALF_BOX_VMIN = SUN_BIG_VMIN / 2 / 0.833
-// End of the section: the flower zooms in (0.90 → 0.96) — the petals fly out
-// of the frame — until the cosmos center, stamens included, fits inside the
-// sun's solid body, so the sun covers it completely: nothing pokes out
-// and nothing has to be cut away. The sun is revealed over it
-// (0.93 → 0.965), then the petals dissolve into the paper (0.965 → 1.00),
-// and HeroBigDay picks the sun up there.
+// The sun sits on the cosmos center throughout, sized so the center,
+// stamens included, fits inside the sun's solid body. At the end the flower
+// zooms in (0.90 → 0.96) until the sun is SUN_BIG_VMIN across, then the
+// petals dissolve into the paper (0.96 → 1.00), and HeroBigDay picks the
+// sun up there.
 const ZOOM_START = 0.9
 const ZOOM_END = 0.96
 const ZOOM_SCALE = (SUN_HALF_BOX_VMIN * 0.64) / CENTER_FRINGE_VMIN
@@ -104,16 +103,7 @@ function daisyScaleAt(v: number): number {
   return HOLD_SCALE * Math.pow(ZOOM_SCALE / HOLD_SCALE, t)
 }
 
-// The sun reveal (0.93 → 0.965): radius of the revealed sun on screen, in
-// vmin, growing a little past its furthest bump so the whole sun is in
-// before the mask is dropped.
-const REVEAL_START = 0.93
-const REVEAL_END = 0.965
-function sunRevealVmin(v: number): number {
-  const t = Math.min(1, Math.max(0, (v - REVEAL_START) / (REVEAL_END - REVEAL_START)))
-  return t * SUN_HALF_BOX_VMIN * 0.93
-}
-const DISSOLVE_START = 0.965
+const DISSOLVE_START = 0.96
 
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
@@ -148,9 +138,9 @@ const DISSOLVE_START = 0.965
  *                for the reader to take in the caption.
  *   0.364 → 0.90 flower spins 0° → 1080° behind the heading + cascade
  *                — keeps the flower visibly alive while the story plays.
- *   0.90 → 1.00  the flower zooms in (petals fly out of frame) until its
- *                center is SUN_BIG_VMIN across, and the sun image takes
- *                the center's place; HeroBigDay picks it up there — only
+ *   0.90 → 1.00  the flower zooms in until its center — the sun, all
+ *                along — is SUN_BIG_VMIN across, then the petals dissolve
+ *                and HeroBigDay picks the sun up there — only
  *                AFTER the last cascade card has scrolled past the top.
  *   0.92 → 1.00  couple heading fades back out so the sun has clean canvas
  *
@@ -215,7 +205,10 @@ export function HeroSaveDateCouple() {
     [-20, -20, 0, SPIN_DEG, SUN_HANDOFF_ROTATE]
   )
 
-  // The sun takes the center's place at the end of the zoom (see sunReveal).
+  // The sun IS the cosmos center, all the way through: it sits on the
+  // flower's center, spinning and zooming with it, sized to cover it. At
+  // the end only the petals dissolve, and the sun is already there.
+  const sunScale = useTransform(daisyScale, (sc: number) => (sc * SUN_BIG_SCALE) / ZOOM_SCALE)
   // Once this section unpins and starts scrolling away, HeroBigDay's sun
   // (fixed on screen through the seam) has taken over — hide this one so
   // the sun is never seen twice.
@@ -224,16 +217,10 @@ export function HeroSaveDateCouple() {
     offset: ['start start', 'end start'],
   })
   const unpinAt = SCROLL_VH / (SCROLL_VH + 100)
-  const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) =>
-    past > unpinAt || v < REVEAL_START ? 0 : 1
-  )
-  // The sun is revealed from the middle outward over the cosmos center —
-  // solid inside a growing circle, never half-transparent over it. The
-  // mask is in the image's own (unscaled) units, hence the division.
-  const sunReveal = useTransform(scrollYProgress, (v: number) => {
-    if (v >= REVEAL_END) return 'none'
-    const r = sunRevealVmin(v) / SUN_BIG_SCALE
-    return `radial-gradient(circle, #000 ${r.toFixed(2)}vmin, transparent ${(r + 0.3).toFixed(2)}vmin)`
+  const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) => {
+    if (past > unpinAt || v < 0.22) return 0
+    if (v < 0.26) return (v - 0.22) / 0.04
+    return 1
   })
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
@@ -398,9 +385,9 @@ export function HeroSaveDateCouple() {
             }}
           />
 
-          {/* ── z-[11]  The sun — takes the place of the cosmos center,
-                    turning with the flower. Same size, place and rotation
-                    as where HeroBigDay starts. ── */}
+          {/* ── z-[11]  The sun — the cosmos's center from the start,
+                    spinning and zooming with the flower. Ends with the same
+                    size, place and rotation as where HeroBigDay starts. ── */}
           <motion.img
             src={SUN_SRC}
             alt=""
@@ -412,11 +399,9 @@ export function HeroSaveDateCouple() {
               height: SUN_SIZE,
               x: '-50%',
               y: '-50%',
-              scale: SUN_BIG_SCALE,
+              scale: sunScale,
               rotate: daisyRotate,
               opacity: sunOpacity,
-              maskImage: sunReveal,
-              WebkitMaskImage: sunReveal,
             }}
           />
 
