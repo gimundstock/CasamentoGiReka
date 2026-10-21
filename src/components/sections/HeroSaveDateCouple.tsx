@@ -188,7 +188,7 @@ export function HeroSaveDateCouple() {
     [-20, -20, 0, SPIN_DEG, SUN_HANDOFF_ROTATE]
   )
 
-  // The sun takes the center's place at the end of the zoom.
+  // The sun takes the center's place at the end of the zoom (see sunReveal).
   // Once this section unpins and starts scrolling away, HeroBigDay's sun
   // (fixed on screen through the seam) has taken over — hide this one so
   // the sun is never seen twice.
@@ -197,9 +197,16 @@ export function HeroSaveDateCouple() {
     offset: ['start start', 'end start'],
   })
   const unpinAt = SCROLL_VH / (SCROLL_VH + 100)
-  const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) => {
-    if (past > unpinAt || v < 0.95) return 0
-    return Math.min(1, (v - 0.95) / 0.04)
+  const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) =>
+    past > unpinAt || v < 0.94 ? 0 : 1
+  )
+  // The sun is revealed from the middle outward (0.94 → 0.98), solid inside
+  // a growing circle — never half-transparent over the cosmos center, which
+  // would show both textures at once.
+  const sunReveal = useTransform(scrollYProgress, (v: number) => {
+    const t = Math.min(1, Math.max(0, (v - 0.94) / 0.04))
+    const r = t * 115
+    return `radial-gradient(circle closest-side, #000 ${r.toFixed(1)}%, transparent ${(r + 15).toFixed(1)}%)`
   })
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
@@ -380,6 +387,8 @@ export function HeroSaveDateCouple() {
               scale: SUN_BIG_SCALE,
               rotate: daisyRotate,
               opacity: sunOpacity,
+              maskImage: sunReveal,
+              WebkitMaskImage: sunReveal,
             }}
           />
 
