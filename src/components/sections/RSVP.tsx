@@ -430,7 +430,7 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
     // Bottom padding (a % of the width) keeps the text in the clear centre, above the painted flowers.
     <div
       className={`relative min-h-full flex flex-col items-center justify-center text-center text-title ${
-        wide ? 'pb-[16%]' : 'pt-16 pb-[38%]'
+        wide ? 'pb-[9%]' : 'pt-20 pb-[38%]'
       }`}
     >
       {/* The details, tucked into the top-right corner like a printed card's colophon. */}
