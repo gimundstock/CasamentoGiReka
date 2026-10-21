@@ -371,9 +371,10 @@ function CardFace({
       }}
     >
       {image ? (
-        // The painting sits inside a white margin, like a printed card.
+        // The painting sits inside a white margin, like a printed card, edged in
+        // the gold of its own brushwork.
         <div
-          className="pointer-events-none absolute inset-3 md:inset-4 bg-cover bg-bottom"
+          className="pointer-events-none absolute inset-3 md:inset-4 bg-cover bg-bottom border border-[#C9A464]"
           style={{ backgroundImage: `url(${image})` }}
         />
       ) : (
