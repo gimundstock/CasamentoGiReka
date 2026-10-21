@@ -83,7 +83,7 @@ function measure(w: number, h: number): Geometry {
   const eh = ew / 1.5
   // Landscape card on wide screens; on phones a landscape card would be
   // unreadably small, so it stands upright instead.
-  const cw = wide ? Math.min(880, w * 0.9, (h - NAV_HEIGHT - 64) / 0.625) : w - 32
+  const cw = wide ? Math.min(960, w * 0.92, (h - NAV_HEIGHT - 56) / 0.625) : w - 32
   const ch = wide ? cw * 0.625 : h - NAV_HEIGHT - 80
   const s0 = Math.min((ew * 0.86) / cw, (eh * 0.86) / ch)
   const envY = h * 0.18
@@ -360,18 +360,23 @@ function CardFace({
     <div
       ref={ref}
       aria-hidden={hidden}
-      className={`relative bg-peach-light rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden ${
-        image ? 'bg-cover bg-bottom' : 'bg-paper'
+      className={`relative rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden ${
+        image ? 'bg-[#FFFEFB]' : 'bg-peach-light bg-paper'
       }`}
       style={{
-        backgroundImage: image ? `url(${image})` : undefined,
         gridArea: '1 / 1',
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden',
         transform: back ? 'rotateY(180deg)' : undefined,
       }}
     >
-      {!image && (
+      {image ? (
+        // The painting sits inside a white margin, like a printed card.
+        <div
+          className="pointer-events-none absolute inset-3 md:inset-4 bg-cover bg-bottom"
+          style={{ backgroundImage: `url(${image})` }}
+        />
+      ) : (
         <>
           {/* Classic double rule. */}
           <div className="pointer-events-none absolute inset-3 border border-amber/40" />
@@ -433,9 +438,7 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
       </p>
       <p className="font-serif italic text-lg">{t('rsvp.inviteCelebrate')}</p>
 
-      <div className="my-3">
-        <Sprig />
-      </div>
+      <div className="h-6" />
 
       <div
         className={`flex items-center ${
