@@ -318,7 +318,11 @@ export function RSVP({ guest }: Props) {
               rotateY: cardFlip,
             }}
           >
-            <CardFace hidden={face !== 'front'} image={`${base}flowers/invitation-bg.webp`}>
+            <CardFace
+              hidden={face !== 'front'}
+              image={`${base}flowers/invitation-bg.webp`}
+              rotate={geo.wide ? undefined : { w: geo.cw, h: geo.ch }}
+            >
               <InvitationFront guest={guest} lang={lang} wide={geo.wide} />
             </CardFace>
             <CardFace hidden={face !== 'back'} back>
@@ -342,13 +346,29 @@ function CardFace({
   hidden,
   back,
   image,
+  rotate,
 }: {
   children: ReactNode
   hidden: boolean
   back?: boolean
   /** Painted artwork for this face; replaces the paper and the ruled border. */
   image?: string
+  /**
+   * Card size when the landscape artwork has to fill an upright card: the
+   * painting is turned 90° clockwise so its flowers run down the left side.
+   */
+  rotate?: { w: number; h: number }
 }) {
+  const paint = rotate
+    ? {
+        width: rotate.h,
+        height: rotate.w,
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%) rotate(90deg)',
+      }
+    : { inset: 0 }
+
   const ref = useRef<HTMLDivElement>(null)
 
   // Keep the face that's turned away (or still in the envelope) out of the tab order.
@@ -376,12 +396,12 @@ function CardFace({
         // copy of the same image is clipped to the rule so the two line up.
         <>
           <div
-            className="pointer-events-none absolute inset-0 bg-cover bg-bottom opacity-40"
-            style={{ backgroundImage: `url(${image})` }}
+            className="pointer-events-none absolute bg-cover bg-bottom opacity-40"
+            style={{ ...paint, backgroundImage: `url(${image})` }}
           />
           <div
-            className="pointer-events-none absolute inset-0 bg-cover bg-bottom [clip-path:inset(12px)] md:[clip-path:inset(16px)]"
-            style={{ backgroundImage: `url(${image})` }}
+            className="pointer-events-none absolute bg-cover bg-bottom [clip-path:inset(12px)] md:[clip-path:inset(16px)]"
+            style={{ ...paint, backgroundImage: `url(${image})` }}
           />
           <div className="pointer-events-none absolute inset-3 md:inset-4 border border-[#C9A464]" />
         </>
@@ -430,11 +450,12 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
     // Bottom padding (a % of the width) keeps the text in the clear centre, above the painted flowers.
     <div
       className={`relative min-h-full flex flex-col items-center justify-center text-center text-title ${
-        wide ? 'pb-[7%]' : 'pt-24 pb-[33%]'
+        wide ? 'pb-[7%]' : 'pb-20 pl-[22%]'
       }`}
     >
-      {/* The details, tucked into the top-right corner like a printed card's colophon. */}
-      <div className="absolute top-0 right-0 text-right leading-snug">
+      {/* The details, tucked into a corner like a printed card's colophon: top right on
+          wide cards, bottom right on upright ones where the painted flowers fill the left. */}
+      <div className={`absolute right-0 text-right leading-snug ${wide ? 'top-0' : 'bottom-0'}`}>
         <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase">{date}</p>
         <p className="font-serif text-sm mt-1">
           {t('rsvp.inviteTime', { time: CONFIG.wedding.time })}
@@ -453,13 +474,13 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         </span>
         {CONFIG.couple.groom}
       </h2>
-      <p className="font-serif italic text-lg mt-8">{t('rsvp.inviteRequest')}</p>
+      <p className="font-serif italic text-base md:text-lg mt-8">{t('rsvp.inviteRequest')}</p>
       <p className="font-display text-2xl md:text-3xl leading-normal mt-4 mb-2 text-forest-deep">
         {guest.groupName}
       </p>
-      <p className="font-serif italic text-lg mt-3">{t('rsvp.inviteCelebrate')}</p>
+      <p className="font-serif italic text-base md:text-lg mt-3">{t('rsvp.inviteCelebrate')}</p>
 
-      <p className="font-serif italic text-title/70 mt-6">
+      <p className="font-serif italic text-sm md:text-base text-title/70 mt-6">
         {t('rsvp.replyBy', { date: deadline })}
       </p>
     </div>
