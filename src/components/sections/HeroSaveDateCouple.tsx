@@ -6,7 +6,14 @@ import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
 import { OrbitingStory } from '../motion/OrbitingStory'
-import { SUN_BIG_SCALE, SUN_BIG_VMIN, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
+import {
+  SUN_BIG_SCALE,
+  SUN_BIG_VMIN,
+  SUN_BLUR_HANDOFF,
+  SUN_HANDOFF_ROTATE,
+  SUN_SIZE,
+  SUN_SRC,
+} from './sun'
 
 function useCountdown(targetDate: string) {
   const [diff, setDiff] = useState(0)
@@ -209,6 +216,11 @@ export function HeroSaveDateCouple() {
   // flower's center, spinning and zooming with it, sized to cover it. At
   // the end only the petals dissolve, and the sun is already there.
   const sunScale = useTransform(daisyScale, (sc: number) => (sc * SUN_BIG_SCALE) / ZOOM_SCALE)
+  // It starts softening into watercolor while the petals dissolve around it.
+  const sunBlur = useTransform(scrollYProgress, (v: number) => {
+    const t = Math.min(1, Math.max(0, (v - DISSOLVE_START) / (1 - DISSOLVE_START)))
+    return `blur(${(SUN_BLUR_HANDOFF * t).toFixed(2)}px)`
+  })
   // Once this section unpins and starts scrolling away, HeroBigDay's sun
   // (fixed on screen through the seam) has taken over — hide this one so
   // the sun is never seen twice.
@@ -218,7 +230,10 @@ export function HeroSaveDateCouple() {
   })
   const unpinAt = SCROLL_VH / (SCROLL_VH + 100)
   const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) => {
-    if (past > unpinAt || v < 0.22) return 0
+    // A few pixels of overlap past the unpin, where both suns are identical
+    // and still (HeroBigDay holds its rotation there), so the hand-off has
+    // no gap and no jump.
+    if (past > unpinAt + 0.003 || v < 0.22) return 0
     if (v < 0.26) return (v - 0.22) / 0.04
     return 1
   })
@@ -386,6 +401,9 @@ export function HeroSaveDateCouple() {
           />
 
           {/* ── z-[11]  The sun — the cosmos's center from the start,
+                    (fixed, not absolute: when this section unpins, the
+                    browser scrolls it a frame before the hand-off runs, and
+                    the sun would bump up with it)
                     spinning and zooming with the flower. Ends with the same
                     size, place and rotation as where HeroBigDay starts. ── */}
           <motion.img
@@ -393,7 +411,7 @@ export function HeroSaveDateCouple() {
             alt=""
             aria-hidden
             draggable={false}
-            className="pointer-events-none absolute top-1/2 left-1/2 z-[11] max-w-none select-none"
+            className="pointer-events-none fixed top-1/2 left-1/2 z-[11] max-w-none select-none"
             style={{
               width: SUN_SIZE,
               height: SUN_SIZE,
@@ -401,6 +419,7 @@ export function HeroSaveDateCouple() {
               y: '-50%',
               scale: sunScale,
               rotate: daisyRotate,
+              filter: sunBlur,
               opacity: sunOpacity,
             }}
           />

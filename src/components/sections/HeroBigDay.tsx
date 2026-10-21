@@ -3,7 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
 import { CerradoPaint } from './CerradoPaint'
-import { SUN_BIG_SCALE, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
+import {
+  SUN_BIG_SCALE,
+  SUN_BLUR_FINAL,
+  SUN_BLUR_HANDOFF,
+  SUN_HANDOFF_ROTATE,
+  SUN_SIZE,
+  SUN_SRC,
+} from './sun'
 
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
 // painted in around the sun as it travels, the pencil line
@@ -129,7 +136,12 @@ export function HeroBigDay() {
   })
   const sunRiseScale = useTransform(ext, (v: number) => Math.pow(SUN_BIG_SCALE, 1 - riseT(v)))
   const sunRiseOpacity = useTransform([seam, ext], ([p, v]: number[]) => (p > 0 && v < 0.3 ? 1 : 0))
-  const sunRiseRotate = useTransform(ext, (v: number) => SUN_HANDOFF_ROTATE + (v + 1 / 3) * 240)
+  // Holds the hand-off rotation for the first few pixels of the seam,
+  // where the previous section's sun still overlaps this one.
+  const sunRiseRotate = useTransform(
+    ext,
+    (v: number) => SUN_HANDOFF_ROTATE + Math.max(0, v + 0.3) * 240
+  )
 
   // Sun position (percent of the artwork box, see sunXAt / sunYAt).
   const sunXPct = useTransform(scrollYProgress, sunXAt)
@@ -138,9 +150,9 @@ export function HeroBigDay() {
   // The sun warms as it travels: golden on the rise, deeper orange as it
   // sets (0.30 → 0.85). It keeps turning slowly, carried on from the
   // flower's spin.
-  // It also softens into the painting as it rises: a slight blur loosens
-  // the detail and a warm glow bleeds from its edge, like pigment on wet
-  // paper. Crisp while big at the hand-off, fully soft once in the sky.
+  // It also softens into the painting as it rises: the blur, begun in the
+  // previous section, keeps growing and a warm glow bleeds from its edge,
+  // like pigment on wet paper. Fully soft once in the sky.
   // (`ext` is the same scroll as scrollYProgress, extended into the seam.)
   const sunFilter = useTransform(ext, (v: number) => {
     const t = Math.min(1, Math.max(0, (v - 0.3) / 0.55))
@@ -149,13 +161,13 @@ export function HeroBigDay() {
       `hue-rotate(${(-16 * t).toFixed(1)}deg)`,
       `saturate(${(1 + 0.35 * t).toFixed(2)})`,
       `brightness(${(1 - 0.12 * t).toFixed(3)})`,
-      `blur(${(2.2 * soft).toFixed(2)}px)`,
+      `blur(${(SUN_BLUR_HANDOFF + (SUN_BLUR_FINAL - SUN_BLUR_HANDOFF) * soft).toFixed(2)}px)`,
       `drop-shadow(0 0 ${(9 * soft).toFixed(1)}px rgba(255, 196, 80, ${(0.6 * soft).toFixed(2)}))`,
     ].join(' ')
   })
   const sunRotate = useTransform(
     scrollYProgress,
-    (v: number) => SUN_HANDOFF_ROTATE + (v + 1 / 3) * 240
+    (v: number) => SUN_HANDOFF_ROTATE + Math.max(0, v + 0.3) * 240
   )
 
   // Info panel fades in once the sun has set.
