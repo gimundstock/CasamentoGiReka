@@ -77,7 +77,17 @@
     "error": "Erro ao enviar. Tente novamente.",
     "kicker": "Um pedido com carinho",
     "letterOpening": "Querido(a) convidado(a),",
-    "letterClose": "Com amor"
+    "letterClose": "Com amor",
+    "envelopeHint": "Toque no selo para abrir",
+    "openSeal": "Abrir o convite",
+    "inviteTogether": "Junto com suas famílias",
+    "inviteRequest": "têm a alegria de convidar",
+    "inviteCelebrate": "para a celebração do seu casamento",
+    "inviteTime": "às {{time}}",
+    "replyBy": "Pede-se confirmação até {{date}}",
+    "reply": "Responder",
+    "backToInvite": "Voltar ao convite",
+    "replyTitle": "R.S.V.P."
   },
   "gifts": {
     "title": "Lista de Presentes",
