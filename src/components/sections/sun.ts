@@ -13,5 +13,5 @@ export const SUN_HANDOFF_ROTATE = 1200
 // Where the flower zoom hands over, the sun is SUN_BIG_VMIN across — big,
 // in the middle of the screen — and HeroBigDay shrinks it to SUN_SIZE as
 // it rises.
-export const SUN_BIG_VMIN = 50
+export const SUN_BIG_VMIN = 32
 export const SUN_BIG_SCALE = SUN_BIG_VMIN / 14

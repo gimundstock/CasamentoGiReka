@@ -138,9 +138,20 @@ export function HeroBigDay() {
   // The sun warms as it travels: golden on the rise, deeper orange as it
   // sets (0.30 → 0.85). It keeps turning slowly, carried on from the
   // flower's spin.
-  const sunFilter = useTransform(scrollYProgress, (v: number) => {
+  // It also softens into the painting as it rises: a slight blur loosens
+  // the detail and a warm glow bleeds from its edge, like pigment on wet
+  // paper. Crisp while big at the hand-off, fully soft once in the sky.
+  // (`ext` is the same scroll as scrollYProgress, extended into the seam.)
+  const sunFilter = useTransform(ext, (v: number) => {
     const t = Math.min(1, Math.max(0, (v - 0.3) / 0.55))
-    return `hue-rotate(${(-16 * t).toFixed(1)}deg) saturate(${(1 + 0.35 * t).toFixed(2)}) brightness(${(1 - 0.12 * t).toFixed(3)})`
+    const soft = riseT(v)
+    return [
+      `hue-rotate(${(-16 * t).toFixed(1)}deg)`,
+      `saturate(${(1 + 0.35 * t).toFixed(2)})`,
+      `brightness(${(1 - 0.12 * t).toFixed(3)})`,
+      `blur(${(1.3 * soft).toFixed(2)}px)`,
+      `drop-shadow(0 0 ${(7 * soft).toFixed(1)}px rgba(255, 196, 80, ${(0.6 * soft).toFixed(2)}))`,
+    ].join(' ')
   })
   const sunRotate = useTransform(
     scrollYProgress,
