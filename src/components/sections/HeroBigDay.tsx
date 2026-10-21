@@ -73,10 +73,10 @@ const PAINT_END = 0.82
  * that is painted in around it, then reveals the wedding info.
  *
  * Choreography (scroll progress 0 → 1, on a 400vh outer / 300vh of locked scroll):
- *   0.00 → 0.10  Hold the sun in the middle of the screen, exactly where the
- *                cosmos center left it. Buffer beat so the seam with the
- *                previous section is invisible at any scroll speed.
- *   0.10 → 0.30  The sun rises to the upper-left as the landscape slides up.
+ *   (seam)       The sun arrives from the previous section in the middle of
+ *                the screen and starts rising while the sections pass.
+ *   0.00 → 0.30  The landscape slides up while the sun rises and shrinks to
+ *                the upper-left.
  *   0.30 → 0.70  Sun arcs from upper-left → upper-right along a parabola.
  *                Color warms from yellow → orange-gold. End point: roughly
  *                where the palm tree used to stand in the cerrado.
@@ -115,9 +115,10 @@ export function HeroBigDay() {
     offset: ['start end', 'end end'],
   })
   const ext = useTransform(seam, (p: number) => (p * 4 - 1) / 3)
-  // Holds until 0.10, then rises to the upper-left of the painting and
-  // shrinks to its disc size as the landscape slides up (0.10 → 0.30).
-  const riseT = (v: number) => Math.min(1, Math.max(0, (v - 0.1) / 0.2))
+  // Starts rising while the two sections are still passing each other
+  // (-0.15), and reaches the upper-left of the painting at its disc size
+  // as the landscape settles (0.30).
+  const riseT = (v: number) => Math.min(1, Math.max(0, (v + 0.15) / 0.45))
   const sunRiseLeft = useTransform(ext, (v: number) => {
     const t = riseT(v)
     return `calc(50% * ${1 - t} + ${artX(sunXAt(0.3))} * ${t})`
@@ -154,13 +155,12 @@ export function HeroBigDay() {
   })
 
   // Cerrado landscape SLIDES UP from below the viewport over the same
-  // window as the sun shrink (0.10 → 0.30). By the time the art is fully
+  // window as the sun shrink (0.00 → 0.30). By the time the art is fully
   // seated at the bottom, the sun has already settled into its disc form.
   // Value is a percentage of the image's own height — '100%' parks it
   // entirely below the bottom edge.
   const cerradoY = useTransform(scrollYProgress, (v: number) => {
-    if (v < 0.1) return '100%'
-    if (v < 0.3) return `${(1 - (v - 0.1) / 0.2) * 100}%`
+    if (v < 0.3) return `${(1 - v / 0.3) * 100}%`
     return '0%'
   })
 

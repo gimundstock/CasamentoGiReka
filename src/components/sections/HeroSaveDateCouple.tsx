@@ -101,11 +101,20 @@ function daisyScaleAt(v: number): number {
   return HOLD_SCALE * Math.pow(ZOOM_SCALE / HOLD_SCALE, t)
 }
 
-// The sun reveal (0.94 → 0.98): radius of the solid sun on screen, in vmin,
-// growing to the edge of the solid sun — where the cosmos center ends.
+// The sun reveal (0.94 → 0.98): radius of the revealed sun on screen, in
+// vmin. sun2 is not a perfect circle — its edge reaches out to ~0.89 of
+// its half-box (SUN_BIG_VMIN / 2 / 0.833 = 30vmin) — so the reveal grows a
+// little past that, and the whole sun is in before the mask is dropped.
+const SUN_REACH_VMIN = (SUN_BIG_VMIN / 2 / 0.833) * 0.93
 function sunRevealVmin(v: number): number {
   const t = Math.min(1, Math.max(0, (v - 0.94) / 0.04))
-  return t * SUN_SOLID_VMIN
+  return t * SUN_REACH_VMIN
+}
+// The hole cut in the cosmos follows just behind the sun's revealed edge,
+// so the sun always overlaps it (no gap, no ring), and stops at the
+// cosmos center's edge.
+function centerHoleVmin(v: number): number {
+  return Math.min(Math.max(0, sunRevealVmin(v) - 1.2), SUN_SOLID_VMIN)
 }
 
 /**
@@ -221,12 +230,12 @@ export function HeroSaveDateCouple() {
     const r = sunRevealVmin(v) / SUN_BIG_SCALE
     // At the end the whole sun shows, its soft edge included.
     if (v >= 0.98) return 'none'
-    return `radial-gradient(circle, #000 ${r.toFixed(2)}vmin, transparent ${(r + 0.15).toFixed(2)}vmin)`
+    return `radial-gradient(circle, #000 ${r.toFixed(2)}vmin, transparent ${(r + 0.3).toFixed(2)}vmin)`
   })
   const centerHole = useTransform(scrollYProgress, (v: number) => {
     if (v < 0.94) return 'none'
-    const r = sunRevealVmin(v) / daisyScaleAt(v)
-    return `radial-gradient(circle at 50% ${CENTER_Y}%, transparent ${r.toFixed(2)}vmin, #000 ${(r + 0.25).toFixed(2)}vmin)`
+    const r = centerHoleVmin(v) / daisyScaleAt(v)
+    return `radial-gradient(circle at 50% ${CENTER_Y}%, transparent ${r.toFixed(2)}vmin, #000 ${(r + 0.1).toFixed(2)}vmin)`
   })
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
