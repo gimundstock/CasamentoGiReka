@@ -312,7 +312,7 @@ export function RSVP({ guest }: Props) {
               <InvitationFront guest={guest} lang={lang} wide={geo.wide} />
             </CardFace>
             <CardFace hidden={face !== 'back'} back>
-              <ReplyForm guest={guest} lang={lang} wide={geo.wide} />
+              <ReplyForm guest={guest} wide={geo.wide} />
             </CardFace>
           </motion.div>
         </motion.div>
@@ -479,7 +479,7 @@ const FIELD =
   'w-full bg-transparent border-b border-forest-deep/20 py-2 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep/60 transition-colors'
 const LABEL = 'font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/80 block mb-1'
 
-function ReplyForm({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: boolean }) {
+function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
   const { t } = useTranslation()
   const storageKey = `${RSVP_STORAGE_KEY}_${guest.guestId}`
   const [alreadySubmitted] = useState(() => localStorage.getItem(storageKey) === 'true')
@@ -515,7 +515,7 @@ function ReplyForm({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: bool
   if (submitted) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center text-center text-title">
-        <p className="font-display text-3xl md:text-4xl leading-[1.7] pt-3">
+        <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
           {t('rsvp.replyTitle')}
         </p>
         <div className="my-6">
@@ -535,17 +535,17 @@ function ReplyForm({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: bool
     <form
       onSubmit={handleSubmit}
       className={`text-title min-h-full ${
-        wide ? 'grid grid-cols-[1.2fr_1fr] gap-12' : 'flex flex-col gap-6'
+        wide ? 'grid grid-cols-[1.2fr_1fr] gap-x-12 gap-y-4 content-center' : 'flex flex-col gap-6'
       }`}
     >
-      <div>
-        <p className="font-display text-3xl md:text-4xl leading-[1.7] pt-3">
+      <div className={`text-center ${wide ? 'col-span-2 mb-2' : ''}`}>
+        <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
           {t('rsvp.replyTitle')}
         </p>
-        <p className="font-serif italic text-base mt-7 mb-4 text-title/80">
-          {t('rsvp.letterOpening')}
-        </p>
+        <p className="font-serif italic text-base mt-6 text-title/80">{t('rsvp.letterOpening')}</p>
+      </div>
 
+      <div>
         <div className="space-y-4">
           {attendees.map((attendee, i) => (
             <div key={i} className="border-t border-forest-deep/10 pt-3">
@@ -569,29 +569,12 @@ function ReplyForm({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: bool
                   ))}
                 </div>
               </div>
-
-              {attendee.attending && (
-                <select
-                  value={attendee.menu}
-                  onChange={(e) => updateAttendee(i, 'menu', e.target.value)}
-                  required
-                  aria-label={`${t('rsvp.menu')} — ${attendee.name}`}
-                  className={FIELD}
-                >
-                  <option value="">{t('rsvp.menuPlaceholder')}</option>
-                  {CONFIG.menuOptions.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
-                      {lang === 'pt' ? opt.pt : opt.en}
-                    </option>
-                  ))}
-                </select>
-              )}
             </div>
           ))}
         </div>
       </div>
 
-      <div className={`flex flex-col gap-5 ${wide ? 'pt-14' : ''}`}>
+      <div className={`flex flex-col gap-5 ${wide ? 'pt-3' : ''}`}>
         <div>
           <label htmlFor="rsvp-song" className={LABEL}>
             {t('rsvp.song')}
