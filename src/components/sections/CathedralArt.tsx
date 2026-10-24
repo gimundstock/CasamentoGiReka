@@ -18,6 +18,10 @@ const REVEAL_START = 0.1
 const REVEAL_END = 0.85
 const FEATHER = 18 // width of the soft front, in % of the image
 
+// The right side of the drawing runs under the text column; fade it so the
+// copy on top stays readable.
+const RIGHT_FADE = 'linear-gradient(to right, #000 58%, rgba(0, 0, 0, 0.3) 82%)'
+
 export function CathedralArt({
   progress,
   className = '',
@@ -35,10 +39,19 @@ export function CathedralArt({
   const lead = useTransform(progress, [REVEAL_START, REVEAL_END], [0, 100 + FEATHER], {
     clamp: true,
   })
-  const maskImage = useMotionTemplate`linear-gradient(to right, #000 ${trail}%, transparent ${lead}%)`
+  // Two mask layers, intersected: the moving reveal and the static right fade.
+  const maskImage = useMotionTemplate`linear-gradient(to right, #000 ${trail}%, transparent ${lead}%), ${RIGHT_FADE}`
 
   if (reduced) {
-    return <img src={SRC} alt="" aria-hidden className={`block select-none ${className}`} />
+    return (
+      <img
+        src={SRC}
+        alt=""
+        aria-hidden
+        className={`block select-none ${className}`}
+        style={{ maskImage: RIGHT_FADE, WebkitMaskImage: RIGHT_FADE }}
+      />
+    )
   }
 
   return (
@@ -47,7 +60,12 @@ export function CathedralArt({
       alt=""
       aria-hidden
       className={`block select-none ${className}`}
-      style={{ maskImage, WebkitMaskImage: maskImage }}
+      style={{
+        maskImage,
+        WebkitMaskImage: maskImage,
+        maskComposite: 'intersect',
+        WebkitMaskComposite: 'source-in',
+      }}
     />
   )
 }

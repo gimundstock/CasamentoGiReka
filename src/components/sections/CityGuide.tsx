@@ -45,9 +45,9 @@ function Entry({
   return (
     <article className="border-t border-forest-deep/15 pt-5 md:pt-6">
       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-2">
-        {/* text-xl matches the card headings in GiftShop — entry names are the
-            same size across sections, a step below the section's h2. */}
-        <h3 className="font-display text-xl text-title">{title}</h3>
+        {/* Entry names are set in Jost — the script is hard to read in long
+            proper names ("Catedral Metropolitana"). */}
+        <h3 className="font-sans text-lg text-title">{title}</h3>
         {meta}
       </div>
       <p className="font-serif text-base text-title leading-relaxed max-w-2xl">{description}</p>
@@ -100,17 +100,18 @@ export function CityGuide() {
     // 300px tall, so every height/overflow rule is md:-gated and small screens
     // fall back to ordinary page flow.
     <section id="city" className="bg-peach py-24 md:h-[100svh] md:overflow-hidden md:py-0">
-      <div className="max-w-6xl mx-auto px-6 md:h-full md:pt-24 md:pb-12 md:flex md:flex-col">
+      <div className="max-w-6xl mx-auto px-6 md:h-full md:pt-10 md:pb-12 md:flex md:flex-col">
         <MaskReveal direction="up" delay={0.05} className="md:shrink-0">
-          <div className="text-center mb-12 md:mb-10">
-            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-title mb-4">
-              {t('city.kicker')}
-            </p>
+          <div className="text-center mb-6 md:mb-4">
             {/* Deliberately smaller than the text-5xl/md:text-7xl that RSVP and
                 GiftShop use. Those sections own a whole scrolling page; this one
                 is a fixed-height panel, and at 72px the heading ate the list. */}
-            <h2 className="font-display text-2xl md:text-3xl text-title">{t('city.title')}</h2>
-            <p className="font-serif text-title text-base md:text-lg mt-4">{t('city.subtitle')}</p>
+            <h2 className="font-display text-2xl md:text-3xl text-title pt-6 pb-10 leading-[1.4]">
+              {t('city.title')}
+            </h2>
+            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-title mt-0">
+              {t('city.kicker')}
+            </p>
           </div>
         </MaskReveal>
 
@@ -128,7 +129,7 @@ export function CityGuide() {
           >
             <CathedralArt
               progress={scrollYProgress}
-              className="w-full h-auto md:absolute md:top-1/2 md:-left-[12%] md:w-[190%] md:max-w-none md:-translate-y-1/2 md:pointer-events-none"
+              className="w-full h-auto md:absolute md:top-1/2 md:-left-[22%] md:w-[190%] md:max-w-none md:-translate-y-1/2 md:pointer-events-none"
             />
           </div>
 
@@ -189,7 +190,7 @@ export function CityGuide() {
                       meta={<StarRow count={h.stars} />}
                       description={lang === 'pt' ? h.description_pt : h.description_en}
                       address={h.address}
-                      value={h.priceRange}
+                      value={lang === 'pt' ? h.priceRange : h.priceRange_en}
                       href={h.url}
                       linkLabel={lang === 'pt' ? 'Ver hotel' : 'View hotel'}
                     />
@@ -216,7 +217,7 @@ export function CityGuide() {
                       }
                       description={lang === 'pt' ? r.description_pt : r.description_en}
                       address={r.address}
-                      value={r.priceRange}
+                      value={lang === 'pt' ? r.priceRange : r.priceRange_en}
                     />
                   ))}
 
