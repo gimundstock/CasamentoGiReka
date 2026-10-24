@@ -11,7 +11,9 @@ if (SKIP) {
   )
 }
 
-suite('Apps Script live endpoints (read-only)', () => {
+// Each call goes to the live Web App, which can take several seconds to spin
+// up from cold, well past Vitest's 5s default.
+suite('Apps Script live endpoints (read-only)', { timeout: 30_000 }, () => {
   it('getSoldCotas returns an array', async () => {
     const res = await fetch(`${URL}?action=getSoldCotas`)
     expect(res.ok).toBe(true)
