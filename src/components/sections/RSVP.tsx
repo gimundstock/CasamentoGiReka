@@ -401,7 +401,12 @@ export function RSVP({ guest }: Props) {
             >
               <InvitationFront guest={guest} lang={lang} wide={geo.wide} />
             </CardFace>
-            <CardFace hidden={face !== 'back'} back>
+            <CardFace
+              hidden={face !== 'back'}
+              back
+              paper={`${base}rsvp/card-back.webp`}
+              rotate={geo.wide ? { w: geo.cw, h: geo.ch } : undefined}
+            >
               <ReplyForm guest={guest} wide={geo.wide} />
             </CardFace>
           </motion.div>
@@ -452,6 +457,7 @@ function CardFace({
   hidden,
   back,
   image,
+  paper,
   rotate,
 }: {
   children: ReactNode
@@ -460,8 +466,15 @@ function CardFace({
   /** Painted artwork for this face; replaces the paper and the ruled border. */
   image?: string
   /**
-   * Card size when the landscape artwork has to fill an upright card: the
-   * painting is turned 90° clockwise so its flowers run down the left side.
+   * Full-bleed paper for this face, gold lines and all, in place of the plain
+   * paper and ruled border. Upright artwork; `rotate` turns it for a
+   * landscape card.
+   */
+  paper?: string
+  /**
+   * Card size when the artwork's orientation doesn't match the card's: it is
+   * turned 90° clockwise to fill it (the front's landscape painting on an
+   * upright card, the back's upright paper on a landscape one).
    */
   rotate?: { w: number; h: number }
 }) {
@@ -487,7 +500,7 @@ function CardFace({
       ref={ref}
       aria-hidden={hidden}
       className={`relative rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden ${
-        image ? 'bg-[#FFFEFB]' : 'bg-[#F6F6F5] bg-paper'
+        image || paper ? 'bg-[#FFFEFB]' : 'bg-[#F6F6F5] bg-paper'
       }`}
       style={{
         gridArea: '1 / 1',
@@ -511,6 +524,11 @@ function CardFace({
           />
           <div className="pointer-events-none absolute inset-3 md:inset-4 border border-[#C9A464]" />
         </>
+      ) : paper ? (
+        <div
+          className="pointer-events-none absolute bg-cover bg-center"
+          style={{ ...paint, backgroundImage: `url(${paper})` }}
+        />
       ) : (
         <>
           {/* The same gold rule as the front, on the painting's paper white. */}
@@ -521,21 +539,6 @@ function CardFace({
         {children}
       </div>
     </div>
-  )
-}
-
-function Sprig() {
-  return (
-    <svg viewBox="0 0 120 24" className="w-24 h-5 mx-auto text-sage" aria-hidden>
-      <path d="M4 12 H116" stroke="currentColor" strokeWidth="0.8" />
-      <g fill="currentColor">
-        <ellipse cx="44" cy="8" rx="6" ry="2.4" transform="rotate(-25 44 8)" />
-        <ellipse cx="44" cy="16" rx="6" ry="2.4" transform="rotate(25 44 16)" />
-        <ellipse cx="76" cy="8" rx="6" ry="2.4" transform="rotate(25 76 8)" />
-        <ellipse cx="76" cy="16" rx="6" ry="2.4" transform="rotate(-25 76 16)" />
-      </g>
-      <circle cx="60" cy="12" r="3" className="text-amber" fill="currentColor" />
-    </svg>
   )
 }
 
@@ -637,10 +640,7 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
         <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
           {t('rsvp.replyTitle')}
         </p>
-        <div className="my-6">
-          <Sprig />
-        </div>
-        <h3 className="font-serif text-2xl md:text-3xl">
+        <h3 className="font-serif text-2xl md:text-3xl mt-6">
           {alreadySubmitted ? t('rsvp.alreadyTitle') : t('rsvp.successTitle')}
         </h3>
         <p className="font-serif italic text-lg mt-3">
