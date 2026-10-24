@@ -101,10 +101,14 @@ export function Nav() {
       <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="font-display text-title text-xl tracking-wide"
+          className="font-display text-title text-xl"
           aria-label="Top"
         >
-          {CONFIG.couple.bride[0]} &amp; {CONFIG.couple.groom[0]}
+          {/* Kerning à mão: o R da fonte cursiva abre um vão grande depois do
+              &, então ele é puxado para perto. */}
+          {CONFIG.couple.bride[0]}
+          <span className="ml-[0.3em]">&amp;</span>
+          <span className="-ml-[0.15em]">{CONFIG.couple.groom[0]}</span>
         </button>
 
         <div className="hidden md:flex items-center gap-10">
