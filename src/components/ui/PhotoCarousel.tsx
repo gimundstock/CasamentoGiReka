@@ -110,7 +110,9 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
           em vez de no rodapé da coluna inteira. */}
       <motion.div
         className="relative flex w-full touch-pan-y items-center justify-center"
-        style={{ height: 'min(70%, 32rem)' }}
+        // Container de tamanho: os cards se medem pela altura da caixa (cqh),
+        // e não só pela largura, para nunca passarem dela em telas baixas.
+        style={{ height: 'min(70%, 32rem)', containerType: 'size' }}
         onPanStart={() => (arrastou.current = false)}
         onPanEnd={aoSoltar}
       >
@@ -140,7 +142,13 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
                   andar(d)
                 }}
                 className="focus-visible:ring-cta absolute cursor-pointer rounded-[3px] bg-white p-3 pb-16 focus:outline-none focus-visible:ring-2"
-                style={{ width: 'min(62%, 20rem)', zIndex: 30 - atras }}
+                style={{
+                  // Largura limitada também pela altura: a polaroide tem
+                  // 1,25 × (largura − 24px) de foto + 76px de moldura, então
+                  // ela cabe na caixa quando largura ≤ (altura − 46px) × 0,8.
+                  width: 'min(62cqw, 20rem, calc((100cqh - 46px) * 0.8))',
+                  zIndex: 30 - atras,
+                }}
                 initial={{
                   x: `${d * 34}%`,
                   rotate: d * 7,
