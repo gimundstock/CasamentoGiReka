@@ -55,17 +55,17 @@ export function Hero1Welcome({ guest, onReset }: Props) {
           {t('welcome.lake')}
         </span>
       </div>
-      {/* Photo column — left on desktop, below the greeting on mobile. No
-          celular a seção começa abaixo da nav (pt-20) para nada passar por
-          baixo dela. */}
-      <div className="relative order-2 w-full lg:order-1 lg:w-[58%]">
+      {/* Photo column — left on desktop, top on mobile. No celular a seção
+          começa abaixo da nav (pt-20) para as fotos não passarem por baixo
+          dela. */}
+      <div className="relative w-full lg:w-[58%]">
         <div className="h-[50vh] w-full lg:h-screen">
           <PhotoCarousel photos={photos} />
         </div>
       </div>
 
-      {/* Text column — right on desktop, first on mobile */}
-      <div className="order-1 flex w-full flex-1 items-center justify-center px-6 pt-8 pb-4 lg:order-2 lg:px-10 lg:py-0">
+      {/* Text column — right on desktop, below on mobile */}
+      <div className="flex w-full flex-1 items-center justify-center px-6 py-16 lg:px-10 lg:py-0">
         <div className="relative w-full max-w-xl text-center">
           {/* Lavanda escondida temporariamente — descomente para trazer de volta.
           <img
@@ -81,7 +81,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
             {t('welcome.greeting', { name: guest.groupName })}
           </h1>
 
-          <p className="font-sans text-title relative z-10 mt-10 text-sm tracking-[0.25em] uppercase lg:mt-24">
+          <p className="font-sans text-title relative z-10 mt-24 text-sm tracking-[0.25em] uppercase">
             {t('welcome.invitation')}
           </p>
 
@@ -96,9 +96,8 @@ export function Hero1Welcome({ guest, onReset }: Props) {
         </div>
       </div>
 
-      {/* Scroll cue — bottom-right, static. Só no desktop: no celular as
-          fotos ocupam a base da tela e passariam por cima dela. */}
-      <div className="absolute right-6 bottom-6 hidden text-center lg:block">
+      {/* Scroll cue — bottom-right, static */}
+      <div className="absolute right-6 bottom-6 text-center">
         <span className="font-sans text-title text-[0.55rem] tracking-[0.4em] uppercase">
           SCROLL
         </span>
