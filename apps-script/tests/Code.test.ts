@@ -45,10 +45,34 @@ describe('handleGetGuest', () => {
     expect(app.handleGetGuest({ name: 'HELAINE E IVANIO' })?.guestId).toBe('r02')
   })
 
-  it('fuzzy match on attendee first name', () => {
+  it('exact match on one attendee full name', () => {
     const { app } = createSandbox({ guests: baseGuests })
-    expect(app.handleGetGuest({ name: 'Helaine' })?.guestId).toBe('r02')
-    expect(app.handleGetGuest({ name: 'Thadeu' })?.guestId).toBe('r01')
+    expect(app.handleGetGuest({ name: 'Helaine Freitas' })?.guestId).toBe('r02')
+    expect(app.handleGetGuest({ name: '  thadeu   NOBRE ' })?.guestId).toBe('r01')
+  })
+
+  it('no partial matches: a first name alone does not log in', () => {
+    const { app } = createSandbox({ guests: baseGuests })
+    expect(app.handleGetGuest({ name: 'Helaine' })).toBeNull()
+    expect(app.handleGetGuest({ name: 'Martha e Thadeu Nobre' })).toBeNull()
+  })
+
+  it('regression: "Alice e Matheus" is the couple, never the Alice on her own', () => {
+    const guests = guestsSheet(
+      ['g1', 'Alice', 'pt', 'Alice', false],
+      ['g2', 'Alice & Matheus', 'pt', 'Alice Lima, Matheus Rocha', false],
+    )
+    const { app } = createSandbox({ guests })
+    expect(app.handleGetGuest({ name: 'Alice e Matheus' })?.guestId).toBe('g2')
+    expect(app.handleGetGuest({ name: 'Alice & Matheus' })?.guestId).toBe('g2')
+    expect(app.handleGetGuest({ name: 'Alice' })?.guestId).toBe('g1')
+  })
+
+  it('treats &, e and and alike, and ignores the order of the names', () => {
+    const guests = guestsSheet(['g2', 'Alice & Matheus', 'en', 'Alice, Matheus', false])
+    const { app } = createSandbox({ guests })
+    expect(app.handleGetGuest({ name: 'Matheus e Alice' })?.guestId).toBe('g2')
+    expect(app.handleGetGuest({ name: 'alice and matheus' })?.guestId).toBe('g2')
   })
 
   it('regression: trailing comma in attendees must not match every search', () => {
@@ -57,7 +81,7 @@ describe('handleGetGuest', () => {
       ['r02', 'Helaine e Ivanio', 'pt', 'Helaine Freitas, Ivanio Mundstock', true],
     )
     const { app } = createSandbox({ guests })
-    expect(app.handleGetGuest({ name: 'Helaine' })?.guestId).toBe('r02')
+    expect(app.handleGetGuest({ name: 'Helaine Freitas' })?.guestId).toBe('r02')
     expect(app.handleGetGuest({ name: 'xyznotfound' })).toBeNull()
   })
 
