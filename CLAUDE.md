@@ -45,6 +45,9 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
 | `npm run release` | Full quality gate: typecheck + lint + format:check + build |
 | `npm run build` | Production build to `dist/` |
 | `npm run generate-qr` | Generate per-guest invitation QR PNGs (requires `qrcode` package) |
+| `npm run backend:pull` | Diff the live Apps Script project against `apps-script/` (never writes to the repo) |
+| `npm run backend:push` | Push `apps-script/Code.gs` + manifest to the Apps Script project with clasp |
+| `npm run backend:deploy` | Push and publish a new version on the existing Web App deployment (same URL) |
 
 ## CI / CD
 
@@ -88,7 +91,7 @@ Group related changes in the same PR. Unrelated changes (e.g. content updates vs
 | `src/utils/pix.ts` | PIX QR payload builder |
 | `src/i18n/pt.json` | Portuguese translations |
 | `src/i18n/en.json` | English translations |
-| `apps-script/Code.gs` | Google Apps Script source (deploy separately) |
+| `apps-script/Code.gs` | Google Apps Script source, pushed with clasp — see `apps-script/README.md`. `SHEET_ID` and couple emails are Script Properties, never in code |
 | `scripts/generate-qr-codes.ts` | Generates per-guest invitation QR PNGs |
 
 ## Color palette

@@ -26,6 +26,8 @@ export interface SandboxOptions {
   guests?: Row[]
   rsvps?: Row[]
   orders?: Row[]
+  /** Script Properties; defaults to a test sheet ID and two couple emails. */
+  properties?: Record<string, string>
 }
 
 export interface AppsScriptGlobals {
@@ -95,6 +97,10 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
     Orders: new FakeSheet('Orders', opts.orders ?? defaultOrders.map((r) => [...r])),
   }
   const sentMail: Sandbox['sentMail'] = []
+  const properties = opts.properties ?? {
+    SHEET_ID: 'test-sheet-id',
+    COUPLE_EMAILS: 'a@example.com, b@example.com',
+  }
 
   const ctx = {
     SpreadsheetApp: {
@@ -112,6 +118,11 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
       sendEmail: (args: { to: string; bcc?: string; subject: string; body: string }) => {
         sentMail.push(args)
       },
+    },
+    PropertiesService: {
+      getScriptProperties: () => ({
+        getProperty: (key: string) => properties[key] ?? null,
+      }),
     },
     LockService: {
       getScriptLock: () => ({

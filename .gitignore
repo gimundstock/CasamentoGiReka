@@ -3,3 +3,7 @@ dist/
 .DS_Store
 *.local
 qr-codes/
+
+# clasp: the project's scriptId and any credentials stay local
+.clasp.json
+.clasprc.json

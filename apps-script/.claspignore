@@ -1,0 +1,4 @@
+# Only the backend itself goes to Apps Script — never tests or docs.
+**/**
+!Code.gs
+!appsscript.json
