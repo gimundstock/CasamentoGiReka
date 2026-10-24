@@ -143,10 +143,15 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
                 }}
                 className="focus-visible:ring-cta absolute cursor-pointer rounded-[3px] bg-white p-3 pb-16 focus:outline-none focus-visible:ring-2"
                 style={{
-                  // Largura limitada também pela altura: a polaroide tem
-                  // 1,25 × (largura − 24px) de foto + 76px de moldura, então
-                  // ela cabe na caixa quando largura ≤ (altura − 46px) × 0,8.
-                  width: 'min(62cqw, 20rem, calc((100cqh - 46px) * 0.8))',
+                  // A largura respeita a caixa nos dois sentidos:
+                  // - na largura, a pilha inteira (as duas vizinhas de cada
+                  //   lado, deslocadas, giradas e menores) ocupa ~2,4× a foto
+                  //   da frente, então ela fica em ≤ 41% para ninguém ser
+                  //   cortado nas bordas;
+                  // - na altura, a polaroide tem 1,25 × (largura − 24px) de
+                  //   foto + 76px de moldura, então cabe quando
+                  //   largura ≤ (altura − 46px) × 0,8.
+                  width: 'min(41cqw, 20rem, calc((100cqh - 46px) * 0.8))',
                   zIndex: 30 - atras,
                 }}
                 initial={{

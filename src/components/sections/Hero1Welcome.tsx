@@ -35,7 +35,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
   return (
     <section
       id="welcome"
-      className="bg-peach relative flex min-h-screen w-full flex-col overflow-hidden pt-20 md:flex-row md:pt-0"
+      className="bg-peach relative flex min-h-screen w-full flex-col overflow-hidden pt-20 lg:flex-row lg:pt-0"
     >
       {/* O lago em aquarela assenta no canto inferior direito, por baixo das
           fotos e do texto, e ocupa a altura inteira da seção. O nome fica logo
@@ -58,14 +58,14 @@ export function Hero1Welcome({ guest, onReset }: Props) {
       {/* Photo column — left on desktop, below the greeting on mobile. No
           celular a seção começa abaixo da nav (pt-20) para nada passar por
           baixo dela. */}
-      <div className="relative order-2 w-full md:order-1 md:w-[58%]">
-        <div className="h-[50vh] w-full md:h-screen">
+      <div className="relative order-2 w-full lg:order-1 lg:w-[58%]">
+        <div className="h-[50vh] w-full lg:h-screen">
           <PhotoCarousel photos={photos} />
         </div>
       </div>
 
       {/* Text column — right on desktop, first on mobile */}
-      <div className="order-1 flex w-full flex-1 items-center justify-center px-6 pt-8 pb-4 md:order-2 md:px-10 md:py-0">
+      <div className="order-1 flex w-full flex-1 items-center justify-center px-6 pt-8 pb-4 lg:order-2 lg:px-10 lg:py-0">
         <div className="relative w-full max-w-xl text-center">
           {/* Lavanda escondida temporariamente — descomente para trazer de volta.
           <img
@@ -81,7 +81,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
             {t('welcome.greeting', { name: guest.groupName })}
           </h1>
 
-          <p className="font-sans text-title relative z-10 mt-10 text-sm tracking-[0.25em] uppercase md:mt-24">
+          <p className="font-sans text-title relative z-10 mt-10 text-sm tracking-[0.25em] uppercase lg:mt-24">
             {t('welcome.invitation')}
           </p>
 
@@ -98,7 +98,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
 
       {/* Scroll cue — bottom-right, static. Só no desktop: no celular as
           fotos ocupam a base da tela e passariam por cima dela. */}
-      <div className="absolute right-6 bottom-6 hidden text-center md:block">
+      <div className="absolute right-6 bottom-6 hidden text-center lg:block">
         <span className="font-sans text-title text-[0.55rem] tracking-[0.4em] uppercase">
           SCROLL
         </span>
