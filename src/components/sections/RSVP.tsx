@@ -6,6 +6,7 @@ import {
   useMotionValue,
   useMotionValueEvent,
   useScroll,
+  useSpring,
   useTransform,
   type MotionValue,
 } from 'framer-motion'
@@ -40,8 +41,8 @@ const T = {
 }
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
-/** Cubic ease-in-out: slow to start, quick through the middle, slow to land. */
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+/** Sine ease-in-out: gentle at both ends without rushing the middle. */
+const easeInOut = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
 
 /** Which face can be interacted with at a given progress. */
 function faceAt(v: number): 'none' | 'front' | 'back' {
@@ -246,9 +247,12 @@ export function RSVP({ guest }: Props) {
   // Turned over like a card in the hand rather than a sign on a pivot: the
   // turn eases in and out, and on the way the card lifts a little, grows,
   // leans back and swings a few degrees before settling flat again.
-  const flipT = useTransform(p, (v) =>
+  // A spring follows the scroll so each wheel tick glides instead of jumping.
+  const flipRaw = useTransform(p, (v) =>
     easeInOut(clamp01((v - T.flipStart) / (T.flipEnd - T.flipStart)))
   )
+  const flipSpring = useSpring(flipRaw, { stiffness: 120, damping: 24, mass: 0.6 })
+  const flipT = reduced ? flipRaw : flipSpring
   const cardFlip = useTransform(flipT, (t) => t * 180)
   const flipArc = useTransform(flipT, (t) => Math.sin(t * Math.PI))
   const flipLift = useTransform(flipArc, (a) => -a * 18)
