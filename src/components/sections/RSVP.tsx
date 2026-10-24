@@ -39,6 +39,10 @@ const T = {
   flipEnd: 0.78,
 }
 
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
+/** Cubic ease-in-out: slow to start, quick through the middle, slow to land. */
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+
 /** Which face can be interacted with at a given progress. */
 function faceAt(v: number): 'none' | 'front' | 'back' {
   if (v >= T.flipEnd - 0.01) return 'back'
@@ -239,7 +243,18 @@ export function RSVP({ guest }: Props) {
     (g) => [g.cardInClosedY, g.cardInY, g.cardInY, g.cardOutY, g.cardFinalY]
   )
   const cardScale = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.s0, 1])
-  const cardFlip = useScrollRange(p, [T.flipStart, T.flipEnd], [0, 180])
+  // Turned over like a card in the hand rather than a sign on a pivot: the
+  // turn eases in and out, and on the way the card lifts a little, grows,
+  // leans back and swings a few degrees before settling flat again.
+  const flipT = useTransform(p, (v) =>
+    easeInOut(clamp01((v - T.flipStart) / (T.flipEnd - T.flipStart)))
+  )
+  const cardFlip = useTransform(flipT, (t) => t * 180)
+  const flipArc = useTransform(flipT, (t) => Math.sin(t * Math.PI))
+  const flipLift = useTransform(flipArc, (a) => -a * 18)
+  const flipScale = useTransform(flipArc, (a) => 1 + a * 0.04)
+  const flipLean = useTransform(flipArc, (a) => a * 10)
+  const flipSwing = useTransform(flipT, (t) => Math.sin(t * Math.PI) * -5 * (1 - t * 0.6))
   // The card stays behind the pocket until the envelope has fallen away, so
   // stepping in front never covers paper that was in front of it a frame ago.
   const cardZ = useTransform(p, (v) => (v > T.settled - 0.01 ? 7 : 3))
@@ -368,7 +383,11 @@ export function RSVP({ guest }: Props) {
             style={{
               transformStyle: 'preserve-3d',
               transformPerspective: 2400,
+              y: flipLift,
+              scale: flipScale,
+              rotateX: flipLean,
               rotateY: cardFlip,
+              rotateZ: flipSwing,
             }}
           >
             <CardFace
