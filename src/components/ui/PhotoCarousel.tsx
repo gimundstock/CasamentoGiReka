@@ -33,7 +33,7 @@ const DEPTH = 2
  * Pausa com o ponteiro em cima ou com o foco do teclado dentro, para não
  * trocar a foto debaixo de quem está olhando.
  */
-export function PhotoCarousel({ photos, intervalMs = 9000 }: Props) {
+export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
   // Posição contínua da pilha: cresce para a frente e diminui para trás sem
   // dar a volta. A foto ativa é ela módulo a quantidade de fotos; a volta de
   // cada foto (quantas vezes já passou pela pilha) sai dela também.
