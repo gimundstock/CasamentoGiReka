@@ -35,8 +35,26 @@ export function Hero1Welcome({ guest, onReset }: Props) {
   return (
     <section
       id="welcome"
-      className="bg-peach relative flex min-h-screen w-full flex-col md:flex-row"
+      className="bg-peach relative flex min-h-screen w-full flex-col overflow-hidden md:flex-row"
     >
+      {/* O lago em aquarela assenta no canto inferior direito, por baixo das
+          fotos e do texto, e ocupa a altura inteira da seção. O nome fica logo
+          abaixo do braço fino que chega pela borda direita; as posições em %
+          acompanham a imagem (1070×1008) em qualquer altura. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-0 bottom-0 z-0 aspect-[1070/1008] h-full select-none"
+      >
+        <img
+          src={`${base}flowers/lake.webp`}
+          alt=""
+          draggable={false}
+          className="h-full w-full opacity-60"
+        />
+        <span className="font-garamond text-title/60 absolute top-[56.5%] right-[2%] text-[0.6rem] tracking-[0.15em] whitespace-nowrap italic">
+          {t('welcome.lake')}
+        </span>
+      </div>
       {/* Photo column — left on desktop, top on mobile */}
       <div className="relative w-full md:w-[58%]">
         <div className="h-[55vh] w-full md:h-screen">

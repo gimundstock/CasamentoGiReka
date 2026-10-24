@@ -18,6 +18,7 @@
   "welcome": {
     "greeting": "Olá, {{name}}!",
     "invitation": "Você está convidado(a) para celebrar conosco",
+    "lake": "Lago Paranoá",
     "seats": "Sua mesa tem {{count}} lugar reservado",
     "seats_plural": "Sua mesa tem {{count}} lugares reservados",
     "countdown": {
