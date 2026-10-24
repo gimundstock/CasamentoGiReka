@@ -123,6 +123,8 @@ function measure(w: number, h: number): Geometry {
   const envY = envTop + eh / 2 - h / 2
   // Closed, it sits in the middle of the screen below the nav.
   const envClosedY = NAV_HEIGHT / 2
+  // Card centre relative to the envelope's: its top edge 2% below the envelope's.
+  const cardInOffset = -eh / 2 + eh * 0.02 + (s0 * ch) / 2
   return {
     wide,
     ew,
@@ -131,11 +133,13 @@ function measure(w: number, h: number): Geometry {
     ch,
     s0,
     envClosedY,
-    cardInClosedY: envClosedY + eh * 0.015,
+    cardInClosedY: envClosedY + cardInOffset,
     envY,
     envGoneY: envY + h * 0.75,
-    // Sitting low in the pocket, its bottom edge just inside the envelope's.
-    cardInY: envY + eh * 0.015,
+    // Tucked up under the envelope's top edge. When the card is shorter than
+    // the envelope (the upright one on phones), whatever is left over falls
+    // behind the pocket instead of showing as a band of blue liner above it.
+    cardInY: envY + cardInOffset,
     // Out of the pocket as far as the screen allows: fully clear when there
     // is room, otherwise stopping just below the nav. It stays behind the
     // pocket either way; the envelope falling away uncovers the rest.
