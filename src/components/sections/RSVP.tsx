@@ -243,9 +243,6 @@ export function RSVP({ guest }: Props) {
   // The card stays behind the pocket until the envelope has fallen away, so
   // stepping in front never covers paper that was in front of it a frame ago.
   const cardZ = useTransform(p, (v) => (v > T.settled - 0.01 ? 7 : 3))
-  // Out of sight while the envelope is sealed, so no white paper shows where
-  // the flap's edge leaves a sliver of the opening uncovered.
-  const cardOpacity = useTransform(p, (v) => (v >= T.flapStart ? 1 : 0))
 
   const box = (width: number, height: number) => ({
     width,
@@ -364,7 +361,6 @@ export function RSVP({ guest }: Props) {
             y: cardY,
             scale: cardScale,
             zIndex: cardZ,
-            opacity: cardOpacity,
           }}
         >
           <motion.div
