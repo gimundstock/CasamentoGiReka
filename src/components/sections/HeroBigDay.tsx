@@ -7,8 +7,9 @@ import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } 
 
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
 // painted in around the sun as it travels, the pencil line
-// art registered onto it (lines.webp), and a sky mask (sky-mask.webp) that
-// keeps the sun from showing over the hills. All are 1376 × 768.
+// art registered onto it (lines.svg), and a sky mask (sky-mask.webp) that
+// keeps the sun from showing over the hills. All share the 1376 × 768 aspect
+// (lines.svg is the vectorized drawing, 1245 × 695).
 const ART_ASPECT = 1376 / 768
 const ART = `${import.meta.env.BASE_URL}cerrado`
 
@@ -319,7 +320,7 @@ export function HeroBigDay() {
                     UP from below the viewport alongside the sun shrink so
                     the drawing rises into place. ── */}
           <motion.img
-            src={`${ART}/lines.webp`}
+            src={`${ART}/lines.svg`}
             alt=""
             aria-hidden
             draggable={false}
