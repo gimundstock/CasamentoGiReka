@@ -8,6 +8,11 @@ import { MaskReveal } from '../motion/MaskReveal'
 import { OrbitingStory } from '../motion/OrbitingStory'
 import { SUN_BIG_SCALE, SUN_BIG_VMIN, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
+// Colunas da grade da contagem: números (e rótulos) nas ímpares, dois-pontos
+// nas pares. Classes escritas por inteiro para o Tailwind encontrá-las.
+const UNIT_COL = ['col-start-1', 'col-start-3', 'col-start-5', 'col-start-7']
+const COLON_COL = ['', 'col-start-2', 'col-start-4', 'col-start-6']
+
 function useCountdown(targetDate: string) {
   const [diff, setDiff] = useState(0)
 
@@ -254,10 +259,15 @@ export function HeroSaveDateCouple() {
     .toUpperCase()
     .replace(/\./g, '')
 
-  const countdownText = `${pad(countdown.days, 3)} : ${pad(countdown.hours, 2)} : ${pad(
-    countdown.minutes,
-    2
-  )} : ${pad(countdown.seconds, 2)}`
+  // Cada número fica numa coluna com o seu rótulo embaixo, para os dois
+  // sempre se alinharem — eram duas linhas de texto centralizadas por conta
+  // própria, e o alinhamento dependia da largura de cada palavra.
+  const countdownUnits = [
+    { value: pad(countdown.days, 3), label: t('welcome.countdown.days') },
+    { value: pad(countdown.hours, 2), label: t('welcome.countdown.hours') },
+    { value: pad(countdown.minutes, 2), label: t('welcome.countdown.minutes') },
+    { value: pad(countdown.seconds, 2), label: t('welcome.countdown.seconds') },
+  ]
 
   const milestones = CONFIG.story?.milestones ?? []
   // The milestones orbit the flower from the first photo on and must be
@@ -329,27 +339,58 @@ export function HeroSaveDateCouple() {
                   fadeIn={0.45}
                   className="font-sans text-title block text-[1.8rem] leading-[1.4] font-light tracking-[0.12em] md:text-5xl md:leading-none"
                 />
-                <FlipLetters
-                  text={countdownText}
-                  scrollProgress={scrollYProgress}
-                  scrollStart={0.15}
-                  scrollEnd={0.2}
-                  staggerRatio={0.9}
-                  scaleFrom={0.3}
-                  fadeIn={0.45}
-                  className="font-sans text-title block text-2xl tabular-nums md:text-4xl"
-                />
-                <MaskReveal
-                  direction="up"
-                  scrollProgress={scrollYProgress}
-                  scrollStart={0.18}
-                  scrollEnd={0.22}
-                >
-                  <p className="font-sans text-title text-[0.6rem] tracking-[0.4em] uppercase">
-                    {t('welcome.countdown.days')} · {t('welcome.countdown.hours')} ·{' '}
-                    {t('welcome.countdown.minutes')} · {t('welcome.countdown.seconds')}
-                  </p>
-                </MaskReveal>
+                {/* Números na primeira linha, com os dois-pontos em colunas
+                    próprias; rótulos na segunda, cada um embaixo do seu
+                    número. As peças se juntam em sequência entre 0.15 e 0.20,
+                    como fazia o texto corrido. */}
+                <div className="text-title grid grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] items-baseline gap-x-2 gap-y-3 font-sans md:gap-x-4 md:gap-y-4">
+                  {countdownUnits.flatMap((unit, k) => {
+                    const cells = [
+                      <FlipLetters
+                        key={`n-${k}`}
+                        text={unit.value}
+                        scrollProgress={scrollYProgress}
+                        scrollStart={0.15 + k * 0.01}
+                        scrollEnd={0.17 + k * 0.01}
+                        staggerRatio={0.9}
+                        scaleFrom={0.3}
+                        fadeIn={0.45}
+                        className={`${UNIT_COL[k]} row-start-1 block text-center text-2xl tabular-nums md:text-4xl`}
+                      />,
+                    ]
+                    if (k > 0)
+                      cells.push(
+                        <FlipLetters
+                          key={`c-${k}`}
+                          text=":"
+                          scrollProgress={scrollYProgress}
+                          scrollStart={0.145 + k * 0.01}
+                          scrollEnd={0.165 + k * 0.01}
+                          scaleFrom={0.3}
+                          fadeIn={0.45}
+                          className={`${COLON_COL[k]} row-start-1 block text-2xl md:text-4xl`}
+                        />
+                      )
+                    cells.push(
+                      <MaskReveal
+                        key={`l-${k}`}
+                        direction="up"
+                        scrollProgress={scrollYProgress}
+                        scrollStart={0.18}
+                        scrollEnd={0.22}
+                        className={`${UNIT_COL[k]} row-start-2 text-center`}
+                      >
+                        {/* O tracking deixa um espaço depois da última letra;
+                            o mesmo recuo à esquerda mantém a palavra no
+                            centro da coluna. */}
+                        <span className="block pl-[0.25em] text-[0.6rem] tracking-[0.25em] uppercase md:pl-[0.4em] md:tracking-[0.4em]">
+                          {unit.label}
+                        </span>
+                      </MaskReveal>
+                    )
+                    return cells
+                  })}
+                </div>
               </div>
             </div>
           </motion.div>

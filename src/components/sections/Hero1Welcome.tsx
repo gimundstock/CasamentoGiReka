@@ -35,7 +35,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
   return (
     <section
       id="welcome"
-      className="bg-peach relative flex min-h-screen w-full flex-col overflow-hidden md:flex-row"
+      className="bg-peach relative flex min-h-screen w-full flex-col overflow-hidden pt-20 lg:flex-row lg:pt-0"
     >
       {/* O lago em aquarela assenta no canto inferior direito, por baixo das
           fotos e do texto, e ocupa a altura inteira da seção. O nome fica logo
@@ -55,15 +55,17 @@ export function Hero1Welcome({ guest, onReset }: Props) {
           {t('welcome.lake')}
         </span>
       </div>
-      {/* Photo column — left on desktop, top on mobile */}
-      <div className="relative w-full md:w-[58%]">
-        <div className="h-[55vh] w-full md:h-screen">
+      {/* Photo column — left on desktop, top on mobile. No celular a seção
+          começa abaixo da nav (pt-20) para as fotos não passarem por baixo
+          dela. */}
+      <div className="relative w-full lg:w-[58%]">
+        <div className="h-[50vh] w-full lg:h-screen">
           <PhotoCarousel photos={photos} />
         </div>
       </div>
 
       {/* Text column — right on desktop, below on mobile */}
-      <div className="flex w-full flex-1 items-center justify-center px-6 py-16 md:px-10 md:py-0">
+      <div className="flex w-full flex-1 items-center justify-center px-6 py-16 lg:px-10 lg:py-0">
         <div className="relative w-full max-w-xl text-center">
           {/* Lavanda escondida temporariamente — descomente para trazer de volta.
           <img
