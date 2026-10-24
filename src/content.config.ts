@@ -35,8 +35,8 @@ export const CONFIG = {
     address: 'SHIN QI 16 Área Especial, Brasília - DF, 71530-200',
     mapsUrl:
       'https://maps.google.com/?q=Clube+do+Congresso+SHIN+QI+16+Área+Especial+Lago+Norte+Brasília+DF+71530-200',
-    dresscode_pt: 'Traje social — tons terrosos e naturais',
-    dresscode_en: 'Smart casual — earth tones and natural colours',
+    dresscode_pt: 'Passeio completo',
+    dresscode_en: 'Cocktail attire',
     rsvpDeadline: '2027-02-28', // ISO format YYYY-MM-DD
   },
 

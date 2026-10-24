@@ -9,7 +9,7 @@ import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } 
 // painted in around the sun as it travels, the pencil line
 // art registered onto it (lines.svg), and a sky mask (sky-mask.webp) that
 // keeps the sun from showing over the hills. All share the 1376 × 768 aspect
-// (lines.svg is the vectorized drawing, 1245 × 695).
+// (lines.svg is the hand-drawn vector, 1376 × 769).
 const ART_ASPECT = 1376 / 768
 const ART = `${import.meta.env.BASE_URL}cerrado`
 
@@ -198,11 +198,10 @@ export function HeroBigDay() {
   // Split "Category — details" so the descriptor wraps to its own line.
   const [dressCodeHead, ...dressCodeRest] = dressCode.split(' — ')
   const dressCodeTail = dressCodeRest.join(' — ')
-
-  // Split "street, city, state" so the geo segment wraps to its own line.
-  const addressParts = CONFIG.wedding.address.split(',').map((s) => s.trim())
-  const addressHead = addressParts[0]
-  const addressTail = addressParts.slice(1).join(', ')
+  // In the script font a lone leading letter ("O Grande Dia") sits too close to
+  // the next word, so it gets a little extra room.
+  const [titleHead, ...titleRest] = t('wedding.title').split(' ')
+  const titleTail = titleRest.join(' ')
 
   return (
     <section id="wedding" className="relative">
@@ -251,7 +250,7 @@ export function HeroBigDay() {
           <motion.div
             aria-hidden
             className="pointer-events-none absolute z-10 overflow-hidden"
-            style={{ ...artBox, y: cerradoY }}
+            style={{ ...artBox, y: cerradoY, opacity: 0.9 }}
           >
             <CerradoPaint
               src={`${ART}/paint.webp`}
@@ -341,8 +340,8 @@ export function HeroBigDay() {
             }}
           />
 
-          {/* ── z-40  Horizontal top strip — five-column metadata row
-                    (date · time · venue · dress · address), vertically
+          {/* ── z-40  Horizontal top strip — three-column metadata row
+                    (date + time · venue + directions · dress), vertically
                     centered in the region between the nav bar and the
                     top of the cerrado silhouette. ── */}
           <motion.div
@@ -354,12 +353,12 @@ export function HeroBigDay() {
               bottom: 'calc(100% - var(--art-top) - var(--art-h) * 0.17)',
             }}
           >
-            <dl className="text-title mx-auto grid w-full max-w-[1600px] grid-cols-2 gap-x-8 gap-y-6 text-center md:grid-cols-4 md:gap-x-10">
+            <dl className="text-title mx-auto grid w-full max-w-[1600px] grid-cols-3 gap-x-4 gap-y-6 text-center md:gap-x-10">
               <div>
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
                   {t('wedding.date')}
                 </dt>
-                <dd className="font-sans tabular-nums mt-2 text-lg leading-tight md:text-2xl">
+                <dd className="font-sans tabular-nums mt-2 text-base leading-tight md:text-xl">
                   {dateStr}
                   <br />
                   {CONFIG.wedding.time}
@@ -369,22 +368,8 @@ export function HeroBigDay() {
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
                   {t('wedding.venue')}
                 </dt>
-                <dd className="font-sans tabular-nums mt-2 text-lg leading-tight md:text-2xl">
+                <dd className="font-sans tabular-nums mt-2 text-base leading-tight md:text-xl">
                   {CONFIG.wedding.venue}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
-                  {t('wedding.address')}
-                </dt>
-                <dd className="font-sans tabular-nums mt-2 text-lg leading-tight md:text-2xl">
-                  {addressHead}
-                  {addressTail && (
-                    <>
-                      <br />
-                      {addressTail}
-                    </>
-                  )}
                 </dd>
                 <a
                   href={CONFIG.wedding.mapsUrl}
@@ -399,7 +384,7 @@ export function HeroBigDay() {
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
                   {t('wedding.dresscode')}
                 </dt>
-                <dd className="font-sans tabular-nums mt-2 text-lg leading-tight md:text-2xl">
+                <dd className="font-sans tabular-nums mt-2 text-base leading-tight md:text-xl">
                   {dressCodeHead}
                   {dressCodeTail && (
                     <>
@@ -422,17 +407,23 @@ export function HeroBigDay() {
             style={{
               opacity: infoOpacity,
               // Keep the block inside the screen on narrow viewports.
-              left: `clamp(9rem, ${artX(78)}, calc(100% - 9rem))`,
-              top: artY(25),
+              left: `clamp(9rem, calc(${artX(62)} - 70px), calc(100% - 9rem))`,
+              top: `calc(${artY(40)} - 70px)`,
               x: '-50%',
               y: '-100%',
             }}
           >
-            <p className="font-sans text-title mb-3 text-[0.65rem] tracking-[0.4em] uppercase md:mb-4">
+            <p className="font-sans mb-5 text-[0.65rem] text-[#2a2a29] tracking-[0.4em] uppercase md:mb-6">
               {t('wedding.tagline')}
             </p>
-            <h2 className="font-display text-title text-2xl whitespace-nowrap md:text-3xl">
-              {t('wedding.title')}
+            <h2 className="font-display text-[1.2rem] text-[#2a2a29] whitespace-nowrap md:text-2xl">
+              {titleHead.length === 1 && titleTail ? (
+                <>
+                  <span className="mr-[0.2em]">{titleHead}</span> {titleTail}
+                </>
+              ) : (
+                t('wedding.title')
+              )}
             </h2>
           </motion.div>
         </div>

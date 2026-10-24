@@ -128,7 +128,7 @@ export function CityGuide() {
           >
             <CathedralArt
               progress={scrollYProgress}
-              className="w-full h-auto md:absolute md:top-1/2 md:-left-[12%] md:w-[190%] md:max-w-none md:-translate-y-1/2 md:pointer-events-none"
+              className="w-full h-auto md:absolute md:top-1/2 md:-left-[22%] md:w-[190%] md:max-w-none md:-translate-y-1/2 md:pointer-events-none"
             />
           </div>
 
