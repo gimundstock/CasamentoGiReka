@@ -394,13 +394,13 @@ export function RSVP({ guest }: Props) {
  * the envelope's width.
  */
 const EMBOSS = {
-  h: { x: 0.66, y: 0.36, size: 0.045 },
-  v: { x: 0.5, y: 0.3, size: 0.075 },
+  h: { x: 0.66, y: 0.36, size: 0.036 },
+  v: { x: 0.5, y: 0.3, size: 0.06 },
 }
 
 /**
- * The couple's monogram pressed into the paper and foiled in the gold of the
- * painting's lake line: letters lifted by light catching their lower edges
+ * The couple's monogram pressed into the paper and foiled in the invitation's
+ * amber (the colour of its "&"): letters lifted by light catching their lower edges
  * and shadow along the upper ones, set at a slight angle like a hand stamp.
  */
 function Emboss({ className, style }: { className?: string; style?: React.CSSProperties }) {
@@ -409,7 +409,7 @@ function Emboss({ className, style }: { className?: string; style?: React.CSSPro
       aria-hidden
       className={`font-display pointer-events-none whitespace-nowrap leading-none select-none ${className ?? ''}`}
       style={{
-        color: 'rgba(196, 154, 64, 0.85)',
+        color: '#D89A35',
         textShadow:
           '0 1px 0 rgba(255, 250, 235, 0.9), 0 -1px 0 rgba(110, 80, 25, 0.35), 0 0 1px rgba(110, 80, 25, 0.2)',
         ...style,
