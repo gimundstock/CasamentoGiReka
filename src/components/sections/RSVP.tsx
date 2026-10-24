@@ -6,6 +6,7 @@ import {
   useMotionValue,
   useMotionValueEvent,
   useScroll,
+  useSpring,
   useTransform,
   type MotionValue,
 } from 'framer-motion'
@@ -20,8 +21,8 @@ const NAV_HEIGHT = 68
 
 /*
  * Scroll timeline (progress through the pinned track):
- *   0.00–0.04  the seal lifts away
- *   0.04–0.20  the flap swings open
+ *   0.00–0.06  the closed envelope, centred, moves down to make room for the flap
+ *   0.06–0.20  the flap swings open
  *   0.20–0.35  the invitation slides up out of the pocket
  *   0.35–0.50  the envelope falls away while the invitation grows to full size
  *   0.50–0.62  hold: the invitation, front side
@@ -29,7 +30,8 @@ const NAV_HEIGHT = 68
  *   0.78–1.00  hold: the reply form
  */
 const T = {
-  sealGone: 0.04,
+  envDown: 0.06,
+  flapStart: 0.06,
   flapOpen: 0.2,
   flapVertical: 0.12,
   cardOut: 0.35,
@@ -37,6 +39,10 @@ const T = {
   flipStart: 0.62,
   flipEnd: 0.78,
 }
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
+/** Sine ease-in-out: gentle at both ends without rushing the middle. */
+const easeInOut = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
 
 /** Which face can be interacted with at a given progress. */
 function faceAt(v: number): 'none' | 'front' | 'back' {
@@ -69,6 +75,9 @@ interface Geometry {
   /** Card scale while it sits in the envelope. */
   s0: number
   /** Vertical offsets from the stage centre (px). */
+  /** Closed and centred, before it moves down to open. */
+  envClosedY: number
+  cardInClosedY: number
   envY: number
   /** Where the envelope ends up once it has fallen away. */
   envGoneY: number
@@ -77,16 +86,50 @@ interface Geometry {
   cardFinalY: number
 }
 
+/*
+ * The envelope is four painted layers (public/rsvp/), registered onto the
+ * same rectangle: the back with its blue liner, the front pocket with its
+ * wavy opening, and the flap outside and inside. Landscape on wide screens,
+ * standing upright on phones to match the upright card.
+ */
+const ENVELOPE = {
+  h: { aspect: 1493 / 828, flap: 546 / 828 },
+  v: { aspect: 963 / 1491, flap: 754 / 1491 },
+}
+
+/** Space kept under the envelope for the "scroll to open" hint. */
+const ENV_HINT_ROOM = 64
+
+/** How much of the envelope the card fills while it sits inside. */
+const IN_ENVELOPE = 0.96
+
 function measure(w: number, h: number): Geometry {
   const wide = w >= 768
-  const ew = Math.min(560, w * 0.88, h * 0.54)
-  const eh = ew / 1.5
+  const env = ENVELOPE[wide ? 'h' : 'v']
+  // Up to half the screen's height on wide screens, and taller on phones
+  // where it stands upright; never wider than most of the screen. The open
+  // flap stands above it, so envelope + flap must fit between the nav and
+  // the scroll hint underneath.
+  const room = h - NAV_HEIGHT - 8 - ENV_HINT_ROOM
+  const eh = Math.min(
+    wide
+      ? Math.min(840 / env.aspect, (w * 0.8) / env.aspect, h * 0.5)
+      : Math.min(h * 0.62, (w * 0.86) / env.aspect),
+    room / (1 + env.flap)
+  )
+  const ew = eh * env.aspect
   // Landscape card on wide screens; on phones a landscape card would be
   // unreadably small, so it stands upright instead.
-  const cw = wide ? Math.min(960, w * 0.92, (h - NAV_HEIGHT - 56) / 0.625) : w - 32
+  const cw = wide ? Math.min(1100, w * 0.94, (h - NAV_HEIGHT - 56) / 0.625) : w - 20
   const ch = wide ? cw * 0.625 : h - NAV_HEIGHT - 80
-  const s0 = Math.min((ew * 0.86) / cw, (eh * 0.86) / ch)
-  const envY = h * 0.1
+  const s0 = Math.min((ew * IN_ENVELOPE) / cw, (eh * IN_ENVELOPE) / ch)
+  // Centred in the room left once the open flap is accounted for.
+  const envTop = NAV_HEIGHT + 8 + env.flap * eh + (room - (1 + env.flap) * eh) / 2
+  const envY = envTop + eh / 2 - h / 2
+  // Closed, it sits in the middle of the screen below the nav.
+  const envClosedY = NAV_HEIGHT / 2
+  // Card centre relative to the envelope's: its top edge 2% below the envelope's.
+  const cardInOffset = -eh / 2 + eh * 0.02 + (s0 * ch) / 2
   return {
     wide,
     ew,
@@ -94,11 +137,21 @@ function measure(w: number, h: number): Geometry {
     cw,
     ch,
     s0,
+    envClosedY,
+    cardInClosedY: envClosedY + cardInOffset,
     envY,
     envGoneY: envY + h * 0.75,
-    cardInY: envY + eh * 0.04,
-    // Fully clear of the pocket, so it can step in front of it without a pop.
-    cardOutY: envY - eh / 2 - (s0 * ch) / 2 - eh * 0.03,
+    // Tucked up under the envelope's top edge. When the card is shorter than
+    // the envelope (the upright one on phones), whatever is left over falls
+    // behind the pocket instead of showing as a band of blue liner above it.
+    cardInY: envY + cardInOffset,
+    // Out of the pocket as far as the screen allows: fully clear when there
+    // is room, otherwise stopping just below the nav. It stays behind the
+    // pocket either way; the envelope falling away uncovers the rest.
+    cardOutY: Math.max(
+      envY - eh / 2 - (s0 * ch) / 2 - eh * 0.03,
+      -h / 2 + NAV_HEIGHT + 16 + (s0 * ch) / 2
+    ),
     cardFinalY: NAV_HEIGHT / 2,
   }
 }
@@ -155,6 +208,7 @@ export function RSVP({ guest }: Props) {
 
   const { w, h } = useStageSize()
   const geo = measure(w, h)
+  const orient = geo.wide ? 'h' : 'v'
   // Transforms read the latest geometry through a ref so a resize never
   // remounts the card (and never loses what the guest has typed).
   const geoRef = useRef(geo)
@@ -165,28 +219,49 @@ export function RSVP({ guest }: Props) {
   const [face, setFace] = useState(() => faceAt(p.get()))
   useMotionValueEvent(p, 'change', (v) => setFace(faceAt(v)))
 
-  const envY = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.envY, g.envGoneY])
+  const envY = useGeometryTransform(p, geoRef, [0, T.envDown, T.cardOut, T.settled], (g) => [
+    g.envClosedY,
+    g.envY,
+    g.envY,
+    g.envGoneY,
+  ])
   const envOpacity = useScrollRange(p, [T.cardOut + 0.05, T.settled], [1, 0])
-  const flapRotate = useScrollRange(p, [T.sealGone, T.flapOpen], [0, 180])
+  const flapRotate = useScrollRange(p, [T.flapStart, T.flapOpen], [0, 180])
   const flapZ = useTransform(p, (v) => (v > T.flapVertical ? 2 : 5))
-  const sealOpacity = useScrollRange(p, [0, T.sealGone], [1, 0])
-  const sealScale = useScrollRange(p, [0, T.sealGone], [1, 1.3])
   const hintOpacity = useScrollRange(p, [0, 0.05], [1, 0])
   const replyHintOpacity = useScrollRange(
     p,
     [T.settled - 0.03, T.settled, T.flipStart, T.flipStart + 0.03],
     [0, 1, 1, 0]
   )
-  const kickerOpacity = useScrollRange(p, [T.cardOut, T.cardOut + 0.1], [1, 0])
+  // Gone as the flap opens: the open flap stands where the kicker sits.
+  const kickerOpacity = useScrollRange(p, [T.flapStart, T.flapStart + 0.06], [1, 0])
 
-  const cardY = useGeometryTransform(p, geoRef, [T.flapOpen, T.cardOut, T.settled], (g) => [
-    g.cardInY,
-    g.cardOutY,
-    g.cardFinalY,
-  ])
+  const cardY = useGeometryTransform(
+    p,
+    geoRef,
+    [0, T.envDown, T.flapOpen, T.cardOut, T.settled],
+    (g) => [g.cardInClosedY, g.cardInY, g.cardInY, g.cardOutY, g.cardFinalY]
+  )
   const cardScale = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.s0, 1])
-  const cardFlip = useScrollRange(p, [T.flipStart, T.flipEnd], [0, 180])
-  const cardZ = useTransform(p, (v) => (v > T.cardOut - 0.01 ? 7 : 3))
+  // Turned over like a card in the hand rather than a sign on a pivot: the
+  // turn eases in and out, and on the way the card lifts a little, grows,
+  // leans back and swings a few degrees before settling flat again.
+  // A spring follows the scroll so each wheel tick glides instead of jumping.
+  const flipRaw = useTransform(p, (v) =>
+    easeInOut(clamp01((v - T.flipStart) / (T.flipEnd - T.flipStart)))
+  )
+  const flipSpring = useSpring(flipRaw, { stiffness: 120, damping: 24, mass: 0.6 })
+  const flipT = reduced ? flipRaw : flipSpring
+  const cardFlip = useTransform(flipT, (t) => t * 180)
+  const flipArc = useTransform(flipT, (t) => Math.sin(t * Math.PI))
+  const flipLift = useTransform(flipArc, (a) => -a * 18)
+  const flipScale = useTransform(flipArc, (a) => 1 + a * 0.04)
+  const flipLean = useTransform(flipArc, (a) => a * 10)
+  const flipSwing = useTransform(flipT, (t) => Math.sin(t * Math.PI) * -5 * (1 - t * 0.6))
+  // The card stays behind the pocket until the envelope has fallen away, so
+  // stepping in front never covers paper that was in front of it a frame ago.
+  const cardZ = useTransform(p, (v) => (v > T.settled - 0.01 ? 7 : 3))
 
   const box = (width: number, height: number) => ({
     width,
@@ -213,60 +288,71 @@ export function RSVP({ guest }: Props) {
           {t('rsvp.kicker')}
         </motion.p>
 
-        {/* Envelope, built as sibling layers so the card can slot between them. */}
-        <motion.div
+        {/* Envelope, built as sibling layers so the card can slot between
+            them: back (1) · card while inside (3) · pocket (4) · flap (5,
+            dropping to 2 once it stands past vertical, behind the card). */}
+        <motion.img
           aria-hidden
-          className="absolute rounded-[3px] shadow-[0_24px_40px_-12px_rgba(70,80,95,0.28)]"
-          style={{
-            ...envBox,
-            zIndex: 1,
-            background: 'linear-gradient(180deg, #C5CFD8 0%, #D3DCE3 100%)',
-          }}
+          src={`${base}rsvp/envelope-back-${orient}.webp`}
+          alt=""
+          draggable={false}
+          className="absolute max-w-none select-none rounded-[3px] shadow-[0_24px_40px_-12px_rgba(70,80,95,0.28)]"
+          style={{ ...envBox, zIndex: 1 }}
+        />
+        <motion.img
+          aria-hidden
+          src={`${base}rsvp/envelope-pocket-${orient}.webp`}
+          alt=""
+          draggable={false}
+          className="absolute max-w-none select-none"
+          style={{ ...envBox, zIndex: 4 }}
         />
         <motion.div
           aria-hidden
           className="absolute"
-          style={{ ...envBox, zIndex: 4, background: POCKET, clipPath: POCKET_CLIP }}
-        />
-        <motion.div
-          aria-hidden
-          className="absolute"
-          style={{
-            ...envBox,
-            zIndex: 4,
-            background: 'linear-gradient(0deg, #F0F3F5 0%, #E6EBEF 100%)',
-            clipPath: 'polygon(0 100%, 50% 44%, 100% 100%)',
-          }}
-        />
-        <motion.div
-          aria-hidden
-          className="absolute"
-          style={{ ...envBox, y: envY, opacity: envOpacity, zIndex: flapZ }}
+          style={{ ...envBox, zIndex: flapZ, perspective: 1400 }}
         >
+          {/* The flap turns over its top edge. Its inside is a second face,
+              turned away to start with; the image is stored upside down so
+              it reads right once the flap stands open above the envelope. */}
           <motion.div
-            className="absolute left-0 right-0 top-0 h-[60%]"
+            className="absolute inset-x-0 top-0"
             style={{
+              height: `${ENVELOPE[orient].flap * 100}%`,
               rotateX: flapRotate,
               originY: 0,
-              transformPerspective: 1400,
-              clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
-              background: 'linear-gradient(180deg, #EBEFF2 0%, #DCE3E8 100%)',
+              transformStyle: 'preserve-3d',
             }}
-          />
+          >
+            <div className="absolute inset-0 [backface-visibility:hidden]">
+              <img
+                src={`${base}rsvp/envelope-flap-${orient}.webp`}
+                alt=""
+                draggable={false}
+                className="absolute inset-0 h-full w-full max-w-none select-none"
+              />
+              <Emboss
+                className="absolute -translate-x-1/2 -translate-y-1/2 -rotate-[12deg]"
+                style={{
+                  left: `${EMBOSS[orient].x * 100}%`,
+                  top: `${EMBOSS[orient].y * 100}%`,
+                  fontSize: geo.ew * EMBOSS[orient].size,
+                }}
+              />
+            </div>
+            <img
+              src={`${base}rsvp/envelope-flap-inside-${orient}.webp`}
+              alt=""
+              draggable={false}
+              className="absolute inset-0 h-full w-full max-w-none select-none [backface-visibility:hidden] [transform:rotateX(180deg)]"
+            />
+          </motion.div>
         </motion.div>
-        <motion.div aria-hidden className="absolute" style={{ ...envBox, zIndex: 6 }}>
-          {/* The seal: a single white flower pressed where the flaps meet. */}
-          <motion.img
-            src={`${base}flowers/camomile_x1.png`}
-            alt=""
-            className="absolute left-1/2 top-[60%] -ml-11 -mt-11 sm:-ml-14 sm:-mt-14 w-[5.5rem] h-[5.5rem] sm:w-28 sm:h-28 drop-shadow-[0_6px_10px_rgba(70,80,95,0.25)]"
-            style={{ opacity: sealOpacity, scale: sealScale }}
-          />
-          <img
-            src={`${base}flowers/lavender.png`}
-            alt=""
-            className="pointer-events-none absolute -left-6 sm:-left-14 -top-10 w-20 sm:w-28 -rotate-[24deg] opacity-90"
-          />
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute"
+          style={{ ...envBox, zIndex: 6 }}
+        >
           <motion.p
             className="absolute inset-x-0 -bottom-16 text-center font-serif italic text-title/70 text-lg"
             style={{ opacity: hintOpacity }}
@@ -301,7 +387,11 @@ export function RSVP({ guest }: Props) {
             style={{
               transformStyle: 'preserve-3d',
               transformPerspective: 2400,
+              y: flipLift,
+              scale: flipScale,
+              rotateX: flipLean,
               rotateY: cardFlip,
+              rotateZ: flipSwing,
             }}
           >
             <CardFace
@@ -311,7 +401,12 @@ export function RSVP({ guest }: Props) {
             >
               <InvitationFront guest={guest} lang={lang} wide={geo.wide} />
             </CardFace>
-            <CardFace hidden={face !== 'back'} back>
+            <CardFace
+              hidden={face !== 'back'}
+              back
+              paper={`${base}rsvp/card-back.webp`}
+              rotate={geo.wide ? { w: geo.cw, h: geo.ch } : undefined}
+            >
               <ReplyForm guest={guest} wide={geo.wide} />
             </CardFace>
           </motion.div>
@@ -321,10 +416,39 @@ export function RSVP({ guest }: Props) {
   )
 }
 
-// Silvery paper, cooled toward the blue wash of the invitation's painting.
-const POCKET = 'linear-gradient(160deg, #F2F4F6 0%, #E4E9ED 60%, #D6DEE4 100%)'
-// Two side flaps meeting the bottom flap, as one outline.
-const POCKET_CLIP = 'polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%)'
+/**
+ * Where the blind-embossed monogram sits on each flap, on a clear patch of
+ * paper (fractions of the flap's width/height), and its size as a fraction of
+ * the envelope's width.
+ */
+const EMBOSS = {
+  h: { x: 0.66, y: 0.36, size: 0.036 },
+  v: { x: 0.5, y: 0.3, size: 0.06 },
+}
+
+/**
+ * The couple's monogram pressed into the paper and foiled in the invitation's
+ * amber (the colour of its "&"): letters lifted by light catching their lower edges
+ * and shadow along the upper ones, set at a slight angle like a hand stamp.
+ */
+function Emboss({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <span
+      aria-hidden
+      className={`font-display pointer-events-none whitespace-nowrap leading-none select-none ${className ?? ''}`}
+      style={{
+        color: '#D89A35',
+        textShadow:
+          '0 1px 0 rgba(255, 250, 235, 0.9), 0 -1px 0 rgba(110, 80, 25, 0.35), 0 0 1px rgba(110, 80, 25, 0.2)',
+        ...style,
+      }}
+    >
+      {CONFIG.couple.bride[0]}
+      <span className="ml-[0.3em]">&amp;</span>
+      <span className="-ml-[0.15em]">{CONFIG.couple.groom[0]}</span>
+    </span>
+  )
+}
 
 // ── Card ──────────────────────────────────────────────────
 
@@ -333,6 +457,7 @@ function CardFace({
   hidden,
   back,
   image,
+  paper,
   rotate,
 }: {
   children: ReactNode
@@ -341,8 +466,15 @@ function CardFace({
   /** Painted artwork for this face; replaces the paper and the ruled border. */
   image?: string
   /**
-   * Card size when the landscape artwork has to fill an upright card: the
-   * painting is turned 90° clockwise so its flowers run down the left side.
+   * Full-bleed paper for this face, gold lines and all, in place of the plain
+   * paper and ruled border. Upright artwork; `rotate` turns it for a
+   * landscape card.
+   */
+  paper?: string
+  /**
+   * Card size when the artwork's orientation doesn't match the card's: it is
+   * turned 90° clockwise to fill it (the front's landscape painting on an
+   * upright card, the back's upright paper on a landscape one).
    */
   rotate?: { w: number; h: number }
 }) {
@@ -368,7 +500,7 @@ function CardFace({
       ref={ref}
       aria-hidden={hidden}
       className={`relative rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden ${
-        image ? 'bg-[#FFFEFB]' : 'bg-[#F6F6F5] bg-paper'
+        image || paper ? 'bg-[#FFFEFB]' : 'bg-[#F6F6F5] bg-paper'
       }`}
       style={{
         gridArea: '1 / 1',
@@ -392,6 +524,11 @@ function CardFace({
           />
           <div className="pointer-events-none absolute inset-3 md:inset-4 border border-[#C9A464]" />
         </>
+      ) : paper ? (
+        <div
+          className="pointer-events-none absolute bg-cover bg-center"
+          style={{ ...paint, backgroundImage: `url(${paper})` }}
+        />
       ) : (
         <>
           {/* The same gold rule as the front, on the painting's paper white. */}
@@ -402,21 +539,6 @@ function CardFace({
         {children}
       </div>
     </div>
-  )
-}
-
-function Sprig() {
-  return (
-    <svg viewBox="0 0 120 24" className="w-24 h-5 mx-auto text-sage" aria-hidden>
-      <path d="M4 12 H116" stroke="currentColor" strokeWidth="0.8" />
-      <g fill="currentColor">
-        <ellipse cx="44" cy="8" rx="6" ry="2.4" transform="rotate(-25 44 8)" />
-        <ellipse cx="44" cy="16" rx="6" ry="2.4" transform="rotate(25 44 16)" />
-        <ellipse cx="76" cy="8" rx="6" ry="2.4" transform="rotate(25 76 8)" />
-        <ellipse cx="76" cy="16" rx="6" ry="2.4" transform="rotate(-25 76 16)" />
-      </g>
-      <circle cx="60" cy="12" r="3" className="text-amber" fill="currentColor" />
-    </svg>
   )
 }
 
@@ -518,10 +640,7 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
         <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
           {t('rsvp.replyTitle')}
         </p>
-        <div className="my-6">
-          <Sprig />
-        </div>
-        <h3 className="font-serif text-2xl md:text-3xl">
+        <h3 className="font-serif text-2xl md:text-3xl mt-6">
           {alreadySubmitted ? t('rsvp.alreadyTitle') : t('rsvp.successTitle')}
         </h3>
         <p className="font-serif italic text-lg mt-3">
