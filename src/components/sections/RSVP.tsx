@@ -88,21 +88,24 @@ const ENVELOPE = {
   v: { aspect: 946 / 1525, flap: 665 / 1525 },
 }
 
+/** How much of the envelope the card fills while it sits inside. */
+const IN_ENVELOPE = 0.92
+
 function measure(w: number, h: number): Geometry {
   const wide = w >= 768
   const env = ENVELOPE[wide ? 'h' : 'v']
   // On phones the envelope stands tall, so it is sized by height: low enough
-  // that the card (≈0.86 of its height) clears its top on the way out and
+  // that the card (≈0.92 of its height) clears its top on the way out and
   // still stops below the nav, with room under it for the scroll hint.
   const eh = wide
-    ? Math.min(560, w * 0.88, h * 0.54) / env.aspect
-    : Math.min((h - 148) / 1.92, (w * 0.8) / env.aspect)
+    ? Math.min(620, w * 0.88, h * 0.58) / env.aspect
+    : Math.min((h - 148) / 1.95, (w * 0.8) / env.aspect)
   const ew = eh * env.aspect
   // Landscape card on wide screens; on phones a landscape card would be
   // unreadably small, so it stands upright instead.
-  const cw = wide ? Math.min(960, w * 0.92, (h - NAV_HEIGHT - 56) / 0.625) : w - 32
+  const cw = wide ? Math.min(1100, w * 0.94, (h - NAV_HEIGHT - 56) / 0.625) : w - 20
   const ch = wide ? cw * 0.625 : h - NAV_HEIGHT - 80
-  const s0 = Math.min((ew * 0.86) / cw, (eh * 0.86) / ch)
+  const s0 = Math.min((ew * IN_ENVELOPE) / cw, (eh * IN_ENVELOPE) / ch)
   const envY = wide ? h * 0.1 : h / 2 - eh / 2 - 72
   return {
     wide,
