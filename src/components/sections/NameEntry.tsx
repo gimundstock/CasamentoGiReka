@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LanguageToggle } from '../ui/LanguageToggle'
-import { GrowingFlowers } from '../motion/GrowingFlowers'
 import type { GuestState } from '../../hooks/useGuest'
 
 const base = import.meta.env.BASE_URL
@@ -29,7 +28,7 @@ export function NameEntry({ state, onSubmit }: Props) {
         <LanguageToggle />
       </div>
 
-      <div className="animate-fade-in relative w-full max-w-md text-center">
+      <div className="relative w-full max-w-md text-center">
         {/* Lavanda escondida temporariamente. Para trazer de volta, descomente
             este bloco.
         <img
@@ -78,14 +77,19 @@ export function NameEntry({ state, onSubmit }: Props) {
       </div>
 
       {/* Faixa de flores do campo apoiada na base da tela. O fundo da imagem
-          é transparente, então ela assenta direto sobre o pêssego. As flores
-          brotam e florescem quando a tela abre. No celular ela ganha altura
-          fixa e corta as laterais para não ficar fina demais. */}
-      <GrowingFlowers
-        src={`${base}flowers/wildflower_border.webp`}
-        background="#FBFAF8"
+          é transparente, então ela assenta direto sobre o pêssego. No celular
+          ela ganha altura fixa e corta as laterais para não ficar fina demais. */}
+      <div
+        aria-hidden
         className="pointer-events-none absolute inset-x-0 -bottom-[5px] z-0 h-40 md:aspect-[2000/477] md:h-auto"
-      />
+      >
+        <img
+          src={`${base}flowers/wildflower_border.webp`}
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full max-w-none object-cover object-bottom select-none"
+        />
+      </div>
     </div>
   )
 }
