@@ -305,12 +305,22 @@ export function RSVP({ guest }: Props) {
               transformStyle: 'preserve-3d',
             }}
           >
-            <img
-              src={`${base}rsvp/envelope-flap-${orient}.webp`}
-              alt=""
-              draggable={false}
-              className="absolute inset-0 h-full w-full max-w-none select-none [backface-visibility:hidden]"
-            />
+            <div className="absolute inset-0 [backface-visibility:hidden]">
+              <img
+                src={`${base}rsvp/envelope-flap-${orient}.webp`}
+                alt=""
+                draggable={false}
+                className="absolute inset-0 h-full w-full max-w-none select-none"
+              />
+              <Emboss
+                className="absolute -translate-x-1/2 -translate-y-1/2 -rotate-[12deg]"
+                style={{
+                  left: `${EMBOSS[orient].x * 100}%`,
+                  top: `${EMBOSS[orient].y * 100}%`,
+                  fontSize: geo.ew * EMBOSS[orient].size,
+                }}
+              />
+            </div>
             <img
               src={`${base}rsvp/envelope-flap-inside-${orient}.webp`}
               alt=""
@@ -375,6 +385,40 @@ export function RSVP({ guest }: Props) {
         </motion.div>
       </div>
     </section>
+  )
+}
+
+/**
+ * Where the blind-embossed monogram sits on each flap, on a clear patch of
+ * paper (fractions of the flap's width/height), and its size as a fraction of
+ * the envelope's width.
+ */
+const EMBOSS = {
+  h: { x: 0.66, y: 0.36, size: 0.045 },
+  v: { x: 0.83, y: 0.25, size: 0.055 },
+}
+
+/**
+ * The couple's monogram pressed into the paper and foiled in the gold of the
+ * painting's lake line: letters lifted by light catching their lower edges
+ * and shadow along the upper ones, set at a slight angle like a hand stamp.
+ */
+function Emboss({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <span
+      aria-hidden
+      className={`font-display pointer-events-none whitespace-nowrap leading-none select-none ${className ?? ''}`}
+      style={{
+        color: 'rgba(196, 154, 64, 0.85)',
+        textShadow:
+          '0 1px 0 rgba(255, 250, 235, 0.9), 0 -1px 0 rgba(110, 80, 25, 0.35), 0 0 1px rgba(110, 80, 25, 0.2)',
+        ...style,
+      }}
+    >
+      {CONFIG.couple.bride[0]}
+      <span className="ml-[0.3em]">&amp;</span>
+      <span className="-ml-[0.15em]">{CONFIG.couple.groom[0]}</span>
+    </span>
   )
 }
 
