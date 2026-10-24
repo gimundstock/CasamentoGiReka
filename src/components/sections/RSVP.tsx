@@ -20,8 +20,8 @@ const NAV_HEIGHT = 68
 
 /*
  * Scroll timeline (progress through the pinned track):
- *   0.00–0.04  hold: the closed envelope
- *   0.04–0.20  the flap swings open
+ *   0.00–0.06  the closed envelope, centred, moves down to make room for the flap
+ *   0.06–0.20  the flap swings open
  *   0.20–0.35  the invitation slides up out of the pocket
  *   0.35–0.50  the envelope falls away while the invitation grows to full size
  *   0.50–0.62  hold: the invitation, front side
@@ -29,7 +29,8 @@ const NAV_HEIGHT = 68
  *   0.78–1.00  hold: the reply form
  */
 const T = {
-  flapStart: 0.04,
+  envDown: 0.06,
+  flapStart: 0.06,
   flapOpen: 0.2,
   flapVertical: 0.12,
   cardOut: 0.35,
@@ -69,6 +70,9 @@ interface Geometry {
   /** Card scale while it sits in the envelope. */
   s0: number
   /** Vertical offsets from the stage centre (px). */
+  /** Closed and centred, before it moves down to open. */
+  envClosedY: number
+  cardInClosedY: number
   envY: number
   /** Where the envelope ends up once it has fallen away. */
   envGoneY: number
@@ -88,25 +92,37 @@ const ENVELOPE = {
   v: { aspect: 946 / 1525, flap: 665 / 1525 },
 }
 
+/** Space kept under the envelope for the "scroll to open" hint. */
+const ENV_HINT_ROOM = 64
+
 /** How much of the envelope the card fills while it sits inside. */
-const IN_ENVELOPE = 0.92
+const IN_ENVELOPE = 0.96
 
 function measure(w: number, h: number): Geometry {
   const wide = w >= 768
   const env = ENVELOPE[wide ? 'h' : 'v']
-  // On phones the envelope stands tall, so it is sized by height: low enough
-  // that the card (≈0.92 of its height) clears its top on the way out and
-  // still stops below the nav, with room under it for the scroll hint.
-  const eh = wide
-    ? Math.min(620, w * 0.88, h * 0.58) / env.aspect
-    : Math.min((h - 148) / 1.95, (w * 0.8) / env.aspect)
+  // Up to half the screen's height on wide screens, and taller on phones
+  // where it stands upright; never wider than most of the screen. The open
+  // flap stands above it, so envelope + flap must fit between the nav and
+  // the scroll hint underneath.
+  const room = h - NAV_HEIGHT - 8 - ENV_HINT_ROOM
+  const eh = Math.min(
+    wide
+      ? Math.min(840 / env.aspect, (w * 0.8) / env.aspect, h * 0.5)
+      : Math.min(h * 0.62, (w * 0.86) / env.aspect),
+    room / (1 + env.flap)
+  )
   const ew = eh * env.aspect
   // Landscape card on wide screens; on phones a landscape card would be
   // unreadably small, so it stands upright instead.
   const cw = wide ? Math.min(1100, w * 0.94, (h - NAV_HEIGHT - 56) / 0.625) : w - 20
   const ch = wide ? cw * 0.625 : h - NAV_HEIGHT - 80
   const s0 = Math.min((ew * IN_ENVELOPE) / cw, (eh * IN_ENVELOPE) / ch)
-  const envY = wide ? h * 0.1 : h / 2 - eh / 2 - 72
+  // Centred in the room left once the open flap is accounted for.
+  const envTop = NAV_HEIGHT + 8 + env.flap * eh + (room - (1 + env.flap) * eh) / 2
+  const envY = envTop + eh / 2 - h / 2
+  // Closed, it sits in the middle of the screen below the nav.
+  const envClosedY = NAV_HEIGHT / 2
   return {
     wide,
     ew,
@@ -114,11 +130,19 @@ function measure(w: number, h: number): Geometry {
     cw,
     ch,
     s0,
+    envClosedY,
+    cardInClosedY: envClosedY + eh * 0.015,
     envY,
     envGoneY: envY + h * 0.75,
-    cardInY: envY + eh * 0.04,
-    // Fully clear of the pocket, so it can step in front of it without a pop.
-    cardOutY: envY - eh / 2 - (s0 * ch) / 2 - eh * 0.03,
+    // Sitting low in the pocket, its bottom edge just inside the envelope's.
+    cardInY: envY + eh * 0.015,
+    // Out of the pocket as far as the screen allows: fully clear when there
+    // is room, otherwise stopping just below the nav. It stays behind the
+    // pocket either way; the envelope falling away uncovers the rest.
+    cardOutY: Math.max(
+      envY - eh / 2 - (s0 * ch) / 2 - eh * 0.03,
+      -h / 2 + NAV_HEIGHT + 16 + (s0 * ch) / 2
+    ),
     cardFinalY: NAV_HEIGHT / 2,
   }
 }
@@ -186,7 +210,12 @@ export function RSVP({ guest }: Props) {
   const [face, setFace] = useState(() => faceAt(p.get()))
   useMotionValueEvent(p, 'change', (v) => setFace(faceAt(v)))
 
-  const envY = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.envY, g.envGoneY])
+  const envY = useGeometryTransform(p, geoRef, [0, T.envDown, T.cardOut, T.settled], (g) => [
+    g.envClosedY,
+    g.envY,
+    g.envY,
+    g.envGoneY,
+  ])
   const envOpacity = useScrollRange(p, [T.cardOut + 0.05, T.settled], [1, 0])
   const flapRotate = useScrollRange(p, [T.flapStart, T.flapOpen], [0, 180])
   const flapZ = useTransform(p, (v) => (v > T.flapVertical ? 2 : 5))
@@ -196,16 +225,20 @@ export function RSVP({ guest }: Props) {
     [T.settled - 0.03, T.settled, T.flipStart, T.flipStart + 0.03],
     [0, 1, 1, 0]
   )
-  const kickerOpacity = useScrollRange(p, [T.cardOut, T.cardOut + 0.1], [1, 0])
+  // Gone as the flap opens: the open flap stands where the kicker sits.
+  const kickerOpacity = useScrollRange(p, [T.flapStart, T.flapStart + 0.06], [1, 0])
 
-  const cardY = useGeometryTransform(p, geoRef, [T.flapOpen, T.cardOut, T.settled], (g) => [
-    g.cardInY,
-    g.cardOutY,
-    g.cardFinalY,
-  ])
+  const cardY = useGeometryTransform(
+    p,
+    geoRef,
+    [0, T.envDown, T.flapOpen, T.cardOut, T.settled],
+    (g) => [g.cardInClosedY, g.cardInY, g.cardInY, g.cardOutY, g.cardFinalY]
+  )
   const cardScale = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.s0, 1])
   const cardFlip = useScrollRange(p, [T.flipStart, T.flipEnd], [0, 180])
-  const cardZ = useTransform(p, (v) => (v > T.cardOut - 0.01 ? 7 : 3))
+  // The card stays behind the pocket until the envelope has fallen away, so
+  // stepping in front never covers paper that was in front of it a frame ago.
+  const cardZ = useTransform(p, (v) => (v > T.settled - 0.01 ? 7 : 3))
 
   const box = (width: number, height: number) => ({
     width,
