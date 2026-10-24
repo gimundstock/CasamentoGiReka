@@ -11,7 +11,7 @@
 | `scriptId` | `.clasp.json` (gitignored; template in `.clasp.json.example`) |
 | clasp login | `~/.clasprc.json` in your home folder (never in the repo) |
 | Web App URL | `.env.local` → `VITE_APPSCRIPT_URL`, and the GitHub Actions secret |
-| Deployment ID | `.env.local` → `APPSCRIPT_DEPLOYMENT_ID` |
+| Deployment ID | taken from `VITE_APPSCRIPT_URL` (override with `APPSCRIPT_DEPLOYMENT_ID` in `.env.local`) |
 
 `COUPLE_EMAILS` is comma-separated and must mirror `CONFIG.coupleEmails` in
 `src/content.config.ts`. A missing property makes every request return
@@ -24,13 +24,12 @@
 3. `cp .clasp.json.example .clasp.json` and paste the `scriptId`
    (editor → Project Settings → IDs → Script ID).
 4. In the editor, add the two Script properties above.
-5. Add `APPSCRIPT_DEPLOYMENT_ID` to `.env.local` (`npx clasp deployments`).
 
 ## Day to day
 
 | Command | What it does |
 |---|---|
-| `npm run backend:pull` | Downloads the live project to a temp folder and diffs it against `apps-script/`. Never writes to the repo. |
+| `npm run backend:pull` | Downloads the live project to a temp folder and diffs it against `apps-script/`. Never writes `Code.gs` (the live file may be called `Código`). |
 | `npm run backend:push` | Uploads `Code.gs` + `appsscript.json` (only those — see `.claspignore`). Changes the editor's code, not the live Web App. |
 | `npm run backend:deploy` | Push, then publish a new version on the existing deployment. The `/exec` URL stays the same. |
 
