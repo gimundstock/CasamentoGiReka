@@ -15,8 +15,12 @@ function Footer() {
   const { t } = useTranslation()
   return (
     <footer className="bg-forest-deep text-peach-light py-20 text-center">
+      {/* Kerning à mão, como no monograma da nav: o R da fonte cursiva abre
+          um vão grande depois do &, então ele é puxado para perto. */}
       <p className="font-display text-3xl md:text-4xl mb-3">
-        {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
+        {CONFIG.couple.bride}
+        <span className="ml-[0.3em]">&amp;</span>
+        <span className="-ml-[0.15em]">{CONFIG.couple.groom}</span>
       </p>
       <p className="font-sans text-[0.65rem] tracking-[0.35em] text-peach-light/50 uppercase">
         {t('footer.made')} <span className="animate-breath inline-block">♥</span>
