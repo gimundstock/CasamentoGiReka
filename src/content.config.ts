@@ -91,6 +91,7 @@ export const CONFIG = {
           'Five-star boutique in the North Hotel Sector with a panoramic rooftop, heated pool, and contemporary design. A short walk from the Esplanada dos Ministérios.',
         stars: 5,
         priceRange: 'R$ 550–850/noite',
+        priceRange_en: '~€90–140/night',
         url: '',
         address: 'SHN Quadra 05, Bloco J — Asa Norte',
       },
@@ -102,6 +103,7 @@ export const CONFIG = {
           'Renovated classic in the North Hotel Sector with spacious rooms, an indoor pool, and a rooftop restaurant. Great base for exploring the Monumental Axis.',
         stars: 4,
         priceRange: 'R$ 380–600/noite',
+        priceRange_en: '~€65–100/night',
         url: '',
         address: 'SHN Quadra 02, Bloco E — Asa Norte',
       },
@@ -113,6 +115,7 @@ export const CONFIG = {
           'International hotel inside the Brasil 21 complex in the South Hotel Sector, with shopping, dining, gym, and spa on site. Close to Parque da Cidade.',
         stars: 4,
         priceRange: 'R$ 400–650/noite',
+        priceRange_en: '~€65–110/night',
         url: '',
         address: 'SHS Quadra 06, Conj. A, Bloco D — Asa Sul',
       },
@@ -124,8 +127,21 @@ export const CONFIG = {
           'Budget option next to Brasília International Airport (BSB), with breakfast included and a shuttle to the terminal. Ideal for late arrivals or early flights.',
         stars: 3,
         priceRange: 'R$ 220–340/noite',
+        priceRange_en: '~€35–55/night',
         url: '',
         address: 'Av. Eixo Sul, Lote 6 — Lago Sul (próximo ao BSB)',
+      },
+      {
+        name: 'Brasília Palace Hotel',
+        description_pt:
+          'O primeiro hotel de Brasília, projetado por Oscar Niemeyer e inaugurado em 1958, à beira do Lago Paranoá. Totalmente restaurado, une arquitetura modernista histórica a um serviço cinco estrelas.',
+        description_en:
+          "Brasília's first hotel, designed by Oscar Niemeyer and opened in 1958 on the shore of Lake Paranoá. Fully restored, it pairs historic modernist architecture with five-star service.",
+        stars: 5,
+        priceRange: 'a partir de R$ 370/noite',
+        priceRange_en: 'from ~€60/night',
+        url: '',
+        address: 'Setor de Hotéis e Turismo Norte — Asa Norte, Brasília, DF',
       },
     ],
     transport: [
@@ -133,18 +149,18 @@ export const CONFIG = {
         type_pt: 'Aeroporto',
         type_en: 'Airport',
         description_pt:
-          'O Aeroporto Internacional Juscelino Kubitschek (BSB) fica a cerca de 15 minutos do Plano Piloto. Táxi, Uber e 99 estão disponíveis 24h em frente ao desembarque.',
+          'O Aeroporto Internacional Juscelino Kubitschek (BSB) fica a cerca de 15 minutos do Plano Piloto. O Uber está disponível 24h em frente ao desembarque.',
         description_en:
-          'Brasília International Airport (BSB) is about 15 minutes from the Plano Piloto. Taxi, Uber, and 99 are available 24/7 right at the arrivals exit.',
+          'Brasília International Airport (BSB) is about 15 minutes from the Plano Piloto (City center). Uber is available 24/7 right at the arrivals exit.',
         icon: '✈️',
       },
       {
-        type_pt: 'Uber / 99',
-        type_en: 'Uber / 99',
+        type_pt: 'Uber',
+        type_en: 'Uber',
         description_pt:
-          'Uber e 99 funcionam muito bem em Brasília, com tempo de espera curto e tarifas razoáveis. Nossa principal recomendação para quem não vai alugar carro — cobre aeroporto, hotéis, restaurantes e o local do casamento.',
+          'O Uber funciona muito bem em Brasília, com tempo de espera curto e tarifas razoáveis. Nossa principal recomendação para quem não vai alugar carro — cobre aeroporto, hotéis, restaurantes e o local do casamento.',
         description_en:
-          'Uber and 99 work great in Brasília, with short wait times and fair fares. Our top pick if you are not renting a car — covers the airport, hotels, restaurants, and the wedding venue.',
+          'Uber works great in Brasília, with short wait times and fair fares. Our top pick if you are not renting a car — covers the airport, hotels, restaurants, and the wedding venue.',
         icon: '🚗',
       },
       {
@@ -167,6 +183,7 @@ export const CONFIG = {
         description_en:
           'Artisan burger spot known for its flame-grilled beef blends, brioche buns, and house-made sauces. Named best burger in Brasília by Revista Encontro in 2024.',
         priceRange: 'R$ 80–100/pessoa',
+        priceRange_en: '~€13–17/person',
         address: 'Múltiplas unidades — Asa Sul, Asa Norte, Lago Sul e mais',
         url: '',
       },
@@ -179,6 +196,7 @@ export const CONFIG = {
         description_en:
           'Founded in 1995, Dog da Igrejinha is a Brasília gastronomic institution famed for its hot dogs with signature garlic paste, bacon, cheese, and potato sticks. A true local icon with locations across the city including the international airport.',
         priceRange: 'R$ 20–40/pessoa',
+        priceRange_en: '~€3–7/person',
         address: 'Unidade original: Entrequadra Sul 307/308, Asa Sul',
         url: '',
       },
@@ -191,6 +209,7 @@ export const CONFIG = {
         description_en:
           "Open since 2006 and repeatedly voted the city's best pizzeria, Valentina serves over 50 flavors of thin-crust, Paulista-style pizza baked in a wood-fired oven, with vegetarian and vegan options.",
         priceRange: 'R$ 60–100/pessoa',
+        priceRange_en: '~€10–17/person',
         address: 'Asa Norte: CLN 214 Bloco A — Asa Sul: CLS 310 Bloco A — Lago Sul',
         url: '',
       },
@@ -203,6 +222,7 @@ export const CONFIG = {
         description_en:
           "Founded in 1960, Dom Bosco is Brasília's oldest pizzeria, open since the city's founding year and still at its original address in Asa Sul. Its menu has one offering: mozzarella pizza by the slice served with cold maté tea — a beloved cultural institution.",
         priceRange: 'R$ 10–20/pessoa',
+        priceRange_en: '~€2–3/person',
         address: 'CLS 107 Bloco D, Loja 20, Asa Sul (unidade original)',
         url: '',
       },
@@ -215,7 +235,199 @@ export const CONFIG = {
         description_en:
           'Repeatedly named the best seafood restaurant in Brasília (Veja Brasília 2017–2019), NAU impresses with panoramic views of Lago Paranoá and the JK Bridge. The menu features shrimp, moquecas, fish, and mixed seafood dishes.',
         priceRange: 'R$ 100–150/pessoa',
+        priceRange_en: '~€17–25/person',
         address: 'Setor de Clubes Esportivos Sul, Trecho 2, Conj. 41 — às margens do Lago Paranoá',
+        url: '',
+      },
+      {
+        name: 'Fausto & Manuel',
+        cuisine_pt: 'Restaurante',
+        cuisine_en: 'Restaurant',
+        description_pt: 'Uma das nossas indicações em Brasília para quem quer sentar e comer bem.',
+        description_en: 'One of our picks in Brasília for a proper sit-down meal.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Sweet Cake',
+        cuisine_pt: 'Confeitaria',
+        cuisine_en: 'Bakery & sweets',
+        description_pt: 'Para a hora do café ou da sobremesa: bolos e doces que valem a parada.',
+        description_en: 'For coffee or dessert time: cakes and sweets worth a stop.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Açaí Puríssimo',
+        cuisine_pt: 'Açaí',
+        cuisine_en: 'Açaí',
+        description_pt:
+          'Açaí na tigela para refrescar o calor de Brasília — uma pausa leve entre um passeio e outro.',
+        description_en:
+          'Açaí bowls to cool down in the Brasília heat — a light break between sights.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Don Durica',
+        cuisine_pt: 'Restaurante',
+        cuisine_en: 'Restaurant',
+        description_pt: 'Mais uma indicação nossa para comer bem na cidade.',
+        description_en: 'Another of our picks for a good meal in the city.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Pastel Mix',
+        cuisine_pt: 'Pastelaria',
+        cuisine_en: 'Pastry shop',
+        description_pt: 'Pastéis para um lanche rápido e saboroso entre um passeio e outro.',
+        description_en: 'Pastéis for a quick, tasty snack between sights.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Café e um Chero',
+        cuisine_pt: 'Café',
+        cuisine_en: 'Café',
+        description_pt: 'Um café para a pausa da tarde, com bom cafezinho e algo para beliscar.',
+        description_en:
+          'A café for the afternoon break, with good coffee and something to nibble on.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Xique Xique',
+        cuisine_pt: 'Restaurante',
+        cuisine_en: 'Restaurant',
+        description_pt: 'Mais uma indicação nossa para uma refeição com sabor de Brasília.',
+        description_en: 'Another of our picks for a meal with a Brasília flavour.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Galeteria do Lago Norte',
+        cuisine_pt: 'Galeteria',
+        cuisine_en: 'Roast chicken house',
+        description_pt:
+          'Galeto assado, no estilo da casa, à beira do Lago Norte — bom para almoçar em grupo.',
+        description_en:
+          'Roast chicken, house style, in the Lago Norte area — good for a group lunch.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Lago Norte — Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Mangai',
+        cuisine_pt: 'Comida nordestina',
+        cuisine_en: 'Northeastern Brazilian',
+        description_pt:
+          'Sabores do Nordeste num buffet farto, com pratos regionais para provar de tudo um pouco — uma boa pedida para o almoço.',
+        description_en:
+          'Flavours of the Brazilian Northeast in a generous buffet, with regional dishes to sample a bit of everything — a good lunch option.',
+        priceRange: 'R$ 60/kg',
+        priceRange_en: '~€10/kg',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Coco Bambu',
+        cuisine_pt: 'Frutos do mar',
+        cuisine_en: 'Seafood',
+        description_pt:
+          'Restaurante de frutos do mar com pratos para dividir, camarões e peixes, num ambiente amplo — boa opção para um jantar em grupo.',
+        description_en:
+          'A seafood restaurant with shareable dishes, shrimp and fish in a spacious setting — a good option for a group dinner.',
+        priceRange: 'R$ 140–160/pessoa',
+        priceRange_en: '~€23–27/person',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Santé',
+        cuisine_pt: 'Restaurante',
+        cuisine_en: 'Restaurant',
+        description_pt: 'Mais uma indicação nossa para uma boa refeição em Brasília.',
+        description_en: 'Another of our picks for a good meal in Brasília.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Avenida Paulista',
+        cuisine_pt: 'Restaurante',
+        cuisine_en: 'Restaurant',
+        description_pt: 'Mais uma indicação nossa para comer bem na cidade.',
+        description_en: 'Another of our picks for a good meal in the city.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Libanus',
+        cuisine_pt: 'Culinária libanesa',
+        cuisine_en: 'Lebanese',
+        description_pt:
+          'Culinária libanesa tradicional, com esfihas, quibes, homus e outros pratos árabes para dividir à mesa.',
+        description_en:
+          'Traditional Lebanese cooking, with esfihas, kibbeh, hummus and other Middle Eastern dishes to share at the table.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Nazô',
+        cuisine_pt: 'Restaurante',
+        cuisine_en: 'Restaurant',
+        description_pt: 'Mais uma indicação nossa para comer bem na cidade.',
+        description_en: 'Another of our picks for a good meal in the city.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Churrascaria Pampas',
+        cuisine_pt: 'Churrascaria',
+        cuisine_en: 'Steakhouse',
+        description_pt:
+          'Churrascaria de rodízio, com carnes servidas à mesa e buffet — boa pedida para quem quer provar o churrasco brasileiro.',
+        description_en:
+          'A rodízio steakhouse, with meats carved at the table and a buffet — a good pick for anyone who wants to try Brazilian barbecue.',
+        priceRange: 'R$ 60–70/pessoa',
+        priceRange_en: '~€10–12/person',
+        address: 'Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Costelão de Chão no CTG',
+        cuisine_pt: 'Churrasco gaúcho',
+        cuisine_en: 'Gaúcho barbecue',
+        description_pt:
+          'Costelão assado no chão, à moda gaúcha, no Centro de Tradições Gaúchas. Acontece uma vez por mês — confirme a data antes de ir.',
+        description_en:
+          'Beef ribs roasted over embers on the ground, gaúcho style, at the Centro de Tradições Gaúchas (CTG). It happens once a month — please check the date before you go.',
+        priceRange: '',
+        priceRange_en: '',
+        address: 'CTG — Brasília, DF',
         url: '',
       },
     ],
@@ -272,6 +484,96 @@ export const CONFIG = {
         description_en:
           "A church of concrete cubes with twelve shades of blue stained glass that filter the light dramatically — one of the city's most striking visual experiences, especially in the late afternoon.",
         address: 'SEPS 702/902, Conj. A — Asa Sul, Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Chapada Imperial',
+        description_pt:
+          'Refúgio de natureza em Padre Bernardo (GO), a cerca de uma hora de Brasília: cachoeiras, piscinas naturais e trilhas entre o cerrado e a mata. Um bate-volta fácil para quem quer respirar fora da cidade.',
+        description_en:
+          'A nature retreat in Padre Bernardo (GO), about an hour from Brasília: waterfalls, natural pools and trails through the cerrado and forest. An easy day trip for anyone who wants a break from the city.',
+        address: 'Padre Bernardo, GO',
+        url: '',
+      },
+      {
+        name: 'Chapada dos Veadeiros',
+        description_pt:
+          'Um dos destinos mais emblemáticos do cerrado, em Alto Paraíso de Goiás, a cerca de 3h30 de Brasília. Parque Nacional com cachoeiras, cânions, o Vale da Lua e trilhas de tirar o fôlego. Vale pelo menos uma noite na região.',
+        description_en:
+          "One of the cerrado's most iconic destinations, in Alto Paraíso de Goiás, about 3.5 hours from Brasília. A national park of waterfalls, canyons, the Vale da Lua and breathtaking trails. Worth at least one night in the area.",
+        address: 'Alto Paraíso de Goiás, GO',
+        url: '',
+      },
+      {
+        name: 'Pirenópolis',
+        description_pt:
+          'Cidade histórica de ruas de pedra e casarios coloridos, a cerca de 2h30 de Brasília. Centro histórico encantador, boa gastronomia e cachoeiras e rios nos arredores — ótimo para um fim de semana.',
+        description_en:
+          'A historic town of cobbled streets and colourful colonial houses, about 2.5 hours from Brasília. A charming old centre, good food, and waterfalls and rivers nearby — great for a weekend.',
+        address: 'Pirenópolis, GO',
+        url: '',
+      },
+      {
+        name: 'Pontão do Lago Sul',
+        description_pt:
+          'Complexo de lazer à beira do Lago Paranoá, com restaurantes, bares e uma das vistas mais bonitas do pôr do sol da cidade. Ótimo para um fim de tarde ou jantar com vista para o lago. Foi também onde o Renato pediu a Giovanna em namoro.',
+        description_en:
+          "A leisure complex on the shore of Lake Paranoá, with restaurants, bars and one of the city's best sunset views. Ideal for a late afternoon or a dinner overlooking the lake. It is also where Renato asked Giovanna to be his girlfriend.",
+        address: 'SHIS QL 10, Lago Sul — Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'CCBB Brasília',
+        description_pt:
+          'Centro Cultural Banco do Brasil, com exposições, teatro, cinema e música em um prédio modernista de frente para o Lago Paranoá. Vale conferir a programação antes da visita.',
+        description_en:
+          'The Banco do Brasil Cultural Centre, with exhibitions, theatre, cinema and music in a modernist building facing Lake Paranoá. Worth checking the programme before you visit.',
+        address: 'SCES Trecho 2, Lote 22 — Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Ponte JK',
+        description_pt:
+          'Ponte sobre o Lago Paranoá, inaugurada em 2002, com três arcos de aço que se cruzam sobre o tabuleiro — um dos cartões-postais de Brasília, ainda mais bonita iluminada à noite.',
+        description_en:
+          "A bridge over Lake Paranoá, opened in 2002, with three steel arches crossing over the deck — one of Brasília's postcard views, even lovelier lit up at night.",
+        address: 'Lago Sul / Lago Norte — Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Festa Junina',
+        description_pt:
+          'Em junho, as festas juninas animam as igrejas da cidade, com quadrilha, comidas típicas, fogueira e muita música. Nossa data cai bem nessa época, então elas devem estar acontecendo — e, mais perto do casamento, atualizamos aqui com o calendário. Foi numa festa junina que aconteceu o primeiro encontro do Renato e da Giovanna.',
+        description_en:
+          "In June, festas juninas liven up the city's churches, with square dancing, traditional food, bonfires and lots of music. Our date falls in that season, so they should be on — and closer to the wedding we will update this with the calendar. A festa junina is where Renato and Giovanna had their first date.",
+        address: 'Igrejas de Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Igrejinha Nossa Senhora de Fátima',
+        description_pt:
+          'A primeira igreja de Brasília, projetada por Niemeyer em 1958, com azulejos de Athos Bulcão e um telhado em forma de chapéu. Pequena e encantadora, é uma das paradas obrigatórias do Plano Piloto.',
+        description_en:
+          "Brasília's first church, designed by Niemeyer in 1958, with Athos Bulcão tiles and a distinctive hat-shaped roof. Small and charming, it is one of the must-see stops in the Plano Piloto.",
+        address: 'EQS 307/308 — Asa Sul, Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Quadra Modelo (308 Sul)',
+        description_pt:
+          'A superquadra-modelo do plano de Lúcio Costa, com blocos residenciais baixos entre árvores, comércio local e a Igrejinha. Dá uma boa ideia de como é morar no Plano Piloto — vale uma caminhada.',
+        description_en:
+          "The model superquadra of Lúcio Costa's plan, with low residential blocks among trees, local shops and the little church. It gives a good sense of what living in the Plano Piloto is like — worth a walk.",
+        address: 'SQS 308 — Asa Sul, Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'UnB — Campus Darcy Ribeiro',
+        description_pt:
+          'A Universidade de Brasília, criada em 1962, com o campus Darcy Ribeiro na Asa Norte: o Minhocão, o Instituto Central de Ciências e o lago. Um campus lindo, aberto e cheio de árvores, ótimo para passear. Foi lá que a Giovanna e o Renato se conheceram.',
+        description_en:
+          'The University of Brasília, founded in 1962, with the Darcy Ribeiro campus in the Asa Norte: the long Minhocão building, the Central Institute of Sciences and the lake. A beautiful, open campus full of trees, lovely for a stroll. It is where Giovanna and Renato met.',
+        address: 'Campus Darcy Ribeiro — Asa Norte, Brasília, DF',
         url: '',
       },
     ],

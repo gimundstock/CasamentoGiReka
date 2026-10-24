@@ -356,16 +356,6 @@ export function HeroBigDay() {
             <dl className="text-title mx-auto grid w-full max-w-[1600px] grid-cols-3 gap-x-4 gap-y-6 text-center md:gap-x-10">
               <div>
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
-                  {t('wedding.date')}
-                </dt>
-                <dd className="font-sans tabular-nums mt-2 text-base leading-tight md:text-xl">
-                  {dateStr}
-                  <br />
-                  {CONFIG.wedding.time}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
                   {t('wedding.venue')}
                 </dt>
                 <dd className="font-sans tabular-nums mt-2 text-base leading-tight md:text-xl">
@@ -379,6 +369,17 @@ export function HeroBigDay() {
                 >
                   {t('wedding.directions')}
                 </a>
+              </div>
+              <div>
+                <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
+                  {t('wedding.date')}
+                </dt>
+                <dd className="font-sans tabular-nums mt-2 text-base leading-tight md:text-xl">
+                  {dateStr}
+                </dd>
+                <span className="font-sans mt-3 inline-block border-b border-transparent pb-0.5 text-[0.6rem] tracking-[0.3em]">
+                  {CONFIG.wedding.time}
+                </span>
               </div>
               <div>
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
