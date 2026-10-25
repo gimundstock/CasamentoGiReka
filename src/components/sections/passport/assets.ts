@@ -1,14 +1,13 @@
 // Every image the Brasília passport uses, in one place (public/passport/).
 //
-//   cover.webp         cover board, both faces: light cream, double gold rule
-//                      (the painted original, its stains and vignette flattened
-//                      to an even light cream; the gold rim kept)
-//   cover-sprig.webp   one faint botanical sprig for the inside of the cover
-//                      (lifted off the painted endpaper onto transparency)
+//   cover.webp         front cover: light ivory, double thin gold rule
+//   cover-inside.webp  inside of the cover: single gold rule, one sprig in the
+//                      bottom-left (the outer corner once the cover lies open)
+//   spread.webp        the open book around the pages: gold-edged board, page
+//                      stacks, headbands at the spine (its blank pages are
+//                      covered by the page sheets)
 //   paper.webp         every page — lying flat or turning
 //   blot-mask.webp     the watercolor blot the painting shrinks into (alpha mask)
-//
-// The open book around the pages (gold board, page stacks, spine) is CSS.
 //
 // Still to come, one illustration per chapter (left page of each opener):
 //   tourism.webp, restaurants.webp, transport.webp, hotels.webp
@@ -24,21 +23,21 @@ export const PAINT_SRC = `${BASE}cerrado/paint.webp`
 export const PAINT_ASPECT = 1376 / 768
 
 /**
- * The open book, in layout units (scaled to the screen in geometry.ts): two
- * pages of 684 × 926 on a board that shows SIDE units around them (where
- * the page stacks sit), split down the middle at the spine.
+ * spread.webp measured in its own pixels: the cream area of each page, and
+ * the spine, where the image is cut into the halves that show on their own.
+ * The book's layout is scaled from these (geometry.ts) — re-measure if the
+ * image is ever re-exported at another crop.
  */
-const PAGE = { w: 684, h: 926 }
-const SIDE = 20
-const TOP = 13
-const GUTTER = 4
 export const BOOK = {
-  w: 2 * SIDE + 2 * PAGE.w + GUTTER,
-  h: 2 * TOP + PAGE.h,
-  split: SIDE + PAGE.w + GUTTER / 2,
-  left: { x: SIDE, y: TOP, ...PAGE },
-  right: { x: SIDE + PAGE.w + GUTTER, y: TOP, ...PAGE },
+  w: 1470,
+  h: 958,
+  split: 734,
+  left: { x: 54, y: 4, w: 677, h: 925 },
+  right: { x: 737, y: 4, w: 682, h: 925 },
 }
+
+/** How far the closed cover overhangs the right page (top, bottom, fore-edge). */
+export const COVER_OVERHANG = 7
 
 /** Width / height of blot-mask.webp. */
 export const BLOT_ASPECT = 760 / 483
@@ -69,7 +68,8 @@ export interface Illustration {
 
 export const ASSETS = {
   cover: passport('cover.webp'),
-  coverSprig: passport('cover-sprig.webp'),
+  coverInside: passport('cover-inside.webp'),
+  spread: passport('spread.webp'),
   paper: passport('paper.webp'),
   blotMask: `url(${passport('blot-mask.webp')})`,
   /** The sketch composited on the cover vignette, at its right. */

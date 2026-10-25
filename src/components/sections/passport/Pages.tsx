@@ -22,6 +22,8 @@ export const GOLD = '#C9A464'
 /** What a sheet is: a page of the book, or the inside of the cover board. */
 export type Stock = 'page' | 'board'
 
+const PAPER_WASH = 'rgba(252, 248, 240, 0.4)'
+
 /** Outer corners round, spine corners nearly square. */
 export const pageRadius = (side: Side) =>
   side === 'left' ? '0.8em 0.15em 0.15em 0.8em' : '0.15em 0.8em 0.8em 0.15em'
@@ -53,22 +55,14 @@ export const Paper = forwardRef(function Paper(
   ref: Ref<HTMLDivElement>
 ) {
   if (stock === 'board') {
-    // The inside of the cover: the cover's own board, quiet — its gold rule
-    // and one faint sprig in the outer bottom corner.
+    // The inside of the cover: quiet — a gold rule and one sprig, which sits
+    // bottom-left in the art: the outer corner once the cover lies open.
     return (
       <div
         ref={ref}
         className="absolute inset-0"
-        style={{ background: `url(${ASSETS.cover}) center / 100% 100% no-repeat` }}
+        style={{ background: `url(${ASSETS.coverInside}) center / 100% 100% no-repeat` }}
       >
-        <img
-          src={ASSETS.coverSprig}
-          alt=""
-          aria-hidden
-          draggable={false}
-          className="absolute bottom-[3%] w-[44%] opacity-50 select-none"
-          style={side === 'left' ? { left: '4%' } : { right: '4%', transform: 'scaleX(-1)' }}
-        />
         {shade && <Shade side={side} opacity={shade} />}
       </div>
     )
@@ -79,7 +73,8 @@ export const Paper = forwardRef(function Paper(
       className="absolute inset-0 overflow-hidden"
       style={{
         borderRadius: pageRadius(side),
-        background: `url(${ASSETS.paper}) center / cover`,
+        // A wash of cream over paper.webp keeps its grain fine at desktop size.
+        background: `linear-gradient(${PAPER_WASH}, ${PAPER_WASH}), url(${ASSETS.paper}) center / cover`,
         boxShadow: 'inset 0 0 0 0.5px rgba(150, 110, 60, 0.22)',
       }}
     >

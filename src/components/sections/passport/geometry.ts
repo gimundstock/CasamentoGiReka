@@ -1,4 +1,4 @@
-import { BOOK, PAINT_ASPECT, SLOT_ASPECT, SLOT_CORE } from './assets'
+import { BOOK, COVER_OVERHANG, PAINT_ASPECT, SLOT_ASPECT, SLOT_CORE } from './assets'
 
 // ── Scroll timeline ──────────────────────────────────────────────────────
 //
@@ -69,9 +69,13 @@ export interface PassportGeometry {
   left: Rect
   right: Rect
   page: { w: number; h: number }
+  /** The cover leaf, in book coordinates: the right page plus a little overhang. */
+  coverBox: Rect
+  /** Where the cover lies once turned open (its mirror across the hinge). */
+  insideBox: Rect
   /** Book translateX while closed, so the cover alone is centered. */
   closedShift: number
-  /** Closed cover's top-left on screen (it covers the right page exactly). */
+  /** Closed cover's top-left on screen. */
   cover: { x: number; y: number }
   /** The blot's box on the cover, in cover coordinates. */
   slot: Rect
@@ -128,17 +132,25 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
   const bookY = NAV_H + Math.max(0, (availH - bookH) / 2)
   const left = scaleRect(BOOK.left, k, dx)
   const right = scaleRect(BOOK.right, k, dx)
-  const coverX = bookX + right.x
-  const closedShift = spread ? vw / 2 - (coverX + right.w / 2) : 0
-  const cover = { x: coverX + closedShift, y: bookY + right.y }
+  const o = COVER_OVERHANG * k
+  const coverBox = { x: right.x, y: right.y - o, w: right.w + o, h: right.h + 2 * o }
+  const insideBox = { ...coverBox, x: coverBox.x - coverBox.w }
+  const coverX = bookX + coverBox.x
+  const closedShift = spread ? vw / 2 - (coverX + coverBox.w / 2) : 0
+  const cover = { x: coverX + closedShift, y: bookY + coverBox.y }
 
   const pageW = right.w
   const pageH = right.h
-  // The blot spans ~90 % of the cover inside its gold rule, and over half
-  // its height, under the title.
-  const slotW = pageW * 0.87
+  // The blot spans ~85 % of the cover inside its gold rule and half its
+  // height: under the title, clear of the bottom rule.
+  const slotW = coverBox.w * 0.85
   const slotH = slotW / SLOT_ASPECT
-  const slot = { x: pageW * 0.5 - slotW / 2, y: pageH * 0.64 - slotH / 2, w: slotW, h: slotH }
+  const slot = {
+    x: coverBox.w * 0.5 - slotW / 2,
+    y: coverBox.h * 0.605 - slotH / 2,
+    w: slotW,
+    h: slotH,
+  }
 
   const focal = { x: artLeft + artW * 0.47, y: artTop + artH * 0.56 }
   const blotLocalW = artW * 0.5
@@ -164,6 +176,8 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     left,
     right,
     page: { w: pageW, h: pageH },
+    coverBox,
+    insideBox,
     closedShift,
     cover,
     slot,

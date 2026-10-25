@@ -79,7 +79,7 @@ export function PassportCover({
 
       {/* Title, star and the cathedral sketch. */}
       <div ref={titleRef} className="absolute inset-0" style={{ opacity: 0 }}>
-        <div className="absolute inset-x-0 top-[12%] flex flex-col items-center text-center">
+        <div className="absolute inset-x-0 top-[9.5%] flex flex-col items-center text-center">
           {/* -mr cancels the tracking after the last letter, so it centers. */}
           <p className="font-sans text-forest-deep/80 -mr-[0.5em] text-[0.7em] tracking-[0.5em] uppercase">
             {t('city.passport.kicker')}
