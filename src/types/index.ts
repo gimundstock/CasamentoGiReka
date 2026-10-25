@@ -39,7 +39,8 @@ export interface RSVPSubmission {
   guestId: string
   attendees: RSVPAttendee[]
   songRequest: string
-  message: string
+  /** Moving to the gift flow; the RSVP form no longer asks for it. */
+  message?: string
 }
 
 export interface PurchaseSubmission {

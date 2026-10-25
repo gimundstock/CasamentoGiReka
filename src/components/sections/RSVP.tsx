@@ -406,7 +406,7 @@ export function RSVP({ guest }: Props) {
               paper={`${base}rsvp/card-back.webp`}
               rotate={geo.wide ? { w: geo.cw, h: geo.ch } : undefined}
             >
-              <ReplyForm guest={guest} wide={geo.wide} />
+              <ReplyForm guest={guest} />
             </CardFace>
           </motion.div>
         </motion.div>
@@ -600,7 +600,7 @@ const FIELD =
   'w-full bg-transparent border-b border-forest-deep/20 py-2 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep/60 transition-colors'
 const LABEL = 'font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/80 block mb-1'
 
-function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
+function ReplyForm({ guest }: { guest: Guest }) {
   const { t } = useTranslation()
   // Whether they already replied comes from the backend (a row for this guest
   // in the RSVPs tab), so it holds on every device and browser.
@@ -610,7 +610,6 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
     guest.attendees.map((name) => ({ name, attending: true, menu: '' }))
   )
   const [songRequest, setSongRequest] = useState('')
-  const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -624,7 +623,7 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
     setSubmitting(true)
     setError(null)
     try {
-      await submitRSVP({ guestId: guest.guestId, attendees, songRequest, message })
+      await submitRSVP({ guestId: guest.guestId, attendees, songRequest })
       setJustSubmitted(true)
     } catch {
       setError(t('rsvp.error'))
@@ -652,92 +651,65 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className={`text-title min-h-full ${
-        wide ? 'grid grid-cols-[1.2fr_1fr] gap-x-12 gap-y-4 content-center' : 'flex flex-col gap-6'
-      }`}
+      className="text-title mx-auto flex min-h-full w-full max-w-md flex-col justify-center gap-7"
     >
-      <div className={`text-center ${wide ? 'col-span-2 mb-2' : ''}`}>
+      <div className="text-center">
         <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
           {t('rsvp.replyTitle')}
         </p>
         <p className="font-serif italic text-base mt-6 text-title/80">{t('rsvp.letterOpening')}</p>
       </div>
 
-      <div>
-        <div className="space-y-4">
-          {attendees.map((attendee, i) => (
-            <div key={i} className="border-t border-forest-deep/10 pt-3">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <span className="font-serif text-xl">{attendee.name}</span>
-                <div className="flex gap-3 text-[0.6rem] tracking-[0.3em] uppercase font-sans">
-                  {([true, false] as const).map((value) => (
-                    <button
-                      key={String(value)}
-                      type="button"
-                      onClick={() => updateAttendee(i, 'attending', value)}
-                      aria-pressed={attendee.attending === value}
-                      className={`pb-1 border-b transition-colors ${
-                        attendee.attending === value
-                          ? 'text-title border-forest-deep'
-                          : 'text-title/45 border-transparent hover:text-title'
-                      }`}
-                    >
-                      {value ? t('rsvp.attending') : t('rsvp.notAttending')}
-                    </button>
-                  ))}
-                </div>
-              </div>
+      <div className="space-y-5">
+        {attendees.map((attendee, i) => (
+          <div key={i} className="border-t border-forest-deep/10 pt-4 text-center">
+            <p className="font-serif text-2xl md:text-[1.7rem]">{attendee.name}</p>
+            <div className="mt-2 flex justify-center gap-6 text-xs tracking-[0.3em] uppercase font-sans">
+              {([true, false] as const).map((value) => (
+                <button
+                  key={String(value)}
+                  type="button"
+                  onClick={() => updateAttendee(i, 'attending', value)}
+                  aria-pressed={attendee.attending === value}
+                  className={`pb-1 border-b transition-colors ${
+                    attendee.attending === value
+                      ? 'text-title border-forest-deep'
+                      : 'text-title/45 border-transparent hover:text-title'
+                  }`}
+                >
+                  {value ? t('rsvp.attending') : t('rsvp.notAttending')}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
-      <div className={`flex flex-col gap-5 ${wide ? 'pt-3' : ''}`}>
-        <div>
-          <label htmlFor="rsvp-song" className={LABEL}>
-            {t('rsvp.song')}
-          </label>
-          <input
-            id="rsvp-song"
-            type="text"
-            value={songRequest}
-            onChange={(e) => setSongRequest(e.target.value)}
-            placeholder={t('rsvp.songPlaceholder')}
-            className={FIELD}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="rsvp-message" className={LABEL}>
-            {t('rsvp.message')}
-          </label>
-          <textarea
-            id="rsvp-message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={t('rsvp.messagePlaceholder', {
-              bride: CONFIG.couple.bride,
-              groom: CONFIG.couple.groom,
-            })}
-            rows={3}
-            className={`${FIELD} resize-none`}
-          />
-        </div>
-
-        {error && <p className="font-serif text-terracotta text-center">{error}</p>}
-
-        <div className="mt-auto pt-2 flex flex-col items-center gap-4">
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`${CTA} w-full disabled:opacity-50 disabled:hover:translate-y-0`}
-          >
-            <span className={submitting ? 'animate-breath' : undefined}>
-              {submitting ? t('rsvp.submitting') : t('rsvp.submit')}
-            </span>
-          </button>
-        </div>
+      <div className="text-center">
+        <label htmlFor="rsvp-song" className={LABEL}>
+          {t('rsvp.song')}
+        </label>
+        <input
+          id="rsvp-song"
+          type="text"
+          value={songRequest}
+          onChange={(e) => setSongRequest(e.target.value)}
+          placeholder={t('rsvp.songPlaceholder')}
+          className={`${FIELD} text-center`}
+        />
       </div>
+
+      {error && <p className="font-serif text-terracotta text-center">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className={`${CTA} w-full disabled:opacity-50 disabled:hover:translate-y-0`}
+      >
+        <span className={submitting ? 'animate-breath' : undefined}>
+          {submitting ? t('rsvp.submitting') : t('rsvp.submit')}
+        </span>
+      </button>
     </form>
   )
 }
