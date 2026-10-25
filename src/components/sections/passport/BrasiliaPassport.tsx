@@ -171,6 +171,7 @@ export function BrasiliaPassport({
   const coverRef = useRef<HTMLDivElement>(null)
   const boardRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLDivElement>(null)
+  const vignetteRef = useRef<HTMLDivElement>(null)
   const baseRef = useRef<HTMLDivElement>(null)
   const leftRef = useRef<HTMLDivElement>(null)
   const leftHalfRef = useRef<HTMLDivElement>(null)
@@ -194,6 +195,7 @@ export function BrasiliaPassport({
       if (!g || !root || !bookEl || !cover || !board || !title || !base || !chrome || !haze) return
       const left = leftRef.current
       const leftHalf = leftHalfRef.current
+      const vignette = vignetteRef.current
       const show = (el: HTMLElement | null, o: number) => {
         if (!el) return
         el.style.opacity = String(o)
@@ -215,8 +217,13 @@ export function BrasiliaPassport({
         return o > 0.5
       }
 
-      root.style.visibility = v >= PHASE.shrink[1] ? 'visible' : 'hidden'
+      root.style.visibility = v >= PHASE.handoff[0] ? 'visible' : 'hidden'
       root.style.opacity = '1'
+      // The cover's vignette fades in over HeroBigDay's (now still) painting;
+      // the board stays hidden until it's fully there, or its cream would
+      // show through the half-faded vignette.
+      if (vignette) vignette.style.opacity = String(seg(v, PHASE.handoff))
+      board.style.visibility = v >= PHASE.handoff[1] ? 'visible' : 'hidden'
 
       // Cover board grows out from under the vignette: its clip starts as
       // a rounded box inside the blot's opaque core, ends as the card.
@@ -535,7 +542,12 @@ export function BrasiliaPassport({
           }}
         >
           <div className="absolute inset-0" style={hidden3d}>
-            <PassportCover g={g} boardRef={boardRef} titleRef={titleRef} />
+            <PassportCover
+              g={g}
+              boardRef={boardRef}
+              vignetteRef={vignetteRef}
+              titleRef={titleRef}
+            />
           </div>
           <div className="absolute inset-0" style={{ ...hidden3d, transform: 'rotateY(180deg)' }}>
             <Paper side="left" stock="inside">

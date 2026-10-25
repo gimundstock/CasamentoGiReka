@@ -13,13 +13,18 @@ export const PASSPORT_VH = 380
 type Span = readonly [number, number]
 export const PHASE = {
   /** Date / venue / title, the sun and its haze leave the painting. */
-  infoOut: [40, 80] as Span,
+  infoOut: [35, 60] as Span,
   /** The pencil lines fade, leaving the watercolor alone. */
   linesOut: [50, 120] as Span,
   /** The blot closes in from beyond the screen edges. */
-  maskIn: [55, 140] as Span,
+  maskIn: [60, 140] as Span,
   /** The painting shrinks and drifts to the cover's art slot. */
-  shrink: [75, 160] as Span,
+  shrink: [75, 150] as Span,
+  /**
+   * Still: the cover's own copy of the vignette fades in over the painting,
+   * then takes over (it draws the image, not the canvas, so tones differ a hair).
+   */
+  handoff: [150, 160] as Span,
   /** The cream cover grows out around the vignette. */
   coverGrow: [160, 215] as Span,
   /** Title, star and sketch settle onto the cover. */
@@ -72,6 +77,8 @@ export interface PassportGeometry {
   slot: Rect
   /** The painting's box on screen, at rest (HeroBigDay's artBox). */
   art: Rect
+  /** How far the painting reaches past the screen's left, right and bottom. */
+  over: { l: number; r: number; b: number }
   /** Point of the painting that ends up at the slot's center. */
   focal: { x: number; y: number }
   /** Final scale of the painting. */
@@ -108,10 +115,13 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
   // the tabs and the page controls. Phones get its right half only.
   const availH = vh - NAV_H - CONTROLS_H - 12
   const maxH = Math.min(availH, 0.8 * vh, 860)
-  let k = Math.min(maxH / SPREAD.h, (vw - 2 * TAB_OUT - 40) / SPREAD.w)
-  const spread = SPREAD.right.w * k >= 300
+  // Two pages unless they'd be cramped (phones), or one page would be far
+  // bigger (tall portrait tablets, where the spread is width-bound).
+  const kSpread = Math.min(maxH / SPREAD.h, (vw - 2 * TAB_OUT - 40) / SPREAD.w)
+  const kSingle = Math.min(maxH / SPREAD.h, (vw - TAB_OUT - 22) / (SPREAD.w - SPREAD.split))
+  const spread = SPREAD.right.w * kSpread >= 300 && kSingle < kSpread * 1.4
+  const k = spread ? kSpread : kSingle
   const dx = spread ? 0 : SPREAD.split
-  if (!spread) k = Math.min(maxH / SPREAD.h, (vw - TAB_OUT - 22) / (SPREAD.w - SPREAD.split))
   const bookW = (SPREAD.w - dx) * k
   const bookH = SPREAD.h * k
   const bookX = spread ? (vw - bookW) / 2 : (vw - bookW - TAB_OUT + 4) / 2
@@ -156,6 +166,11 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     cover,
     slot,
     art,
+    over: {
+      l: Math.ceil(Math.max(0, -artLeft)),
+      r: Math.ceil(Math.max(0, artLeft + artW - vw)),
+      b: Math.ceil(Math.max(0, artTop + artH - vh)),
+    },
     focal,
     scale,
     blotLocal,

@@ -17,16 +17,19 @@ const SKETCH_ASPECT = 590 / 900
  *
  * The vignette is a copy of the painting placed EXACTLY where HeroBigDay's
  * shrunken painting ends up — same crop, same scale, same blot — so when the
- * stage hands over from that one to this one nothing moves. From then on it
- * belongs to the cover and turns with it.
+ * stage hands over from that one to this one nothing moves (`vignetteRef`
+ * fades it in on top first). From then on it belongs to the cover and turns
+ * with it.
  */
 export function PassportCover({
   g,
   boardRef,
+  vignetteRef,
   titleRef,
 }: {
   g: PassportGeometry
   boardRef: Ref<HTMLDivElement>
+  vignetteRef: Ref<HTMLDivElement>
   titleRef: Ref<HTMLDivElement>
 }) {
   const { t } = useTranslation()
@@ -43,6 +46,7 @@ export function PassportCover({
 
       {/* Vignette — the painting, cut into the blot. */}
       <div
+        ref={vignetteRef}
         className="absolute"
         style={{
           left: slot.x,

@@ -303,21 +303,30 @@ export function HeroBigDay() {
       const size = blotSize(geo, ease(seg(v, PHASE.maskIn)))
       const tr = paintingTransform(geo, ease(seg(v, PHASE.shrink)))
       setMask(true)
-      const pos = `${(geo.focal.x - size.w / 2).toFixed(1)}px ${(geo.focal.y - size.h / 2).toFixed(1)}px`
+      // In the group's own box, which starts `over.l` left of the screen.
+      const fx = geo.focal.x + geo.over.l
+      const fy = geo.focal.y
+      const pos = `${(fx - size.w / 2).toFixed(1)}px ${(fy - size.h / 2).toFixed(1)}px`
       const dim = `${size.w.toFixed(1)}px ${size.h.toFixed(1)}px`
       el.style.maskSize = dim
       el.style.setProperty('-webkit-mask-size', dim)
       el.style.maskPosition = pos
       el.style.setProperty('-webkit-mask-position', pos)
-      el.style.transformOrigin = `${geo.focal.x}px ${geo.focal.y}px`
+      el.style.transformOrigin = `${fx.toFixed(1)}px ${fy.toFixed(1)}px`
       el.style.transform = `translate3d(${tr.x.toFixed(2)}px, ${tr.y.toFixed(2)}px, 0) scale(${tr.scale.toFixed(4)})`
       // Handed over to the cover's own copy (see PassportCover).
-      el.style.visibility = v >= PHASE.shrink[1] ? 'hidden' : ''
+      el.style.visibility = v >= PHASE.handoff[1] ? 'hidden' : ''
     },
     [geo, reduced]
   )
   useMotionValueEvent(passVh, 'change', compact)
   useLayoutEffect(() => compact(passVh.get()), [compact, passVh])
+  const over = geo?.over ?? { l: 0, r: 0, b: 0 }
+  // The set sun carries a CSS filter: out of the group altogether once it has
+  // faded, so the shrinking, masked painting never re-renders it.
+  const sunBoxVisibility = useTransform(passVh, (pv: number) =>
+    pv >= PHASE.infoOut[1] ? 'hidden' : 'visible'
+  )
 
   const weddingDate = new Date(CONFIG.wedding.date)
   const dateStr = weddingDate.toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-GB', {
@@ -397,90 +406,108 @@ export function HeroBigDay() {
           style={artVars}
         >
           {/* ── z-10  The landscape: painting, sun and line art. One group so
-                    it can shrink into the passport as a whole. ── */}
-          <div ref={compactRef} className="pointer-events-none absolute inset-0 z-10">
-            {/* ── z-10  Watercolor painting (sky and ground) — painted in
+                    it can shrink into the passport as a whole. The group's
+                    box reaches past the screen to cover the whole painting
+                    (wider than the screen on phones): a mask clips to the
+                    box, and the blot must be able to reach any of it. ── */}
+          <div
+            ref={compactRef}
+            className="pointer-events-none absolute z-10"
+            style={{
+              left: -over.l,
+              top: 0,
+              width: `calc(100% + ${over.l + over.r}px)`,
+              height: `calc(100% + ${over.b}px)`,
+            }}
+          >
+            <div
+              className="absolute top-0"
+              style={{ left: over.l, width: `calc(100% - ${over.l + over.r}px)`, height: '100%' }}
+            >
+              {/* ── z-10  Watercolor painting (sky and ground) — painted in
                     around the sun as it travels, so the color follows its
                     arc. Slides up with the line art. ── */}
-            <motion.div
-              aria-hidden
-              className="pointer-events-none absolute z-10 overflow-hidden"
-              style={{ ...artBox, y: cerradoY, opacity: 0.9 }}
-            >
-              <CerradoPaint
-                src={`${ART}/paint.webp`}
-                aspect={ART_ASPECT}
-                progress={scrollYProgress}
-                sunX={sunXAt}
-                sunY={sunYAt}
-                start={PAINT_START}
-                end={PAINT_END}
-              />
-            </motion.div>
+              <motion.div
+                aria-hidden
+                className="pointer-events-none absolute z-10 overflow-hidden"
+                style={{ ...artBox, y: cerradoY, opacity: 0.9 }}
+              >
+                <CerradoPaint
+                  src={`${ART}/paint.webp`}
+                  aspect={ART_ASPECT}
+                  progress={scrollYProgress}
+                  sunX={sunXAt}
+                  sunY={sunYAt}
+                  start={PAINT_START}
+                  end={PAINT_END}
+                />
+              </motion.div>
 
-            {/* ── z-20  Sun disc, phase 2 — arcs across the sky and sets. It
+              {/* ── z-20  Sun disc, phase 2 — arcs across the sky and sets. It
                     lives inside a box masked to the sky, so it disappears
                     behind the hills instead of showing over the painted
                     ground. The mask is static; only the sun moves. ── */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute z-20"
-              style={{
-                ...artBox,
-                maskImage: `url(${ART}/sky-mask.webp)`,
-                WebkitMaskImage: `url(${ART}/sky-mask.webp)`,
-                maskSize: '100% 100%',
-                WebkitMaskSize: '100% 100%',
-                maskRepeat: 'no-repeat',
-                WebkitMaskRepeat: 'no-repeat',
-              }}
-            >
-              {/* Golden haze around the sun, so it glows into the painted light. */}
               <motion.div
-                className="absolute rounded-full"
+                aria-hidden
+                className="pointer-events-none absolute z-20"
                 style={{
-                  left: sunLeftPct,
-                  top: sunTopPct,
-                  width: '46vmin',
-                  height: '46vmin',
-                  x: '-50%',
-                  y: '-50%',
-                  background:
-                    'radial-gradient(circle, rgba(255, 226, 140, 0.45) 0%, rgba(255, 214, 120, 0.18) 35%, rgba(255, 214, 120, 0) 68%)',
-                  opacity: sunArcOpacity,
+                  ...artBox,
+                  visibility: sunBoxVisibility,
+                  maskImage: `url(${ART}/sky-mask.webp)`,
+                  WebkitMaskImage: `url(${ART}/sky-mask.webp)`,
+                  maskSize: '100% 100%',
+                  WebkitMaskSize: '100% 100%',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskRepeat: 'no-repeat',
                 }}
-              />
-              <motion.img
-                src={SUN_SRC}
-                alt=""
-                draggable={false}
-                className="absolute max-w-none select-none"
-                style={{
-                  left: sunLeftPct,
-                  top: sunTopPct,
-                  width: SUN_SIZE,
-                  height: SUN_SIZE,
-                  x: '-50%',
-                  y: '-50%',
-                  rotate: sunRotate,
-                  filter: sunFilter,
-                  opacity: sunArcOpacity,
-                  willChange: 'transform',
-                }}
-              />
-            </div>
+              >
+                {/* Golden haze around the sun, so it glows into the painted light. */}
+                <motion.div
+                  className="absolute rounded-full"
+                  style={{
+                    left: sunLeftPct,
+                    top: sunTopPct,
+                    width: '46vmin',
+                    height: '46vmin',
+                    x: '-50%',
+                    y: '-50%',
+                    background:
+                      'radial-gradient(circle, rgba(255, 226, 140, 0.45) 0%, rgba(255, 214, 120, 0.18) 35%, rgba(255, 214, 120, 0) 68%)',
+                    opacity: sunArcOpacity,
+                  }}
+                />
+                <motion.img
+                  src={SUN_SRC}
+                  alt=""
+                  draggable={false}
+                  className="absolute max-w-none select-none"
+                  style={{
+                    left: sunLeftPct,
+                    top: sunTopPct,
+                    width: SUN_SIZE,
+                    height: SUN_SIZE,
+                    x: '-50%',
+                    y: '-50%',
+                    rotate: sunRotate,
+                    filter: sunFilter,
+                    opacity: sunArcOpacity,
+                    willChange: 'transform',
+                  }}
+                />
+              </motion.div>
 
-            {/* ── z-30  Pencil line art, registered onto the painting. SLIDES
+              {/* ── z-30  Pencil line art, registered onto the painting. SLIDES
                     UP from below the viewport alongside the sun shrink so
                     the drawing rises into place. ── */}
-            <motion.img
-              src={`${ART}/lines.webp`}
-              alt=""
-              aria-hidden
-              draggable={false}
-              style={{ ...artBox, y: cerradoY, opacity: linesOpacity }}
-              className="pointer-events-none absolute z-30 max-w-none select-none"
-            />
+              <motion.img
+                src={`${ART}/lines.webp`}
+                alt=""
+                aria-hidden
+                draggable={false}
+                style={{ ...artBox, y: cerradoY, opacity: linesOpacity }}
+                className="pointer-events-none absolute z-30 max-w-none select-none"
+              />
+            </div>
           </div>
 
           {/* ── z-30  Soft paper fade behind the info strip so the text stays
