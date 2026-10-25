@@ -159,8 +159,9 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     }
     mask.getContext('2d')?.putImageData(maskData, 0, 0)
     ctx.imageSmoothingEnabled = true
-    // The mask is a soft edge already; 'high' smoothing costs a lot for nothing.
-    ctx.imageSmoothingQuality = 'medium'
+    // 'high', not lower: Safari upscales the small reveal map almost
+    // without smoothing at 'medium', and the watercolor edge turns to steps.
+    ctx.imageSmoothingQuality = 'high'
     ctx.drawImage(mask, 0, 0, W, H)
     ctx.globalCompositeOperation = 'source-in'
     ctx.drawImage(img, 0, 0, W, H)
