@@ -77,6 +77,7 @@ const REAL_GAP_END =
   REAL_GAP_START + ((CASCADE_AT - HEADING_AT) * OLD_SCROLL_VH - CUT_VH) / SCROLL_VH
 
 const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
+const DAISY_BLUR_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero_blur.webp`
 
 // The yellow center of cosmos_hero.webp (1200 × 1233): centered across,
 // 48.1 % down, about 15 % of the image width. The flower spins and scales
@@ -189,11 +190,14 @@ export function HeroSaveDateCouple() {
   })
   // ...blurring as they fade, like a wash melting into wet paper rather
   // than a photo fading out. In the image's own (unscaled) pixels.
-  const petalBlur = useTransform(scrollYProgress, (v: number) => {
-    if (v < DISSOLVE_START) return 'none'
-    const t = Math.min(1, (v - DISSOLVE_START) / (1 - DISSOLVE_START))
-    return `blur(${(8 * t).toFixed(2)}px)`
-  })
+  // The petals soften as they dissolve: a pre-blurred copy of the flower
+  // (cosmos_hero_blur.webp, an 8px blur in the flower's own box) fades in
+  // over the crisp one. An animated CSS blur here ran on a ~3000px layer
+  // spinning at full zoom, and Safari stalled for seconds compositing it.
+  const petalBlur = useTransform(scrollYProgress, (v: number) =>
+    v < DISSOLVE_START ? 0 : Math.min(1, (v - DISSOLVE_START) / (1 - DISSOLVE_START))
+  )
+  const daisyCrispOpacity = useTransform(petalBlur, (t: number) => 1 - t)
   // Scale grows from 0 to 1 over 0.22–0.40 (an 18 % scroll window — long
   // enough on an 800vh stage to be obviously visible), holds at 1 all the
   // way through the story, then zooms to ZOOM_SCALE over 0.90 → 0.97 so the
@@ -396,24 +400,34 @@ export function HeroSaveDateCouple() {
           </motion.div>
 
           {/* ── z-10  Daisy — single persistent element ── */}
-          <motion.img
-            src={DAISY_HERO_SRC}
-            alt=""
+          <motion.div
             aria-hidden
-            draggable={false}
             className="pointer-events-none absolute top-1/2 left-1/2 z-10 h-[78vmin] w-[78vmin]"
             style={{
               x: '-50%',
               y: `-${CENTER_Y}%`,
               transformOrigin: `50% ${CENTER_Y}%`,
-              filter: petalBlur,
-              objectFit: 'contain',
               opacity: daisyOpacity,
               scale: daisyScale,
               rotate: daisyRotate,
               willChange: 'transform, opacity',
             }}
-          />
+          >
+            <motion.img
+              src={DAISY_HERO_SRC}
+              alt=""
+              draggable={false}
+              className="absolute inset-0 h-full w-full max-w-none object-contain select-none"
+              style={{ opacity: daisyCrispOpacity }}
+            />
+            <motion.img
+              src={DAISY_BLUR_SRC}
+              alt=""
+              draggable={false}
+              className="absolute inset-0 h-full w-full max-w-none object-contain select-none"
+              style={{ opacity: petalBlur }}
+            />
+          </motion.div>
 
           {/* ── z-[11]  The sun — the cosmos's center from the start,
                     (fixed, not absolute: when this section unpins, the

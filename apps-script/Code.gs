@@ -161,21 +161,37 @@ function handleGetGuest(params) {
   return null;
 }
 
-/** Whether this guest already has a reply in the RSVPs tab. */
-function hasRsvp(guestId) {
-  return sheetToObjects(getSheet('RSVPs')).some(function(r) {
+/**
+ * This guest's latest reply in the RSVPs tab, as [{ name, attending }], or
+ * null if they haven't replied. A malformed attendeesJson still counts as a
+ * reply, with an empty list.
+ */
+function latestRsvpAttendees(guestId) {
+  var rows = sheetToObjects(getSheet('RSVPs')).filter(function(r) {
     return String(r.guestId) === String(guestId);
   });
+  if (!rows.length) return null;
+  try {
+    var parsed = JSON.parse(rows[rows.length - 1].attendeesJson || '[]');
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(function(a) {
+      return { name: String(a.name || ''), attending: a.attending === true };
+    });
+  } catch (e) {
+    return [];
+  }
 }
 
 function formatGuest(row) {
+  var rsvp = latestRsvpAttendees(row.guestId);
   return {
     guestId: row.guestId,
     groupName: row.groupName,
     language: row.language || 'pt',
     attendees: String(row.attendees).split(',').map(function(s) { return s.trim(); }).filter(Boolean),
     hasPhoto: row.hasPhoto === true || row.hasPhoto === 'true' || row.hasPhoto === 'TRUE',
-    rsvpSubmitted: hasRsvp(row.guestId),
+    rsvpSubmitted: rsvp !== null,
+    rsvpAttendees: rsvp || [],
   };
 }
 

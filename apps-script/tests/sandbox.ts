@@ -48,6 +48,7 @@ export interface Guest {
   attendees: string[]
   hasPhoto: boolean
   rsvpSubmitted: boolean
+  rsvpAttendees: { name: string; attending: boolean }[]
 }
 
 export interface CardBody {
