@@ -55,7 +55,40 @@
     "stars": "estrelas",
     "perNight": "/noite",
     "listLabel": "Lista de recomendações — role para ver mais",
-    "kicker": "Para quem vem de longe"
+    "kicker": "Para quem vem de longe",
+    "passport": {
+      "kicker": "Passaporte de",
+      "title": "Brasília",
+      "indexTitle": "Índice",
+      "insideText": "Um pequeno guia da nossa cidade, para quem vem de longe celebrar com a gente.",
+      "more": "Saiba mais",
+      "prev": "Página anterior",
+      "next": "Próxima página",
+      "bookLabel": "Passaporte de Brasília — guia da cidade",
+      "tabsLabel": "Capítulos do guia",
+      "sections": {
+        "tourism": {
+          "title": "Pontos Turísticos",
+          "tab": "Turismo",
+          "intro": "A capital modernista de Niemeyer e Lúcio Costa: monumentos, mirantes e o céu enorme do cerrado. Nossos lugares preferidos para passear antes e depois da festa."
+        },
+        "restaurants": {
+          "title": "Restaurantes",
+          "tab": "Restaurantes",
+          "intro": "Dos clássicos de esquina às mesas mais especiais: os sabores que a gente ama em Brasília, para todos os gostos e bolsos."
+        },
+        "transport": {
+          "title": "Transporte",
+          "tab": "Transporte",
+          "intro": "Brasília é grande e espalhada. Aqui vai o que funciona melhor para chegar e circular pela cidade."
+        },
+        "hotels": {
+          "title": "Hospedagem",
+          "tab": "Hospedagem",
+          "intro": "Algumas sugestões de onde ficar, perto do centro e de tudo o que vale a pena conhecer."
+        }
+      }
+    }
   },
   "rsvp": {
     "title": "Confirmação de Presença",
