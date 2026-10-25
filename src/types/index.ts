@@ -4,6 +4,8 @@ export interface Guest {
   language: 'pt' | 'en'
   attendees: string[]
   hasPhoto: boolean
+  /** Set by the backend: the guest already has a row in the RSVPs tab. */
+  rsvpSubmitted?: boolean
 }
 
 export interface Cota {

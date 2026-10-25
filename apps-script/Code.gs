@@ -159,6 +159,13 @@ function handleGetGuest(params) {
   return null;
 }
 
+/** Whether this guest already has a reply in the RSVPs tab. */
+function hasRsvp(guestId) {
+  return sheetToObjects(getSheet('RSVPs')).some(function(r) {
+    return String(r.guestId) === String(guestId);
+  });
+}
+
 function formatGuest(row) {
   return {
     guestId: row.guestId,
@@ -166,6 +173,7 @@ function formatGuest(row) {
     language: row.language || 'pt',
     attendees: String(row.attendees).split(',').map(function(s) { return s.trim(); }).filter(Boolean),
     hasPhoto: row.hasPhoto === true || row.hasPhoto === 'true' || row.hasPhoto === 'TRUE',
+    rsvpSubmitted: hasRsvp(row.guestId),
   };
 }
 

@@ -204,6 +204,29 @@ describe('handleSubmitRSVP', () => {
   })
 })
 
+describe('rsvpSubmitted on the guest', () => {
+  const guests = guestsSheet(
+    ['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre', true],
+    ['r02', 'Helaine e Ivanio', 'pt', 'Helaine Freitas', true],
+  )
+  const RSVP_HEADER = ['timestamp', 'guestId', 'groupName', 'attendeesJson', 'songRequest', 'message']
+
+  it('is true only for guests with a row in the RSVPs tab', () => {
+    const rsvps = [RSVP_HEADER, ['2026-10-01', 'r01', 'Martha e Thadeu', '[]', '', '']]
+    const { app } = createSandbox({ guests, rsvps })
+    expect(app.handleGetGuest({ id: 'r01' })?.rsvpSubmitted).toBe(true)
+    expect(app.handleGetGuest({ id: 'r02' })?.rsvpSubmitted).toBe(false)
+    expect(app.handleGetGuest({ name: 'Martha e Thadeu' })?.rsvpSubmitted).toBe(true)
+  })
+
+  it('turns true right after the guest replies', () => {
+    const { app } = createSandbox({ guests })
+    expect(app.handleGetGuest({ id: 'r02' })?.rsvpSubmitted).toBe(false)
+    app.handleSubmitRSVP({ guestId: 'r02', attendeesJson: '[]' })
+    expect(app.handleGetGuest({ id: 'r02' })?.rsvpSubmitted).toBe(true)
+  })
+})
+
 describe('configuration (Script Properties)', () => {
   it('sends couple notifications to the addresses in COUPLE_EMAILS', () => {
     const guests = guestsSheet(['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre', true])

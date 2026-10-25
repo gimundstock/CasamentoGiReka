@@ -28,7 +28,9 @@ export function useGuest() {
   const { i18n } = useTranslation()
   const [state, setState] = useState<GuestState>({ status: 'idle' })
 
-  // On mount: try URL param first, then localStorage
+  // On mount: try URL param first, then localStorage. A cached guest shows
+  // straight away and is then refreshed from the backend, so what comes from
+  // the Sheet (e.g. whether they already replied) is never stale.
   useEffect(() => {
     const guestIdFromUrl = searchParams.get('g')
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -40,6 +42,7 @@ export function useGuest() {
         const parsed = JSON.parse(stored) as Guest
         setState({ status: 'found', guest: parsed })
         i18n.changeLanguage(parsed.language)
+        refreshGuest(parsed.guestId)
       } catch {
         localStorage.removeItem(STORAGE_KEY)
       }
@@ -63,6 +66,16 @@ export function useGuest() {
       persist(guest)
     } else {
       setState({ status: 'not_found' })
+    }
+  }
+
+  /** Re-reads a cached guest in the background; keeps the cache if offline. */
+  async function refreshGuest(id: string) {
+    if (CONFIG.appScriptUrl === 'PLACEHOLDER_APPS_SCRIPT_URL') return
+    const guest = await getGuestById(id)
+    if (guest) {
+      setState({ status: 'found', guest })
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(guest))
     }
   }
 
