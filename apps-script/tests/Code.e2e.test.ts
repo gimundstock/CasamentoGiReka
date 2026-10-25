@@ -11,27 +11,40 @@ if (SKIP) {
   )
 }
 
+/**
+ * GET against the live Web App. Node's fetch occasionally stalls on the
+ * Apps Script redirect while the same request answers in ~2s, so each attempt
+ * is capped at 10s and retried up to 3 times.
+ */
+async function getJson<T>(query: string): Promise<T> {
+  let lastError: unknown
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(`${URL}?${query}`, { signal: AbortSignal.timeout(10_000) })
+      expect(res.ok).toBe(true)
+      return (await res.json()) as T
+    } catch (err) {
+      lastError = err
+    }
+  }
+  throw lastError
+}
+
 // Each call goes to the live Web App, which can take several seconds to spin
 // up from cold, well past Vitest's 5s default.
-suite('Apps Script live endpoints (read-only)', { timeout: 30_000 }, () => {
+suite('Apps Script live endpoints (read-only)', { timeout: 45_000 }, () => {
   it('getSoldCotas returns an array', async () => {
-    const res = await fetch(`${URL}?action=getSoldCotas`)
-    expect(res.ok).toBe(true)
-    const body = (await res.json()) as { sold?: unknown }
+    const body = await getJson<{ sold?: unknown }>('action=getSoldCotas')
     expect(body).toHaveProperty('sold')
     expect(Array.isArray(body.sold)).toBe(true)
   })
 
   it('getGuest with unknown id returns null', async () => {
-    const res = await fetch(`${URL}?action=getGuest&id=__definitely_not_a_real_id__`)
-    expect(res.ok).toBe(true)
-    expect(await res.json()).toBeNull()
+    expect(await getJson('action=getGuest&id=__definitely_not_a_real_id__')).toBeNull()
   })
 
   it('unknown action returns an error payload', async () => {
-    const res = await fetch(`${URL}?action=__bogus__`)
-    expect(res.ok).toBe(true)
-    const body = (await res.json()) as { error?: string }
+    const body = await getJson<{ error?: string }>('action=__bogus__')
     expect(body.error).toBeTruthy()
   })
 })

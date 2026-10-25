@@ -15,7 +15,6 @@ import type { Guest, RSVPAttendee } from '../../types'
 import { CONFIG } from '../../content.config'
 import { useReducedMotion } from '../motion/useReducedMotion'
 
-const RSVP_STORAGE_KEY = 'wedding_rsvp_submitted'
 const base = import.meta.env.BASE_URL
 const NAV_HEIGHT = 68
 
@@ -603,8 +602,9 @@ const LABEL = 'font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/80 
 
 function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
   const { t } = useTranslation()
-  const storageKey = `${RSVP_STORAGE_KEY}_${guest.guestId}`
-  const [alreadySubmitted] = useState(() => localStorage.getItem(storageKey) === 'true')
+  // Whether they already replied comes from the backend (a row for this guest
+  // in the RSVPs tab), so it holds on every device and browser.
+  const alreadySubmitted = guest.rsvpSubmitted === true
 
   const [attendees, setAttendees] = useState<RSVPAttendee[]>(
     guest.attendees.map((name) => ({ name, attending: true, menu: '' }))
@@ -612,7 +612,7 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
   const [songRequest, setSongRequest] = useState('')
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(alreadySubmitted)
+  const [justSubmitted, setJustSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   function updateAttendee(index: number, field: keyof RSVPAttendee, value: string | boolean) {
@@ -625,8 +625,7 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
     setError(null)
     try {
       await submitRSVP({ guestId: guest.guestId, attendees, songRequest, message })
-      localStorage.setItem(storageKey, 'true')
-      setSubmitted(true)
+      setJustSubmitted(true)
     } catch {
       setError(t('rsvp.error'))
     } finally {
@@ -634,17 +633,17 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
     }
   }
 
-  if (submitted) {
+  if (justSubmitted || alreadySubmitted) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center text-center text-title">
         <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
           {t('rsvp.replyTitle')}
         </p>
         <h3 className="font-serif text-2xl md:text-3xl mt-6">
-          {alreadySubmitted ? t('rsvp.alreadyTitle') : t('rsvp.successTitle')}
+          {justSubmitted ? t('rsvp.successTitle') : t('rsvp.alreadyTitle')}
         </h3>
         <p className="font-serif italic text-lg mt-3">
-          {alreadySubmitted ? t('rsvp.alreadySubmitted') : t('rsvp.successText')}
+          {justSubmitted ? t('rsvp.successText') : t('rsvp.alreadySubmitted')}
         </p>
       </div>
     )

@@ -46,6 +46,7 @@ export interface Guest {
   language: string
   attendees: string[]
   hasPhoto: boolean
+  rsvpSubmitted: boolean
 }
 
 export interface PurchaseBody {

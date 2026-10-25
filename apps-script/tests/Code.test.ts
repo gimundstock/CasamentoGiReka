@@ -22,15 +22,15 @@ const ORDERS_HEADER = [
 
 describe('handleGetGuest', () => {
   const baseGuests = guestsSheet(
-    ['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre, Martha Nobre', true],
-    ['r02', 'Helaine e Ivanio', 'pt', 'Helaine Freitas, Ivanio Mundstock', true],
+    ['r01', 'Ana e Bruno', 'pt', 'Bruno Souza, Ana Souza', true],
+    ['r02', 'Carla e Diego', 'pt', 'Carla Lima, Diego Rocha', true],
   )
 
   it('looks up by id', () => {
     const { app } = createSandbox({ guests: baseGuests })
     const guest = app.handleGetGuest({ id: 'r01' })
-    expect(guest).toMatchObject({ guestId: 'r01', groupName: 'Martha e Thadeu', language: 'pt' })
-    expect(guest?.attendees).toEqual(['Thadeu Nobre', 'Martha Nobre'])
+    expect(guest).toMatchObject({ guestId: 'r01', groupName: 'Ana e Bruno', language: 'pt' })
+    expect(guest?.attendees).toEqual(['Bruno Souza', 'Ana Souza'])
     expect(guest?.hasPhoto).toBe(true)
   })
 
@@ -41,47 +41,47 @@ describe('handleGetGuest', () => {
 
   it('exact match on group name ignoring diacritics and case', () => {
     const { app } = createSandbox({ guests: baseGuests })
-    expect(app.handleGetGuest({ name: 'martha e thadeu' })?.guestId).toBe('r01')
-    expect(app.handleGetGuest({ name: 'HELAINE E IVANIO' })?.guestId).toBe('r02')
+    expect(app.handleGetGuest({ name: 'ana e bruno' })?.guestId).toBe('r01')
+    expect(app.handleGetGuest({ name: 'CARLA E DIEGO' })?.guestId).toBe('r02')
   })
 
   it('exact match on one attendee full name', () => {
     const { app } = createSandbox({ guests: baseGuests })
-    expect(app.handleGetGuest({ name: 'Helaine Freitas' })?.guestId).toBe('r02')
-    expect(app.handleGetGuest({ name: '  thadeu   NOBRE ' })?.guestId).toBe('r01')
+    expect(app.handleGetGuest({ name: 'Carla Lima' })?.guestId).toBe('r02')
+    expect(app.handleGetGuest({ name: '  bruno   SOUZA ' })?.guestId).toBe('r01')
   })
 
   it('no partial matches: a first name alone does not log in', () => {
     const { app } = createSandbox({ guests: baseGuests })
-    expect(app.handleGetGuest({ name: 'Helaine' })).toBeNull()
-    expect(app.handleGetGuest({ name: 'Martha e Thadeu Nobre' })).toBeNull()
+    expect(app.handleGetGuest({ name: 'Carla' })).toBeNull()
+    expect(app.handleGetGuest({ name: 'Ana e Bruno Souza' })).toBeNull()
   })
 
-  it('regression: "Alice e Matheus" is the couple, never the Alice on her own', () => {
+  it('regression: "Eva e Felipe" is the couple, never the Eva on her own', () => {
     const guests = guestsSheet(
-      ['g1', 'Alice', 'pt', 'Alice', false],
-      ['g2', 'Alice & Matheus', 'pt', 'Alice Lima, Matheus Rocha', false],
+      ['g1', 'Eva', 'pt', 'Eva', false],
+      ['g2', 'Eva & Felipe', 'pt', 'Eva Prado, Felipe Prado', false],
     )
     const { app } = createSandbox({ guests })
-    expect(app.handleGetGuest({ name: 'Alice e Matheus' })?.guestId).toBe('g2')
-    expect(app.handleGetGuest({ name: 'Alice & Matheus' })?.guestId).toBe('g2')
-    expect(app.handleGetGuest({ name: 'Alice' })?.guestId).toBe('g1')
+    expect(app.handleGetGuest({ name: 'Eva e Felipe' })?.guestId).toBe('g2')
+    expect(app.handleGetGuest({ name: 'Eva & Felipe' })?.guestId).toBe('g2')
+    expect(app.handleGetGuest({ name: 'Eva' })?.guestId).toBe('g1')
   })
 
   it('treats &, e and and alike, and ignores the order of the names', () => {
-    const guests = guestsSheet(['g2', 'Alice & Matheus', 'en', 'Alice, Matheus', false])
+    const guests = guestsSheet(['g2', 'Eva & Felipe', 'en', 'Eva, Felipe', false])
     const { app } = createSandbox({ guests })
-    expect(app.handleGetGuest({ name: 'Matheus e Alice' })?.guestId).toBe('g2')
-    expect(app.handleGetGuest({ name: 'alice and matheus' })?.guestId).toBe('g2')
+    expect(app.handleGetGuest({ name: 'Felipe e Eva' })?.guestId).toBe('g2')
+    expect(app.handleGetGuest({ name: 'eva and felipe' })?.guestId).toBe('g2')
   })
 
   it('regression: trailing comma in attendees must not match every search', () => {
     const guests = guestsSheet(
-      ['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre, Martha Nobre,', true],
-      ['r02', 'Helaine e Ivanio', 'pt', 'Helaine Freitas, Ivanio Mundstock', true],
+      ['r01', 'Ana e Bruno', 'pt', 'Bruno Souza, Ana Souza,', true],
+      ['r02', 'Carla e Diego', 'pt', 'Carla Lima, Diego Rocha', true],
     )
     const { app } = createSandbox({ guests })
-    expect(app.handleGetGuest({ name: 'Helaine Freitas' })?.guestId).toBe('r02')
+    expect(app.handleGetGuest({ name: 'Carla Lima' })?.guestId).toBe('r02')
     expect(app.handleGetGuest({ name: 'xyznotfound' })).toBeNull()
   })
 
@@ -109,8 +109,8 @@ describe('handleGetSoldCotas', () => {
   it('collects cota ids across all orders', () => {
     const orders = [
       ORDERS_HEADER,
-      ['2026-01-01', 'r01', 'Martha', 'm@t.com', 'g1', 'Jantar', JSON.stringify(['c1', 'c2']), 200, ''],
-      ['2026-01-02', 'r02', 'Helaine', 'h@i.com', 'g2', 'Lua de Mel', JSON.stringify(['c5']), 500, ''],
+      ['2026-01-01', 'r01', 'Ana', 'm@t.com', 'g1', 'Jantar', JSON.stringify(['c1', 'c2']), 200, ''],
+      ['2026-01-02', 'r02', 'Carla', 'h@i.com', 'g2', 'Lua de Mel', JSON.stringify(['c5']), 500, ''],
     ]
     const { app } = createSandbox({ orders })
     expect(app.handleGetSoldCotas().sold.sort()).toEqual(['c1', 'c2', 'c5'])
@@ -128,7 +128,7 @@ describe('handleGetSoldCotas', () => {
 })
 
 describe('handlePurchaseGift', () => {
-  const guests = guestsSheet(['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre', true])
+  const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
 
   function purchase(overrides: Partial<Parameters<ReturnType<typeof createSandbox>['app']['handlePurchaseGift']>[0]> = {}) {
     return {
@@ -151,7 +151,7 @@ describe('handlePurchaseGift', () => {
     expect(sheets.Orders.rows).toHaveLength(2)
     const row = sheets.Orders.rows[1]
     expect(row[1]).toBe('r01')
-    expect(row[2]).toBe('Martha e Thadeu')
+    expect(row[2]).toBe('Ana e Bruno')
     expect(row[6]).toBe(JSON.stringify(['c1', 'c2']))
     expect(row[7]).toBe(200)
     expect(sentMail).toHaveLength(1)
@@ -184,11 +184,11 @@ describe('handlePurchaseGift', () => {
 
 describe('handleSubmitRSVP', () => {
   it('appends an RSVP row and notifies the couple', () => {
-    const guests = guestsSheet(['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre, Martha Nobre', true])
+    const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza, Ana Souza', true])
     const { app, sheets, sentMail } = createSandbox({ guests })
     const result = app.handleSubmitRSVP({
       guestId: 'r01',
-      attendeesJson: JSON.stringify([{ name: 'Thadeu Nobre', attending: true }]),
+      attendeesJson: JSON.stringify([{ name: 'Bruno Souza', attending: true }]),
       songRequest: 'Samba',
       message: 'Até lá!',
     })
@@ -196,17 +196,40 @@ describe('handleSubmitRSVP', () => {
     expect(sheets.RSVPs.rows).toHaveLength(2)
     const row = sheets.RSVPs.rows[1]
     expect(row[1]).toBe('r01')
-    expect(row[2]).toBe('Martha e Thadeu')
+    expect(row[2]).toBe('Ana e Bruno')
     expect(sentMail).toHaveLength(1)
-    expect(sentMail[0].subject).toContain('Martha e Thadeu')
+    expect(sentMail[0].subject).toContain('Ana e Bruno')
     expect(sentMail[0].body).toContain('Samba')
     expect(sentMail[0].body).toContain('Até lá!')
   })
 })
 
+describe('rsvpSubmitted on the guest', () => {
+  const guests = guestsSheet(
+    ['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true],
+    ['r02', 'Carla e Diego', 'pt', 'Carla Lima', true],
+  )
+  const RSVP_HEADER = ['timestamp', 'guestId', 'groupName', 'attendeesJson', 'songRequest', 'message']
+
+  it('is true only for guests with a row in the RSVPs tab', () => {
+    const rsvps = [RSVP_HEADER, ['2026-10-01', 'r01', 'Ana e Bruno', '[]', '', '']]
+    const { app } = createSandbox({ guests, rsvps })
+    expect(app.handleGetGuest({ id: 'r01' })?.rsvpSubmitted).toBe(true)
+    expect(app.handleGetGuest({ id: 'r02' })?.rsvpSubmitted).toBe(false)
+    expect(app.handleGetGuest({ name: 'Ana e Bruno' })?.rsvpSubmitted).toBe(true)
+  })
+
+  it('turns true right after the guest replies', () => {
+    const { app } = createSandbox({ guests })
+    expect(app.handleGetGuest({ id: 'r02' })?.rsvpSubmitted).toBe(false)
+    app.handleSubmitRSVP({ guestId: 'r02', attendeesJson: '[]' })
+    expect(app.handleGetGuest({ id: 'r02' })?.rsvpSubmitted).toBe(true)
+  })
+})
+
 describe('configuration (Script Properties)', () => {
   it('sends couple notifications to the addresses in COUPLE_EMAILS', () => {
-    const guests = guestsSheet(['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre', true])
+    const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
     const { app, sentMail } = createSandbox({ guests })
     app.handleSubmitRSVP({ guestId: 'r01', attendeesJson: '[]' })
     expect(sentMail[0].to).toBe('a@example.com,b@example.com')
@@ -220,7 +243,7 @@ describe('configuration (Script Properties)', () => {
 })
 
 describe('doGet / doPost entry points', () => {
-  const guests = guestsSheet(['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre', true])
+  const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
 
   it('doGet dispatches getGuest by id', () => {
     const { app } = createSandbox({ guests })
