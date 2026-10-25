@@ -1,16 +1,13 @@
 /**
  * Wedding Website — Google Apps Script Backend
  *
- * HOW TO DEPLOY:
- * 1. Go to script.google.com and create a new project
- * 2. Paste this code into Code.gs
- * 3. Update SHEET_ID with your Google Sheets document ID
- * 4. Update COUPLE_EMAILS with the addresses that should receive notifications
- *    (must mirror CONFIG.coupleEmails in src/content.config.ts)
- * 5. Click Deploy → New deployment → Web app
- *    - Execute as: Me
- *    - Who has access: Anyone
- * 6. Copy the Web App URL and paste it into src/content.config.ts → appScriptUrl
+ * HOW TO DEPLOY: see apps-script/README.md (pushed with clasp).
+ *
+ * CONFIGURATION — no private values live in this file. Set them once in the
+ * Apps Script editor under Project Settings → Script properties:
+ *   SHEET_ID       the Google Sheets document ID
+ *   COUPLE_EMAILS  comma-separated addresses that receive RSVP and gift copies
+ *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
  *
  * GOOGLE SHEETS SETUP:
  * Create a spreadsheet with 3 tabs named exactly:
@@ -25,12 +22,21 @@
  * Orders columns: timestamp | guestId | groupName | guestEmail | giftId | giftName | selectedCotas | totalPrice | cardMessage
  */
 
-var SHEET_ID = 'YOUR_GOOGLE_SHEETS_ID_HERE';
-var COUPLE_EMAILS = ['YOUR_EMAIL_1@gmail.com', 'YOUR_EMAIL_2@gmail.com'];
 var COUPLE_NAMES = 'Giovanna & Renato';
 
+/** Reads a required Script Property, failing loudly if it was never set. */
+function requiredProperty(key) {
+  var value = PropertiesService.getScriptProperties().getProperty(key);
+  if (!value) throw new Error('Missing Script Property: ' + key);
+  return value;
+}
+
 function coupleEmailsCsv() {
-  return COUPLE_EMAILS.join(',');
+  return requiredProperty('COUPLE_EMAILS')
+    .split(',')
+    .map(function(s) { return s.trim(); })
+    .filter(Boolean)
+    .join(',');
 }
 
 // ── Response helper ──────────────────────────────────────────────────────────
@@ -72,7 +78,7 @@ function doPost(e) {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function getSheet(name) {
-  return SpreadsheetApp.openById(SHEET_ID).getSheetByName(name);
+  return SpreadsheetApp.openById(requiredProperty('SHEET_ID')).getSheetByName(name);
 }
 
 function sheetToObjects(sheet) {

@@ -180,6 +180,21 @@ describe('handleSubmitRSVP', () => {
   })
 })
 
+describe('configuration (Script Properties)', () => {
+  it('sends couple notifications to the addresses in COUPLE_EMAILS', () => {
+    const guests = guestsSheet(['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre', true])
+    const { app, sentMail } = createSandbox({ guests })
+    app.handleSubmitRSVP({ guestId: 'r01', attendeesJson: '[]' })
+    expect(sentMail[0].to).toBe('a@example.com,b@example.com')
+  })
+
+  it('fails with a clear error when SHEET_ID is not set', () => {
+    const { app } = createSandbox({ properties: { COUPLE_EMAILS: 'a@example.com' } })
+    const res = JSON.parse(app.doGet({ parameter: { action: 'getSoldCotas' } }).getContent())
+    expect(res.error).toContain('Missing Script Property: SHEET_ID')
+  })
+})
+
 describe('doGet / doPost entry points', () => {
   const guests = guestsSheet(['r01', 'Martha e Thadeu', 'pt', 'Thadeu Nobre', true])
 
