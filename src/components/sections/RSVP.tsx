@@ -632,6 +632,8 @@ function ReplyForm({ guest }: { guest: Guest }) {
     }
   }
 
+  const replied = justSubmitted ? attendees : (guest.rsvpAttendees ?? [])
+
   if (justSubmitted || alreadySubmitted) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center text-center text-title">
@@ -644,6 +646,28 @@ function ReplyForm({ guest }: { guest: Guest }) {
         <p className="font-serif italic text-lg mt-3">
           {justSubmitted ? t('rsvp.successText') : t('rsvp.alreadySubmitted')}
         </p>
+
+        {/* Who is and isn't coming: what they just sent, or their latest reply
+            as the backend read it from the RSVPs tab. */}
+        <div className="mt-8 flex flex-col gap-5">
+          {(
+            [
+              [true, 'rsvp.repliedAttending'],
+              [false, 'rsvp.repliedNotAttending'],
+            ] as const
+          ).map(([attending, label]) => {
+            const names = replied.filter((a) => a.attending === attending).map((a) => a.name)
+            if (!names.length) return null
+            return (
+              <div key={label}>
+                <p className={LABEL}>{t(label)}</p>
+                <p className="font-serif text-xl mt-1">{names.join(' · ')}</p>
+              </div>
+            )
+          })}
+        </div>
+
+        <p className="font-serif italic text-base text-title/70 mt-8">{t('rsvp.changeNote')}</p>
       </div>
     )
   }
