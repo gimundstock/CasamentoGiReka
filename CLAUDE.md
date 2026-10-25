@@ -38,8 +38,8 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
 | Command | What it does |
 |---|---|
 | `npm run dev` | Start local dev server on :5173 |
-| `npm test` | Unit tests (Vitest), incl. `apps-script/Code.gs` run in a sandbox. No network |
-| `npm run test:e2e` | Read-only checks against the live Apps Script Web App (needs `VITE_APPSCRIPT_URL`); run after `backend:deploy` |
+| `npm test` | Unit tests (Vitest), incl. `apps-script/Code.gs` run in a sandbox, plus two read-only calls to the live Web App when `VITE_APPSCRIPT_URL` is set |
+| `npm run test:e2e` | Only the live Web App checks; run after `backend:deploy` |
 | `npm run typecheck` | TypeScript type check (no emit) |
 | `npm run lint` | ESLint — TypeScript + React hooks rules |
 | `npm run format` | Prettier — auto-format `src/**/*.{ts,tsx,css}` |
@@ -53,7 +53,7 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
 
 ## CI / CD
 
-- **`.github/workflows/ci.yml`** — Runs `typecheck`, `lint`, `format:check` and `npm test` on every push and every PR; the live `test:e2e` checks run too but don't fail the build.
+- **`.github/workflows/ci.yml`** — Runs `typecheck`, `lint`, `format:check` and `npm test` on every push and every PR.
 - **`.github/workflows/deploy.yml`** — Runs `npm run release` (full quality gate) then deploys to GitHub Pages on push to `main`. Injects `VITE_APPSCRIPT_URL` from GitHub Actions secrets so the Apps Script URL stays out of source.
 
 ## Environment variables

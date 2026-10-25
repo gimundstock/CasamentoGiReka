@@ -12,16 +12,19 @@ if (SKIP) {
 }
 
 /**
- * GET against the live Web App. Node's fetch occasionally stalls on the
- * Apps Script redirect while the same request answers in ~2s, so each attempt
- * is capped at 10s and retried up to 3 times.
+ * GET against the live Web App. Google throttles bursts of requests to a Web
+ * App (they stall or are refused before the script even runs), so a failed
+ * attempt waits before retrying instead of hammering it: 0s, then 5s, then 15s.
  */
+const BACKOFF_MS = [0, 5_000, 15_000]
+
 async function getJson<T>(query: string): Promise<T> {
   let lastError: unknown
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (const wait of BACKOFF_MS) {
+    if (wait) await new Promise((r) => setTimeout(r, wait))
     try {
-      const res = await fetch(`${URL}?${query}`, { signal: AbortSignal.timeout(10_000) })
-      expect(res.ok).toBe(true)
+      const res = await fetch(`${URL}?${query}`, { signal: AbortSignal.timeout(15_000) })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       return (await res.json()) as T
     } catch (err) {
       lastError = err
@@ -30,21 +33,15 @@ async function getJson<T>(query: string): Promise<T> {
   throw lastError
 }
 
-// Each call goes to the live Web App, which can take several seconds to spin
-// up from cold, well past Vitest's 5s default.
-suite('Apps Script live endpoints (read-only)', { timeout: 45_000 }, () => {
-  it('getSoldCotas returns an array', async () => {
+// Kept to two calls: what the unit tests can't cover (the deployed Web App
+// opens the real Sheet and answers). Everything else is tested in Code.test.ts.
+suite('Apps Script live endpoints (read-only)', { timeout: 90_000 }, () => {
+  it('getSoldCotas reads the Orders tab', async () => {
     const body = await getJson<{ sold?: unknown }>('action=getSoldCotas')
-    expect(body).toHaveProperty('sold')
     expect(Array.isArray(body.sold)).toBe(true)
   })
 
   it('getGuest with unknown id returns null', async () => {
     expect(await getJson('action=getGuest&id=__definitely_not_a_real_id__')).toBeNull()
-  })
-
-  it('unknown action returns an error payload', async () => {
-    const body = await getJson<{ error?: string }>('action=__bogus__')
-    expect(body.error).toBeTruthy()
   })
 })

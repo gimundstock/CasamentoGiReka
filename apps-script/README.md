@@ -34,3 +34,5 @@
 | `npm run backend:deploy` | Push, then publish a new version on the existing deployment. The `/exec` URL stays the same. |
 
 Run `npm test` before deploying (the unit tests run `Code.gs` in a sandbox), and `npm run test:e2e` after, to check the live Web App.
+
+Google throttles bursts of requests to a Web App: they stall or come back refused before the script runs (the editor's **Executions** stay under a second). Keep live checks few and spaced; the e2e helper backs off 5s, then 15s, between attempts.
