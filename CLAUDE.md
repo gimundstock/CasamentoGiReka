@@ -15,7 +15,7 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 
 ## Architecture decisions
 - **No server**: All persistence via Google Sheets + Apps Script. The frontend calls the Apps Script URL directly.
-- **Guest personalization**: URL param `?g=GUESTID` auto-loads guest profile. Fallback: name entry screen with fuzzy search.
+- **Guest personalization**: URL param `?g=GUESTID` auto-loads guest profile. Fallback: name entry screen, exact match on the group name or one guest's full name (case, accents, "&"/"e"/"and" and name order ignored; no partial matches).
 - **PIX payments**: Client-side QR generation from the PIX EMV spec. One PIX key for all gifts, per-cota amounts.
 - **Gift model**: Gift catalog (gifts + cotas + prices) lives in `src/content.config.ts` and is baked into the bundle. The Sheet only stores state. Cota availability is derived from the Orders tab — a cotaId appearing in any Orders row marks that cota as sold. A guest can buy multiple cotas at once.
 - **No credit card / no cloud costs**: Firebase rejected in favor of Google Sheets + Apps Script (100% free, no account needed beyond Google).
@@ -28,7 +28,7 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Availability is derived from which cotaIds appear in the `selectedCotas` column of the Orders tab.
 
 ## Apps Script endpoints
-- `GET ?action=getGuest&id=X` or `?action=getGuest&name=X`
+- `GET ?action=getGuest&id=X` or `?action=getGuest&name=X` (exact normalized match, see `nameKey` in Code.gs)
 - `GET ?action=getSoldCotas` — returns `{ sold: string[] }` of cotaIds present in Orders
 - `POST {action:'purchaseGift', guestId, giftId, giftName, selectedCotaIds, selectedCotaLabels, totalPrice, guestEmail, cardMessage}`
 - `POST {action:'submitRSVP', guestId, attendeesJson, menuChoicesJson, songRequest, message}`

@@ -97,6 +97,22 @@ function normalize(str) {
     .trim();
 }
 
+/**
+ * A name as a comparable key: case, accents, punctuation and extra spaces
+ * don't matter, "&" / "e" / "and" are the same joiner, and the people in a
+ * group can be listed in any order ("Matheus e Alice" = "Alice & Matheus").
+ */
+function nameKey(str) {
+  return normalize(str)
+    .replace(/&/g, ' e ')
+    .replace(/[^a-z0-9 ]+/g, ' ')
+    .split(/\s+(?:e|and)\s+|\s*,\s*/)
+    .map(function(part) { return part.replace(/\s+/g, ' ').trim(); })
+    .filter(Boolean)
+    .sort()
+    .join('|');
+}
+
 function collectSoldCotaIds() {
   var orders = sheetToObjects(getSheet('Orders'));
   var sold = {};
@@ -123,22 +139,20 @@ function handleGetGuest(params) {
     return formatGuest(byId);
   }
 
+  // By name: exact matches only — on the group name or on one guest's full
+  // name. No partial matching, so "Alice e Matheus" can never land on a
+  // group that merely contains an "Alice".
   if (params.name) {
-    var needle = normalize(params.name);
-    if (needle.length < 2) return null;
-    var exact = rows.find(function(r) { return normalize(r.groupName) === needle; });
-    if (exact) return formatGuest(exact);
-    var fuzzy = rows.find(function(r) {
-      var attendees = String(r.attendees).split(',').map(normalize).filter(function(a) { return a.length >= 2; });
-      return attendees.some(function(a) { return a.includes(needle) || needle.includes(a); });
+    var needle = nameKey(params.name);
+    if (needle.replace(/\|/g, '').length < 2) return null;
+    var byGroup = rows.find(function(r) { return nameKey(r.groupName) === needle; });
+    if (byGroup) return formatGuest(byGroup);
+    var byAttendee = rows.find(function(r) {
+      return String(r.attendees).split(',').some(function(a) {
+        return a.trim() && nameKey(a) === needle;
+      });
     });
-    if (fuzzy) return formatGuest(fuzzy);
-    var partial = rows.find(function(r) {
-      var g = normalize(r.groupName);
-      if (g.length < 2) return false;
-      return g.includes(needle) || needle.includes(g);
-    });
-    if (partial) return formatGuest(partial);
+    if (byAttendee) return formatGuest(byAttendee);
     return null;
   }
 
