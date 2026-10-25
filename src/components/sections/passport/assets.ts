@@ -1,11 +1,9 @@
 // Every image the Brasília passport uses, in one place (public/passport/).
+// (The back board and the page block's thickness are CSS.)
 //
 //   cover.webp         front cover: light ivory, double thin gold rule
 //   cover-inside.webp  inside of the cover: single gold rule, one sprig in the
 //                      bottom-left (the outer corner once the cover lies open)
-//   spread.webp        the open book around the pages: gold-edged board, page
-//                      stacks, headbands at the spine (its blank pages are
-//                      covered by the page sheets)
 //   paper.webp         every page — lying flat or turning
 //   blot-mask.webp     the watercolor blot the painting shrinks into (alpha mask)
 //
@@ -22,22 +20,25 @@ export const passport = (file: string) => `${BASE}passport/${file}`
 export const PAINT_SRC = `${BASE}cerrado/paint.webp`
 export const PAINT_ASPECT = 1376 / 768
 
+/** How far the covers overhang the pages (top, bottom, fore-edge), in BOOK units. */
+export const COVER_OVERHANG = 7
+const PAGE = { w: 682, h: 925 }
+/** Room around the boards for the page block's thickness. */
+const EDGE = 12
+
 /**
- * spread.webp measured in its own pixels: the cream area of each page, and
- * the spine, where the image is cut into the halves that show on their own.
- * The book's layout is scaled from these (geometry.ts) — re-measure if the
- * image is ever re-exported at another crop.
+ * The open book, in layout units (scaled to the screen in geometry.ts): two
+ * pages meeting at the spine (`split`), each lying on a cover board that
+ * overhangs it by COVER_OVERHANG — the inside of the front cover on the
+ * left, the back board on the right.
  */
 export const BOOK = {
-  w: 1470,
-  h: 958,
-  split: 734,
-  left: { x: 54, y: 4, w: 677, h: 925 },
-  right: { x: 737, y: 4, w: 682, h: 925 },
+  w: 2 * (EDGE + COVER_OVERHANG + PAGE.w),
+  h: 2 * (EDGE + COVER_OVERHANG) + PAGE.h,
+  split: EDGE + COVER_OVERHANG + PAGE.w,
+  left: { x: EDGE + COVER_OVERHANG, y: EDGE + COVER_OVERHANG, ...PAGE },
+  right: { x: EDGE + COVER_OVERHANG + PAGE.w, y: EDGE + COVER_OVERHANG, ...PAGE },
 }
-
-/** How far the closed cover overhangs the right page (top, bottom, fore-edge). */
-export const COVER_OVERHANG = 7
 
 /** Width / height of blot-mask.webp. */
 export const BLOT_ASPECT = 760 / 483
@@ -69,7 +70,6 @@ export interface Illustration {
 export const ASSETS = {
   cover: passport('cover.webp'),
   coverInside: passport('cover-inside.webp'),
-  spread: passport('spread.webp'),
   paper: passport('paper.webp'),
   blotMask: `url(${passport('blot-mask.webp')})`,
   /** The sketch composited on the cover vignette, at its right. */

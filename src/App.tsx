@@ -58,7 +58,7 @@ export default function App() {
       <main>
         <Hero1Welcome guest={guest} onReset={reset} />
         <HeroSaveDateCouple />
-        <HeroBigDay />
+        <HeroBigDay holder={guest.groupName} />
         <RSVP guest={guest} />
         <GiftShop guest={guest} />
       </main>

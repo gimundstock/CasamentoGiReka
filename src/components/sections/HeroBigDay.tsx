@@ -155,7 +155,8 @@ function useStageGeometry(ref: RefObject<HTMLDivElement | null>) {
  * (`useTransform(scroll, v => ...)`) — the multi-keyframe array form has a
  * subscription bug for opacity in framer-motion 12 here.
  */
-export function HeroBigDay() {
+/** `holder`: the guest the passport is made out to (their group name). */
+export function HeroBigDay({ holder }: { holder?: string }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
 
@@ -613,7 +614,7 @@ export function HeroBigDay() {
           </motion.div>
 
           {/* ── z-40  The city guide, as a passport. ── */}
-          <BrasiliaPassport progress={passVh} g={geo} reduced={reduced} />
+          <BrasiliaPassport progress={passVh} g={geo} reduced={reduced} holder={holder} />
         </div>
       </div>
     </section>

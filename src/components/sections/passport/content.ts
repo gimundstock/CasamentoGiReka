@@ -81,10 +81,10 @@ export interface Book {
 
 /** Lays the chapters out: each opens on a left page, its entries follow. */
 export function buildBook(chunks: Chunks): Book {
-  // The first spread faces the inside of the cover. It is not a page of its
-  // own: on phones, opening the cover goes straight to the index.
-  const pages: PageSpec[] = [{ kind: 'index' }]
-  const spreads: [PageSpec, PageSpec][] = [[{ kind: 'inside' }, pages[0]]]
+  // The first spread is the inside of the cover facing the index. On phones
+  // (one page at a time) the inside of the cover comes first, as a page.
+  const pages: PageSpec[] = [{ kind: 'inside' }, { kind: 'index' }]
+  const spreads: [PageSpec, PageSpec][] = [[pages[0], pages[1]]]
   const firstSpread = {} as Record<SectionKey, number>
   const firstPage = {} as Record<SectionKey, number>
   for (const section of SECTIONS) {

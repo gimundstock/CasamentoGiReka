@@ -1,6 +1,5 @@
 import { forwardRef, type CSSProperties, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion, type MotionValue } from 'framer-motion'
 import { CONFIG } from '../../../content.config'
 import { ASSETS, type Illustration } from './assets'
 import {
@@ -35,35 +34,33 @@ function gutter(side: Side): string {
 }
 
 /**
- * One sheet — the ONLY way a page is drawn, lying flat or turning, so
- * nothing about it changes when a leaf lifts: same paper, same corners,
- * same spine shading, same hairline edge. `shade` (0–1) darkens it from the
- * spine while it turns.
+ * One sheet — the ONLY way a page is drawn, lying flat or curling in the
+ * flip book, so nothing about it changes when a leaf lifts: same paper,
+ * same rounded outer corners, same spine shading, same hairline edge.
+ * `stock="board"` is the inside of the cover instead: a gold rule and one
+ * sprig, which sits bottom-left in the art — the outer corner once the
+ * cover lies open.
  */
 export const Paper = forwardRef(function Paper(
   {
     side,
     stock = 'page',
-    shade,
     children,
   }: {
     side: Side
     stock?: Stock
-    shade?: MotionValue<number>
     children?: ReactNode
   },
   ref: Ref<HTMLDivElement>
 ) {
   if (stock === 'board') {
-    // The inside of the cover: quiet — a gold rule and one sprig, which sits
-    // bottom-left in the art: the outer corner once the cover lies open.
     return (
       <div
         ref={ref}
         className="absolute inset-0"
         style={{ background: `url(${ASSETS.coverInside}) center / 100% 100% no-repeat` }}
       >
-        {shade && <Shade side={side} opacity={shade} />}
+        {children}
       </div>
     )
   }
@@ -84,23 +81,78 @@ export const Paper = forwardRef(function Paper(
         style={{ background: gutter(side) }}
       />
       <div className="relative h-full">{children}</div>
-      {shade && <Shade side={side} opacity={shade} />}
     </div>
   )
 })
 
-/** Shadow sweeping across a turning sheet, from its spine edge. */
-function Shade({ side, opacity }: { side: Side; opacity: MotionValue<number> }) {
+/**
+ * The page block's edge along a page's outer side: `lines` thin sheets
+ * (0–4), each a hairline further out and a touch lower. Put on a box the
+ * size of the page, under it.
+ */
+export function pageStack(side: Side, lines: number, k: number): CSSProperties {
+  const d = side === 'left' ? -1 : 1
+  const u = Math.max(0.8, Math.min(1.4, k * 1.6))
+  const tones = ['#EADFCB', '#FAF5EB', '#E3D7C0', '#F7F1E5']
+  return {
+    borderRadius: pageRadius(side),
+    background: '#F7F0E3',
+    boxShadow:
+      lines > 0
+        ? tones
+            .slice(0, lines)
+            .map(
+              (c, i) =>
+                `${(d * (i + 1) * u).toFixed(1)}px ${((i + 1) * 0.6 * u).toFixed(1)}px 0 ${c}`
+            )
+            .join(', ')
+        : 'none',
+  }
+}
+
+/**
+ * The back board under the pages: the same light board as the cover,
+ * offset a few px down and right so that, closed, it and the page block
+ * show as the book's thickness past the cover's edge.
+ */
+export function BackBoard({ style, k }: { style: CSSProperties; k: number }) {
+  const t = Math.max(2, 5 * k)
   return (
-    <motion.div
+    <div
       aria-hidden
-      className="pointer-events-none absolute inset-0"
+      className="pointer-events-none absolute"
       style={{
-        opacity,
-        borderRadius: 'inherit',
-        background: `linear-gradient(to ${side === 'left' ? 'left' : 'right'}, rgba(90, 60, 25, 0.38) 0%, rgba(90, 60, 25, 0.12) 45%, rgba(90, 60, 25, 0) 85%)`,
+        ...style,
+        transform: `translate(${t.toFixed(1)}px, ${t.toFixed(1)}px)`,
+        borderRadius: '0.25em 0.9em 0.9em 0.25em',
+        background: 'linear-gradient(160deg, #F5EEDF 0%, #EEE3CE 100%)',
+        boxShadow:
+          'inset 0 0 0 1px rgba(190, 150, 80, 0.55), 0 18px 34px -18px rgba(110, 78, 30, 0.4)',
       }}
     />
+  )
+}
+
+/** Inside of the front cover: whose passport it is, and the dedication. */
+export function InsideCover({ holder }: { holder?: string }) {
+  const { t } = useTranslation()
+  const year = new Date(CONFIG.wedding.date).getFullYear()
+  return (
+    <div className="flex h-full flex-col items-center px-[16%] pt-[22%] pb-[8%] text-center">
+      <p className="font-sans text-forest -mr-[0.42em] text-[0.6em] tracking-[0.42em] uppercase">
+        {t('city.passport.holder')}
+      </p>
+      <p className="font-script text-honey mt-[0.5em] text-[2.2em] leading-[1.4]">
+        {holder || t('city.passport.holderFallback')}
+      </p>
+      <Ornament className="mt-[0.3em]" />
+      <p className="font-serif text-forest-deep/90 mt-[1.6em] text-[1.08em] leading-[1.4] italic">
+        {t('city.passport.insideText')}
+      </p>
+      <p className="font-sans text-forest mt-[1.2em] -mr-[0.36em] text-[0.56em] tracking-[0.36em] uppercase">
+        {CONFIG.couple.bride} &amp; {CONFIG.couple.groom} · {year}
+      </p>
+    </div>
   )
 }
 
@@ -289,7 +341,6 @@ function OpenerPage({ section, folio }: { section: SectionKey; folio: number }) 
 
 function IndexPage({ book, onGo }: { book: Book; onGo?: (s: SectionKey) => void }) {
   const { t } = useTranslation()
-  const year = new Date(CONFIG.wedding.date).getFullYear()
   return (
     <div className={`flex h-full flex-col ${PAD}`}>
       <p className="font-sans text-forest -mr-[0.42em] text-center text-[0.6em] tracking-[0.42em] uppercase">
@@ -326,14 +377,10 @@ function IndexPage({ book, onGo }: { book: Book; onGo?: (s: SectionKey) => void 
           </li>
         ))}
       </ol>
-      {/* The book's dedication, at the foot of its first page. */}
-      <div className="mt-auto flex flex-col items-center gap-[0.7em] px-[8%] pt-[1em] text-center">
+      <div className="mt-auto flex flex-col items-center gap-[0.6em] pt-[1em]">
         <Star className="h-[1em] w-[1em]" style={{ color: GOLD }} />
-        <p className="font-serif text-forest-deep/90 text-[1.05em] leading-[1.35] italic">
-          {t('city.passport.insideText')}
-        </p>
         <p className="font-sans text-forest -mr-[0.36em] text-[0.56em] tracking-[0.36em] uppercase">
-          {CONFIG.couple.bride} &amp; {CONFIG.couple.groom} · {year}
+          {t('city.kicker')}
         </p>
       </div>
     </div>

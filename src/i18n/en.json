@@ -87,7 +87,9 @@
           "tab": "Lodging",
           "intro": "A few suggestions of where to stay, close to the center and to everything worth seeing."
         }
-      }
+      },
+      "holder": "This passport belongs to",
+      "holderFallback": "For those coming from afar"
     }
   },
   "rsvp": {
