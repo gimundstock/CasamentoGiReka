@@ -100,7 +100,7 @@ function normalize(str) {
 /**
  * A name as a comparable key: case, accents, punctuation and extra spaces
  * don't matter, "&" / "e" / "and" are the same joiner, and the people in a
- * group can be listed in any order ("Matheus e Alice" = "Alice & Matheus").
+ * group can be listed in any order ("Felipe e Eva" = "Eva & Felipe").
  */
 function nameKey(str) {
   return normalize(str)
@@ -140,8 +140,8 @@ function handleGetGuest(params) {
   }
 
   // By name: exact matches only — on the group name or on one guest's full
-  // name. No partial matching, so "Alice e Matheus" can never land on a
-  // group that merely contains an "Alice".
+  // name. No partial matching, so "Eva e Felipe" can never land on a
+  // group that merely contains an "Eva".
   if (params.name) {
     var needle = nameKey(params.name);
     if (needle.replace(/\|/g, '').length < 2) return null;
