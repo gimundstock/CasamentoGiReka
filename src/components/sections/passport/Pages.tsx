@@ -1,7 +1,8 @@
 import { forwardRef, type CSSProperties, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
+import { motion, type MotionValue } from 'framer-motion'
 import { CONFIG } from '../../../content.config'
-import { ASSETS, PAINT_SRC, type Illustration } from './assets'
+import { ASSETS, type Illustration } from './assets'
 import {
   SECTIONS,
   sectionEntries,
@@ -12,63 +13,101 @@ import {
   type SectionKey,
 } from './content'
 
-export type Side = 'left' | 'right' | 'single'
+/** Which side of the spine a sheet lies on (phones show right-hand pages). */
+export type Side = 'left' | 'right'
 
 /** Hairline gold used for rules and borders. */
 export const GOLD = '#C9A464'
 
-/** What a sheet is printed on. */
-export type Stock =
-  /** Nothing: the page lies on spread.webp, which already has paper, gutter and stack. */
-  | 'none'
-  /** A loose leaf (paper.webp), with a little shading toward the spine. */
-  | 'leaf'
-  /** The inside of the cover (cover-inside.webp). */
-  | 'inside'
+/** What a sheet is: a page of the book, or the inside of the cover board. */
+export type Stock = 'page' | 'board'
 
-/** Shading toward the spine, so a turning leaf reads as bound in. */
+/** Outer corners round, spine corners nearly square. */
+export const pageRadius = (side: Side) =>
+  side === 'left' ? '0.8em 0.15em 0.15em 0.8em' : '0.15em 0.8em 0.8em 0.15em'
+
+/** Shading toward the spine, so a page reads as bound in. */
 function gutter(side: Side): string {
   const to = side === 'left' ? 'left' : 'right'
-  return `linear-gradient(to ${to}, rgba(120, 84, 40, 0.2) 0%, rgba(120, 84, 40, 0.06) 4%, rgba(120, 84, 40, 0) 12%)`
+  return `linear-gradient(to ${to}, rgba(120, 84, 40, 0.16) 0%, rgba(120, 84, 40, 0.05) 3.5%, rgba(120, 84, 40, 0) 10%)`
 }
 
-/** One sheet. `side` sets which corners are rounded and where the spine shadow falls. */
+/**
+ * One sheet — the ONLY way a page is drawn, lying flat or turning, so
+ * nothing about it changes when a leaf lifts: same paper, same corners,
+ * same spine shading, same hairline edge. `shade` (0–1) darkens it from the
+ * spine while it turns.
+ */
 export const Paper = forwardRef(function Paper(
   {
     side,
-    stock,
+    stock = 'page',
+    shade,
     children,
   }: {
     side: Side
-    stock: Stock
+    stock?: Stock
+    shade?: MotionValue<number>
     children?: ReactNode
   },
   ref: Ref<HTMLDivElement>
 ) {
-  const radius = side === 'left' ? '8px 2px 2px 8px' : '2px 8px 8px 2px'
-  const background =
-    stock === 'leaf'
-      ? `url(${ASSETS.paper}) center / cover`
-      : stock === 'inside'
-        ? `url(${ASSETS.coverInside}) center / 100% 100% no-repeat`
-        : undefined
+  if (stock === 'board') {
+    // The inside of the cover: the cover's own board, quiet — its gold rule
+    // and one faint sprig in the outer bottom corner.
+    return (
+      <div
+        ref={ref}
+        className="absolute inset-0"
+        style={{ background: `url(${ASSETS.cover}) center / 100% 100% no-repeat` }}
+      >
+        <img
+          src={ASSETS.coverSprig}
+          alt=""
+          aria-hidden
+          draggable={false}
+          className="absolute bottom-[3%] w-[44%] opacity-50 select-none"
+          style={side === 'left' ? { left: '4%' } : { right: '4%', transform: 'scaleX(-1)' }}
+        />
+        {shade && <Shade side={side} opacity={shade} />}
+      </div>
+    )
+  }
   return (
     <div
       ref={ref}
       className="absolute inset-0 overflow-hidden"
-      style={{ borderRadius: stock === 'none' ? undefined : radius, background }}
+      style={{
+        borderRadius: pageRadius(side),
+        background: `url(${ASSETS.paper}) center / cover`,
+        boxShadow: 'inset 0 0 0 0.5px rgba(150, 110, 60, 0.22)',
+      }}
     >
-      {stock === 'leaf' && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{ background: gutter(side) }}
-        />
-      )}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: gutter(side) }}
+      />
       <div className="relative h-full">{children}</div>
+      {shade && <Shade side={side} opacity={shade} />}
     </div>
   )
 })
+
+/** Shadow sweeping across a turning sheet, from its spine edge. */
+function Shade({ side, opacity }: { side: Side; opacity: MotionValue<number> }) {
+  return (
+    <motion.div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{
+        opacity,
+        borderRadius: 'inherit',
+        background: `linear-gradient(to ${side === 'left' ? 'left' : 'right'}, rgba(90, 60, 25, 0.38) 0%, rgba(90, 60, 25, 0.12) 45%, rgba(90, 60, 25, 0) 85%)`,
+      }}
+    />
+  )
+}
 
 /** Four-point star, the passport's little ornament. */
 export function Star({ className = '', style }: { className?: string; style?: CSSProperties }) {
@@ -255,6 +294,7 @@ function OpenerPage({ section, folio }: { section: SectionKey; folio: number }) 
 
 function IndexPage({ book, onGo }: { book: Book; onGo?: (s: SectionKey) => void }) {
   const { t } = useTranslation()
+  const year = new Date(CONFIG.wedding.date).getFullYear()
   return (
     <div className={`flex h-full flex-col ${PAD}`}>
       <p className="font-sans text-forest -mr-[0.42em] text-center text-[0.6em] tracking-[0.42em] uppercase">
@@ -291,40 +331,16 @@ function IndexPage({ book, onGo }: { book: Book; onGo?: (s: SectionKey) => void 
           </li>
         ))}
       </ol>
-      <div className="mt-auto flex flex-col items-center gap-[0.6em] pt-[1em]">
+      {/* The book's dedication, at the foot of its first page. */}
+      <div className="mt-auto flex flex-col items-center gap-[0.7em] px-[8%] pt-[1em] text-center">
         <Star className="h-[1em] w-[1em]" style={{ color: GOLD }} />
-        <p className="font-sans text-forest text-[0.58em] tracking-[0.36em] uppercase">
-          {t('city.kicker')}
+        <p className="font-serif text-forest-deep/90 text-[1.05em] leading-[1.35] italic">
+          {t('city.passport.insideText')}
+        </p>
+        <p className="font-sans text-forest -mr-[0.36em] text-[0.56em] tracking-[0.36em] uppercase">
+          {CONFIG.couple.bride} &amp; {CONFIG.couple.groom} · {year}
         </p>
       </div>
-    </div>
-  )
-}
-
-/** Inside of the cover: the left page of the first spread. */
-export function InsidePage() {
-  const { t } = useTranslation()
-  const year = new Date(CONFIG.wedding.date).getFullYear()
-  return (
-    // Kept to the endpaper's clear middle column; its sprigs run down the sides.
-    <div className="flex h-full flex-col items-center justify-center px-[24%] pb-[6%] text-center">
-      <p className="font-sans text-forest -mr-[0.42em] text-[0.6em] tracking-[0.42em] uppercase">
-        {t('city.passport.kicker')}
-      </p>
-      <h3 className="font-script text-honey mt-[0.4em] text-[2.7em] leading-[1.35]">
-        {t('city.passport.title')}
-      </h3>
-      <Ornament />
-      <Vignette
-        art={{ src: PAINT_SRC, size: '190% auto', position: '40% 62%', blot: true }}
-        className="mt-[1.6em] h-[27%] w-[125%] shrink-0"
-      />
-      <p className="font-serif text-forest-deep/90 mt-[1.2em] text-[1.08em] leading-[1.35] italic">
-        {t('city.passport.insideText')}
-      </p>
-      <p className="font-sans text-forest mt-[1em] -mr-[0.36em] text-[0.56em] tracking-[0.36em] uppercase">
-        {CONFIG.couple.bride} &amp; {CONFIG.couple.groom} · {year}
-      </p>
     </div>
   )
 }
@@ -354,7 +370,7 @@ export function PageContent({
 }) {
   switch (spec.kind) {
     case 'inside':
-      return <InsidePage />
+      return null
     case 'index':
       return <IndexPage book={book} onGo={onGo} />
     case 'opener':

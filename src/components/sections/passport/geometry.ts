@@ -1,4 +1,4 @@
-import { BLOT_ASPECT, BLOT_CORE, PAINT_ASPECT, SPREAD } from './assets'
+import { BOOK, PAINT_ASPECT, SLOT_ASPECT, SLOT_CORE } from './assets'
 
 // ── Scroll timeline ──────────────────────────────────────────────────────
 //
@@ -59,7 +59,7 @@ export interface PassportGeometry {
   vh: number
   /** Two pages side by side (true), or one page at a time (phones). */
   spread: boolean
-  /** Scale of spread.webp on screen (px per image px). */
+  /** Scale of the book on screen (px per BOOK unit). */
   k: number
   /** The book image's box, open layout: whole spread, or its right half on phones. */
   book: Rect
@@ -117,26 +117,28 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
   const maxH = Math.min(availH, 0.8 * vh, 860)
   // Two pages unless they'd be cramped (phones), or one page would be far
   // bigger (tall portrait tablets, where the spread is width-bound).
-  const kSpread = Math.min(maxH / SPREAD.h, (vw - 2 * TAB_OUT - 40) / SPREAD.w)
-  const kSingle = Math.min(maxH / SPREAD.h, (vw - TAB_OUT - 22) / (SPREAD.w - SPREAD.split))
-  const spread = SPREAD.right.w * kSpread >= 300 && kSingle < kSpread * 1.4
+  const kSpread = Math.min(maxH / BOOK.h, (vw - 2 * TAB_OUT - 40) / BOOK.w)
+  const kSingle = Math.min(maxH / BOOK.h, (vw - TAB_OUT - 22) / (BOOK.w - BOOK.split))
+  const spread = BOOK.right.w * kSpread >= 300 && kSingle < kSpread * 1.4
   const k = spread ? kSpread : kSingle
-  const dx = spread ? 0 : SPREAD.split
-  const bookW = (SPREAD.w - dx) * k
-  const bookH = SPREAD.h * k
+  const dx = spread ? 0 : BOOK.split
+  const bookW = (BOOK.w - dx) * k
+  const bookH = BOOK.h * k
   const bookX = spread ? (vw - bookW) / 2 : (vw - bookW - TAB_OUT + 4) / 2
   const bookY = NAV_H + Math.max(0, (availH - bookH) / 2)
-  const left = scaleRect(SPREAD.left, k, dx)
-  const right = scaleRect(SPREAD.right, k, dx)
+  const left = scaleRect(BOOK.left, k, dx)
+  const right = scaleRect(BOOK.right, k, dx)
   const coverX = bookX + right.x
   const closedShift = spread ? vw / 2 - (coverX + right.w / 2) : 0
   const cover = { x: coverX + closedShift, y: bookY + right.y }
 
   const pageW = right.w
   const pageH = right.h
-  const slotW = pageW * 0.84
-  const slotH = slotW / BLOT_ASPECT
-  const slot = { x: pageW * 0.5 - slotW / 2, y: pageH * 0.645 - slotH / 2, w: slotW, h: slotH }
+  // The blot spans ~90 % of the cover inside its gold rule, and over half
+  // its height, under the title.
+  const slotW = pageW * 0.87
+  const slotH = slotW / SLOT_ASPECT
+  const slot = { x: pageW * 0.5 - slotW / 2, y: pageH * 0.64 - slotH / 2, w: slotW, h: slotH }
 
   const focal = { x: artLeft + artW * 0.47, y: artTop + artH * 0.56 }
   const blotLocalW = artW * 0.5
@@ -149,8 +151,8 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     Math.hypot(focal.x, vh - focal.y),
     Math.hypot(vw - focal.x, vh - focal.y)
   )
-  const startH = (far / BLOT_CORE) * 1.08
-  const blotStart = { w: startH * BLOT_ASPECT, h: startH }
+  const startH = (far / SLOT_CORE) * 1.08
+  const blotStart = { w: startH * SLOT_ASPECT, h: startH }
 
   return {
     vw,
@@ -158,7 +160,7 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     spread,
     k,
     book: { x: bookX, y: bookY, w: bookW, h: bookH },
-    split: (SPREAD.split - dx) * k,
+    split: (BOOK.split - dx) * k,
     left,
     right,
     page: { w: pageW, h: pageH },
@@ -193,5 +195,5 @@ export function paintingTransform(g: PassportGeometry, k: number) {
 /** Blot size at mask progress m: shrinks geometrically, so it feels even. */
 export function blotSize(g: PassportGeometry, m: number) {
   const w = g.blotStart.w * Math.pow(g.blotLocal.w / g.blotStart.w, m)
-  return { w, h: w / BLOT_ASPECT }
+  return { w, h: w / SLOT_ASPECT }
 }

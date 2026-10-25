@@ -19,19 +19,10 @@ import {
 } from 'framer-motion'
 import { buildBook, pageSection, sectionEntries, SECTIONS, type Chunks } from './content'
 import type { PageSpec, SectionKey } from './content'
-import { ASSETS, SPREAD } from './assets'
+import { BOOK } from './assets'
 import { ease, PHASE, seg, TAB_OUT, type PassportGeometry, type Rect } from './geometry'
 import { PassportCover } from './PassportCover'
-import {
-  EntriesFrame,
-  EntryItem,
-  GOLD,
-  InsidePage,
-  PageContent,
-  Paper,
-  type Side,
-  type Stock,
-} from './Pages'
+import { EntriesFrame, EntryItem, GOLD, PageContent, Paper, pageRadius, type Side } from './Pages'
 
 type Lang = 'pt' | 'en'
 
@@ -279,7 +270,8 @@ export function BrasiliaPassport({
   })
 
   // ── Leaf being turned ──────────────────────────────────────────────────
-  const shade = useTransform(leafRot, (r: number) => Math.sin((Math.abs(r) * Math.PI) / 180) * 0.28)
+  // Darkest when the leaf stands on edge, gone as it lies flat.
+  const shade = useTransform(leafRot, (r: number) => Math.sin((Math.abs(r) * Math.PI) / 180))
   const leafOpacity = useTransform(leafRot, (r: number) =>
     spread ? 1 : 1 - seg(Math.abs(r), [100, 172])
   )
@@ -289,8 +281,8 @@ export function BrasiliaPassport({
   const W = g.page.w
   const H = g.page.h
   const folio = (p: PageSpec) => book.pages.indexOf(p) + 1
-  const sheet = (p: PageSpec, side: Side, stock: Stock, interactive: boolean) => (
-    <Paper side={side} stock={p.kind === 'inside' ? 'inside' : stock}>
+  const sheet = (p: PageSpec, side: Side, interactive: boolean, shading?: MotionValue<number>) => (
+    <Paper side={side} stock={p.kind === 'inside' ? 'board' : 'page'} shade={shading}>
       <PageContent
         spec={p}
         book={book}
@@ -352,26 +344,43 @@ export function BrasiliaPassport({
   }
 
   const tabH = Math.min(H * 0.17, 128)
-  const imgW = SPREAD.w * g.k
-  // spread.webp, cut at the gutter: each half shows and hides on its own.
-  const half = (from: number, to: number): CSSProperties => ({
-    left: from - (spread ? 0 : g.k * SPREAD.split),
-    top: 0,
-    width: to - from,
-    height: g.book.h,
-    background: `url(${ASSETS.spread}) ${-from}px 0 / ${imgW}px ${g.book.h}px no-repeat`,
-  })
-  // A soft shadow on the table under each half (no CSS filter: it moves).
-  const tableShadow = (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-[3%] -bottom-[4%] h-[14%]"
-      style={{
-        background:
-          'radial-gradient(50% 50% at 50% 50%, rgba(92, 60, 24, 0.32) 0%, rgba(92, 60, 24, 0) 100%)',
-      }}
-    />
-  )
+  // The book around the pages, in CSS: a light gold board cut at the spine
+  // (each half shows and hides on its own), and a thin stack of pages along
+  // each outer edge.
+  const shift = spread ? 0 : g.k * BOOK.split
+  const boardHalf = (side: Side): CSSProperties => {
+    const from = side === 'left' ? 0 : g.k * BOOK.split
+    const to = side === 'left' ? g.split : g.k * BOOK.w
+    const spine = side === 'left' ? 'left' : 'right'
+    return {
+      left: from - shift,
+      top: 0,
+      width: to - from,
+      height: g.book.h,
+      borderRadius: side === 'left' ? '1em 0 0 1em' : '0 1em 1em 0',
+      background:
+        `linear-gradient(to ${spine}, rgba(150, 110, 45, 0.28) 0%, rgba(150, 110, 45, 0) 3%), ` +
+        'linear-gradient(170deg, #F2E3BE 0%, #E9D3A1 55%, #E3C892 100%)',
+      boxShadow:
+        'inset 0 0 0 1px rgba(176, 136, 66, 0.35), 0 22px 40px -22px rgba(110, 78, 30, 0.45)',
+    }
+  }
+  const stack = (side: Side, r: Rect): CSSProperties => {
+    const d = side === 'left' ? -1 : 1
+    const u = Math.min(1, g.k * 1.4)
+    const lines = ['#E9DEC9', '#FBF6EC', '#E3D6BD', '#F8F2E6', '#DDCDB0']
+    return {
+      ...box(r),
+      borderRadius: pageRadius(side),
+      background: '#F6EEE0',
+      boxShadow: lines
+        .map(
+          (c, i) =>
+            `${(d * (i + 1) * 1.4 * u).toFixed(1)}px ${((i + 1) * 0.5 * u).toFixed(1)}px 0 ${c}`
+        )
+        .join(', '),
+    }
+  }
 
   return (
     <div
@@ -403,7 +412,8 @@ export function BrasiliaPassport({
           top: g.book.y,
           width: g.book.w,
           height: g.book.h,
-          perspective: spread ? 2600 : 1600,
+          // Mild, so a turning leaf or the cover barely grows past the book.
+          perspective: W * 14,
           fontSize: g.fontSize,
         }}
       >
@@ -472,12 +482,11 @@ export function BrasiliaPassport({
         {/* Left half of the open book (spread only): shows as the cover comes down. */}
         {spread && (
           <div ref={leftHalfRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
-            <div className="pointer-events-none absolute" style={half(0, g.split)}>
-              {tableShadow}
-            </div>
+            <div className="pointer-events-none absolute" style={boardHalf('left')} />
+            <div className="pointer-events-none absolute" style={stack('left', g.left)} />
             {baseLeft && (
               <div ref={leftRef} className="absolute" style={box(g.left)}>
-                {sheet(baseLeft, 'left', 'none', opened && !flip)}
+                {sheet(baseLeft, 'left', opened && !flip)}
               </div>
             )}
           </div>
@@ -486,15 +495,14 @@ export function BrasiliaPassport({
         {/* Right half: lies under the closed cover — its board edge and page
             stack are the closed book's thickness. */}
         <div ref={baseRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
-          <div className="pointer-events-none absolute" style={half(g.k * SPREAD.split, imgW)}>
-            {tableShadow}
-          </div>
+          <div className="pointer-events-none absolute" style={boardHalf('right')} />
+          <div className="pointer-events-none absolute" style={stack('right', g.right)} />
           <div className="absolute" style={box(g.right)}>
-            {sheet(baseRight, 'right', 'none', opened && !flip)}
+            {sheet(baseRight, 'right', opened && !flip)}
           </div>
         </div>
 
-        {/* The leaf turning (click navigation). */}
+        {/* The leaf turning (click navigation): the very same sheets. */}
         {flip && leafFront && leafBack && (
           <motion.div
             className="absolute"
@@ -507,26 +515,10 @@ export function BrasiliaPassport({
             }}
           >
             <div className="absolute inset-0" style={hidden3d}>
-              {sheet(leafFront, leafOnRight ? 'right' : 'left', 'leaf', false)}
-              <motion.div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  opacity: shade,
-                  background: `linear-gradient(${leafOnRight ? 90 : 270}deg, rgba(90, 60, 25, 0.5), rgba(90, 60, 25, 0) 70%)`,
-                }}
-              />
+              {sheet(leafFront, leafOnRight ? 'right' : 'left', false, shade)}
             </div>
             <div className="absolute inset-0" style={{ ...hidden3d, transform: 'rotateY(180deg)' }}>
-              {sheet(leafBack, leafOnRight ? 'left' : 'right', 'leaf', false)}
-              <motion.div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  opacity: shade,
-                  background: `linear-gradient(${leafOnRight ? 270 : 90}deg, rgba(90, 60, 25, 0.5), rgba(90, 60, 25, 0) 70%)`,
-                }}
-              />
+              {sheet(leafBack, leafOnRight ? 'left' : 'right', false, shade)}
             </div>
           </motion.div>
         )}
@@ -550,9 +542,7 @@ export function BrasiliaPassport({
             />
           </div>
           <div className="absolute inset-0" style={{ ...hidden3d, transform: 'rotateY(180deg)' }}>
-            <Paper side="left" stock="inside">
-              {spread && <InsidePage />}
-            </Paper>
+            <Paper side="left" stock="board" />
           </div>
         </div>
       </div>
