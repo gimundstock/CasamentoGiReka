@@ -6,6 +6,8 @@ export interface Guest {
   hasPhoto: boolean
   /** Set by the backend: the guest already has a row in the RSVPs tab. */
   rsvpSubmitted?: boolean
+  /** Set by the backend: who is and isn't coming, from their latest reply. */
+  rsvpAttendees?: { name: string; attending: boolean }[]
 }
 
 export interface Cota {
