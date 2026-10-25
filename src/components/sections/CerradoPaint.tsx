@@ -108,6 +108,44 @@ function buildRevealMap(
   return { reveal, gw, gh }
 }
 
+/** Cells the mask is softened over, each way (two box passes ≈ a gentle blur). */
+const SOFTEN = 2
+
+/** One horizontal box blur of `src` into `dst` (a sliding-window average). */
+function boxRows(src: Float32Array, dst: Float32Array, w: number, h: number, r: number) {
+  const span = 2 * r + 1
+  for (let j = 0; j < h; j++) {
+    const row = j * w
+    let sum = 0
+    for (let i = -r; i <= r; i++) sum += src[row + Math.min(w - 1, Math.max(0, i))]
+    for (let i = 0; i < w; i++) {
+      dst[row + i] = sum / span
+      sum += src[row + Math.min(w - 1, i + r + 1)] - src[row + Math.max(0, i - r)]
+    }
+  }
+}
+
+/** The same down the columns. */
+function boxCols(src: Float32Array, dst: Float32Array, w: number, h: number, r: number) {
+  const span = 2 * r + 1
+  for (let i = 0; i < w; i++) {
+    let sum = 0
+    for (let j = -r; j <= r; j++) sum += src[Math.min(h - 1, Math.max(0, j)) * w + i]
+    for (let j = 0; j < h; j++) {
+      dst[j * w + i] = sum / span
+      sum += src[Math.min(h - 1, j + r + 1) * w + i] - src[Math.max(0, j - r) * w + i]
+    }
+  }
+}
+
+/** Softens the mask in place: two box blurs each way, about a 2-cell blur. */
+function softenMask(alpha: Float32Array, scratch: Float32Array, w: number, h: number) {
+  for (let pass = 0; pass < 2; pass++) {
+    boxRows(alpha, scratch, w, h, SOFTEN)
+    boxCols(scratch, alpha, w, h, SOFTEN)
+  }
+}
+
 /**
  * The cerrado watercolor, painted in as the sun travels: the color spreads
  * out from the sun and stays along its arc, the pool widening as the sun
@@ -124,7 +162,19 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     /** What the canvas shows now, so unchanged frames are skipped. */
     drawn: 'empty' | 'full' | 'partial' | null
     frame: number
-  }>({ img: null, map: null, mask: null, maskData: null, drawn: null, frame: 0 })
+    /** Per-cell paint amount (0–1) and a scratch buffer for softening it. */
+    alpha: Float32Array | null
+    scratch: Float32Array | null
+  }>({
+    img: null,
+    map: null,
+    mask: null,
+    maskData: null,
+    drawn: null,
+    frame: 0,
+    alpha: null,
+    scratch: null,
+  })
 
   /**
    * Repaints only when the picture changes: while the sun hasn't started the
@@ -152,15 +202,21 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     }
 
     const px = maskData.data
-    const { reveal } = map
+    const { reveal, gw, gh } = map
+    const alpha = state.alpha!
     for (let n = 0; n < reveal.length; n++) {
       const a = (v - reveal[n]) / FEATHER
-      px[n * 4 + 3] = a <= 0 ? 0 : a >= 1 ? 255 : a * 255
+      alpha[n] = a <= 0 ? 0 : a >= 1 ? 1 : a
     }
+    // Where the paint stops along the sides of the sun's path the map has a
+    // hard edge, one cell painted and the next not; upscaled, those cells
+    // show as steps, worst on narrow screens where the painting is much
+    // wider than the window. Softening the map over a few cells first gives
+    // a smooth, watercolor edge at any size.
+    softenMask(alpha, state.scratch!, gw, gh)
+    for (let n = 0; n < alpha.length; n++) px[n * 4 + 3] = alpha[n] * 255
     mask.getContext('2d')?.putImageData(maskData, 0, 0)
     ctx.imageSmoothingEnabled = true
-    // 'high', not lower: Safari upscales the small reveal map almost
-    // without smoothing at 'medium', and the watercolor edge turns to steps.
     ctx.imageSmoothingQuality = 'high'
     ctx.drawImage(mask, 0, 0, W, H)
     ctx.globalCompositeOperation = 'source-in'
@@ -189,6 +245,8 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     state.map = map
     state.mask = mask
     state.maskData = maskData
+    state.alpha = new Float32Array(map.gw * map.gh)
+    state.scratch = new Float32Array(map.gw * map.gh)
 
     const img = new Image()
     img.decoding = 'async'
