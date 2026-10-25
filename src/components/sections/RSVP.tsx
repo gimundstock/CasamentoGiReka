@@ -203,7 +203,11 @@ export function RSVP({ guest }: Props) {
   const trackRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: trackRef, offset: ['start start', 'end end'] })
   const settled = useMotionValue(1)
-  const p = reduced ? settled : scrollYProgress
+  // One smoothed progress drives the whole scene (envelope, card travel and
+  // the turn), so each wheel tick glides and every part stays in step: the
+  // card can't head back into the envelope while it's still turned over.
+  const smooth = useSpring(scrollYProgress, { stiffness: 120, damping: 24, mass: 0.6 })
+  const p = reduced ? settled : smooth
 
   const { w, h } = useStageSize()
   const geo = measure(w, h)
@@ -246,12 +250,9 @@ export function RSVP({ guest }: Props) {
   // Turned over like a card in the hand rather than a sign on a pivot: the
   // turn eases in and out, and on the way the card lifts a little, grows,
   // leans back and swings a few degrees before settling flat again.
-  // A spring follows the scroll so each wheel tick glides instead of jumping.
-  const flipRaw = useTransform(p, (v) =>
+  const flipT = useTransform(p, (v) =>
     easeInOut(clamp01((v - T.flipStart) / (T.flipEnd - T.flipStart)))
   )
-  const flipSpring = useSpring(flipRaw, { stiffness: 120, damping: 24, mass: 0.6 })
-  const flipT = reduced ? flipRaw : flipSpring
   const cardFlip = useTransform(flipT, (t) => t * 180)
   const flipArc = useTransform(flipT, (t) => Math.sin(t * Math.PI))
   const flipLift = useTransform(flipArc, (a) => -a * 18)
@@ -534,7 +535,72 @@ function CardFace({
           <div className="pointer-events-none absolute inset-3 md:inset-4 border border-[#C9A464]" />
         </>
       )}
-      <div className="relative h-full overflow-y-auto overscroll-contain px-8 py-10 md:px-14 md:py-11">
+      <FitToCard className="px-8 py-10 md:px-14 md:py-11">{children}</FitToCard>
+    </div>
+  )
+}
+
+/**
+ * The card never scrolls inside: a scrollbar in the middle of the invitation
+ * would trap the guest's scroll. When the content is taller than the card (a
+ * big group on a small phone), it is scaled down as a whole until it fits.
+ */
+function FitToCard({ children, className }: { children: ReactNode; className?: string }) {
+  const outer = useRef<HTMLDivElement>(null)
+  const inner = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const box = outer.current
+    const content = inner.current
+    if (!box || !content) return
+    let frame = 0
+    const fit = () => {
+      // Measure the content at its natural height, then scale the whole block
+      // down if it overflows. A scaled block is laid out wider (1/scale) so it
+      // still fills the card's width; that makes it shorter, so a few passes
+      // settle the scale.
+      content.style.transform = ''
+      content.style.width = '100%'
+      content.style.height = 'auto'
+      const available = box.clientHeight
+      let scale = 1
+      for (let pass = 0; pass < 4; pass++) {
+        const next = Math.min(1, available / content.scrollHeight)
+        if (Math.abs(next - scale) < 0.005) break
+        scale = next
+        content.style.width = `${100 / scale}%`
+      }
+      if (scale < 1) {
+        // A definite height again so the content can centre itself in it.
+        content.style.height = `${available / scale}px`
+        content.style.transform = `scale(${scale})`
+      } else {
+        content.style.width = '100%'
+        content.style.height = '100%'
+      }
+    }
+    fit()
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(fit)
+    })
+    ro.observe(box)
+    for (const child of Array.from(content.children)) ro.observe(child)
+    const mo = new MutationObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(fit)
+    })
+    mo.observe(content, { childList: true, subtree: true, characterData: true })
+    return () => {
+      ro.disconnect()
+      mo.disconnect()
+      cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  return (
+    <div ref={outer} className="relative h-full overflow-hidden">
+      <div ref={inner} className={`h-full origin-top-left ${className ?? ''}`}>
         {children}
       </div>
     </div>
