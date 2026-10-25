@@ -121,8 +121,16 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     map: ReturnType<typeof buildRevealMap> | null
     mask: HTMLCanvasElement | null
     maskData: ImageData | null
-  }>({ img: null, map: null, mask: null, maskData: null })
+    /** What the canvas shows now, so unchanged frames are skipped. */
+    drawn: 'empty' | 'full' | 'partial' | null
+    frame: number
+  }>({ img: null, map: null, mask: null, maskData: null, drawn: null, frame: 0 })
 
+  /**
+   * Repaints only when the picture changes: while the sun hasn't started the
+   * paint (or once it's all painted) every frame would otherwise clear or
+   * redraw the whole canvas, and re-uploading it each time drops frames.
+   */
   function draw(v: number) {
     const canvas = canvasRef.current
     const { img, map, mask, maskData } = stateRef.current
@@ -131,10 +139,14 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     if (!ctx) return
     const W = canvas.width
     const H = canvas.height
+    const state = stateRef.current
+    const next = v <= start ? 'empty' : v >= end + FEATHER ? 'full' : 'partial'
+    if (next !== 'partial' && next === state.drawn) return
+    state.drawn = next
     ctx.globalCompositeOperation = 'source-over'
     ctx.clearRect(0, 0, W, H)
-    if (v <= start) return
-    if (v >= end + FEATHER) {
+    if (next === 'empty') return
+    if (next === 'full') {
       ctx.drawImage(img, 0, 0, W, H)
       return
     }
@@ -147,14 +159,23 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     }
     mask.getContext('2d')?.putImageData(maskData, 0, 0)
     ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'high'
+    // The mask is a soft edge already; 'high' smoothing costs a lot for nothing.
+    ctx.imageSmoothingQuality = 'medium'
     ctx.drawImage(mask, 0, 0, W, H)
     ctx.globalCompositeOperation = 'source-in'
     ctx.drawImage(img, 0, 0, W, H)
     ctx.globalCompositeOperation = 'source-over'
   }
 
-  useMotionValueEvent(progress, 'change', draw)
+  // At most one repaint per frame, with the latest progress.
+  useMotionValueEvent(progress, 'change', () => {
+    const state = stateRef.current
+    if (state.frame) return
+    state.frame = requestAnimationFrame(() => {
+      state.frame = 0
+      draw(progress.get())
+    })
+  })
 
   useEffect(() => {
     const state = stateRef.current
@@ -172,6 +193,7 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     img.decoding = 'async'
     img.onload = () => {
       state.img = img
+      state.drawn = null
       draw(progress.get())
     }
     img.src = src
@@ -183,6 +205,8 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
       canvas.width = Math.max(1, Math.round(rect.width * dpr))
       canvas.height = Math.max(1, Math.round(rect.height * dpr))
+      // Resizing clears the canvas, so repaint whatever it should show.
+      state.drawn = null
       draw(progress.get())
     }
     resize()
@@ -191,6 +215,8 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     return () => {
       ro.disconnect()
       img.onload = null
+      cancelAnimationFrame(state.frame)
+      state.frame = 0
     }
     // draw reads everything from refs; the inputs are module constants.
     // eslint-disable-next-line react-hooks/exhaustive-deps
