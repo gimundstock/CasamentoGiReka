@@ -30,5 +30,11 @@ jobs:
 
       - name: Test
         run: npm test
+
+      # Read-only checks against the live Apps Script Web App. They depend on
+      # Google's network, so a failure is reported but doesn't fail the build.
+      - name: Live backend checks
+        run: npm run test:e2e
+        continue-on-error: true
         env:
           VITE_APPSCRIPT_URL: ${{ secrets.VITE_APPSCRIPT_URL }}

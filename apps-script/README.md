@@ -33,4 +33,4 @@
 | `npm run backend:push` | Uploads `Code.gs` + `appsscript.json` (only those — see `.claspignore`). Changes the editor's code, not the live Web App. |
 | `npm run backend:deploy` | Push, then publish a new version on the existing deployment. The `/exec` URL stays the same. |
 
-Run `npm test` before deploying: the unit tests run `Code.gs` in a sandbox.
+Run `npm test` before deploying (the unit tests run `Code.gs` in a sandbox), and `npm run test:e2e` after, to check the live Web App.
