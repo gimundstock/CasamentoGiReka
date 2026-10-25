@@ -87,6 +87,6 @@ export async function submitRSVP(data: RSVPSubmission): Promise<{ success: boole
     guestId: data.guestId,
     attendeesJson: JSON.stringify(data.attendees),
     songRequest: data.songRequest,
-    message: data.message,
+    message: data.message ?? '',
   })
 }

@@ -203,7 +203,11 @@ export function RSVP({ guest }: Props) {
   const trackRef = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: trackRef, offset: ['start start', 'end end'] })
   const settled = useMotionValue(1)
-  const p = reduced ? settled : scrollYProgress
+  // One smoothed progress drives the whole scene (envelope, card travel and
+  // the turn), so each wheel tick glides and every part stays in step: the
+  // card can't head back into the envelope while it's still turned over.
+  const smooth = useSpring(scrollYProgress, { stiffness: 120, damping: 24, mass: 0.6 })
+  const p = reduced ? settled : smooth
 
   const { w, h } = useStageSize()
   const geo = measure(w, h)
@@ -246,12 +250,9 @@ export function RSVP({ guest }: Props) {
   // Turned over like a card in the hand rather than a sign on a pivot: the
   // turn eases in and out, and on the way the card lifts a little, grows,
   // leans back and swings a few degrees before settling flat again.
-  // A spring follows the scroll so each wheel tick glides instead of jumping.
-  const flipRaw = useTransform(p, (v) =>
+  const flipT = useTransform(p, (v) =>
     easeInOut(clamp01((v - T.flipStart) / (T.flipEnd - T.flipStart)))
   )
-  const flipSpring = useSpring(flipRaw, { stiffness: 120, damping: 24, mass: 0.6 })
-  const flipT = reduced ? flipRaw : flipSpring
   const cardFlip = useTransform(flipT, (t) => t * 180)
   const flipArc = useTransform(flipT, (t) => Math.sin(t * Math.PI))
   const flipLift = useTransform(flipArc, (a) => -a * 18)
@@ -406,7 +407,7 @@ export function RSVP({ guest }: Props) {
               paper={`${base}rsvp/card-back.webp`}
               rotate={geo.wide ? { w: geo.cw, h: geo.ch } : undefined}
             >
-              <ReplyForm guest={guest} wide={geo.wide} />
+              <ReplyForm guest={guest} />
             </CardFace>
           </motion.div>
         </motion.div>
@@ -534,7 +535,72 @@ function CardFace({
           <div className="pointer-events-none absolute inset-3 md:inset-4 border border-[#C9A464]" />
         </>
       )}
-      <div className="relative h-full overflow-y-auto overscroll-contain px-8 py-10 md:px-14 md:py-11">
+      <FitToCard className="px-8 py-10 md:px-14 md:py-11">{children}</FitToCard>
+    </div>
+  )
+}
+
+/**
+ * The card never scrolls inside: a scrollbar in the middle of the invitation
+ * would trap the guest's scroll. When the content is taller than the card (a
+ * big group on a small phone), it is scaled down as a whole until it fits.
+ */
+function FitToCard({ children, className }: { children: ReactNode; className?: string }) {
+  const outer = useRef<HTMLDivElement>(null)
+  const inner = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const box = outer.current
+    const content = inner.current
+    if (!box || !content) return
+    let frame = 0
+    const fit = () => {
+      // Measure the content at its natural height, then scale the whole block
+      // down if it overflows. A scaled block is laid out wider (1/scale) so it
+      // still fills the card's width; that makes it shorter, so a few passes
+      // settle the scale.
+      content.style.transform = ''
+      content.style.width = '100%'
+      content.style.height = 'auto'
+      const available = box.clientHeight
+      let scale = 1
+      for (let pass = 0; pass < 4; pass++) {
+        const next = Math.min(1, available / content.scrollHeight)
+        if (Math.abs(next - scale) < 0.005) break
+        scale = next
+        content.style.width = `${100 / scale}%`
+      }
+      if (scale < 1) {
+        // A definite height again so the content can centre itself in it.
+        content.style.height = `${available / scale}px`
+        content.style.transform = `scale(${scale})`
+      } else {
+        content.style.width = '100%'
+        content.style.height = '100%'
+      }
+    }
+    fit()
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(fit)
+    })
+    ro.observe(box)
+    for (const child of Array.from(content.children)) ro.observe(child)
+    const mo = new MutationObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(fit)
+    })
+    mo.observe(content, { childList: true, subtree: true, characterData: true })
+    return () => {
+      ro.disconnect()
+      mo.disconnect()
+      cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  return (
+    <div ref={outer} className="relative h-full overflow-hidden">
+      <div ref={inner} className={`h-full origin-top-left ${className ?? ''}`}>
         {children}
       </div>
     </div>
@@ -600,7 +666,7 @@ const FIELD =
   'w-full bg-transparent border-b border-forest-deep/20 py-2 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep/60 transition-colors'
 const LABEL = 'font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/80 block mb-1'
 
-function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
+function ReplyForm({ guest }: { guest: Guest }) {
   const { t } = useTranslation()
   // Whether they already replied comes from the backend (a row for this guest
   // in the RSVPs tab), so it holds on every device and browser.
@@ -610,7 +676,6 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
     guest.attendees.map((name) => ({ name, attending: true, menu: '' }))
   )
   const [songRequest, setSongRequest] = useState('')
-  const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -624,7 +689,7 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
     setSubmitting(true)
     setError(null)
     try {
-      await submitRSVP({ guestId: guest.guestId, attendees, songRequest, message })
+      await submitRSVP({ guestId: guest.guestId, attendees, songRequest })
       setJustSubmitted(true)
     } catch {
       setError(t('rsvp.error'))
@@ -632,6 +697,8 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
       setSubmitting(false)
     }
   }
+
+  const replied = justSubmitted ? attendees : (guest.rsvpAttendees ?? [])
 
   if (justSubmitted || alreadySubmitted) {
     return (
@@ -645,6 +712,28 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
         <p className="font-serif italic text-lg mt-3">
           {justSubmitted ? t('rsvp.successText') : t('rsvp.alreadySubmitted')}
         </p>
+
+        {/* Who is and isn't coming: what they just sent, or their latest reply
+            as the backend read it from the RSVPs tab. */}
+        <div className="mt-8 flex flex-col gap-5">
+          {(
+            [
+              [true, 'rsvp.repliedAttending'],
+              [false, 'rsvp.repliedNotAttending'],
+            ] as const
+          ).map(([attending, label]) => {
+            const names = replied.filter((a) => a.attending === attending).map((a) => a.name)
+            if (!names.length) return null
+            return (
+              <div key={label}>
+                <p className={LABEL}>{t(label)}</p>
+                <p className="font-serif text-xl mt-1">{names.join(' · ')}</p>
+              </div>
+            )
+          })}
+        </div>
+
+        <p className="font-serif italic text-base text-title/70 mt-8">{t('rsvp.changeNote')}</p>
       </div>
     )
   }
@@ -652,92 +741,65 @@ function ReplyForm({ guest, wide }: { guest: Guest; wide: boolean }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className={`text-title min-h-full ${
-        wide ? 'grid grid-cols-[1.2fr_1fr] gap-x-12 gap-y-4 content-center' : 'flex flex-col gap-6'
-      }`}
+      className="text-title mx-auto flex min-h-full w-full max-w-md flex-col justify-center gap-7"
     >
-      <div className={`text-center ${wide ? 'col-span-2 mb-2' : ''}`}>
+      <div className="text-center">
         <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
           {t('rsvp.replyTitle')}
         </p>
         <p className="font-serif italic text-base mt-6 text-title/80">{t('rsvp.letterOpening')}</p>
       </div>
 
-      <div>
-        <div className="space-y-4">
-          {attendees.map((attendee, i) => (
-            <div key={i} className="border-t border-forest-deep/10 pt-3">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <span className="font-serif text-xl">{attendee.name}</span>
-                <div className="flex gap-3 text-[0.6rem] tracking-[0.3em] uppercase font-sans">
-                  {([true, false] as const).map((value) => (
-                    <button
-                      key={String(value)}
-                      type="button"
-                      onClick={() => updateAttendee(i, 'attending', value)}
-                      aria-pressed={attendee.attending === value}
-                      className={`pb-1 border-b transition-colors ${
-                        attendee.attending === value
-                          ? 'text-title border-forest-deep'
-                          : 'text-title/45 border-transparent hover:text-title'
-                      }`}
-                    >
-                      {value ? t('rsvp.attending') : t('rsvp.notAttending')}
-                    </button>
-                  ))}
-                </div>
-              </div>
+      <div className="space-y-5">
+        {attendees.map((attendee, i) => (
+          <div key={i} className="border-t border-forest-deep/10 pt-4 text-center">
+            <p className="font-serif text-2xl md:text-[1.7rem]">{attendee.name}</p>
+            <div className="mt-2 flex justify-center gap-6 text-xs tracking-[0.3em] uppercase font-sans">
+              {([true, false] as const).map((value) => (
+                <button
+                  key={String(value)}
+                  type="button"
+                  onClick={() => updateAttendee(i, 'attending', value)}
+                  aria-pressed={attendee.attending === value}
+                  className={`pb-1 border-b transition-colors ${
+                    attendee.attending === value
+                      ? 'text-title border-forest-deep'
+                      : 'text-title/45 border-transparent hover:text-title'
+                  }`}
+                >
+                  {value ? t('rsvp.attending') : t('rsvp.notAttending')}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
-      <div className={`flex flex-col gap-5 ${wide ? 'pt-3' : ''}`}>
-        <div>
-          <label htmlFor="rsvp-song" className={LABEL}>
-            {t('rsvp.song')}
-          </label>
-          <input
-            id="rsvp-song"
-            type="text"
-            value={songRequest}
-            onChange={(e) => setSongRequest(e.target.value)}
-            placeholder={t('rsvp.songPlaceholder')}
-            className={FIELD}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="rsvp-message" className={LABEL}>
-            {t('rsvp.message')}
-          </label>
-          <textarea
-            id="rsvp-message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={t('rsvp.messagePlaceholder', {
-              bride: CONFIG.couple.bride,
-              groom: CONFIG.couple.groom,
-            })}
-            rows={3}
-            className={`${FIELD} resize-none`}
-          />
-        </div>
-
-        {error && <p className="font-serif text-terracotta text-center">{error}</p>}
-
-        <div className="mt-auto pt-2 flex flex-col items-center gap-4">
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`${CTA} w-full disabled:opacity-50 disabled:hover:translate-y-0`}
-          >
-            <span className={submitting ? 'animate-breath' : undefined}>
-              {submitting ? t('rsvp.submitting') : t('rsvp.submit')}
-            </span>
-          </button>
-        </div>
+      <div className="text-center">
+        <label htmlFor="rsvp-song" className={LABEL}>
+          {t('rsvp.song')}
+        </label>
+        <input
+          id="rsvp-song"
+          type="text"
+          value={songRequest}
+          onChange={(e) => setSongRequest(e.target.value)}
+          placeholder={t('rsvp.songPlaceholder')}
+          className={`${FIELD} text-center`}
+        />
       </div>
+
+      {error && <p className="font-serif text-terracotta text-center">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className={`${CTA} w-full disabled:opacity-50 disabled:hover:translate-y-0`}
+      >
+        <span className={submitting ? 'animate-breath' : undefined}>
+          {submitting ? t('rsvp.submitting') : t('rsvp.submit')}
+        </span>
+      </button>
     </form>
   )
 }

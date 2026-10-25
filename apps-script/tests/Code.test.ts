@@ -219,6 +219,35 @@ describe('rsvpSubmitted on the guest', () => {
     expect(app.handleGetGuest({ name: 'Ana e Bruno' })?.rsvpSubmitted).toBe(true)
   })
 
+  it('returns who is and is not coming from the latest reply', () => {
+    const rsvps = [
+      RSVP_HEADER,
+      ['2026-10-01', 'r01', 'Ana e Bruno', '[{"name":"Bruno Souza","attending":true}]', '', ''],
+      [
+        '2026-10-02',
+        'r01',
+        'Ana e Bruno',
+        '[{"name":"Bruno Souza","attending":true},{"name":"Ana Souza","attending":false}]',
+        '',
+        '',
+      ],
+    ]
+    const { app } = createSandbox({ guests, rsvps })
+    expect(app.handleGetGuest({ id: 'r01' })?.rsvpAttendees).toEqual([
+      { name: 'Bruno Souza', attending: true },
+      { name: 'Ana Souza', attending: false },
+    ])
+    expect(app.handleGetGuest({ id: 'r02' })?.rsvpAttendees).toEqual([])
+  })
+
+  it('a malformed reply still counts as replied, with no names', () => {
+    const rsvps = [RSVP_HEADER, ['2026-10-01', 'r01', 'Ana e Bruno', 'not json', '', '']]
+    const { app } = createSandbox({ guests, rsvps })
+    const guest = app.handleGetGuest({ id: 'r01' })
+    expect(guest?.rsvpSubmitted).toBe(true)
+    expect(guest?.rsvpAttendees).toEqual([])
+  })
+
   it('turns true right after the guest replies', () => {
     const { app } = createSandbox({ guests })
     expect(app.handleGetGuest({ id: 'r02' })?.rsvpSubmitted).toBe(false)
