@@ -123,6 +123,17 @@
     "summary": "Resumo",
     "total": "Total",
     "done": "Concluído",
+    "cardStepTitle": "Quer deixar um cartão para os noivos?",
+    "cardStepText": "Escolha um modelo e escreva uma mensagem. Ele chega para a gente junto com o seu presente.",
+    "cardTheme": "Modelo do cartão",
+    "cardFrom": "Seu nome",
+    "cardFromPlaceholder": "Como quer assinar",
+    "cardSend": "Enviar cartão",
+    "cardSending": "Enviando...",
+    "cardSkip": "Pular",
+    "cardError": "Não conseguimos enviar o cartão. Tente novamente.",
+    "cardMessageRequired": "Escreva uma mensagem para o cartão",
+    "cardSent": "Cartão enviado",
     "close": "Fechar"
   },
   "footer": {

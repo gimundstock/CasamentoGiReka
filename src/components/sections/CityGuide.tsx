@@ -192,7 +192,15 @@ export function CityGuide() {
                       address={h.address}
                       value={lang === 'pt' ? h.priceRange : h.priceRange_en}
                       href={h.url}
-                      linkLabel={lang === 'pt' ? 'Ver hotel' : 'View hotel'}
+                      linkLabel={
+                        h.url.includes('airbnb')
+                          ? lang === 'pt'
+                            ? 'Ver no Airbnb'
+                            : 'View on Airbnb'
+                          : lang === 'pt'
+                            ? 'Ver hotel'
+                            : 'View hotel'
+                      }
                     />
                   ))}
 
@@ -218,6 +226,8 @@ export function CityGuide() {
                       description={lang === 'pt' ? r.description_pt : r.description_en}
                       address={r.address}
                       value={lang === 'pt' ? r.priceRange : r.priceRange_en}
+                      href={r.url}
+                      linkLabel={lang === 'pt' ? 'Ver no mapa' : 'View on map'}
                     />
                   ))}
 

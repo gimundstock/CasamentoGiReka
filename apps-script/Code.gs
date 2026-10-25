@@ -10,8 +10,8 @@
  *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
  *
  * GOOGLE SHEETS SETUP:
- * Create a spreadsheet with 3 tabs named exactly:
- *   Guests | RSVPs | Orders
+ * Create a spreadsheet with 4 tabs named exactly:
+ *   Guests | RSVPs | Orders | Cards
  *
  * The gift catalog lives in src/content.config.ts (CONFIG.gifts). The sheet
  * only stores state — guests, RSVPs, and the purchase log. Availability is
@@ -20,6 +20,7 @@
  * Guests columns: guestId | groupName | language | attendees | hasPhoto
  * RSVPs columns:  timestamp | guestId | groupName | attendeesJson | songRequest | message
  * Orders columns: timestamp | guestId | groupName | guestEmail | giftId | giftName | selectedCotas | totalPrice | cardMessage
+ * Cards columns:  timestamp | guestId | groupName | giftName | theme | from | message
  */
 
 var COUPLE_NAMES = 'Giovanna & Renato';
@@ -69,6 +70,7 @@ function doPost(e) {
     var action = body.action;
     if (action === 'purchaseGift') return jsonResponse(handlePurchaseGift(body));
     if (action === 'submitRSVP') return jsonResponse(handleSubmitRSVP(body));
+    if (action === 'submitCard') return jsonResponse(handleSubmitCard(body));
     return jsonResponse({ error: 'Unknown action' });
   } catch (err) {
     return jsonResponse({ error: String(err) });
@@ -272,6 +274,43 @@ function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalPrice, cardMess
     subject: subject,
     body: body,
   });
+}
+
+/**
+ * A card a guest writes for the couple after buying a gift. Stored in the
+ * Cards tab and mailed to the couple.
+ */
+function handleSubmitCard(body) {
+  var guestRow = handleGetGuest({ id: body.guestId });
+  var groupName = guestRow ? guestRow.groupName : body.guestId;
+  var message = String(body.message || '').slice(0, 400);
+  var from = String(body.from || groupName).slice(0, 60);
+  var theme = String(body.theme || '').slice(0, 30);
+  var giftName = String(body.giftName || '').slice(0, 120);
+
+  getSheet('Cards').appendRow([
+    new Date().toISOString(),
+    body.guestId,
+    groupName,
+    giftName,
+    theme,
+    from,
+    message,
+  ]);
+
+  MailApp.sendEmail({
+    to: coupleEmailsCsv(),
+    subject: '💌 Novo cartão de ' + from + ' — ' + giftName,
+    body: [
+      'Cartão de ' + from + ' (' + groupName + ')',
+      'Presente: ' + giftName,
+      'Modelo: ' + theme,
+      '',
+      '"' + message + '"',
+    ].join('\n'),
+  });
+
+  return { success: true };
 }
 
 function handleSubmitRSVP(body) {

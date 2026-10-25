@@ -55,3 +55,11 @@ export interface PurchaseSubmission {
   guestEmail: string
   cardMessage: string
 }
+
+export interface CardSubmission {
+  guestId: string
+  giftName: string
+  theme: string
+  from: string
+  message: string
+}

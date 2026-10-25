@@ -123,6 +123,17 @@
     "summary": "Summary",
     "total": "Total",
     "done": "Done",
+    "cardStepTitle": "Would you like to leave a card for the couple?",
+    "cardStepText": "Pick a design and write a message. It reaches us together with your gift.",
+    "cardTheme": "Card design",
+    "cardFrom": "Your name",
+    "cardFromPlaceholder": "How you'd like to sign",
+    "cardSend": "Send card",
+    "cardSending": "Sending...",
+    "cardSkip": "Skip",
+    "cardError": "We couldn't send the card. Please try again.",
+    "cardMessageRequired": "Please write a message for the card",
+    "cardSent": "Card sent",
     "close": "Close"
   },
   "footer": {

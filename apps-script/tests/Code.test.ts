@@ -308,3 +308,40 @@ describe('doGet / doPost entry points', () => {
     expect(sheets.Orders.rows).toHaveLength(2)
   })
 })
+
+describe('handleSubmitCard', () => {
+  const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
+
+  it('appends a Cards row and notifies the couple', () => {
+    const { app, sheets, sentMail } = createSandbox({ guests })
+    const result = app.handleSubmitCard({
+      guestId: 'r01',
+      giftName: 'Air Fryer',
+      theme: 'zelda',
+      from: 'Ana e Bruno',
+      message: 'Muito amor!',
+    })
+    expect(result).toEqual({ success: true })
+    expect(sheets.Cards.rows).toHaveLength(2)
+    const row = sheets.Cards.rows[1]
+    expect(row[1]).toBe('r01')
+    expect(row[2]).toBe('Ana e Bruno')
+    expect(row[3]).toBe('Air Fryer')
+    expect(row[4]).toBe('zelda')
+    expect(row[6]).toBe('Muito amor!')
+    expect(sentMail).toHaveLength(1)
+    expect(sentMail[0].body).toContain('Muito amor!')
+  })
+
+  it('caps the message at 400 characters', () => {
+    const { app, sheets } = createSandbox({ guests })
+    app.handleSubmitCard({
+      guestId: 'r01',
+      giftName: 'Air Fryer',
+      theme: 'up',
+      from: 'Ana',
+      message: 'x'.repeat(1000),
+    })
+    expect(String(sheets.Cards.rows[1][6])).toHaveLength(400)
+  })
+})

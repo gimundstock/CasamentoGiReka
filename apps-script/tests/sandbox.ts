@@ -37,6 +37,7 @@ export interface AppsScriptGlobals {
   handleGetSoldCotas: () => { sold: string[] }
   handlePurchaseGift: (body: PurchaseBody) => { success: boolean; error?: string }
   handleSubmitRSVP: (body: RSVPBody) => { success: boolean }
+  handleSubmitCard: (body: CardBody) => { success: boolean }
   collectSoldCotaIds: () => Record<string, boolean>
 }
 
@@ -48,6 +49,14 @@ export interface Guest {
   hasPhoto: boolean
   rsvpSubmitted: boolean
   rsvpAttendees: { name: string; attending: boolean }[]
+}
+
+export interface CardBody {
+  guestId: string
+  giftName: string
+  theme: string
+  from: string
+  message: string
 }
 
 export interface PurchaseBody {
@@ -70,7 +79,7 @@ export interface RSVPBody {
 
 export interface Sandbox {
   app: AppsScriptGlobals
-  sheets: Record<'Guests' | 'RSVPs' | 'Orders', FakeSheet>
+  sheets: Record<'Guests' | 'RSVPs' | 'Orders' | 'Cards', FakeSheet>
   sentMail: Array<{ to: string; bcc?: string; subject: string; body: string }>
 }
 
@@ -97,6 +106,9 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
     Guests: new FakeSheet('Guests', opts.guests ?? defaultGuests.map((r) => [...r])),
     RSVPs: new FakeSheet('RSVPs', opts.rsvps ?? defaultRsvps.map((r) => [...r])),
     Orders: new FakeSheet('Orders', opts.orders ?? defaultOrders.map((r) => [...r])),
+    Cards: new FakeSheet('Cards', [
+      ['timestamp', 'guestId', 'groupName', 'giftName', 'theme', 'from', 'message'],
+    ]),
   }
   const sentMail: Sandbox['sentMail'] = []
   const properties = opts.properties ?? {
