@@ -16,7 +16,5 @@ export const SUN_HANDOFF_ROTATE = 1200
 export const SUN_BIG_VMIN = 32
 export const SUN_BIG_SCALE = SUN_BIG_VMIN / 14
 // The sun softens into watercolor as it rises in HeroBigDay: crisp at the
-// hand-off, soft once it is in the sky. The soft look is baked into
-// public/flowers/sun-soft.webp and sun-soft-warm.webp (a 3.6px blur and a 9px
-// warm glow at an 800px-tall screen, plus the sunset tint for -warm), on a
-// canvas 1.4x the sun's so the glow isn't clipped.
+// hand-off, SUN_BLUR_FINAL (in the image's own px) once it is in the sky.
+export const SUN_BLUR_FINAL = 3.6

@@ -1,9 +1,9 @@
 import { useRef, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion, useScroll, useTransform, type MotionValue } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
 import { CerradoPaint } from './CerradoPaint'
-import { SUN_BIG_SCALE, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
+import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
 // painted in around the sun as it travels, the pencil line
@@ -94,49 +94,6 @@ const PAINT_END = 0.82
  * (`useTransform(scroll, v => ...)`) — the multi-keyframe array form has a
  * subscription bug for opacity in framer-motion 12 here.
  */
-const SOFT_SRC = `${import.meta.env.BASE_URL}flowers/sun-soft.webp`
-const SOFT_WARM_SRC = `${import.meta.env.BASE_URL}flowers/sun-soft-warm.webp`
-
-/**
- * The sun as stacked images: crisp, with the soft (blurred, glowing) one and
- * the soft warm one fading in on top. Each layer underneath fades out over
- * the second half of the one above coming in, so its sharper edge never
- * shows through the soft one's translucent rim. The soft images carry their
- * glow in a 20% margin on every side, so they spill past the sun's box.
- */
-function SunLayers({ soft, warm }: { soft: MotionValue<number>; warm: MotionValue<number> }) {
-  const img = 'absolute max-w-none select-none'
-  const spill = { inset: '-20%', width: '140%', height: '140%' }
-  const under = (above: number) => Math.min(1, Math.max(0, 2 - 2 * above))
-  const crisp = useTransform(soft, under)
-  const softOpacity = useTransform([soft, warm], ([s, w]: number[]) => s * under(w))
-  return (
-    <>
-      <motion.img
-        src={SUN_SRC}
-        alt=""
-        draggable={false}
-        className={`${img} inset-0 h-full w-full`}
-        style={{ opacity: crisp }}
-      />
-      <motion.img
-        src={SOFT_SRC}
-        alt=""
-        draggable={false}
-        className={img}
-        style={{ ...spill, opacity: softOpacity }}
-      />
-      <motion.img
-        src={SOFT_WARM_SRC}
-        alt=""
-        draggable={false}
-        className={img}
-        style={{ ...spill, opacity: warm }}
-      />
-    </>
-  )
-}
-
 export function HeroBigDay() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
@@ -191,13 +148,17 @@ export function HeroBigDay() {
   // detail and a warm glow bleeds from its edge, like pigment on wet
   // paper. Crisp while big at the hand-off, fully soft once in the sky.
   // (`ext` is the same scroll as scrollYProgress, extended into the seam.)
-  //
-  // Both are baked into images (public/flowers/sun-soft*.webp: the blur and
-  // glow, and the same with the sunset tint) that fade in over the crisp sun,
-  // so only opacity animates. Animated CSS filters on a spinning, scaling
-  // image are re-rendered on the CPU every frame in Safari, which stuttered.
-  const sunSoft = useTransform(ext, (v: number) => riseT(v))
-  const sunWarm = useTransform(ext, (v: number) => Math.min(1, Math.max(0, (v - 0.3) / 0.55)))
+  const sunFilter = useTransform(ext, (v: number) => {
+    const t = Math.min(1, Math.max(0, (v - 0.3) / 0.55))
+    const soft = riseT(v)
+    return [
+      `hue-rotate(${(-16 * t).toFixed(1)}deg)`,
+      `saturate(${(1 + 0.35 * t).toFixed(2)})`,
+      `brightness(${(1 - 0.12 * t).toFixed(3)})`,
+      `blur(${(SUN_BLUR_FINAL * soft).toFixed(2)}px)`,
+      `drop-shadow(0 0 ${(9 * soft).toFixed(1)}px rgba(255, 196, 80, ${(0.6 * soft).toFixed(2)}))`,
+    ].join(' ')
+  })
   const sunRotate = useTransform(
     scrollYProgress,
     (v: number) => SUN_HANDOFF_ROTATE + Math.max(0, v + 0.3) * 240
@@ -253,8 +214,11 @@ export function HeroBigDay() {
                   upper-left as it shrinks. Unmasked: it starts outside the
                   sky. Sets the same art variables as the stage so its end
                   point lands on the painting. ── */}
-        <motion.div
+        <motion.img
+          src={SUN_SRC}
+          alt=""
           aria-hidden
+          draggable={false}
           className="pointer-events-none fixed z-20 max-w-none select-none [--art-top:44vh] md:[--art-top:14vh]"
           style={{
             ...artVars,
@@ -266,12 +230,11 @@ export function HeroBigDay() {
             y: '-50%',
             scale: sunRiseScale,
             rotate: sunRiseRotate,
+            filter: sunFilter,
             opacity: sunRiseOpacity,
             willChange: 'transform',
           }}
-        >
-          <SunLayers soft={sunSoft} warm={sunWarm} />
-        </motion.div>
+        />
         <div
           id="big-day"
           className="pointer-events-none absolute h-px w-px"
@@ -332,7 +295,10 @@ export function HeroBigDay() {
                 opacity: sunArcOpacity,
               }}
             />
-            <motion.div
+            <motion.img
+              src={SUN_SRC}
+              alt=""
+              draggable={false}
               className="absolute max-w-none select-none"
               style={{
                 left: sunLeftPct,
@@ -342,12 +308,11 @@ export function HeroBigDay() {
                 x: '-50%',
                 y: '-50%',
                 rotate: sunRotate,
+                filter: sunFilter,
                 opacity: sunArcOpacity,
                 willChange: 'transform',
               }}
-            >
-              <SunLayers soft={sunSoft} warm={sunWarm} />
-            </motion.div>
+            />
           </div>
 
           {/* ── z-30  Pencil line art, registered onto the painting. SLIDES
