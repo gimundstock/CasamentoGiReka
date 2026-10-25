@@ -6,7 +6,8 @@ import { Bloom } from '../motion/Bloom'
 import { MaskReveal } from '../motion/MaskReveal'
 import { RevealOnScroll } from '../motion/RevealOnScroll'
 import { useGifts } from '../../hooks/useGifts'
-import { purchaseGift } from '../../api/sheets'
+import { purchaseGift, submitCard } from '../../api/sheets'
+import { CARD_THEMES, MessageCard, getCardTheme, type CardThemeId } from '../gifts/cardThemes'
 import { buildPixPayload } from '../../utils/pix'
 import type { Cota, Gift } from '../../types'
 import type { Guest } from '../../types'
@@ -16,13 +17,16 @@ interface Props {
   guest: Guest
 }
 
-type ModalStep = 'cotas' | 'pix' | 'confirm' | 'success'
+type ModalStep = 'cotas' | 'pix' | 'confirm' | 'card' | 'success'
 
 interface PurchaseState {
   gift: Gift
   selectedCotas: Cota[]
   step: ModalStep
   cardMessage: string
+  cardTheme: CardThemeId
+  cardFrom: string
+  cardSent: boolean
   email: string
   submitting: boolean
   error: string | null
@@ -47,6 +51,9 @@ export function GiftShop({ guest }: Props) {
       selectedCotas,
       step,
       cardMessage: '',
+      cardTheme: 'cerrado',
+      cardFrom: guest.groupName,
+      cardSent: false,
       email: '',
       submitting: false,
       error: null,
@@ -97,12 +104,33 @@ export function GiftShop({ guest }: Props) {
         selectedCotaLabels: purchase.selectedCotas.map((c) => c.label_pt),
         totalPrice: totalAmount(purchase.selectedCotas),
         guestEmail: purchase.email,
-        cardMessage: purchase.cardMessage,
+        cardMessage: '',
       })
       markCotasPurchased(purchase.selectedCotas.map((c) => c.cotaId))
-      setPurchase({ ...purchase, step: 'success', submitting: false })
+      setPurchase({ ...purchase, step: 'card', submitting: false })
     } catch {
       setPurchase({ ...purchase, submitting: false, error: t('gifts.error') })
+    }
+  }
+
+  async function handleSendCard() {
+    if (!purchase) return
+    if (!purchase.cardMessage.trim()) {
+      setPurchase({ ...purchase, error: t('gifts.cardMessageRequired') })
+      return
+    }
+    setPurchase({ ...purchase, submitting: true, error: null })
+    try {
+      await submitCard({
+        guestId: guest.guestId,
+        giftName: lang === 'pt' ? purchase.gift.name_pt : purchase.gift.name_en,
+        theme: purchase.cardTheme,
+        from: purchase.cardFrom,
+        message: purchase.cardMessage,
+      })
+      setPurchase({ ...purchase, step: 'success', cardSent: true, submitting: false })
+    } catch {
+      setPurchase({ ...purchase, submitting: false, error: t('gifts.cardError') })
     }
   }
 
@@ -161,6 +189,10 @@ export function GiftShop({ guest }: Props) {
             })
           }
           onCardMessageChange={(v) => setPurchase({ ...purchase, cardMessage: v })}
+          onCardThemeChange={(v) => setPurchase({ ...purchase, cardTheme: v })}
+          onCardFromChange={(v) => setPurchase({ ...purchase, cardFrom: v })}
+          onSendCard={handleSendCard}
+          onSkipCard={() => setPurchase({ ...purchase, step: 'success', error: null })}
           onEmailChange={(v) => setPurchase({ ...purchase, email: v })}
           onConfirm={handleConfirm}
           onCopyPix={copyPix}
@@ -290,6 +322,10 @@ interface ModalProps {
   onProceedToConfirm: () => void
   onBack: () => void
   onCardMessageChange: (v: string) => void
+  onCardThemeChange: (v: CardThemeId) => void
+  onCardFromChange: (v: string) => void
+  onSendCard: () => void
+  onSkipCard: () => void
   onEmailChange: (v: string) => void
   onConfirm: () => void
   onCopyPix: () => void
@@ -300,7 +336,19 @@ interface ModalProps {
 function GiftModal(props: ModalProps) {
   const { t } = useTranslation()
   const { purchase, lang } = props
-  const { gift, step, selectedCotas, cardMessage, email, submitting, error, pixCopied } = purchase
+  const {
+    gift,
+    step,
+    selectedCotas,
+    cardMessage,
+    cardTheme,
+    cardFrom,
+    cardSent,
+    email,
+    submitting,
+    error,
+    pixCopied,
+  } = purchase
   const availableCotas = gift.cotas
   const giftName = lang === 'pt' ? gift.name_pt : gift.name_en
 
@@ -323,7 +371,13 @@ function GiftModal(props: ModalProps) {
               <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-honey mb-1">
                 {step === 'success' ? t('gifts.successKicker') : t('gifts.stepKicker')}
               </p>
-              <h3 className="font-display text-2xl lowercase text-title">{giftName}</h3>
+              <h3
+                className={`text-title ${
+                  step === 'card' ? 'font-sans text-xl' : 'font-display text-2xl lowercase'
+                }`}
+              >
+                {giftName}
+              </h3>
               {step !== 'success' && (
                 <p className="font-serif text-sm text-title mt-1">
                   {lang === 'pt' ? gift.description_pt : gift.description_en}
@@ -502,19 +556,6 @@ function GiftModal(props: ModalProps) {
               <div className="space-y-5 mb-6">
                 <div>
                   <label className="font-sans text-[10px] tracking-[0.3em] uppercase text-title block mb-2">
-                    {t('gifts.cardMessage')}
-                  </label>
-                  <textarea
-                    value={cardMessage}
-                    onChange={(e) => props.onCardMessageChange(e.target.value)}
-                    placeholder={t('gifts.cardPlaceholder')}
-                    rows={4}
-                    className="w-full px-5 py-4 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title placeholder: focus:outline-none focus:border-forest/60 focus:bg-white/90 resize-none transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-sans text-[10px] tracking-[0.3em] uppercase text-title block mb-2">
                     {t('gifts.yourEmail')}
                   </label>
                   <input
@@ -546,6 +587,101 @@ function GiftModal(props: ModalProps) {
                   className="font-sans text-xs tracking-widest uppercase text-title hover:text-title transition-colors"
                 >
                   {t('gifts.back')}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── Step: card (after the gift is confirmed) ── */}
+          {step === 'card' && (
+            <>
+              <h4 className="font-sans text-xl text-title mb-1">{t('gifts.cardStepTitle')}</h4>
+              <p className="font-serif text-sm text-title mb-5">{t('gifts.cardStepText')}</p>
+
+              <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-2">
+                {t('gifts.cardTheme')}
+              </p>
+              <div className="grid grid-cols-4 gap-2 mb-5">
+                {CARD_THEMES.map((th) => {
+                  const active = th.id === cardTheme
+                  return (
+                    <button
+                      key={th.id}
+                      type="button"
+                      onClick={() => props.onCardThemeChange(th.id)}
+                      aria-pressed={active}
+                      aria-label={lang === 'pt' ? th.label_pt : th.label_en}
+                      className={`overflow-hidden rounded-lg border-2 text-left transition-all ${
+                        active ? 'border-forest-deep shadow-md' : 'border-transparent opacity-80'
+                      }`}
+                    >
+                      <img
+                        src={th.image}
+                        alt=""
+                        loading="lazy"
+                        draggable={false}
+                        className="block aspect-[4/3] w-full object-cover"
+                      />
+                      <span className="block bg-white/70 px-1 py-1 text-center font-sans text-[10px] text-title">
+                        {lang === 'pt' ? th.label_pt : th.label_en}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="mb-4">
+                <MessageCard
+                  theme={getCardTheme(cardTheme)}
+                  message={cardMessage}
+                  from={cardFrom}
+                  placeholder={t('gifts.cardPlaceholder')}
+                />
+              </div>
+
+              <div className="space-y-4 mb-5">
+                <textarea
+                  value={cardMessage}
+                  onChange={(e) => props.onCardMessageChange(e.target.value)}
+                  placeholder={t('gifts.cardPlaceholder')}
+                  rows={4}
+                  maxLength={400}
+                  aria-label={t('gifts.cardMessage')}
+                  className="w-full px-5 py-4 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title/50 focus:outline-none focus:border-forest/60 focus:bg-white/90 resize-none transition-colors"
+                />
+                <div>
+                  <label className="font-sans text-[10px] tracking-[0.3em] uppercase text-title block mb-2">
+                    {t('gifts.cardFrom')}
+                  </label>
+                  <input
+                    type="text"
+                    value={cardFrom}
+                    onChange={(e) => props.onCardFromChange(e.target.value)}
+                    placeholder={t('gifts.cardFromPlaceholder')}
+                    maxLength={60}
+                    className="w-full px-5 py-3.5 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title/50 focus:outline-none focus:border-forest/60 focus:bg-white/90 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <p className="text-sm text-terracotta text-center mb-4 font-serif">{error}</p>
+              )}
+
+              <PrimaryButton
+                disabled={submitting}
+                onClick={props.onSendCard}
+                submitting={submitting}
+              >
+                {submitting ? t('gifts.cardSending') : t('gifts.cardSend')}
+              </PrimaryButton>
+
+              <div className="mt-3 text-center">
+                <button
+                  onClick={props.onSkipCard}
+                  className="font-sans text-xs tracking-widest uppercase text-title hover:text-title transition-colors"
+                >
+                  {t('gifts.cardSkip')}
                 </button>
               </div>
             </>
@@ -655,10 +791,17 @@ function GiftModal(props: ModalProps) {
                     R$ {props.totalAmount.toFixed(2)}
                   </span>
                 </div>
-                {cardMessage && (
-                  <p className="mt-4 font-serif text-sm text-title border-l-2 border-sage/60 pl-3">
-                    “{cardMessage}”
-                  </p>
+                {cardSent && (
+                  <div className="mt-4">
+                    <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-2">
+                      {t('gifts.cardSent')}
+                    </p>
+                    <MessageCard
+                      theme={getCardTheme(cardTheme)}
+                      message={cardMessage}
+                      from={cardFrom}
+                    />
+                  </div>
                 )}
               </div>
 

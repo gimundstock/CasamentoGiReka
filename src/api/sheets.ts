@@ -1,5 +1,5 @@
 import { CONFIG } from '../content.config'
-import type { Guest, Gift, RSVPSubmission, PurchaseSubmission } from '../types'
+import type { Guest, Gift, RSVPSubmission, PurchaseSubmission, CardSubmission } from '../types'
 
 const BASE_URL = CONFIG.appScriptUrl
 
@@ -87,6 +87,17 @@ export async function submitRSVP(data: RSVPSubmission): Promise<{ success: boole
     guestId: data.guestId,
     attendeesJson: JSON.stringify(data.attendees),
     songRequest: data.songRequest,
+    message: data.message,
+  })
+}
+
+export async function submitCard(data: CardSubmission): Promise<{ success: boolean }> {
+  return post<{ success: boolean }>({
+    action: 'submitCard',
+    guestId: data.guestId,
+    giftName: data.giftName,
+    theme: data.theme,
+    from: data.from,
     message: data.message,
   })
 }
