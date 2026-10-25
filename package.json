@@ -12,6 +12,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
     "test": "vitest run",
+    "test:e2e": "vitest run apps-script/tests/Code.e2e.test.ts",
     "test:watch": "vitest",
     "release": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build",
     "generate-qr": "tsx scripts/generate-qr-codes.ts",
