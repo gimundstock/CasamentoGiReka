@@ -12,17 +12,12 @@ import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-mot
 import { CONFIG } from '../../content.config'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { CerradoPaint } from './CerradoPaint'
-import { ASSETS } from './passport/assets'
 import { BrasiliaPassport } from './passport/BrasiliaPassport'
-import { Cathedral } from './passport/PassportCover'
 import {
   BIG_DAY_VH,
-  blotSize,
-  ease,
   PASSPORT_ANCHOR_VH,
   PASSPORT_VH,
   PHASE,
-  paintingTransform,
   passportGeometry,
   seg,
   type PassportGeometry,
@@ -244,11 +239,6 @@ export function HeroBigDay({ holder }: { holder?: string }) {
   })
   const infoVisibility = useTransform(infoOpacity, (o: number) => (o > 0.01 ? 'visible' : 'hidden'))
   const linesOpacity = useTransform(passVh, (pv: number) => 1 - seg(pv, PHASE.linesOut))
-  // The watercolor cathedral is painted in on the far hills as the painting
-  // shrinks toward the cover (where the cover's copy shows it too).
-  const cathedralOpacity = useTransform(passVh, (pv: number) =>
-    seg(pv, [PHASE.maskIn[0] + 20, PHASE.shrink[1]])
-  )
 
   // Cerrado landscape SLIDES UP from below the viewport over the same
   // window as the sun shrink (0.00 → 0.30). By the time the art is fully
@@ -271,60 +261,30 @@ export function HeroBigDay({ holder }: { holder?: string }) {
   )
 
   // ── Painting → passport ───────────────────────────────────────────────
-  // The finished painting (static by now: CerradoPaint is fully drawn) is
-  // cut into a watercolor blot that closes in from beyond the screen edges,
-  // and shrinks and drifts to the art slot of the passport cover. Written
-  // straight to the element's style, like CerradoPaint, so no re-renders.
+  // Once the lines and the sun are gone, the finished painting (still by
+  // now: CerradoPaint is fully drawn) is swapped for the passport cover's
+  // own copy, pixel for pixel in place, which then carries it into the
+  // cover (BrasiliaPassport / vignetteAt). This one just hides. Written
+  // straight to the element's style, so no re-renders.
   const viewRef = useRef<HTMLDivElement>(null)
   const geo = useStageGeometry(viewRef)
   const compactRef = useRef<HTMLDivElement>(null)
-  const maskOn = useRef(false)
   const compact = useCallback(
     (v: number) => {
       const el = compactRef.current
-      if (!el || !geo) return
-      const setMask = (on: boolean) => {
-        if (maskOn.current === on) return
-        maskOn.current = on
-        const s = el.style
-        const image = on ? ASSETS.blotMask : ''
-        s.maskImage = image
-        s.setProperty('-webkit-mask-image', image)
-        s.maskRepeat = on ? 'no-repeat' : ''
-        s.setProperty('-webkit-mask-repeat', on ? 'no-repeat' : '')
-      }
+      if (!el) return
       if (reduced) {
         // No shrinking: the painting simply gives way to the open passport.
-        setMask(false)
-        el.style.transform = ''
         el.style.opacity = String(1 - seg(v, [60, 110]))
-        return
-      }
-      el.style.opacity = ''
-      if (v < PHASE.maskIn[0]) {
-        setMask(false)
-        el.style.transform = ''
         el.style.visibility = ''
         return
       }
-      const size = blotSize(geo, ease(seg(v, PHASE.maskIn)))
-      const tr = paintingTransform(geo, ease(seg(v, PHASE.shrink)))
-      setMask(true)
-      // In the group's own box, which starts `over.l` left of the screen.
-      const fx = geo.focal.x + geo.over.l
-      const fy = geo.focal.y
-      const pos = `${(fx - size.w / 2).toFixed(1)}px ${(fy - size.h / 2).toFixed(1)}px`
-      const dim = `${size.w.toFixed(1)}px ${size.h.toFixed(1)}px`
-      el.style.maskSize = dim
-      el.style.setProperty('-webkit-mask-size', dim)
-      el.style.maskPosition = pos
-      el.style.setProperty('-webkit-mask-position', pos)
-      el.style.transformOrigin = `${fx.toFixed(1)}px ${fy.toFixed(1)}px`
-      el.style.transform = `translate3d(${tr.x.toFixed(2)}px, ${tr.y.toFixed(2)}px, 0) scale(${tr.scale.toFixed(4)})`
-      // Handed over to the cover's own copy (see PassportCover).
-      el.style.visibility = v >= PHASE.handoff[1] ? 'hidden' : ''
+      el.style.opacity = ''
+      // From the swap on, the cover's own copy carries the painting
+      // (BrasiliaPassport): this one, identical and still, just goes.
+      el.style.visibility = v >= PHASE.swap ? 'hidden' : ''
     },
-    [geo, reduced]
+    [reduced]
   )
   useMotionValueEvent(passVh, 'change', compact)
   useLayoutEffect(() => compact(passVh.get()), [compact, passVh])
@@ -412,11 +372,8 @@ export function HeroBigDay({ holder }: { holder?: string }) {
           className="bg-peach sticky top-0 h-screen overflow-hidden [--art-top:44vh] md:[--art-top:14vh]"
           style={artVars}
         >
-          {/* ── z-10  The landscape: painting, sun and line art. One group so
-                    it can shrink into the passport as a whole. The group's
-                    box reaches past the screen to cover the whole painting
-                    (wider than the screen on phones): a mask clips to the
-                    box, and the blot must be able to reach any of it. ── */}
+          {/* ── z-10  The landscape: painting, sun and line art, in one group
+                    that hides at the hand-over to the passport. ── */}
           <div
             ref={compactRef}
             className="pointer-events-none absolute z-10"
@@ -448,9 +405,6 @@ export function HeroBigDay({ holder }: { holder?: string }) {
                   start={PAINT_START}
                   end={PAINT_END}
                 />
-                <motion.div className="absolute inset-0" style={{ opacity: cathedralOpacity }}>
-                  <Cathedral />
-                </motion.div>
               </motion.div>
 
               {/* ── z-20  Sun disc, phase 2 — arcs across the sky and sets. It

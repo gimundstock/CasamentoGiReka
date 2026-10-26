@@ -10,9 +10,10 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMotionValueEvent, type MotionValue } from 'framer-motion'
+import { MASK } from './assets'
 import { buildBook, pageSection, sectionEntries, SECTIONS, type Chunks } from './content'
 import type { PageSpec, SectionKey } from './content'
-import { bleedMask, ease, PHASE, seg, TAB_OUT, type PassportGeometry, type Rect } from './geometry'
+import { vignetteAt, ease, PHASE, seg, TAB_OUT, type PassportGeometry, type Rect } from './geometry'
 import { PassportCover } from './PassportCover'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
@@ -159,6 +160,7 @@ export function BrasiliaPassport({
   const boardRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLDivElement>(null)
   const vignetteRef = useRef<HTMLDivElement>(null)
+  const cathedralRef = useRef<HTMLImageElement>(null)
   const baseRef = useRef<HTMLDivElement>(null)
   const insideRef = useRef<HTMLDivElement>(null)
   const chromeRef = useRef<HTMLDivElement>(null)
@@ -203,38 +205,40 @@ export function BrasiliaPassport({
         return o > 0.5
       }
 
-      root.style.visibility = v >= PHASE.handoff[0] ? 'visible' : 'hidden'
+      root.style.visibility = v >= PHASE.swap ? 'visible' : 'hidden'
       root.style.opacity = '1'
-      // The cover's vignette fades in over HeroBigDay's (now still) painting;
-      // the board stays hidden until it's fully there, or its cream would
-      // show through the half-faded vignette.
+      // The painting, from the swap on (see vignetteAt).
       if (vignette) {
-        vignette.style.opacity = String(seg(v, PHASE.handoff))
-        // The blot bleeds out into the rise shape as the cover grows.
-        const mask = bleedMask(g, seg(v, PHASE.bleed))
-        vignette.style.maskSize = mask.size
-        vignette.style.setProperty('-webkit-mask-size', mask.size)
-        vignette.style.maskPosition = mask.position
-        vignette.style.setProperty('-webkit-mask-position', mask.position)
+        const vs = vignetteAt(g, v)
+        const st = vignette.style
+        st.transformOrigin = vs.origin
+        st.transform = vs.transform
+        const image = vs.masked ? `${MASK.blot.image}, ${MASK.rise.image}` : 'none'
+        if (st.maskImage !== image) {
+          st.maskImage = image
+          st.setProperty('-webkit-mask-image', image)
+          st.maskRepeat = 'no-repeat'
+          st.setProperty('-webkit-mask-repeat', 'no-repeat')
+          st.maskComposite = 'intersect'
+          st.setProperty('-webkit-mask-composite', 'source-in')
+        }
+        st.maskSize = vs.size
+        st.setProperty('-webkit-mask-size', vs.size)
+        st.maskPosition = vs.position
+        st.setProperty('-webkit-mask-position', vs.position)
+        st.clipPath = vs.clip
+        st.setProperty('-webkit-clip-path', vs.clip)
       }
-      board.style.visibility = v >= PHASE.handoff[1] ? 'visible' : 'hidden'
-
-      // Cover board grows out from under the vignette: its clip starts as
-      // a rounded box inside the blot's opaque core, ends as the card.
+      if (cathedralRef.current) {
+        cathedralRef.current.style.opacity = String(0.94 * ease(seg(v, PHASE.cathedral)))
+      }
+      // The cover fades in behind the painting, whole: never a cream edge
+      // drawn across the art.
       const grow = ease(seg(v, PHASE.coverGrow))
-      const { slot, coverBox } = g
-      const cw = slot.w * 0.6
-      const ch = slot.h * 0.6
-      const cx = slot.x + slot.w / 2
-      const cy = slot.y + slot.h / 2
-      const k = 1 - grow
-      const clip =
-        `inset(${((cy - ch / 2) * k).toFixed(1)}px ` +
-        `${((coverBox.w - cx - cw / 2) * k).toFixed(1)}px ` +
-        `${((coverBox.h - cy - ch / 2) * k).toFixed(1)}px ${((cx - cw / 2) * k).toFixed(1)}px ` +
-        `round ${((ch / 2) * k + 10 * grow).toFixed(1)}px)`
-      board.style.clipPath = clip
-      board.style.setProperty('-webkit-clip-path', clip)
+      // (Opaque before the book beneath it shows, or the first page would
+      // show through it.)
+      board.style.opacity = String(Math.min(1, grow / 0.8))
+      board.style.visibility = grow > 0 ? 'visible' : 'hidden'
 
       const tt = ease(seg(v, PHASE.title))
       title.style.opacity = String(tt)
@@ -249,7 +253,7 @@ export function BrasiliaPassport({
       // Under the cover: the back board and the page block, which appear as
       // the cover finishes growing. Nothing exists left of the spine until
       // the cover has turned: open, the inside of the cover lies there.
-      show(base, seg(grow, [0.7, 1]))
+      show(base, seg(grow, [0.82, 1]))
       show(inside, o >= 1 ? 1 : 0)
       chrome.style.opacity = String(seg(v, [PHASE.open[1] - 25, PHASE.open[1]]))
       if (tabsRef.current) tabsRef.current.style.opacity = chrome.style.opacity
@@ -474,6 +478,7 @@ export function BrasiliaPassport({
               g={g}
               boardRef={boardRef}
               vignetteRef={vignetteRef}
+              cathedralRef={cathedralRef}
               titleRef={titleRef}
             />
           </div>
