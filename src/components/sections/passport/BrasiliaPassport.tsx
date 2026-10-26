@@ -20,7 +20,6 @@ import {
   BackBoard,
   EntriesFrame,
   EntryItem,
-  InsideCover,
   PAPER_BG,
   PageContent,
   Paper,
@@ -309,16 +308,12 @@ export function BrasiliaPassport({
     const p = leaves[i]
     if (!p) return null
     if (p.kind === 'inside') {
-      return spread ? null : (
-        <Paper side="right" stock="board">
-          <InsideCover holder={holder} />
-        </Paper>
-      )
+      return spread ? null : <Paper side="right" stock="board" />
     }
     const side: Side = spread && i % 2 === 0 ? 'left' : 'right'
     return (
       <Paper side={side}>
-        <PageContent spec={p} book={book} folio={folio(p)} lang={lang} onGo={goSection} />
+        <PageContent spec={p} folio={folio(p)} lang={lang} holder={holder} />
       </Paper>
     )
   }
@@ -411,9 +406,7 @@ export function BrasiliaPassport({
             (exactly where the turned cover came down). */}
         {spread && (
           <div ref={insideRef} className="absolute" style={{ ...box(g.insideBox), opacity: 0 }}>
-            <Paper side="left" stock="board">
-              <InsideCover holder={holder} />
-            </Paper>
+            <Paper side="left" stock="board" />
             {leftLines > 0 && (
               <div
                 aria-hidden
@@ -511,9 +504,7 @@ export function BrasiliaPassport({
             className="absolute inset-0"
             style={{ ...hidden3d, transform: 'rotateY(180deg)', visibility: 'hidden' }}
           >
-            <Paper side="left" stock="board">
-              {spread && <InsideCover holder={holder} />}
-            </Paper>
+            <Paper side="left" stock="board" />
           </div>
         </div>
       </div>

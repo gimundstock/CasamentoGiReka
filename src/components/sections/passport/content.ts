@@ -1,10 +1,8 @@
 import { CONFIG } from '../../../content.config'
 
-/** The chapters, in book order. Numbers ("01") and titles derive from this. */
+/** The chapters, in book order (the tabs follow it). */
 export const SECTIONS = ['tourism', 'restaurants', 'transport', 'hotels'] as const
 export type SectionKey = (typeof SECTIONS)[number]
-
-export const sectionNumber = (key: SectionKey) => String(SECTIONS.indexOf(key) + 1).padStart(2, '0')
 
 /** One recommendation, whatever its kind. */
 export interface GuideEntry {
@@ -61,7 +59,7 @@ export function sectionEntries(key: SectionKey, lang: Lang): GuideEntry[] {
 
 export type PageSpec =
   | { kind: 'inside' }
-  | { kind: 'index' }
+  | { kind: 'holder' }
   | { kind: 'opener'; section: SectionKey }
   | { kind: 'entries'; section: SectionKey; from: number; to: number }
   | { kind: 'blank' }
@@ -81,9 +79,10 @@ export interface Book {
 
 /** Lays the chapters out: each opens on a left page, its entries follow. */
 export function buildBook(chunks: Chunks): Book {
-  // The first spread is the inside of the cover facing the index. On phones
-  // (one page at a time) the inside of the cover comes first, as a page.
-  const pages: PageSpec[] = [{ kind: 'inside' }, { kind: 'index' }]
+  // The first spread is the inside of the cover (art only) facing the
+  // holder's page. On phones (one page at a time) the inside of the cover
+  // comes first, as a page.
+  const pages: PageSpec[] = [{ kind: 'inside' }, { kind: 'holder' }]
   const spreads: [PageSpec, PageSpec][] = [[pages[0], pages[1]]]
   const firstSpread = {} as Record<SectionKey, number>
   const firstPage = {} as Record<SectionKey, number>
