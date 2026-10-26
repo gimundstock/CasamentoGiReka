@@ -2,15 +2,7 @@ import { forwardRef, type CSSProperties, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../../content.config'
 import { ASSETS, type Illustration } from './assets'
-import {
-  SECTIONS,
-  sectionEntries,
-  sectionNumber,
-  type Book,
-  type GuideEntry,
-  type PageSpec,
-  type SectionKey,
-} from './content'
+import { sectionEntries, type GuideEntry, type PageSpec, type SectionKey } from './content'
 
 /** Which side of the spine a sheet lies on (phones show right-hand pages). */
 export type Side = 'left' | 'right'
@@ -39,9 +31,8 @@ function gutter(side: Side): string {
  * One sheet — the ONLY way a page is drawn, lying flat or curling in the
  * flip book, so nothing about it changes when a leaf lifts: same paper,
  * same rounded outer corners, same spine shading, same hairline edge.
- * `stock="board"` is the inside of the cover instead: a gold rule and one
- * sprig, which sits bottom-left in the art — the outer corner once the
- * cover lies open.
+ * `stock="board"` is the inside of the cover instead: pure artwork
+ * (ASSETS.coverInside), full-bleed, no text.
  */
 export const Paper = forwardRef(function Paper(
   {
@@ -133,29 +124,6 @@ export function BackBoard({ style, k }: { style: CSSProperties; k: number }) {
           'inset 0 0 0 1px rgba(255, 250, 238, 0.8), 0 18px 34px -18px rgba(110, 78, 30, 0.35)',
       }}
     />
-  )
-}
-
-/** Inside of the front cover: whose passport it is, and the dedication. */
-export function InsideCover({ holder }: { holder?: string }) {
-  const { t } = useTranslation()
-  const year = new Date(CONFIG.wedding.date).getFullYear()
-  return (
-    <div className="flex h-full flex-col items-center px-[16%] pt-[22%] pb-[8%] text-center">
-      <p className="font-sans text-forest -mr-[0.42em] text-[0.6em] tracking-[0.42em] uppercase">
-        {t('city.passport.holder')}
-      </p>
-      <p className="font-script text-honey mt-[0.5em] text-[2.2em] leading-[1.4]">
-        <ScriptText>{holder || t('city.passport.holderFallback')}</ScriptText>
-      </p>
-      <Ornament className="mt-[0.3em]" />
-      <p className="font-serif text-forest-deep/90 mt-[1.6em] text-[1.08em] leading-[1.4] italic">
-        {t('city.passport.insideText')}
-      </p>
-      <p className="font-sans text-forest mt-[1.2em] -mr-[0.36em] text-[0.56em] tracking-[0.36em] uppercase">
-        {CONFIG.couple.bride} &amp; {CONFIG.couple.groom} · {year}
-      </p>
-    </div>
   )
 }
 
@@ -269,7 +237,7 @@ function RunningHead({ section }: { section: SectionKey }) {
       style={{ borderColor: `${GOLD}88` }}
     >
       <span className="font-sans text-[0.6em] tracking-[0.32em] text-forest uppercase">
-        {sectionNumber(section)} · {t(`city.passport.sections.${section}.title`)}
+        {t(`city.passport.sections.${section}.title`)}
       </span>
       <Star className="h-[0.7em] w-[0.7em]" style={{ color: GOLD }} />
     </div>
@@ -360,16 +328,10 @@ function OpenerPage({ section, folio }: { section: SectionKey; folio: number }) 
   const { t } = useTranslation()
   return (
     <div className={`flex h-full flex-col ${PAD}`}>
-      <p
-        className="font-sans text-[3.4em] leading-none font-extralight tracking-[0.04em]"
-        style={{ color: GOLD }}
-      >
-        {sectionNumber(section)}
-      </p>
-      <h3 className="font-script text-honey mt-[0.15em] text-[2.5em] leading-[1.35]">
+      <h3 className="font-script text-honey mt-[0.6em] text-[2.5em] leading-[1.35]">
         <ScriptText>{t(`city.passport.sections.${section}.title`)}</ScriptText>
       </h3>
-      <Ornament className="mt-[0.2em] !justify-start" />
+      <Ornament className="mt-[1.3em] !justify-start" />
       <p className="font-serif text-forest-deep/90 mt-[1em] text-[1.15em] leading-[1.38]">
         {t(`city.passport.sections.${section}.intro`)}
       </p>
@@ -379,50 +341,32 @@ function OpenerPage({ section, folio }: { section: SectionKey; folio: number }) 
   )
 }
 
-function IndexPage({ book, onGo }: { book: Book; onGo?: (s: SectionKey) => void }) {
+/**
+ * Right-hand page of the first spread, facing the inside of the cover: whose
+ * passport it is, and the dedication. Centered, airy, like a passport's
+ * holder page.
+ */
+function HolderPage({ holder }: { holder?: string }) {
   const { t } = useTranslation()
+  const year = new Date(CONFIG.wedding.date).getFullYear()
   return (
-    <div className={`flex h-full flex-col ${PAD}`}>
-      <p className="font-sans text-forest -mr-[0.42em] text-center text-[0.6em] tracking-[0.42em] uppercase">
-        {t('city.passport.kicker')} {t('city.passport.title')}
-      </p>
-      <h3 className="font-script text-honey mt-[0.6em] text-center text-[2.6em] leading-[1.35]">
-        <ScriptText>{t('city.passport.indexTitle')}</ScriptText>
-      </h3>
-      <Ornament className="mt-[0.1em]" />
-      <ol className="mt-[1.8em] flex flex-col gap-[0.4em]">
-        {SECTIONS.map((s) => (
-          <li key={s}>
-            <button
-              type="button"
-              onClick={() => onGo?.(s)}
-              tabIndex={onGo ? 0 : -1}
-              className="group flex w-full items-baseline gap-[0.8em] py-[0.55em] text-left"
-            >
-              <span className="font-sans text-[0.8em] tabular-nums" style={{ color: GOLD }}>
-                {sectionNumber(s)}
-              </span>
-              <span className="font-serif text-forest-deep group-hover:text-honey text-[1.35em] transition-colors">
-                {t(`city.passport.sections.${s}.title`)}
-              </span>
-              <span
-                aria-hidden
-                className="mb-[0.3em] flex-1 border-b border-dotted"
-                style={{ borderColor: `${GOLD}aa` }}
-              />
-              <span className="font-sans text-forest text-[0.75em] tabular-nums">
-                {book.firstPage[s] + 1}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ol>
-      <div className="mt-auto flex flex-col items-center gap-[0.6em] pt-[1em]">
-        <Star className="h-[1em] w-[1em]" style={{ color: GOLD }} />
-        <p className="font-sans text-forest -mr-[0.36em] text-[0.56em] tracking-[0.36em] uppercase">
-          {t('city.kicker')}
+    <div className="flex h-full flex-col items-center px-[13%] pt-[3.2em] pb-[2.6em] text-center">
+      <Star className="h-[0.9em] w-[0.9em]" style={{ color: GOLD }} />
+      <div className="flex flex-1 flex-col items-center justify-center pb-[1.5em]">
+        <p className="font-sans text-forest -mr-[0.42em] text-[0.62em] tracking-[0.42em] uppercase">
+          {t('city.passport.holder')}
+        </p>
+        <p className="font-script text-honey mt-[0.55em] text-[2.6em] leading-[1.4]">
+          <ScriptText>{holder || t('city.passport.holderFallback')}</ScriptText>
+        </p>
+        <Ornament className="mt-[1.1em]" />
+        <p className="font-serif text-forest-deep/90 mt-[1.8em] max-w-[18em] text-[1.15em] leading-[1.45] italic">
+          {t('city.passport.insideText')}
         </p>
       </div>
+      <p className="font-sans text-forest -mr-[0.36em] text-[0.58em] tracking-[0.36em] uppercase">
+        {CONFIG.couple.bride} &amp; {CONFIG.couple.groom} · {year}
+      </p>
     </div>
   )
 }
@@ -439,22 +383,21 @@ function BlankPage() {
 /** The contents of any page in the book. */
 export function PageContent({
   spec,
-  book,
   folio,
   lang,
-  onGo,
+  holder,
 }: {
   spec: PageSpec
-  book: Book
   folio: number
   lang: 'pt' | 'en'
-  onGo?: (s: SectionKey) => void
+  /** Whose passport it is (the guest's group name), if known. */
+  holder?: string
 }) {
   switch (spec.kind) {
     case 'inside':
       return null
-    case 'index':
-      return <IndexPage book={book} onGo={onGo} />
+    case 'holder':
+      return <HolderPage holder={holder} />
     case 'opener':
       return <OpenerPage section={spec.section} folio={folio} />
     case 'entries': {

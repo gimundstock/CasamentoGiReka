@@ -55,11 +55,9 @@
     "stars": "stars",
     "perNight": "/night",
     "listLabel": "List of recommendations — scroll for more",
-    "kicker": "For those travelling to",
     "passport": {
       "kicker": "Passport to",
       "title": "Brasília",
-      "indexTitle": "Contents",
       "insideText": "A little guide to our city, for everyone travelling from afar to celebrate with us.",
       "more": "Learn more",
       "prev": "Previous page",

@@ -99,6 +99,8 @@ export interface Illustration {
 
 export const ASSETS = {
   cover: passport('cover.webp'),
+  // Inside of the front cover: artwork only, shown full-bleed with no text.
+  // A placeholder — the final, more elaborate inside-cover art replaces it.
   coverInside: passport('cover-inside.webp'),
   paper: passport('paper.webp'),
   blotMask: MASK.blot.image,
