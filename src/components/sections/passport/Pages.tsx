@@ -22,6 +22,8 @@ export const GOLD = '#C9A464'
 export type Stock = 'page' | 'board'
 
 const PAPER_WASH = 'rgba(252, 248, 240, 0.4)'
+/** The pages' paper: paper.webp under a cream wash that keeps its grain fine. */
+export const PAPER_BG = `linear-gradient(${PAPER_WASH}, ${PAPER_WASH}), url(${ASSETS.paper}) center / cover`
 
 /** Outer corners round, spine corners nearly square. */
 export const pageRadius = (side: Side) =>
@@ -70,8 +72,7 @@ export const Paper = forwardRef(function Paper(
       className="absolute inset-0 overflow-hidden"
       style={{
         borderRadius: pageRadius(side),
-        // A wash of cream over paper.webp keeps its grain fine at desktop size.
-        background: `linear-gradient(${PAPER_WASH}, ${PAPER_WASH}), url(${ASSETS.paper}) center / cover`,
+        background: PAPER_BG,
         boxShadow: 'inset 0 0 0 0.5px rgba(150, 110, 60, 0.22)',
       }}
     >
@@ -116,7 +117,7 @@ export function pageStack(side: Side, lines: number, k: number): CSSProperties {
  * show as the book's thickness past the cover's edge.
  */
 export function BackBoard({ style, k }: { style: CSSProperties; k: number }) {
-  const t = Math.max(2, 5 * k)
+  const t = Math.max(1.5, 2.5 * k)
   return (
     <div
       aria-hidden
@@ -125,9 +126,11 @@ export function BackBoard({ style, k }: { style: CSSProperties; k: number }) {
         ...style,
         transform: `translate(${t.toFixed(1)}px, ${t.toFixed(1)}px)`,
         borderRadius: '0.25em 0.9em 0.9em 0.25em',
-        background: 'linear-gradient(160deg, #F5EEDF 0%, #EEE3CE 100%)',
+        // A slim gold-edged board: light cream, a gilt rim at its edge.
+        background: 'linear-gradient(160deg, #FAF4E8 0%, #F3EADA 100%)',
+        border: '1.5px solid #D9BB7C',
         boxShadow:
-          'inset 0 0 0 1px rgba(190, 150, 80, 0.55), 0 18px 34px -18px rgba(110, 78, 30, 0.4)',
+          'inset 0 0 0 1px rgba(255, 250, 238, 0.8), 0 18px 34px -18px rgba(110, 78, 30, 0.35)',
       }}
     />
   )
@@ -143,7 +146,7 @@ export function InsideCover({ holder }: { holder?: string }) {
         {t('city.passport.holder')}
       </p>
       <p className="font-script text-honey mt-[0.5em] text-[2.2em] leading-[1.4]">
-        {holder || t('city.passport.holderFallback')}
+        <ScriptText>{holder || t('city.passport.holderFallback')}</ScriptText>
       </p>
       <Ornament className="mt-[0.3em]" />
       <p className="font-serif text-forest-deep/90 mt-[1.6em] text-[1.08em] leading-[1.4] italic">
@@ -153,6 +156,52 @@ export function InsideCover({ holder }: { holder?: string }) {
         {CONFIG.couple.bride} &amp; {CONFIG.couple.groom} · {year}
       </p>
     </div>
+  )
+}
+
+/**
+ * The script font (Amsterdam) has no kerning, and its capitals carry a wide
+ * advance for their swashes: the next letter starts well clear of the
+ * capital's body, so "Pontos" read "P ontos". Each word's capital is pulled
+ * in by hand, by how far its body ends short of its advance.
+ */
+const SCRIPT_KERN: Record<string, string> = {
+  P: '-0.26em',
+  T: '-0.2em',
+  R: '-0.1em',
+  F: '-0.14em',
+  H: '-0.08em',
+  W: '-0.08em',
+  S: '-0.04em',
+  D: '-0.06em',
+  B: '-0.04em',
+  G: '-0.06em',
+  C: '-0.02em',
+  L: '-0.06em',
+}
+
+/** Text set in the script font, with each word's capital tucked in (see SCRIPT_KERN). */
+export function ScriptText({ children }: { children: string }) {
+  return (
+    <>
+      {children.split(' ').map((word, i) => {
+        const cap = word[0]
+        const kern = cap ? SCRIPT_KERN[cap] : undefined
+        return (
+          <span key={i}>
+            {i > 0 && ' '}
+            {kern ? (
+              <>
+                <span style={{ marginRight: kern }}>{cap}</span>
+                {word.slice(1)}
+              </>
+            ) : (
+              word
+            )}
+          </span>
+        )
+      })}
+    </>
   )
 }
 
@@ -318,7 +367,7 @@ function OpenerPage({ section, folio }: { section: SectionKey; folio: number }) 
         {sectionNumber(section)}
       </p>
       <h3 className="font-script text-honey mt-[0.15em] text-[2.5em] leading-[1.35]">
-        {t(`city.passport.sections.${section}.title`)}
+        <ScriptText>{t(`city.passport.sections.${section}.title`)}</ScriptText>
       </h3>
       <Ornament className="mt-[0.2em] !justify-start" />
       <p className="font-serif text-forest-deep/90 mt-[1em] text-[1.15em] leading-[1.38]">
@@ -338,7 +387,7 @@ function IndexPage({ book, onGo }: { book: Book; onGo?: (s: SectionKey) => void 
         {t('city.passport.kicker')} {t('city.passport.title')}
       </p>
       <h3 className="font-script text-honey mt-[0.6em] text-center text-[2.6em] leading-[1.35]">
-        {t('city.passport.indexTitle')}
+        <ScriptText>{t('city.passport.indexTitle')}</ScriptText>
       </h3>
       <Ornament className="mt-[0.1em]" />
       <ol className="mt-[1.8em] flex flex-col gap-[0.4em]">

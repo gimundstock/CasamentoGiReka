@@ -1,6 +1,6 @@
 import {
   BOOK,
-  COVER_MASK,
+  CATHEDRAL,
   COVER_OVERHANG,
   COVER_RULE,
   MASK,
@@ -35,6 +35,8 @@ export const PHASE = {
   handoff: [150, 160] as Span,
   /** The cream cover grows out around the vignette. */
   coverGrow: [160, 215] as Span,
+  /** On the cover, the blot bleeds out into the rise shape. */
+  bleed: [168, 240] as Span,
   /** Title, star and sketch settle onto the cover. */
   title: [195, 240] as Span,
   /** The cover turns over to the left; the book slides to center. */
@@ -85,8 +87,16 @@ export interface PassportGeometry {
   closedShift: number
   /** Closed cover's top-left on screen. */
   cover: { x: number; y: number }
-  /** The blot's box on the cover, in cover coordinates. */
+  /** The blot's box on the cover (where the painting shrinks to), in cover coordinates. */
   slot: Rect
+  /** Inside the cover's gold rule, in cover coordinates: the painting's frame. */
+  inner: Rect
+  /** The 'rise' shape the blot bleeds out into, in cover coordinates. */
+  rise: Rect
+  /** The 'rise' mask's box at the start of the bleed: big enough to hold the whole blot. */
+  riseFrom: Rect
+  /** How much the blot grows by the end of the bleed, to cover the whole frame. */
+  bleed: number
   /** The painting's box on screen, at rest (HeroBigDay's artBox). */
   art: Rect
   /** How far the painting reaches past the screen's left, right and bottom. */
@@ -149,27 +159,67 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
 
   const pageW = right.w
   const pageH = right.h
-  // 'blot': ~85 % of the cover inside its gold rule and half its height,
-  // under the title, clear of the bottom rule. 'rise': flush inside the
-  // rule at the sides and bottom, up to a little under the title.
-  let slot: Rect
-  if (COVER_MASK === 'rise') {
-    const sx = coverBox.w * COVER_RULE.side
-    const bottom = coverBox.h * (1 - COVER_RULE.bottom)
-    const h = coverBox.h * 0.56
-    slot = { x: sx, y: bottom - h, w: coverBox.w - 2 * sx, h }
-  } else {
-    const w = coverBox.w * 0.85
-    const h = w / SLOT_ASPECT
-    slot = { x: coverBox.w * 0.5 - w / 2, y: coverBox.h * 0.605 - h / 2, w, h }
-  }
+  // The blot: ~85 % of the cover inside its gold rule and half its height,
+  // under the title. It then bleeds out into `rise`: flush inside the rule
+  // at the sides and bottom, up to a little under the title.
+  const sw = coverBox.w * 0.85
+  const sh = sw / SLOT_ASPECT
+  const slot = { x: coverBox.w * 0.5 - sw / 2, y: coverBox.h * 0.6 - sh / 2, w: sw, h: sh }
   const slotW = slot.w
   const slotH = slot.h
   const slotAspect = slotW / slotH
+  const inner = {
+    x: coverBox.w * COVER_RULE.side,
+    y: coverBox.h * COVER_RULE.top,
+    w: coverBox.w * (1 - 2 * COVER_RULE.side),
+    h: coverBox.h * (1 - COVER_RULE.top - COVER_RULE.bottom),
+  }
+  const riseH = coverBox.h * 0.6
+  const rise = { x: inner.x, y: inner.y + inner.h - riseH, w: inner.w, h: riseH }
+  // Start of the bleed: a rise box whose opaque part (below its soft top)
+  // holds the whole blot, so at first only the blot shows.
+  const margin = slotH * 0.04
+  const fromH = (slotH + 2 * margin) / (1 - MASK.rise.top)
+  const riseFrom = {
+    x: Math.min(rise.x, slot.x - margin),
+    y: slot.y - margin - MASK.rise.top * fromH,
+    w: Math.max(rise.w, slotW + 2 * margin),
+    h: fromH,
+  }
+  // By the end the growing blot covers the whole frame.
+  const sc = { x: slot.x + slotW / 2, y: slot.y + slotH / 2 }
+  const reach = Math.max(
+    Math.hypot(sc.x - inner.x, sc.y - inner.y),
+    Math.hypot(inner.x + inner.w - sc.x, sc.y - inner.y),
+    Math.hypot(sc.x - inner.x, inner.y + inner.h - sc.y),
+    Math.hypot(inner.x + inner.w - sc.x, inner.y + inner.h - sc.y)
+  )
+  const bleed = (reach / (MASK.blot.core * slotH)) * 1.1
 
+  // The painting's scale on the cover: the blot shows half its width — or
+  // more zoom if needed, so that it still fills the whole rise shape once
+  // the blot has bled out (the painting itself never moves on the cover).
+  const scaleFor = (fx: number, fy: number) => {
+    const need = Math.max(
+      (sc.y - rise.y) / (fy - artTop),
+      (rise.y + rise.h - sc.y) / (artTop + artH - fy),
+      (sc.x - rise.x) / (fx - artLeft),
+      (rise.x + rise.w - sc.x) / (artLeft + artW - fx)
+    )
+    return Math.min(0.95, Math.max(slotW / (artW * 0.5), need * 1.02))
+  }
   const focal = { x: artLeft + artW * 0.47, y: artTop + artH * 0.56 }
-  const blotLocalW = artW * 0.5
-  const scale = Math.min(0.9, slotW / blotLocalW)
+  let scale = scaleFor(focal.x, focal.y)
+  // The cathedral must stand inside the blot, and inside the frame once the
+  // blot has bled out: if it would fall past the right, frame the painting
+  // further right (twice: the scale depends on where it is framed).
+  for (let i = 0; i < 2; i++) {
+    const cathRight = artLeft + artW * (CATHEDRAL.cx + CATHEDRAL.w / 2)
+    const minFx = cathRight - (slotW * 0.4) / scale
+    if (focal.x >= minFx) break
+    focal.x = minFx
+    scale = scaleFor(focal.x, focal.y)
+  }
   const blotLocal = { w: slotW / scale, h: slotH / scale }
 
   const far = Math.max(
@@ -178,7 +228,7 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     Math.hypot(focal.x, vh - focal.y),
     Math.hypot(vw - focal.x, vh - focal.y)
   )
-  const startH = (far / MASK.core) * 1.08
+  const startH = (far / MASK.blot.core) * 1.08
   const blotStart = { w: startH * slotAspect, h: startH }
 
   return {
@@ -196,6 +246,10 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     closedShift,
     cover,
     slot,
+    inner,
+    rise,
+    riseFrom,
+    bleed,
     art,
     over: {
       l: Math.ceil(Math.max(0, -artLeft)),
@@ -225,4 +279,33 @@ export function paintingTransform(g: PassportGeometry, k: number) {
 export function blotSize(g: PassportGeometry, m: number) {
   const w = g.blotStart.w * Math.pow(g.blotLocal.w / g.blotStart.w, m)
   return { w, h: w * (g.blotLocal.h / g.blotLocal.w) }
+}
+
+/**
+ * The cover vignette's two mask layers at bleed progress m (0 → 1), as CSS
+ * mask-size / mask-position lists, in the frame's coordinates: the blot,
+ * growing from its own size to past the frame's corners, and the rise box,
+ * settling from one that holds the whole blot to its place.
+ */
+export function bleedMask(g: PassportGeometry, m: number) {
+  const { slot, inner, rise, riseFrom } = g
+  // The soft top settles first (the blot's top becomes the cloud line), then
+  // the paint spreads out to the sides and the bottom.
+  const mr = ease(seg(m, [0, 0.65]))
+  const mb = seg(m, [0.2, 1])
+  const f = Math.pow(g.bleed, mb * mb)
+  const bw = slot.w * f
+  const bh = slot.h * f
+  const bx = slot.x + slot.w / 2 - bw / 2 - inner.x
+  const by = slot.y + slot.h / 2 - bh / 2 - inner.y
+  const lerp = (a: number, b: number) => a + (b - a) * mr
+  const rw = lerp(riseFrom.w, rise.w)
+  const rh = lerp(riseFrom.h, rise.h)
+  const rx = lerp(riseFrom.x, rise.x) - inner.x
+  const ry = lerp(riseFrom.y, rise.y) - inner.y
+  const px = (n: number) => `${n.toFixed(1)}px`
+  return {
+    size: `${px(bw)} ${px(bh)}, ${px(rw)} ${px(rh)}`,
+    position: `${px(bx)} ${px(by)}, ${px(rx)} ${px(ry)}`,
+  }
 }

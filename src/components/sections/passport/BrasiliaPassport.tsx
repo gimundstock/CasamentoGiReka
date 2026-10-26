@@ -12,15 +12,15 @@ import { useTranslation } from 'react-i18next'
 import { useMotionValueEvent, type MotionValue } from 'framer-motion'
 import { buildBook, pageSection, sectionEntries, SECTIONS, type Chunks } from './content'
 import type { PageSpec, SectionKey } from './content'
-import { ease, PHASE, seg, TAB_OUT, type PassportGeometry, type Rect } from './geometry'
+import { bleedMask, ease, PHASE, seg, TAB_OUT, type PassportGeometry, type Rect } from './geometry'
 import { PassportCover } from './PassportCover'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
   BackBoard,
   EntriesFrame,
   EntryItem,
-  GOLD,
   InsideCover,
+  PAPER_BG,
   PageContent,
   Paper,
   pageStack,
@@ -162,6 +162,7 @@ export function BrasiliaPassport({
   const baseRef = useRef<HTMLDivElement>(null)
   const insideRef = useRef<HTMLDivElement>(null)
   const chromeRef = useRef<HTMLDivElement>(null)
+  const tabsRef = useRef<HTMLElement>(null)
   const hazeRef = useRef<HTMLDivElement>(null)
   const curRef = useRef(cur)
   useLayoutEffect(() => {
@@ -197,6 +198,7 @@ export function BrasiliaPassport({
         show(base, 1)
         show(inside, 1)
         chrome.style.opacity = '1'
+        if (tabsRef.current) tabsRef.current.style.opacity = '1'
         haze.style.opacity = '1'
         return o > 0.5
       }
@@ -206,7 +208,15 @@ export function BrasiliaPassport({
       // The cover's vignette fades in over HeroBigDay's (now still) painting;
       // the board stays hidden until it's fully there, or its cream would
       // show through the half-faded vignette.
-      if (vignette) vignette.style.opacity = String(seg(v, PHASE.handoff))
+      if (vignette) {
+        vignette.style.opacity = String(seg(v, PHASE.handoff))
+        // The blot bleeds out into the rise shape as the cover grows.
+        const mask = bleedMask(g, seg(v, PHASE.bleed))
+        vignette.style.maskSize = mask.size
+        vignette.style.setProperty('-webkit-mask-size', mask.size)
+        vignette.style.maskPosition = mask.position
+        vignette.style.setProperty('-webkit-mask-position', mask.position)
+      }
       board.style.visibility = v >= PHASE.handoff[1] ? 'visible' : 'hidden'
 
       // Cover board grows out from under the vignette: its clip starts as
@@ -242,6 +252,7 @@ export function BrasiliaPassport({
       show(base, seg(grow, [0.7, 1]))
       show(inside, o >= 1 ? 1 : 0)
       chrome.style.opacity = String(seg(v, [PHASE.open[1] - 25, PHASE.open[1]]))
+      if (tabsRef.current) tabsRef.current.style.opacity = chrome.style.opacity
       haze.style.opacity = String(grow)
       return o >= 1
     },
@@ -298,6 +309,8 @@ export function BrasiliaPassport({
   }
 
   const tabH = Math.min(H * 0.17, 128)
+  // How far the tabs reach in under the pages.
+  const TAB_TUCK = 12
   // Thickness of the page block either side: what has been read lies on the
   // left, what is left to read on the right (none on the left at the start).
   const read = count > 1 ? cur / (count - 1) : 0
@@ -339,40 +352,8 @@ export function BrasiliaPassport({
           fontSize: g.fontSize,
         }}
       >
-        {/* Tabs + page controls: only once the book is open. */}
+        {/* Page controls: only once the book is open. */}
         <div ref={chromeRef} style={{ opacity: 0 }}>
-          <nav aria-label={t('city.passport.tabsLabel')}>
-            {SECTIONS.map((s, i) => {
-              const active = s === activeSection
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => goSection(s)}
-                  aria-current={active ? 'true' : undefined}
-                  className="font-sans absolute flex items-center justify-center rounded-r-[7px] border transition-transform duration-500 ease-out"
-                  style={{
-                    left: g.coverBox.x + g.coverBox.w - 10,
-                    top: g.right.y + H * 0.07 + i * (tabH + 6),
-                    width: TAB_OUT + 10,
-                    height: tabH,
-                    transform: `translateX(${active ? 0 : -9}px)`,
-                    borderColor: `${GOLD}${active ? 'dd' : '88'}`,
-                    background: active
-                      ? 'linear-gradient(90deg, #F1E5CC 0%, #FBF5E9 45%)'
-                      : 'linear-gradient(90deg, #E4D3B0 0%, #EFE3CA 50%)',
-                    color: active ? '#B07A26' : '#7A6450',
-                    boxShadow: active ? '2px 2px 6px -2px rgba(92, 60, 24, 0.3)' : undefined,
-                  }}
-                >
-                  <span className="pl-[8px] text-[0.6em] tracking-[0.26em] uppercase [writing-mode:vertical-rl]">
-                    {t(`city.passport.sections.${s}.tab`)}
-                  </span>
-                </button>
-              )
-            })}
-          </nav>
-
           <div
             className="font-sans text-forest absolute inset-x-0 flex items-center justify-center gap-6"
             style={{ top: g.book.h + 8 }}
@@ -424,6 +405,40 @@ export function BrasiliaPassport({
         {/* Under the cover: the back board, the page block, the pages. */}
         <div ref={baseRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
           <BackBoard style={box(g.coverBox)} k={g.k} />
+          {/* Index tabs: tucked in between the pages (the page block and the
+              pages lie over their inner end), on the book's own paper. Only
+              once the book is open. */}
+          <nav ref={tabsRef} aria-label={t('city.passport.tabsLabel')} style={{ opacity: 0 }}>
+            {SECTIONS.map((s, i) => {
+              const active = s === activeSection
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => goSection(s)}
+                  aria-current={active ? 'true' : undefined}
+                  className="font-sans absolute flex items-center justify-center transition-[width,color] duration-500 ease-out"
+                  style={{
+                    left: g.right.x + g.right.w - TAB_TUCK,
+                    top: g.right.y + H * 0.07 + i * (tabH + 6),
+                    width: TAB_TUCK + (active ? TAB_OUT : TAB_OUT - 8),
+                    height: tabH,
+                    paddingLeft: TAB_TUCK,
+                    borderRadius: '0 0.6em 0.6em 0',
+                    border: '1px solid rgba(190, 150, 80, 0.5)',
+                    borderLeft: 'none',
+                    background: PAPER_BG,
+                    color: active ? '#B07A26' : '#8A7458',
+                    boxShadow: '1px 1px 3px -1px rgba(110, 78, 30, 0.28)',
+                  }}
+                >
+                  <span className="text-[0.6em] tracking-[0.24em] whitespace-nowrap uppercase [writing-mode:vertical-rl]">
+                    {t(`city.passport.sections.${s}.tab`)}
+                  </span>
+                </button>
+              )
+            })}
+          </nav>
           <div
             aria-hidden
             className="pointer-events-none absolute"

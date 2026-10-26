@@ -1,8 +1,8 @@
 import type { CSSProperties, Ref } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ASSETS, CATHEDRAL, COVER_MASK, COVER_RULE, PAINT_SRC } from './assets'
-import type { PassportGeometry } from './geometry'
-import { GOLD, Star } from './Pages'
+import { ASSETS, CATHEDRAL, COVER_RULE, MASK, PAINT_SRC } from './assets'
+import { bleedMask, type PassportGeometry } from './geometry'
+import { GOLD, ScriptText, Star } from './Pages'
 
 /**
  * The passport's front cover.
@@ -29,13 +29,16 @@ export function PassportCover({
   titleRef: Ref<HTMLDivElement>
 }) {
   const { t } = useTranslation()
-  const { slot, art, focal, scale } = g
-  // The painting's own box, in the vignette's coordinates.
-  const px = slot.w / 2 + (art.x - focal.x) * scale
-  const py = slot.h / 2 + (art.y - focal.y) * scale
+  const { slot, inner, art, focal, scale } = g
+  // The painting's own box, in the frame's coordinates (inside the gold
+  // rule): where HeroBigDay's shrinking painting ends up. It never moves
+  // here; only its mask changes.
+  const px = slot.x + slot.w / 2 + (art.x - focal.x) * scale - inner.x
+  const py = slot.y + slot.h / 2 + (art.y - focal.y) * scale - inner.y
   const pw = art.w * scale
   const ph = art.h * scale
   const r = g.coverBox.w * COVER_RULE.radius
+  const start = bleedMask(g, 0)
   return (
     <div className="absolute inset-0" style={{ fontSize: g.fontSize }}>
       {/* Board: cover.webp (cream, double gold rule, rounded corners in its
@@ -46,23 +49,31 @@ export function PassportCover({
         style={{ background: `url(${ASSETS.cover}) center / 100% 100% no-repeat` }}
       />
 
-      {/* Vignette — the painting, cut into the blot. */}
+      {/* Vignette — the painting, inside the gold rule. Its mask is the
+          blot INTERSECTED with the rise shape: at first the rise box is big
+          enough to hold the whole blot, so only the blot shows; then the
+          blot grows out past the frame while the rise box settles into
+          place, so the paint bleeds outward and stops at the rise's soft
+          top and the rule (bleedMask, driven by the scroll). */}
       <div
         ref={vignetteRef}
         className="absolute"
         style={{
-          left: slot.x,
-          top: slot.y,
-          width: slot.w,
-          height: slot.h,
-          maskImage: ASSETS.blotMask,
-          WebkitMaskImage: ASSETS.blotMask,
-          maskSize: '100% 100%',
-          WebkitMaskSize: '100% 100%',
+          left: inner.x,
+          top: inner.y,
+          width: inner.w,
+          height: inner.h,
+          maskImage: `${MASK.blot.image}, ${MASK.rise.image}`,
+          WebkitMaskImage: `${MASK.blot.image}, ${MASK.rise.image}`,
+          maskSize: start.size,
+          WebkitMaskSize: start.size,
+          maskPosition: start.position,
+          WebkitMaskPosition: start.position,
           maskRepeat: 'no-repeat',
           WebkitMaskRepeat: 'no-repeat',
-          // 'rise' sits in the gold rule's rounded bottom corners.
-          borderRadius: COVER_MASK === 'rise' ? `0 0 ${r}px ${r}px` : undefined,
+          maskComposite: 'intersect',
+          WebkitMaskComposite: 'source-in',
+          borderRadius: r,
           overflow: 'hidden',
         }}
       >
@@ -90,7 +101,7 @@ export function PassportCover({
           </p>
           {/* Room above: the script's capitals swing high. */}
           <p className="font-script text-honey mt-[0.35em] text-[3.3em] leading-[1.4]">
-            {t('city.passport.title')}
+            <ScriptText>{t('city.passport.title')}</ScriptText>
           </p>
           <Star className="mt-[0.1em] h-[1.1em] w-[1.1em]" style={{ color: GOLD }} />
         </div>

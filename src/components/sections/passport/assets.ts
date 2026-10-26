@@ -7,7 +7,7 @@
 //   paper.webp         every page — lying flat or turning
 //   blot-mask.webp     the watercolor blot the painting shrinks into (alpha mask)
 //
-//   blot-mask-2.webp   the 'rise' mask: straight sides and bottom, soft top
+//   blot-mask-2.webp   the 'rise' shape: straight sides and bottom, soft top
 //   cover-cathedral.webp  the watercolor cathedral on the cover's painting
 //   tourism.webp, restaurants.webp, transport.webp, hotels.webp
 //                      one illustration per chapter (left page of each opener)
@@ -40,48 +40,39 @@ export const BOOK = {
   right: { x: EDGE + COVER_OVERHANG + PAGE.w, y: EDGE + COVER_OVERHANG, ...PAGE },
 }
 
-/**
- * How the painting sits on the cover — switch here to compare:
- *   'blot'  a free-floating watercolor blot (blot-mask.webp)
- *   'rise'  the landscape rising from the bottom of the cover, flush with
- *           the gold rule at the sides and bottom, a cloud-soft top edge
- *           (blot-mask-2.webp)
- */
-export type CoverMask = 'blot' | 'rise'
-export const COVER_MASK: CoverMask = 'rise'
-
 /** Width / height of blot-mask.webp. */
-export const BLOT_ASPECT = 760 / 483
+const BLOT_ASPECT = 760 / 483
 /**
  * Radius (as a fraction of the mask's height) inside which blot-mask.webp is
  * fully opaque all around its center (measured: 0.405; kept with a margin).
- * Sets how big the mask must start for the blot to cover the whole screen.
  */
 const BLOT_CORE = 0.36
-/** 'blot': width / height it is drawn at (taller than the file, so it fills more). */
-const BLOT_SLOT_ASPECT = 1.22
+/** Width / height the blot is drawn at (taller than the file, so it fills more). */
+export const SLOT_ASPECT = 1.22
 
 /**
- * The cover mask in use: its image, and the fraction of its height around
- * its center that is opaque in every direction (for 'rise': its soft top
- * edge reaches down to 0.29 of the height, measured; kept with a margin).
+ * The two shapes the painting takes. It shrinks as a free watercolor blot
+ * (`blot`); on the cover the blot bleeds out into `rise` — the landscape
+ * rising from the bottom of the cover, flush inside the gold rule at the
+ * sides and bottom, with a cloud-soft top.
+ *
+ * `core`: fraction of the (drawn) blot's height around its center that is
+ * opaque in every direction. `rise.top`: how far down its height the soft
+ * top edge reaches before it is opaque all across (measured 0.29).
  */
 export const MASK = {
   blot: {
     image: `url(${passport('blot-mask.webp')})`,
-    core: BLOT_CORE * Math.min(1, BLOT_SLOT_ASPECT / BLOT_ASPECT),
+    core: BLOT_CORE * Math.min(1, SLOT_ASPECT / BLOT_ASPECT),
   },
-  rise: { image: `url(${passport('blot-mask-2.webp')})`, core: 0.19 },
-}[COVER_MASK]
-
-/** 'blot': width / height of the vignette on the cover. */
-export const SLOT_ASPECT = BLOT_SLOT_ASPECT
+  rise: { image: `url(${passport('blot-mask-2.webp')})`, top: 0.31 },
+}
 
 /**
- * cover.webp's inner gold rule, as fractions of the cover: its side and
- * bottom insets, and its corner radius ('rise' sits flush inside it).
+ * cover.webp's inner gold rule, as fractions of the cover: its side, top and
+ * bottom insets, and its corner radius. The painting lives inside it.
  */
-export const COVER_RULE = { side: 0.04, bottom: 0.028, radius: 0.03 }
+export const COVER_RULE = { side: 0.04, top: 0.028, bottom: 0.028, radius: 0.03 }
 
 /**
  * The watercolor cathedral, standing on the far hills at the right of the
@@ -110,7 +101,7 @@ export const ASSETS = {
   cover: passport('cover.webp'),
   coverInside: passport('cover-inside.webp'),
   paper: passport('paper.webp'),
-  blotMask: MASK.image,
+  blotMask: MASK.blot.image,
   // One per chapter opener; their soft watercolor edges are in the art.
   illustrations: {
     tourism: { src: passport('tourism.webp'), size: 'contain', position: 'center', blot: false },
