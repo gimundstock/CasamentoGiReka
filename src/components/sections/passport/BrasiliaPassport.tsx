@@ -157,10 +157,14 @@ export function BrasiliaPassport({
   const rootRef = useRef<HTMLDivElement>(null)
   const bookRef = useRef<HTMLDivElement>(null)
   const coverRef = useRef<HTMLDivElement>(null)
+  const frontRef = useRef<HTMLDivElement>(null)
+  const backRef = useRef<HTMLDivElement>(null)
   const boardRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLDivElement>(null)
   const vignetteRef = useRef<HTMLDivElement>(null)
   const cathedralRef = useRef<HTMLImageElement>(null)
+  const riseRef = useRef<HTMLDivElement>(null)
+  const blotRef = useRef<HTMLDivElement>(null)
   const baseRef = useRef<HTMLDivElement>(null)
   const insideRef = useRef<HTMLDivElement>(null)
   const chromeRef = useRef<HTMLDivElement>(null)
@@ -213,21 +217,27 @@ export function BrasiliaPassport({
         const st = vignette.style
         st.transformOrigin = vs.origin
         st.transform = vs.transform
-        const image = vs.masked ? `${MASK.blot.image}, ${MASK.rise.image}` : 'none'
-        if (st.maskImage !== image) {
-          st.maskImage = image
-          st.setProperty('-webkit-mask-image', image)
-          st.maskRepeat = 'no-repeat'
-          st.setProperty('-webkit-mask-repeat', 'no-repeat')
-          st.maskComposite = 'intersect'
-          st.setProperty('-webkit-mask-composite', 'source-in')
-        }
-        st.maskSize = vs.size
-        st.setProperty('-webkit-mask-size', vs.size)
-        st.maskPosition = vs.position
-        st.setProperty('-webkit-mask-position', vs.position)
         st.clipPath = vs.clip
         st.setProperty('-webkit-clip-path', vs.clip)
+        const layers: [HTMLElement | null, string, { size: string; position: string }][] = [
+          [riseRef.current, MASK.rise.image, vs.rise],
+          [blotRef.current, MASK.blot.image, vs.blot],
+        ]
+        for (const [el, image, at] of layers) {
+          if (!el) continue
+          const want = vs.masked ? image : 'none'
+          if (el.dataset.mask !== want) {
+            el.dataset.mask = want
+            el.style.setProperty('mask-image', want)
+            el.style.setProperty('-webkit-mask-image', want)
+            el.style.setProperty('mask-repeat', 'no-repeat')
+            el.style.setProperty('-webkit-mask-repeat', 'no-repeat')
+          }
+          el.style.setProperty('mask-size', at.size)
+          el.style.setProperty('-webkit-mask-size', at.size)
+          el.style.setProperty('mask-position', at.position)
+          el.style.setProperty('-webkit-mask-position', at.position)
+        }
       }
       if (cathedralRef.current) {
         cathedralRef.current.style.opacity = String(0.94 * ease(seg(v, PHASE.cathedral)))
@@ -247,7 +257,13 @@ export function BrasiliaPassport({
       const o = ease(seg(v, PHASE.open))
       bookEl.style.transform = `translate3d(${(g.closedShift * (1 - o)).toFixed(1)}px, 0, 0)`
       cover.style.transform = `rotateY(${(-180 * o).toFixed(2)}deg)`
-      cover.style.visibility = o >= 1 ? 'hidden' : 'visible'
+      // Explicitly hidden before the swap too: a child set 'visible' would
+      // otherwise show through the root's 'hidden'.
+      cover.style.visibility = v >= PHASE.swap && o < 1 ? 'visible' : 'hidden'
+      // Which face shows is chosen here, not left to backface-visibility:
+      // WebKit draws a hidden backface's composited children anyway.
+      if (frontRef.current) frontRef.current.style.visibility = o < 0.5 ? 'inherit' : 'hidden'
+      if (backRef.current) backRef.current.style.visibility = o >= 0.5 ? 'inherit' : 'hidden'
       // One page at a time: the turned cover would hang off the left edge.
       cover.style.opacity = spread ? '1' : String(1 - seg(o, [0.4, 0.9]))
       // Under the cover: the back board and the page block, which appear as
@@ -473,16 +489,22 @@ export function BrasiliaPassport({
             transformStyle: 'preserve-3d',
           }}
         >
-          <div className="absolute inset-0" style={hidden3d}>
+          <div ref={frontRef} className="absolute inset-0" style={hidden3d}>
             <PassportCover
               g={g}
               boardRef={boardRef}
               vignetteRef={vignetteRef}
+              riseRef={riseRef}
+              blotRef={blotRef}
               cathedralRef={cathedralRef}
               titleRef={titleRef}
             />
           </div>
-          <div className="absolute inset-0" style={{ ...hidden3d, transform: 'rotateY(180deg)' }}>
+          <div
+            ref={backRef}
+            className="absolute inset-0"
+            style={{ ...hidden3d, transform: 'rotateY(180deg)', visibility: 'hidden' }}
+          >
             <Paper side="left" stock="board">
               {spread && <InsideCover holder={holder} />}
             </Paper>

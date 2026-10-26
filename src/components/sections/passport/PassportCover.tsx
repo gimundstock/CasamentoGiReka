@@ -22,12 +22,16 @@ export function PassportCover({
   g,
   boardRef,
   vignetteRef,
+  riseRef,
+  blotRef,
   cathedralRef,
   titleRef,
 }: {
   g: PassportGeometry
   boardRef: Ref<HTMLDivElement>
   vignetteRef: Ref<HTMLDivElement>
+  riseRef: Ref<HTMLDivElement>
+  blotRef: Ref<HTMLDivElement>
   cathedralRef: Ref<HTMLImageElement>
   titleRef: Ref<HTMLDivElement>
 }) {
@@ -49,15 +53,18 @@ export function PassportCover({
         className="absolute"
         style={{ left: p.x, top: p.y, width: p.w, height: p.h }}
       >
-        <div className="absolute inset-0" style={{ opacity: 0.9 }}>
-          <img
-            src={PAINT_SRC}
-            alt=""
-            aria-hidden
-            draggable={false}
-            className="absolute inset-0 h-full w-full max-w-none select-none"
-          />
-          <Cathedral imgRef={cathedralRef} style={{ opacity: 0 }} />
+        {/* Rise mask, then blot mask: nested, so they intersect. */}
+        <div ref={riseRef} className="absolute inset-0">
+          <div ref={blotRef} className="absolute inset-0" style={{ opacity: 0.9 }}>
+            <img
+              src={PAINT_SRC}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="absolute inset-0 h-full w-full max-w-none select-none"
+            />
+            <Cathedral imgRef={cathedralRef} style={{ opacity: 0 }} />
+          </div>
         </div>
       </div>
 

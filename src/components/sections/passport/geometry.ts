@@ -326,7 +326,8 @@ function riseAround(r: Rect): Rect {
  *   (around the blot's center) so the painting sits exactly where the
  *   stage's painting was, then shrinks into the cover's slot; on the cover
  *   it is still.
- * - `mask`: two layers, intersected: the blot, closing in from beyond the
+ * - masks: two, intersected by nesting (one per element: WebKit has no
+ *   reliable mask-composite): the blot, closing in from beyond the
  *   screen and later bleeding out past the frame, and the rise shape,
  *   which holds the whole blot until the bleed, then settles into place.
  *   None before the blot starts closing in.
@@ -379,8 +380,8 @@ export function vignetteAt(g: PassportGeometry, v: number) {
     transform,
     origin,
     masked: v >= PHASE.maskIn[0],
-    size: `${px(blot.w)} ${px(blot.h)}, ${px(r.w)} ${px(r.h)}`,
-    position: `${px(blot.x)} ${px(blot.y)}, ${px(r.x)} ${px(r.y)}`,
+    blot: { size: `${px(blot.w)} ${px(blot.h)}`, position: `${px(blot.x)} ${px(blot.y)}` },
+    rise: { size: `${px(r.w)} ${px(r.h)}`, position: `${px(r.x)} ${px(r.y)}` },
     // On the cover: the frame's rounded rect, inside the gold rule.
     clip:
       k >= 1
