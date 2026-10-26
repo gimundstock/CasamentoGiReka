@@ -165,6 +165,7 @@ export function BrasiliaPassport({
   const cathedralRef = useRef<HTMLImageElement>(null)
   const riseRef = useRef<HTMLDivElement>(null)
   const blotRef = useRef<HTMLDivElement>(null)
+  const paintRef = useRef<HTMLDivElement>(null)
   const baseRef = useRef<HTMLDivElement>(null)
   const insideRef = useRef<HTMLDivElement>(null)
   const chromeRef = useRef<HTMLDivElement>(null)
@@ -215,28 +216,32 @@ export function BrasiliaPassport({
       if (vignette) {
         const vs = vignetteAt(g, v)
         const st = vignette.style
-        st.transformOrigin = vs.origin
-        st.transform = vs.transform
         st.clipPath = vs.clip
         st.setProperty('-webkit-clip-path', vs.clip)
-        const layers: [HTMLElement | null, string, { size: string; position: string }][] = [
-          [riseRef.current, MASK.rise.image, vs.rise],
-          [blotRef.current, MASK.blot.image, vs.blot],
-        ]
-        for (const [el, image, at] of layers) {
-          if (!el) continue
-          const want = vs.masked ? image : 'none'
-          if (el.dataset.mask !== want) {
-            el.dataset.mask = want
-            el.style.setProperty('mask-image', want)
-            el.style.setProperty('-webkit-mask-image', want)
-            el.style.setProperty('mask-repeat', 'no-repeat')
-            el.style.setProperty('-webkit-mask-repeat', 'no-repeat')
+        const setMask = (el: HTMLElement | null, image: string, sized: boolean) => {
+          if (!el || el.dataset.mask === image) return
+          el.dataset.mask = image
+          el.style.setProperty('mask-image', image)
+          el.style.setProperty('-webkit-mask-image', image)
+          el.style.setProperty('mask-repeat', 'no-repeat')
+          el.style.setProperty('-webkit-mask-repeat', 'no-repeat')
+          if (sized) {
+            el.style.setProperty('mask-size', '100% 100%')
+            el.style.setProperty('-webkit-mask-size', '100% 100%')
           }
-          el.style.setProperty('mask-size', at.size)
-          el.style.setProperty('-webkit-mask-size', at.size)
-          el.style.setProperty('mask-position', at.position)
-          el.style.setProperty('-webkit-mask-position', at.position)
+        }
+        // The blot window: a static mask; only its scale changes.
+        setMask(blotRef.current, vs.blotMasked ? MASK.blot.image : 'none', true)
+        if (blotRef.current) blotRef.current.style.transform = vs.window
+        if (paintRef.current) paintRef.current.style.transform = vs.paint
+        // The rise shape, during the bleed.
+        const rise = riseRef.current
+        setMask(rise, vs.riseMasked ? MASK.rise.image : 'none', false)
+        if (rise) {
+          rise.style.setProperty('mask-size', vs.rise.size)
+          rise.style.setProperty('-webkit-mask-size', vs.rise.size)
+          rise.style.setProperty('mask-position', vs.rise.position)
+          rise.style.setProperty('-webkit-mask-position', vs.rise.position)
         }
       }
       if (cathedralRef.current) {
@@ -496,6 +501,7 @@ export function BrasiliaPassport({
               vignetteRef={vignetteRef}
               riseRef={riseRef}
               blotRef={blotRef}
+              paintRef={paintRef}
               cathedralRef={cathedralRef}
               titleRef={titleRef}
             />

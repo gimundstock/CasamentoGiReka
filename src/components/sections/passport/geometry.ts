@@ -163,7 +163,8 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
   const coverBox = { x: right.x, y: right.y - o, w: right.w + o, h: right.h + 2 * o }
   const insideBox = { ...coverBox, x: coverBox.x - coverBox.w }
   const coverX = bookX + coverBox.x
-  const closedShift = spread ? vw / 2 - (coverX + coverBox.w / 2) : 0
+  // Closed, the cover is centred on screen (so is the blot shrinking into it).
+  const closedShift = vw / 2 - (coverX + coverBox.w / 2)
   const cover = { x: coverX + closedShift, y: bookY + coverBox.y }
 
   const pageW = right.w
@@ -186,7 +187,7 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
   // The rise shape reaches a little past the frame at the sides and bottom
   // (the mask's own edge pixels are soft): clipped to the frame's rounded
   // rect, the paint meets the gold rule exactly.
-  const riseH = coverBox.h * 0.6
+  const riseH = coverBox.h * 0.555
   const rise = {
     x: inner.x - inner.w * 0.03,
     y: inner.y + inner.h + riseH * 0.03 - riseH,
@@ -235,11 +236,15 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
   }
   const blotLocal = { w: slotW / scale, h: slotH / scale }
 
+  // The blot is centred mid-screen horizontally throughout. Vertically it
+  // starts in the lower middle of the stage's painting and glides to where
+  // the cover's art slot is. It starts big enough to cover the whole screen.
+  const C = { x: cover.x + sc.x, y: artTop + artH * BLOT_START_Y }
   const far = Math.max(
-    Math.hypot(focal.x, focal.y),
-    Math.hypot(vw - focal.x, focal.y),
-    Math.hypot(focal.x, vh - focal.y),
-    Math.hypot(vw - focal.x, vh - focal.y)
+    Math.hypot(C.x, C.y),
+    Math.hypot(vw - C.x, C.y),
+    Math.hypot(C.x, vh - C.y),
+    Math.hypot(vw - C.x, vh - C.y)
   )
   const startH = (far / MASK.blot.core) * 1.08
   const blotStart = { w: startH * slotAspect, h: startH }
@@ -276,25 +281,30 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     fontSize: Math.max(12.5, Math.min(15, pageW * 0.027)),
     shrinkFrom: PHASE.shrink[0],
   }
-  // The first scroll position where the closing blot fits in the painting
-  // (its outer tenth is soft, so it may overhang that much).
-  for (let x = PHASE.maskIn[0]; x <= PHASE.maskIn[1]; x += 0.5) {
-    const b = blotSize(g, ease(seg(x, PHASE.maskIn)))
-    const fits =
-      b.w * 0.45 <= Math.min(focal.x - artLeft, artLeft + artW - focal.x) &&
-      b.h * 0.45 <= Math.min(focal.y - artTop, artTop + artH - focal.y)
-    if (fits) {
-      g.shrinkFrom = Math.max(PHASE.shrink[0], x)
-      break
+  // The first scroll position from which the painting may start moving:
+  // from there on, the closing blot stays inside the moving painting all
+  // the way (its outer tenth is soft, so it may overhang that much), so the
+  // painting's straight edges never show.
+  const fitsFrom = (x0: number) => {
+    const g0 = { ...g, shrinkFrom: x0 }
+    for (let v = x0; v <= PHASE.shrink[1]; v += 1) {
+      const b = blotScreen(g0, v)
+      const r = paintingScreen(g0, v)
+      const c = blotCenter(g0, v)
+      // The painting's top tenth is its soft sky fade: keep clear of it too.
+      const top = r.y + r.h * 0.1
+      const ok =
+        b.w * 0.45 <= Math.min(c.x - r.x, r.x + r.w - c.x) &&
+        b.h * 0.45 <= Math.min(c.y - top, r.y + r.h - c.y)
+      if (!ok) return false
     }
+    return true
+  }
+  for (let x = PHASE.shrink[0]; x <= PHASE.shrink[1] - 20; x += 1) {
+    g.shrinkFrom = x
+    if (fitsFrom(x)) break
   }
   return g
-}
-
-/** Blot size at mask progress m: shrinks geometrically, so it feels even. */
-export function blotSize(g: PassportGeometry, m: number) {
-  const w = g.blotStart.w * Math.pow(g.blotLocal.w / g.blotStart.w, m)
-  return { w, h: w * (g.blotLocal.h / g.blotLocal.w) }
 }
 
 /** The painting's box on the finished cover, in cover coordinates. */
@@ -312,81 +322,110 @@ export function paintingBox(g: PassportGeometry): Rect {
  * A 'rise' mask box whose opaque part (below its soft top) holds the whole
  * of `r` with a little margin — so intersected with it, nothing of `r` is cut.
  */
-function riseAround(r: Rect): Rect {
+export function riseAround(r: Rect): Rect {
   const m = r.h * 0.04
   const h = (r.h + 2 * m) / (1 - MASK.rise.top)
   return { x: r.x - m, y: r.y - m - MASK.rise.top * h, w: r.w + 2 * m, h }
 }
 
+/** Shrink progress at `v`: 0 = the painting as on the stage, 1 = on the cover. */
+function shrinkAt(g: PassportGeometry, v: number) {
+  return ease(seg(v, [Math.min(g.shrinkFrom, PHASE.shrink[1] - 20), PHASE.shrink[1]]))
+}
+
+/** The blot's center on screen: fixed, where the cover's art slot will be. */
+function blotCenter(g: PassportGeometry, v: number) {
+  const end = { x: g.cover.x + g.slot.x + g.slot.w / 2, y: g.cover.y + g.slot.y + g.slot.h / 2 }
+  const start = g.art.y + g.art.h * BLOT_START_Y
+  // It glides up together with the painting's own move onto the cover.
+  const ky = shrinkAt(g, v)
+  return { x: end.x, y: start + (end.y - start) * ky }
+}
+
+/** Where (down the stage's painting) the blot is centred as it starts closing in. */
+const BLOT_START_Y = 0.56
+
+/** The blot's size on screen at `v`, before the bleed: closing in to the slot's size. */
+function blotScreen(g: PassportGeometry, v: number) {
+  const e = ease(seg(v, PHASE.maskIn))
+  const w = g.blotStart.w * Math.pow(g.slot.w / g.blotStart.w, e)
+  return { w, h: (w * g.slot.h) / g.slot.w }
+}
+
+/** The painting's rect on screen at `v`: from the stage's to the cover's framing. */
+function paintingScreen(g: PassportGeometry, v: number): Rect {
+  const k = shrinkAt(g, v)
+  const P = paintingBox(g)
+  const lerp = (a: number, b: number) => a + (b - a) * k
+  return {
+    x: lerp(g.art.x, g.cover.x + P.x),
+    y: lerp(g.art.y, g.cover.y + P.y),
+    w: lerp(g.art.w, P.w),
+    h: lerp(g.art.h, P.h),
+  }
+}
+
+/** The frame the vignette is drawn in: the whole screen, in cover coordinates. */
+export function vignetteBox(g: PassportGeometry): Rect {
+  return { x: -g.cover.x, y: -g.cover.y, w: g.vw, h: g.vh }
+}
+
 /**
- * The cover vignette at scroll `v` (vh past the big day) — the ONE element
- * that carries the painting from the full screen into the cover:
+ * The cover vignette at scroll `v` (vh past the big day) — the ONE painting
+ * from the swap until the book opens. Three nested elements:
  *
- * - `transform`: from the swap until the shrink ends it is scaled and moved
- *   (around the blot's center) so the painting sits exactly where the
- *   stage's painting was, then shrinks into the cover's slot; on the cover
- *   it is still.
- * - masks: two, intersected by nesting (one per element: WebKit has no
- *   reliable mask-composite): the blot, closing in from beyond the
- *   screen and later bleeding out past the frame, and the rise shape,
- *   which holds the whole blot until the bleed, then settles into place.
- *   None before the blot starts closing in.
- * - `clip`: the frame's rounded rect, once the painting is on the cover.
+ * - the frame (`vignetteBox`, the whole screen): clipped to the gold rule's
+ *   rounded rect once the painting is on the cover, and carrying the
+ *   'rise' mask during the bleed;
+ * - the blot window: a box the size of the cover's art slot, CENTRED where
+ *   the slot is (mid-screen), with a static blot mask; it only scales —
+ *   from covering the whole screen down to the slot, then out again as the
+ *   paint bleeds to the cover's edges;
+ * - the painting inside it, which pans and scales from where the stage drew
+ *   it to its framing on the cover (counter to the window's scale).
  *
- * All in the vignette's own box (the frame inside the gold rule).
+ * Masks intersect by nesting (WebKit has no reliable mask-composite).
  */
 export function vignetteAt(g: PassportGeometry, v: number) {
-  const { slot, inner, rise, riseFrom, cover, focal } = g
-  // The vignette's box is the painting's own (a mask hides everything
-  // outside its element's box, so the box must hold the whole painting).
-  const P = paintingBox(g)
-  const O = { x: slot.x + slot.w / 2 - P.x, y: slot.y + slot.h / 2 - P.y }
-  // Shrink: the painting's scale on screen goes 1 → g.scale.
-  const k = ease(seg(v, [Math.min(g.shrinkFrom, PHASE.shrink[1] - 20), PHASE.shrink[1]]))
-  const s = (1 + (g.scale - 1) * k) / g.scale
-  // It drifts to the cover a little ahead of shrinking (ease-out), so on
-  // phones, where it starts off to one side, it comes into view sooner.
-  const kt = 1 - (1 - k) * (1 - k)
-  const tx = (focal.x - (cover.x + slot.x + slot.w / 2)) * (1 - kt)
-  const ty = (focal.y - (cover.y + slot.y + slot.h / 2)) * (1 - kt)
-  const transform =
-    k >= 1
-      ? 'none'
-      : `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0) scale(${s.toFixed(5)})`
-  const origin = `${O.x.toFixed(1)}px ${O.y.toFixed(1)}px`
-
-  // Blot: closes in (in screen-painting units, × g.scale in this box), then
-  // bleeds out on the cover.
+  const { slot, inner, rise, riseFrom } = g
+  const V = vignetteBox(g)
+  const C = blotCenter(g, v)
+  const Cend = blotCenter(g, PHASE.shrink[1])
+  // Bleed: the blot grows out past the frame; the rise settles into place.
   const m = seg(v, PHASE.bleed)
   const mb = seg(m, [0.2, 1])
-  const close = blotSize(g, ease(seg(v, PHASE.maskIn)))
-  const f = Math.pow(g.bleed, mb * mb)
-  const bw = close.w * g.scale * f
-  const bh = close.h * g.scale * f
-  const blot = { x: O.x - bw / 2, y: O.y - bh / 2, w: bw, h: bh }
-  // Rise: around the blot until the bleed, then settles (its soft top first).
+  const bleedF = Math.pow(g.bleed, mb * mb)
+  const f = (blotScreen(g, v).w / slot.w) * bleedF
+  // The painting, in the window's own (unscaled) coordinates.
+  const R = paintingScreen(g, v)
+  const t = {
+    x: slot.w / 2 + (R.x - C.x) / f,
+    y: slot.h / 2 + (R.y - C.y) / f,
+    s: R.w / f / paintingBox(g).w,
+  }
+  const P = paintingBox(g)
+  const paint = `translate3d(${(t.x - (P.x - slot.x)).toFixed(2)}px, ${(t.y - (P.y - slot.y)).toFixed(2)}px, 0) scale(${t.s.toFixed(5)})`
+
   const mr = ease(seg(m, [0, 0.65]))
-  const from = m > 0 ? riseFrom : riseAround({ ...blot, x: blot.x + P.x, y: blot.y + P.y })
   const lerp = (a: number, b: number) => a + (b - a) * mr
   const r = {
-    x: lerp(from.x, rise.x) - P.x,
-    y: lerp(from.y, rise.y) - P.y,
-    w: lerp(from.w, rise.w),
-    h: lerp(from.h, rise.h),
+    x: lerp(riseFrom.x, rise.x) - V.x,
+    y: lerp(riseFrom.y, rise.y) - V.y,
+    w: lerp(riseFrom.w, rise.w),
+    h: lerp(riseFrom.h, rise.h),
   }
   const px = (n: number) => `${n.toFixed(1)}px`
   const radius = g.coverBox.w * COVER_RULE.radius
+  const onCover = shrinkAt(g, v) >= 1
   return {
-    transform,
-    origin,
-    masked: v >= PHASE.maskIn[0],
-    blot: { size: `${px(blot.w)} ${px(blot.h)}`, position: `${px(blot.x)} ${px(blot.y)}` },
+    window: `translate3d(0, ${(C.y - Cend.y).toFixed(2)}px, 0) scale(${f.toFixed(5)})`,
+    paint,
+    blotMasked: v >= PHASE.maskIn[0],
+    riseMasked: m > 0,
     rise: { size: `${px(r.w)} ${px(r.h)}`, position: `${px(r.x)} ${px(r.y)}` },
-    // On the cover: the frame's rounded rect, inside the gold rule.
-    clip:
-      k >= 1
-        ? `inset(${px(inner.y - P.y)} ${px(P.x + P.w - inner.x - inner.w)} ` +
-          `${px(P.y + P.h - inner.y - inner.h)} ${px(inner.x - P.x)} round ${px(radius)})`
-        : 'none',
+    clip: onCover
+      ? `inset(${px(inner.y - V.y)} ${px(V.x + V.w - inner.x - inner.w)} ` +
+        `${px(V.y + V.h - inner.y - inner.h)} ${px(inner.x - V.x)} round ${px(radius)})`
+      : 'none',
   }
 }
