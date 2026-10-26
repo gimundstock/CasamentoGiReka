@@ -1,12 +1,8 @@
-import type { Ref } from 'react'
+import type { CSSProperties, Ref } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ASSETS, PAINT_SRC } from './assets'
+import { ASSETS, CATHEDRAL, COVER_MASK, COVER_RULE, PAINT_SRC } from './assets'
 import type { PassportGeometry } from './geometry'
 import { GOLD, Star } from './Pages'
-
-/** The cathedral sketch: width as a fraction of the blot, and its height / width. */
-const SKETCH_W = 0.48
-const SKETCH_ASPECT = 590 / 900
 
 /**
  * The passport's front cover.
@@ -34,6 +30,12 @@ export function PassportCover({
 }) {
   const { t } = useTranslation()
   const { slot, art, focal, scale } = g
+  // The painting's own box, in the vignette's coordinates.
+  const px = slot.w / 2 + (art.x - focal.x) * scale
+  const py = slot.h / 2 + (art.y - focal.y) * scale
+  const pw = art.w * scale
+  const ph = art.h * scale
+  const r = g.coverBox.w * COVER_RULE.radius
   return (
     <div className="absolute inset-0" style={{ fontSize: g.fontSize }}>
       {/* Board: cover.webp (cream, double gold rule, rounded corners in its
@@ -59,25 +61,27 @@ export function PassportCover({
           WebkitMaskSize: '100% 100%',
           maskRepeat: 'no-repeat',
           WebkitMaskRepeat: 'no-repeat',
+          // 'rise' sits in the gold rule's rounded bottom corners.
+          borderRadius: COVER_MASK === 'rise' ? `0 0 ${r}px ${r}px` : undefined,
+          overflow: 'hidden',
         }}
       >
-        <img
-          src={PAINT_SRC}
-          alt=""
-          aria-hidden
-          draggable={false}
-          className="absolute max-w-none select-none"
-          style={{
-            left: slot.w / 2 + (art.x - focal.x) * scale,
-            top: slot.h / 2 + (art.y - focal.y) * scale,
-            width: art.w * scale,
-            height: art.h * scale,
-            opacity: 0.9,
-          }}
-        />
+        <div
+          className="absolute"
+          style={{ left: px, top: py, width: pw, height: ph, opacity: 0.9 }}
+        >
+          <img
+            src={PAINT_SRC}
+            alt=""
+            aria-hidden
+            draggable={false}
+            className="absolute inset-0 h-full w-full max-w-none select-none"
+          />
+          <Cathedral />
+        </div>
       </div>
 
-      {/* Title, star and the cathedral sketch. */}
+      {/* Title and star. */}
       <div ref={titleRef} className="absolute inset-0" style={{ opacity: 0 }}>
         <div className="absolute inset-x-0 top-[9.5%] flex flex-col items-center text-center">
           {/* -mr cancels the tracking after the last letter, so it centers. */}
@@ -90,21 +94,34 @@ export function PassportCover({
           </p>
           <Star className="mt-[0.1em] h-[1.1em] w-[1.1em]" style={{ color: GOLD }} />
         </div>
-        {/* Standing on the blot's lower right edge, half on the cream. */}
-        <img
-          src={ASSETS.coverSketch}
-          alt=""
-          aria-hidden
-          draggable={false}
-          className="absolute select-none"
-          style={{
-            width: slot.w * SKETCH_W,
-            left: slot.x + slot.w * 0.58,
-            top: slot.y + slot.h * 1.04 - slot.w * SKETCH_W * SKETCH_ASPECT,
-            opacity: 0.85,
-          }}
-        />
       </div>
     </div>
+  )
+}
+
+/**
+ * The watercolor cathedral standing on the far hills of the painting, inside
+ * a box the size of the painting. Its base melts into the hills, so it reads
+ * as painted in rather than pasted on.
+ */
+export function Cathedral({ style }: { style?: CSSProperties }) {
+  const fade = 'linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%)'
+  return (
+    <img
+      src={CATHEDRAL.src}
+      alt=""
+      aria-hidden
+      draggable={false}
+      className="absolute max-w-none select-none"
+      style={{
+        width: `${CATHEDRAL.w * 100}%`,
+        left: `${(CATHEDRAL.cx - CATHEDRAL.w / 2) * 100}%`,
+        bottom: `${(1 - CATHEDRAL.base) * 100}%`,
+        maskImage: fade,
+        WebkitMaskImage: fade,
+        opacity: 0.92,
+        ...style,
+      }}
+    />
   )
 }

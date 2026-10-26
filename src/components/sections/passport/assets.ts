@@ -7,10 +7,10 @@
 //   paper.webp         every page — lying flat or turning
 //   blot-mask.webp     the watercolor blot the painting shrinks into (alpha mask)
 //
-// Still to come, one illustration per chapter (left page of each opener):
+//   blot-mask-2.webp   the 'rise' mask: straight sides and bottom, soft top
+//   cover-cathedral.webp  the watercolor cathedral on the cover's painting
 //   tourism.webp, restaurants.webp, transport.webp, hotels.webp
-// Until then `ASSETS.illustrations` crops art the site already has; swapping
-// one in is a one-line change (see the comment there).
+//                      one illustration per chapter (left page of each opener)
 
 const BASE = import.meta.env.BASE_URL
 /** Path of a file in public/passport/. */
@@ -40,6 +40,16 @@ export const BOOK = {
   right: { x: EDGE + COVER_OVERHANG + PAGE.w, y: EDGE + COVER_OVERHANG, ...PAGE },
 }
 
+/**
+ * How the painting sits on the cover — switch here to compare:
+ *   'blot'  a free-floating watercolor blot (blot-mask.webp)
+ *   'rise'  the landscape rising from the bottom of the cover, flush with
+ *           the gold rule at the sides and bottom, a cloud-soft top edge
+ *           (blot-mask-2.webp)
+ */
+export type CoverMask = 'blot' | 'rise'
+export const COVER_MASK: CoverMask = 'rise'
+
 /** Width / height of blot-mask.webp. */
 export const BLOT_ASPECT = 760 / 483
 /**
@@ -47,14 +57,45 @@ export const BLOT_ASPECT = 760 / 483
  * fully opaque all around its center (measured: 0.405; kept with a margin).
  * Sets how big the mask must start for the blot to cover the whole screen.
  */
-export const BLOT_CORE = 0.36
+const BLOT_CORE = 0.36
+/** 'blot': width / height it is drawn at (taller than the file, so it fills more). */
+const BLOT_SLOT_ASPECT = 1.22
+
 /**
- * Width / height the blot is drawn at, on the cover and while shrinking:
- * taller than the mask file, so the vignette fills more of the cover.
+ * The cover mask in use: its image, and the fraction of its height around
+ * its center that is opaque in every direction (for 'rise': its soft top
+ * edge reaches down to 0.29 of the height, measured; kept with a margin).
  */
-export const SLOT_ASPECT = 1.22
-/** BLOT_CORE once the blot is stretched to SLOT_ASPECT (its sides get relatively nearer). */
-export const SLOT_CORE = BLOT_CORE * Math.min(1, SLOT_ASPECT / BLOT_ASPECT)
+export const MASK = {
+  blot: {
+    image: `url(${passport('blot-mask.webp')})`,
+    core: BLOT_CORE * Math.min(1, BLOT_SLOT_ASPECT / BLOT_ASPECT),
+  },
+  rise: { image: `url(${passport('blot-mask-2.webp')})`, core: 0.19 },
+}[COVER_MASK]
+
+/** 'blot': width / height of the vignette on the cover. */
+export const SLOT_ASPECT = BLOT_SLOT_ASPECT
+
+/**
+ * cover.webp's inner gold rule, as fractions of the cover: its side and
+ * bottom insets, and its corner radius ('rise' sits flush inside it).
+ */
+export const COVER_RULE = { side: 0.04, bottom: 0.028, radius: 0.03 }
+
+/**
+ * The watercolor cathedral, standing on the far hills at the right of the
+ * painting: center x, base y and width, as fractions of the painting. The
+ * cover's vignette and the shrinking painting both place it with these, so
+ * it doesn't move at the hand-over.
+ */
+export const CATHEDRAL = {
+  src: passport('cover-cathedral.webp'),
+  aspect: 1000 / 670,
+  cx: 0.625,
+  base: 0.535,
+  w: 0.165,
+}
 
 export interface Illustration {
   src: string
@@ -63,29 +104,28 @@ export interface Illustration {
   position: string
   /** Cut into the watercolor blot (paintings) or shown as is (cut-outs). */
   blot: boolean
-  /** Optional drawing laid over it (e.g. the cathedral sketch). */
-  overlay?: string
 }
 
 export const ASSETS = {
   cover: passport('cover.webp'),
   coverInside: passport('cover-inside.webp'),
   paper: passport('paper.webp'),
-  blotMask: `url(${passport('blot-mask.webp')})`,
-  /** The sketch composited on the cover vignette, at its right. */
-  coverSketch: `${BASE}illustrations/catedral.png`,
-  // Placeholders. When the real art arrives, e.g.:
-  //   tourism: { src: passport('tourism.webp'), size: 'contain', position: 'center', blot: false },
+  blotMask: MASK.image,
+  // One per chapter opener; their soft watercolor edges are in the art.
   illustrations: {
-    tourism: {
-      src: PAINT_SRC,
-      size: '230% auto',
-      position: '72% 22%',
-      blot: true,
-      overlay: `${BASE}illustrations/catedral.png`,
+    tourism: { src: passport('tourism.webp'), size: 'contain', position: 'center', blot: false },
+    restaurants: {
+      src: passport('restaurants.webp'),
+      size: 'contain',
+      position: 'center',
+      blot: false,
     },
-    restaurants: { src: PAINT_SRC, size: '320% auto', position: '96% 92%', blot: true },
-    transport: { src: PAINT_SRC, size: '260% auto', position: '58% 78%', blot: true },
-    hotels: { src: `${BASE}flowers/lake.webp`, size: 'contain', position: 'center', blot: false },
+    transport: {
+      src: passport('transport.webp'),
+      size: 'contain',
+      position: 'center',
+      blot: false,
+    },
+    hotels: { src: passport('hotels.webp'), size: 'contain', position: 'center', blot: false },
   } satisfies Record<string, Illustration>,
 }

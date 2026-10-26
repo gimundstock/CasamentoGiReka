@@ -14,6 +14,7 @@ import { useReducedMotion } from '../motion/useReducedMotion'
 import { CerradoPaint } from './CerradoPaint'
 import { ASSETS } from './passport/assets'
 import { BrasiliaPassport } from './passport/BrasiliaPassport'
+import { Cathedral } from './passport/PassportCover'
 import {
   BIG_DAY_VH,
   blotSize,
@@ -243,6 +244,11 @@ export function HeroBigDay({ holder }: { holder?: string }) {
   })
   const infoVisibility = useTransform(infoOpacity, (o: number) => (o > 0.01 ? 'visible' : 'hidden'))
   const linesOpacity = useTransform(passVh, (pv: number) => 1 - seg(pv, PHASE.linesOut))
+  // The watercolor cathedral is painted in on the far hills as the painting
+  // shrinks toward the cover (where the cover's copy shows it too).
+  const cathedralOpacity = useTransform(passVh, (pv: number) =>
+    seg(pv, [PHASE.maskIn[0] + 20, PHASE.shrink[1]])
+  )
 
   // Cerrado landscape SLIDES UP from below the viewport over the same
   // window as the sun shrink (0.00 → 0.30). By the time the art is fully
@@ -442,6 +448,9 @@ export function HeroBigDay({ holder }: { holder?: string }) {
                   start={PAINT_START}
                   end={PAINT_END}
                 />
+                <motion.div className="absolute inset-0" style={{ opacity: cathedralOpacity }}>
+                  <Cathedral />
+                </motion.div>
               </motion.div>
 
               {/* ── z-20  Sun disc, phase 2 — arcs across the sky and sets. It

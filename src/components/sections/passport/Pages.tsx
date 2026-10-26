@@ -204,18 +204,9 @@ export function Vignette({ art, className = '' }: { art: Illustration; className
           backgroundSize: art.size,
           backgroundPosition: art.position,
           backgroundRepeat: 'no-repeat',
-          opacity: art.blot ? 0.92 : 0.85,
+          opacity: art.blot ? 0.92 : 1,
         }}
       />
-      {art.overlay && (
-        <img
-          src={art.overlay}
-          alt=""
-          aria-hidden
-          draggable={false}
-          className="absolute right-[2%] bottom-[8%] w-[46%] opacity-80 select-none"
-        />
-      )}
     </div>
   )
 }

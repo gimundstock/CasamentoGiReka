@@ -1,4 +1,12 @@
-import { BOOK, COVER_OVERHANG, PAINT_ASPECT, SLOT_ASPECT, SLOT_CORE } from './assets'
+import {
+  BOOK,
+  COVER_MASK,
+  COVER_OVERHANG,
+  COVER_RULE,
+  MASK,
+  PAINT_ASPECT,
+  SLOT_ASPECT,
+} from './assets'
 
 // ── Scroll timeline ──────────────────────────────────────────────────────
 //
@@ -141,16 +149,23 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
 
   const pageW = right.w
   const pageH = right.h
-  // The blot spans ~85 % of the cover inside its gold rule and half its
-  // height: under the title, clear of the bottom rule.
-  const slotW = coverBox.w * 0.85
-  const slotH = slotW / SLOT_ASPECT
-  const slot = {
-    x: coverBox.w * 0.5 - slotW / 2,
-    y: coverBox.h * 0.605 - slotH / 2,
-    w: slotW,
-    h: slotH,
+  // 'blot': ~85 % of the cover inside its gold rule and half its height,
+  // under the title, clear of the bottom rule. 'rise': flush inside the
+  // rule at the sides and bottom, up to a little under the title.
+  let slot: Rect
+  if (COVER_MASK === 'rise') {
+    const sx = coverBox.w * COVER_RULE.side
+    const bottom = coverBox.h * (1 - COVER_RULE.bottom)
+    const h = coverBox.h * 0.56
+    slot = { x: sx, y: bottom - h, w: coverBox.w - 2 * sx, h }
+  } else {
+    const w = coverBox.w * 0.85
+    const h = w / SLOT_ASPECT
+    slot = { x: coverBox.w * 0.5 - w / 2, y: coverBox.h * 0.605 - h / 2, w, h }
   }
+  const slotW = slot.w
+  const slotH = slot.h
+  const slotAspect = slotW / slotH
 
   const focal = { x: artLeft + artW * 0.47, y: artTop + artH * 0.56 }
   const blotLocalW = artW * 0.5
@@ -163,8 +178,8 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     Math.hypot(focal.x, vh - focal.y),
     Math.hypot(vw - focal.x, vh - focal.y)
   )
-  const startH = (far / SLOT_CORE) * 1.08
-  const blotStart = { w: startH * SLOT_ASPECT, h: startH }
+  const startH = (far / MASK.core) * 1.08
+  const blotStart = { w: startH * slotAspect, h: startH }
 
   return {
     vw,
@@ -209,5 +224,5 @@ export function paintingTransform(g: PassportGeometry, k: number) {
 /** Blot size at mask progress m: shrinks geometrically, so it feels even. */
 export function blotSize(g: PassportGeometry, m: number) {
   const w = g.blotStart.w * Math.pow(g.blotLocal.w / g.blotStart.w, m)
-  return { w, h: w / SLOT_ASPECT }
+  return { w, h: w * (g.blotLocal.h / g.blotLocal.w) }
 }
