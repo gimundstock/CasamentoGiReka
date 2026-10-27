@@ -13,6 +13,8 @@ export interface GuideEntry {
   address?: string
   price?: string
   href?: string
+  /** i18n key (under city.passport) for the link label. */
+  linkKey?: 'more' | 'map' | 'airbnb'
 }
 
 type Lang = 'pt' | 'en'
@@ -36,6 +38,7 @@ export function sectionEntries(key: SectionKey, lang: Lang): GuideEntry[] {
         address: r.address,
         price: pt ? r.priceRange : r.priceRange_en,
         href: r.url || undefined,
+        linkKey: 'map',
       }))
     case 'transport':
       return g.transport.map((t) => ({
@@ -49,6 +52,7 @@ export function sectionEntries(key: SectionKey, lang: Lang): GuideEntry[] {
         address: h.address,
         price: pt ? h.priceRange : h.priceRange_en,
         href: h.url || undefined,
+        linkKey: h.url.includes('airbnb') ? 'airbnb' : 'more',
       }))
   }
 }

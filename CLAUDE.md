@@ -7,7 +7,7 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS + custom wildflower SVG decorations
 - **i18n**: i18next + react-i18next (PT/EN)
-- **Data/API**: Google Sheets (5 tabs) + Google Apps Script Web App
+- **Data/API**: Google Sheets (5 tabs; Cards added for gift cards) + Google Apps Script Web App
 - **Email**: Apps Script → Gmail (500/day free)
 - **PIX QR**: custom EMV payload builder (`src/utils/pix.ts`) + react-qrcode-logo
 - **Linting/Formatting**: ESLint 9 (flat config) + Prettier
@@ -24,6 +24,7 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 1. **Guests** — guestId, groupName, language, attendees (comma-sep), hasPhoto
 2. **RSVPs** — timestamp, guestId, groupName, attendeesJson, menuChoicesJson, songRequest, message
 3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice, cardMessage
+4. **Cards** — timestamp, guestId, groupName, giftName, theme, from, message (the card a guest writes after buying a gift)
 
 The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Availability is derived from which cotaIds appear in the `selectedCotas` column of the Orders tab.
 
@@ -31,6 +32,7 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
 - `GET ?action=getGuest&id=X` or `?action=getGuest&name=X` (exact normalized match, see `nameKey` in Code.gs)
 - `GET ?action=getSoldCotas` — returns `{ sold: string[] }` of cotaIds present in Orders
 - `POST {action:'purchaseGift', guestId, giftId, giftName, selectedCotaIds, selectedCotaLabels, totalPrice, guestEmail, cardMessage}`
+- `POST {action:'submitCard', guestId, giftName, theme, from, message}`
 - `POST {action:'submitRSVP', guestId, attendeesJson, menuChoicesJson, songRequest, message}`
 
 ## Scripts

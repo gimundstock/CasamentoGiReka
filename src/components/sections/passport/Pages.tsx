@@ -368,7 +368,7 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
           className="font-sans text-forest-deep mt-[0.5em] inline-block border-b pb-[0.1em] text-[0.58em] tracking-[0.3em] uppercase"
           style={{ borderColor: GOLD }}
         >
-          {t('city.passport.more')}
+          {t(`city.passport.${entry.linkKey ?? 'more'}`)}
         </a>
       )}
     </article>

@@ -524,10 +524,9 @@ export function HeroBigDay({ holder }: { holder?: string }) {
                 </dt>
                 <dd className="font-sans tabular-nums mt-2 text-base leading-tight md:text-xl">
                   {dateStr}
-                </dd>
-                <span className="font-sans mt-3 inline-block border-b border-transparent pb-0.5 text-[0.6rem] tracking-[0.3em]">
+                  <br />
                   {CONFIG.wedding.time}
-                </span>
+                </dd>
               </div>
               <div>
                 <dt className="font-sans text-[0.6rem] tracking-[0.35em] uppercase opacity-70 md:text-xs">
