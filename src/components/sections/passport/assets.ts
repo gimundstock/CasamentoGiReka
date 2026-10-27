@@ -82,7 +82,7 @@ export const MASK = {
  * cover.webp's inner gold rule, as fractions of the cover: its side, top and
  * bottom insets, and its corner radius. The painting lives inside it.
  */
-export const COVER_RULE = { side: 0.04, top: 0.028, bottom: 0.028, radius: 0.03 }
+export const COVER_RULE = { side: 0.029, top: 0.028, bottom: 0.022, radius: 0.022 }
 
 /**
  * The watercolor cathedral, standing on the far hills at the right of the

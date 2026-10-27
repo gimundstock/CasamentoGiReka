@@ -464,13 +464,15 @@ function BlankPage() {
 /** A buriti palm standing on the page, nothing else. */
 function BuritiPage() {
   return (
-    <div className="flex h-full items-end justify-center px-[10%] pt-[10%] pb-[9%]">
+    // Growing from the bottom: the trunk (cut straight at its base) stands
+    // on the page's lower edge.
+    <div className="flex h-full items-end justify-center px-[8%]">
       <img
         src={ASSETS.buriti}
         alt=""
         aria-hidden
         draggable={false}
-        className="h-[76%] w-auto max-w-full object-contain select-none"
+        className="h-[90%] w-auto max-w-full object-contain object-bottom select-none"
       />
     </div>
   )

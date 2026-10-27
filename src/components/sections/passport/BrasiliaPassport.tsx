@@ -169,11 +169,6 @@ export function BrasiliaPassport({
   const riseRef = useRef<HTMLDivElement>(null)
   const blotRef = useRef<HTMLDivElement>(null)
   const paintRef = useRef<HTMLDivElement>(null)
-  const swapFix = useRef({ x: 0, y: 0, done: false })
-  // A new layout: measure the hand-over again.
-  useEffect(() => {
-    swapFix.current = { x: 0, y: 0, done: false }
-  }, [g])
   const baseRef = useRef<HTMLDivElement>(null)
   const insideRef = useRef<HTMLDivElement>(null)
   const chromeRef = useRef<HTMLDivElement>(null)
@@ -264,31 +259,7 @@ export function BrasiliaPassport({
         // The blot window: a static mask; only its scale changes.
         setMask(blotRef.current, vs.blotMasked ? MASK.blot.image : 'none', true)
         if (blotRef.current) blotRef.current.style.transform = vs.window
-        const paint = paintRef.current
-        if (paint) {
-          // Hand-over: measured once, the copy is nudged onto the stage's
-          // painting to the pixel (layout rounding differs between the two
-          // trees); the nudge fades out as the painting shrinks.
-          const fix = swapFix.current
-          if (!fix.done && v >= PHASE.swap - 2) {
-            const stage = document.querySelector<HTMLElement>(`[data-cerrado-paint]`)
-            const img = paint.querySelector('img')
-            if (stage && img) {
-              paint.style.transform = vs.paint
-              const a = stage.getBoundingClientRect()
-              const b = img.getBoundingClientRect()
-              fix.x = a.left - b.left
-              fix.y = a.top - b.top
-              fix.done = true
-            }
-          }
-          const k = 1 - vs.shrink
-          paint.style.transform =
-            k > 0 && (fix.x || fix.y)
-              ? // In the window's (scaled) space: divide by its scale.
-                `translate(${((fix.x * k) / vs.scale).toFixed(4)}px, ${((fix.y * k) / vs.scale).toFixed(4)}px) ${vs.paint}`
-              : vs.paint
-        }
+        if (paintRef.current) paintRef.current.style.transform = vs.paint
         // The rise shape, during the bleed.
         const rise = riseRef.current
         setMask(rise, vs.riseMasked ? MASK.rise.image : 'none', false)

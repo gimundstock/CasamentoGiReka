@@ -196,11 +196,11 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
   // The rise shape reaches a little past the frame at the sides and bottom
   // (the mask's own edge pixels are soft): clipped to the frame's rounded
   // rect, the paint meets the gold rule exactly.
-  const riseH = coverBox.h * 0.555
+  const riseH = coverBox.h * 0.592
   const rise = {
-    x: inner.x - inner.w * 0.03,
-    y: inner.y + inner.h + riseH * 0.03 - riseH,
-    w: inner.w * 1.06,
+    x: inner.x - inner.w * 0.07,
+    y: inner.y + inner.h + riseH * 0.09 - riseH,
+    w: inner.w * 1.14,
     h: riseH,
   }
   // Start of the bleed: a rise box whose opaque part (below its soft top)
