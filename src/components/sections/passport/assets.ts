@@ -102,6 +102,8 @@ export const ASSETS = {
   // Inside of the front cover: artwork only, shown full-bleed with no text.
   // A placeholder — the final, more elaborate inside-cover art replaces it.
   coverInside: passport('cover-inside.webp'),
+  /** The back board: cover-inside.webp's band, mirrored, no art. */
+  backBoard: passport('back-board.webp'),
   paper: passport('paper.webp'),
   blotMask: MASK.blot.image,
   // One per chapter opener; their soft watercolor edges are in the art.

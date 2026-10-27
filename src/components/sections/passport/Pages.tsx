@@ -94,11 +94,11 @@ export function layer(
   r: Rect,
   side: Side,
   d: string,
-  r0: number,
+  r0: number | string,
   spineR: number | string = 0
 ): CSSProperties {
   const g = (n: number) => `${n.toFixed(2)}px`
-  const out = `calc(${g(r0)} + ${d})`
+  const out = `calc(${typeof r0 === 'number' ? g(r0) : r0} + ${d})`
   const sp = typeof spineR === 'number' ? g(spineR) : spineR
   return {
     left: side === 'right' ? r.x : `calc(${g(r.x)} - ${d})`,
@@ -130,7 +130,7 @@ export function PageStack({
   side: Side
   lines: number
   step: string
-  r0: number
+  r0: number | string
   spineR?: number | string
 }) {
   return (
@@ -150,51 +150,59 @@ export function PageStack({
   )
 }
 
+/** Corner radius of the board art (cover-inside.webp), as a fraction of its width: 88 / 981. */
+export const BOARD_CORNER = 0.09
+
 /**
- * A board of the book — the ONE way both are drawn, so they are mirror
- * images: the inside of the front cover (lying open, left of the spine) and
- * the back board (under the right pages). Light board from cover-inside.webp,
- * mirrored on the right (its rule is the edge; its sprig lands on the left
- * board's outer bottom corner and hides under the pages on the right),
- * square at the spine, round outer corners (`r0`). `d` grows it past the
- * cover's edge while the book is shut (see `layer`).
+ * The inside of the front cover (left of the spine, open): cover-inside.webp
+ * exactly as painted — its own rounded outer corners, square at the spine,
+ * its turn-in band. No clipping; the shadow follows its shape.
  */
-export function Board({
-  rect,
-  side,
-  r0,
-  d = '0px',
-  spineR = 0,
-  children,
-}: {
-  rect: Rect
-  side: Side
-  r0: number
-  d?: string
-  /** Radius at the spine: 0 in an open spread; rounded when shut or alone (phones). */
-  spineR?: number | string
-  children?: ReactNode
-}) {
+export function InsideBoard({ rect, children }: { rect: Rect; children?: ReactNode }) {
+  const r = rect.w * BOARD_CORNER
   return (
-    <div
-      className="absolute overflow-hidden"
-      style={{
-        ...layer(rect, side, d, r0, spineR),
-        // Only once open (--open): shut, the cover casts the book's shadow.
-        boxShadow: '0 18px 34px -18px rgba(110, 78, 30, calc(0.35 * var(--open, 1)))',
-      }}
-    >
+    <div className="absolute" style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}>
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
-          // Its own printed rule is the board's edge; the cream beneath
-          // squares off its rounded spine corners.
-          background: `url(${ASSETS.coverInside}) center / 100% 100% no-repeat, ${BOARD_CREAM}`,
-          transform: side === 'right' ? 'scaleX(-1)' : undefined,
+          borderRadius: `${r}px 0 0 ${r}px`,
+          boxShadow: '0 18px 34px -18px rgba(110, 78, 30, calc(0.35 * var(--open, 1)))',
         }}
       />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{ background: `url(${ASSETS.coverInside}) center / 100% 100% no-repeat` }}
+      />
       {children && <div className="relative h-full">{children}</div>}
+    </div>
+  )
+}
+
+/**
+ * The back board, under the right pages: the mirror of the inside board —
+ * same size, band, corners and shadow — without its art (back-board.webp,
+ * built from the band alone). Open, its own shape shows (the clip, at
+ * --board-r, matches it); shut, it grows by `d` past the cover and rounds
+ * with it (see `layer`), cream filling its corners.
+ */
+export function BackBoard({ rect, d, spineR }: { rect: Rect; d: string; spineR: number | string }) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute overflow-hidden"
+      style={{
+        ...layer(rect, 'right', d, 'var(--board-r)', spineR),
+        boxShadow: '0 18px 34px -18px rgba(110, 78, 30, calc(0.35 * var(--open, 1)))',
+      }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `url(${ASSETS.backBoard}) center / 100% 100% no-repeat, ${BOARD_CREAM}`,
+        }}
+      />
     </div>
   )
 }
