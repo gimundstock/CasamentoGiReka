@@ -2,6 +2,7 @@
 // (The back board and the page block's thickness are CSS.)
 //
 //   cover.webp         front cover: light ivory, double thin gold rule
+//   back-inside.webp   inside of the back cover (Congresso, lake), right board
 //   cover-inside.webp  inside of the cover: single gold rule, one sprig in the
 //                      bottom-left (the outer corner once the cover lies open)
 //   paper.webp         every page — lying flat or turning
@@ -20,8 +21,13 @@ export const passport = (file: string) => `${BASE}passport/${file}`
 export const PAINT_SRC = `${BASE}cerrado/paint.webp`
 export const PAINT_ASPECT = 1376 / 768
 
-/** How far the covers overhang the pages (top, bottom, fore-edge), in BOOK units. */
-export const COVER_OVERHANG = 7
+/**
+ * How far the boards reach past the pages (top, bottom, fore-edge), in BOOK
+ * units — the "squares" of a hardcover: the pages sit inside the boards'
+ * turn-in band, their edges on its inner gold line (cover-inside.webp: ~2 %
+ * of its height, ~3 % of its width).
+ */
+export const COVER_OVERHANG = 20
 const PAGE = { w: 682, h: 925 }
 /** Room around the boards for the page block's thickness. */
 const EDGE = 12
@@ -102,8 +108,8 @@ export const ASSETS = {
   // Inside of the front cover: artwork only, shown full-bleed with no text.
   // A placeholder — the final, more elaborate inside-cover art replaces it.
   coverInside: passport('cover-inside.webp'),
-  /** The back board: cover-inside.webp's band, mirrored, no art. */
-  backBoard: passport('back-board.webp'),
+  /** The inside of the back cover (right board), as painted. */
+  backInside: passport('back-inside.webp'),
   paper: passport('paper.webp'),
   blotMask: MASK.blot.image,
   // One per chapter opener; their soft watercolor edges are in the art.

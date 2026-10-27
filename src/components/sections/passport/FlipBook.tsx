@@ -84,6 +84,10 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
     host.style.width = '100%'
     host.style.height = '100%'
     frame.appendChild(host)
+    // Touch screens may swipe pages (the library's own gesture, which leaves
+    // vertical scrolling alone); with a mouse, pages turn by click only — no
+    // dragging, no corner peeling on hover.
+    const touch = window.matchMedia('(pointer: coarse)').matches
     const pf = new PageFlip(host, {
       width,
       height,
@@ -92,9 +96,10 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
       usePortrait: portrait,
       showCover: false,
       drawShadow: true,
-      maxShadowOpacity: 0.35,
+      maxShadowOpacity: 0.3,
       flippingTime,
-      showPageCorners: true,
+      useMouseEvents: touch,
+      showPageCorners: false,
       disableFlipByClick: true,
       mobileScrollSupport: true,
     })
@@ -115,6 +120,7 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
       if (fresh > 0) {
         fresh--
         draw()
+        paperShadows(host)
       }
     }
     render.update = () => {
@@ -129,7 +135,20 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
     })
     pf.on('changeState', kick)
     pfRef.current = pf
+    // Mouse: a click on a page turns it (left page back, right page on),
+    // unless it lands on a link or a button in the page.
+    const onClick = (e: MouseEvent) => {
+      if (touch || pf.getState() !== 'read') return
+      if ((e.target as HTMLElement).closest('a, button')) return
+      const r = host.getBoundingClientRect()
+      const back = e.clientX - r.left < r.width / 2
+      kick()
+      if (back) pf.flipPrev()
+      else pf.flipNext()
+    }
+    host.addEventListener('click', onClick)
     return () => {
+      host.removeEventListener('click', onClick)
       pf.destroy()
       pfRef.current = null
     }
@@ -153,8 +172,35 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
 
   return (
     <div className={className} style={style}>
-      <div ref={hostRef} style={{ width: portrait ? width : 2 * width, height }} />
+      {/* No text selection: a mouse drag over the pages must do nothing. */}
+      <div
+        ref={hostRef}
+        className="select-none"
+        style={{ width: portrait ? width : 2 * width, height }}
+      />
       {pages.map((el, i) => createPortal(renderPage(i), el, String(i)))}
     </div>
   )
 })
+
+/**
+ * The library's shadows are black gradients, and the one on the curling page
+ * has a light band between two dark ones: it reads as metal. Re-tint them
+ * warm, and make the curl's a single soft falloff from the fold.
+ */
+function paperShadows(host: HTMLElement) {
+  const warm = (bg: string) => bg.replace(/rgba\(0, 0, 0,/g, 'rgba(120, 86, 40,')
+  for (const cls of ['stf__outerShadow', 'stf__hardShadow', 'stf__hardInnerShadow']) {
+    const el = host.querySelector<HTMLElement>(`.${cls}`)
+    if (el && el.style.background) el.style.background = warm(el.style.background)
+  }
+  const inner = host.querySelector<HTMLElement>('.stf__innerShadow')
+  const bg = inner?.style.background
+  if (inner && bg) {
+    const dir = /linear-gradient\(([^,]+),/.exec(bg)?.[1] ?? 'to right'
+    const op = Number(/rgba\(\d+, \d+, \d+, ([\d.]+)\)/.exec(bg)?.[1] ?? 0)
+    inner.style.background =
+      `linear-gradient(${dir}, rgba(120, 86, 40, ${(op * 0.7).toFixed(3)}) 0%, ` +
+      `rgba(120, 86, 40, ${(op * 0.25).toFixed(3)}) 25%, rgba(120, 86, 40, 0) 60%)`
+  }
+}

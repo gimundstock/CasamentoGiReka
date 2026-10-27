@@ -63,6 +63,8 @@ export type PageSpec =
   | { kind: 'opener'; section: SectionKey }
   | { kind: 'entries'; section: SectionKey; from: number; to: number }
   | { kind: 'blank' }
+  /** The inside of the back cover: the book's last stop. */
+  | { kind: 'back' }
 
 /** Entry ranges [from, to) per page, for each chapter. */
 export type Chunks = Record<SectionKey, [number, number][]>
@@ -98,6 +100,14 @@ export function buildBook(chunks: Chunks): Book {
       spreads.push([own[i], own[i + 1] ?? { kind: 'blank' }])
     }
   }
+  // The end, as in a real book: the last page on the left facing the inside
+  // of the back cover — on the last spread if its right page is free,
+  // else on a spread of its own.
+  const back: PageSpec = { kind: 'back' }
+  pages.push(back)
+  const last = spreads[spreads.length - 1]
+  if (last[1].kind === 'blank') last[1] = back
+  else spreads.push([{ kind: 'blank' }, back])
   return { pages, spreads, firstSpread, firstPage }
 }
 

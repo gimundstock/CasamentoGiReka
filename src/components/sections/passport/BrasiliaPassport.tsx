@@ -18,6 +18,7 @@ import { PassportCover } from './PassportCover'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
   BackBoard,
+  BACK_CORNER,
   BOARD_CORNER,
   InsideBoard,
   EntriesFrame,
@@ -192,10 +193,22 @@ export function BrasiliaPassport({
       const vignette = vignetteRef.current
       // Boards from the cover's corner (shut) to the board art's own (open);
       // the pages concentric inside them.
+      /** One page edge in the open book's page block, px. */
+      const hairline = Math.max(1, 1.6 * g.k)
       const setRadii = (o: number) => {
-        const boardR = g.radius + (g.coverBox.w * BOARD_CORNER - g.radius) * o
-        bookEl.style.setProperty('--board-r', `${boardR.toFixed(2)}px`)
-        bookEl.style.setProperty('--page-r', `${(boardR - g.overhang).toFixed(2)}px`)
+        const lerp = (to: number) => g.radius + (to - g.radius) * o
+        const w = g.coverBox.w
+        bookEl.style.setProperty('--board-r', `${lerp(w * BOARD_CORNER).toFixed(2)}px`)
+        bookEl.style.setProperty('--back-r', `${lerp(w * BACK_CORNER).toFixed(2)}px`)
+        // Pages concentric with the board they lie on (left / right).
+        bookEl.style.setProperty(
+          '--page-r',
+          `${(lerp(w * BOARD_CORNER) - g.overhang).toFixed(2)}px`
+        )
+        bookEl.style.setProperty(
+          '--page-rr',
+          `${(lerp(w * BACK_CORNER) - g.overhang).toFixed(2)}px`
+        )
       }
       const show = (el: HTMLElement | null, o: number) => {
         if (!el) return
@@ -214,7 +227,7 @@ export function BrasiliaPassport({
         bookEl.style.setProperty('--bd', '0px')
         bookEl.style.setProperty('--open', '1')
         setRadii(1)
-        bookEl.style.setProperty('--ls', `${((g.overhang * 0.85) / 4).toFixed(2)}px`)
+        bookEl.style.setProperty('--ls', `${hairline.toFixed(2)}px`)
         show(inside, 1)
         chrome.style.opacity = '1'
         if (tabsRef.current) tabsRef.current.style.opacity = '1'
@@ -292,7 +305,10 @@ export function BrasiliaPassport({
       const boardD = Math.max(3, 5 * g.k) * (1 - o)
       bookEl.style.setProperty('--bd', `${boardD.toFixed(2)}px`)
       bookEl.style.setProperty('--open', o.toFixed(3))
-      bookEl.style.setProperty('--ls', `${((g.overhang * 0.85 + boardD * 0.55) / 4).toFixed(2)}px`)
+      // Shut, the page block fills out to just past the cover's edge (only
+      // that sliver shows); open, it is a few hairline page edges.
+      const shutStep = (g.overhang + boardD * 0.55) / 4
+      bookEl.style.setProperty('--ls', `${(shutStep + (hairline - shutStep) * o).toFixed(2)}px`)
       // Shut, the layers under the cover round at the spine with the cover
       // (so only a sliver following its curve shows at the bottom); open,
       // they square off to meet their mirror at the spine.
@@ -348,6 +364,9 @@ export function BrasiliaPassport({
         </div>
       )
     }
+    // The inside of the back cover is the board itself, under an empty leaf
+    // (phones too: the last page is the board).
+    if (p.kind === 'back') return null
     const side: Side = spread && i % 2 === 0 ? 'left' : 'right'
     return (
       <Paper side={side}>
@@ -414,7 +433,7 @@ export function BrasiliaPassport({
           width: g.book.w,
           height: g.book.h,
           // Phones: a page stands alone, round on every corner.
-          ['--spine-r' as string]: spread ? undefined : 'var(--page-r)',
+          ['--spine-r' as string]: spread ? undefined : 'var(--page-rr)',
           // Mild, so the turning cover barely grows past the book.
           perspective: W * 14,
           fontSize: g.fontSize,
@@ -481,8 +500,8 @@ export function BrasiliaPassport({
             side="right"
             lines={rightLines}
             step={step}
-            r0="var(--page-r)"
-            spineR={spread ? 'var(--sr, 0px)' : 'var(--page-r)'}
+            r0="var(--page-rr)"
+            spineR={spread ? 'var(--sr, 0px)' : 'var(--page-rr)'}
           />
           {/* Index tabs: tucked in between the pages (the page block and the
               pages lie over their inner end), on the book's own paper. Only

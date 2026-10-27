@@ -25,7 +25,7 @@ export const PAPER_BG = `linear-gradient(${PAPER_WASH}, ${PAPER_WASH}), url(${AS
 export const pageRadius = (side: Side) =>
   side === 'left'
     ? 'var(--page-r, 0.8em) var(--spine-r, 0.15em) var(--spine-r, 0.15em) var(--page-r, 0.8em)'
-    : 'var(--spine-r, 0.15em) var(--page-r, 0.8em) var(--page-r, 0.8em) var(--spine-r, 0.15em)'
+    : 'var(--spine-r, 0.15em) var(--page-rr, 0.8em) var(--page-rr, 0.8em) var(--spine-r, 0.15em)'
 
 /** Shading toward the spine, so a page reads as bound in. */
 function gutter(side: Side): string {
@@ -143,6 +143,12 @@ export function PageStack({
           style={{
             ...layer(page, side, `calc(${step} * ${n})`, r0, spineR),
             background: STACK_TONES[n - 1],
+            // Each sheet's edge a hairline darker; the outermost casts a
+            // faint shadow onto the board.
+            boxShadow:
+              n === lines
+                ? 'inset 0 0 0 0.5px rgba(150, 115, 65, 0.35), 0 1px 3px rgba(110, 78, 30, 0.22)'
+                : 'inset 0 0 0 0.5px rgba(150, 115, 65, 0.3)',
           }}
         />
       ))}
@@ -150,8 +156,10 @@ export function PageStack({
   )
 }
 
-/** Corner radius of the board art (cover-inside.webp), as a fraction of its width: 88 / 981. */
+/** Corner radius of the board art, as a fraction of its width: cover-inside.webp (88 / 981). */
 export const BOARD_CORNER = 0.09
+/** back-inside.webp's corner radius (80 / 1001). */
+export const BACK_CORNER = 0.08
 
 /**
  * The inside of the front cover (left of the spine, open): cover-inside.webp
@@ -181,11 +189,13 @@ export function InsideBoard({ rect, children }: { rect: Rect; children?: ReactNo
 }
 
 /**
- * The back board, under the right pages: the mirror of the inside board —
- * same size, band, corners and shadow — without its art (back-board.webp,
- * built from the band alone). Open, its own shape shows (the clip, at
- * --board-r, matches it); shut, it grows by `d` past the cover and rounds
- * with it (see `layer`), cream filling its corners.
+ * The inside of the back cover, under the right pages: back-inside.webp as
+ * painted (not mirrored: the Congresso stands as painted), fitted to the
+ * same footprint as the inside of the front cover. Its art shows only on the
+ * book's last spread; while reading, the page block covers its endpaper.
+ * Open, its own shape shows (the clip, at --back-r, matches it); shut, it
+ * grows by `d` past the cover and rounds with it (see `layer`), cream
+ * filling its corners.
  */
 export function BackBoard({ rect, d, spineR }: { rect: Rect; d: string; spineR: number | string }) {
   return (
@@ -193,14 +203,14 @@ export function BackBoard({ rect, d, spineR }: { rect: Rect; d: string; spineR: 
       aria-hidden
       className="pointer-events-none absolute overflow-hidden"
       style={{
-        ...layer(rect, 'right', d, 'var(--board-r)', spineR),
+        ...layer(rect, 'right', d, 'var(--back-r)', spineR),
         boxShadow: '0 18px 34px -18px rgba(110, 78, 30, calc(0.35 * var(--open, 1)))',
       }}
     >
       <div
         className="absolute inset-0"
         style={{
-          background: `url(${ASSETS.backBoard}) center / 100% 100% no-repeat, ${BOARD_CREAM}`,
+          background: `url(${ASSETS.backInside}) center / 100% 100% no-repeat, ${BOARD_CREAM}`,
         }}
       />
     </div>
@@ -475,6 +485,7 @@ export function PageContent({
 }) {
   switch (spec.kind) {
     case 'inside':
+    case 'back':
       return null
     case 'holder':
       return <HolderPage holder={holder} />
