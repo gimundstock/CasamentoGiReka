@@ -1,3 +1,4 @@
+import { EMBOSS_SHADOW } from '../../ui/emboss'
 import type { CSSProperties, Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ASSETS, CATHEDRAL, PAINT_SRC } from './assets'
@@ -5,7 +6,7 @@ import { paintingBox, vignetteBox, type PassportGeometry } from './geometry'
 import { ScriptText } from './Pages'
 
 /** Font size of the cover's script title, as a fraction of the cover's width. */
-const TITLE_EM = 0.16
+const TITLE_EM = 0.145
 
 /**
  * The passport's front cover.
@@ -51,7 +52,13 @@ export function PassportCover({
       <div
         ref={boardRef}
         className="absolute inset-0"
-        style={{ background: `url(${ASSETS.cover}) center / 100% 100% no-repeat`, opacity: 0 }}
+        style={{
+          background: `url(${ASSETS.cover}) center / 100% 100% no-repeat`,
+          // The shut book's shadow, cast by the cover: it fades in with it.
+          borderRadius: g.radius,
+          boxShadow: '0 18px 34px -18px rgba(110, 78, 30, 0.35)',
+          opacity: 0,
+        }}
       />
 
       {/* Vignette — the painting (see above). */}
@@ -105,14 +112,17 @@ export function PassportCover({
       <div ref={titleRef} className="absolute inset-0" style={{ opacity: 0 }}>
         <div
           className="absolute inset-x-0 flex flex-col items-center text-center"
-          style={{ top: g.coverBox.h * 0.05, fontSize: g.coverBox.w * TITLE_EM }}
+          style={{ top: g.coverBox.h * 0.095, fontSize: g.coverBox.w * TITLE_EM }}
         >
           {/* -mr cancels the tracking after the last letter, so it centers. */}
-          <p className="font-sans text-forest-deep/80 -mr-[0.45em] text-[0.17em] tracking-[0.45em] uppercase">
+          <p className="font-sans text-forest-deep/80 -mr-[0.62em] text-[0.17em] tracking-[0.62em] uppercase">
             {t('city.passport.kicker')}
           </p>
           {/* Room above: the script's capitals swing high. */}
-          <p className="font-script text-honey mt-[0.4em] leading-[1.2]">
+          <p
+            className="font-script text-honey mt-[0.55em] leading-[1.2] tracking-[0.02em]"
+            style={{ textShadow: EMBOSS_SHADOW }}
+          >
             <ScriptText>{t('city.passport.title')}</ScriptText>
           </p>
         </div>

@@ -8,6 +8,7 @@
 //   paper2.webp        every page — lying flat or turning: cream, a faint toile
 //                      of Brasília's monuments (a passport's security pattern)
 //   ipe-corner.webp    the ipê spray in the holder page's top corner
+//   paper.webp         the index tabs' plain paper
 //   blot-mask.webp     the watercolor blot the painting shrinks into (alpha mask)
 //
 //   blot-mask-2.webp   the 'rise' shape: straight sides and bottom, soft top
@@ -113,6 +114,8 @@ export const ASSETS = {
   backInside: passport('back-inside.webp'),
   paper: passport('paper2.webp'),
   ipeCorner: passport('ipe-corner.webp'),
+  /** The index tabs' paper. */
+  tabPaper: passport('paper.webp'),
   blotMask: MASK.blot.image,
   // One per chapter opener; their soft watercolor edges are in the art.
   illustrations: {

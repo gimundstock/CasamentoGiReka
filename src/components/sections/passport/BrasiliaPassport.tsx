@@ -23,7 +23,7 @@ import {
   InsideBoard,
   EntriesFrame,
   EntryItem,
-  PAPER_BG,
+  TAB_PAPER,
   paperFor,
   PageContent,
   Paper,
@@ -397,7 +397,6 @@ export function BrasiliaPassport({
   // Layers under the cover, all with corners concentric with its own: the
   // pages (radius --page-r), the page block (four steps reaching just
   // past the cover's edge) and the back board (a little further).
-  const R = g.radius
   // While shut, the back board and the page block peek past the cover
   // (--bd, --ls: set by the scroll, back to flush as the book opens).
   const step = 'var(--ls, 1px)'
@@ -532,7 +531,7 @@ export function BrasiliaPassport({
                     borderRadius: '0 0.6em 0.6em 0',
                     border: '1px solid rgba(190, 150, 80, 0.5)',
                     borderLeft: 'none',
-                    background: PAPER_BG,
+                    background: TAB_PAPER,
                     color: active ? '#B07A26' : '#8A7458',
                     boxShadow: '1px 1px 3px -1px rgba(110, 78, 30, 0.28)',
                   }}
@@ -570,15 +569,6 @@ export function BrasiliaPassport({
           }}
         >
           <div ref={frontRef} className="absolute inset-0" style={hidden3d}>
-            {/* The shut book's shadow, cast by the cover. */}
-            <div
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                borderRadius: R,
-                boxShadow: '0 18px 34px -18px rgba(110, 78, 30, 0.35)',
-              }}
-            />
             <PassportCover
               g={g}
               boardRef={boardRef}

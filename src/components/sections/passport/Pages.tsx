@@ -1,3 +1,4 @@
+import { EMBOSS_SHADOW } from '../../ui/emboss'
 import { forwardRef, type CSSProperties, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../../content.config'
@@ -18,6 +19,8 @@ export type Stock = 'page' | 'board'
 const wash = (a: number) => `linear-gradient(rgba(251, 246, 236, ${a}), rgba(251, 246, 236, ${a}))`
 /** The paper (paper2.webp: cream with a faint toile of Brasília). */
 export const PAPER_BG = `${wash(0.35)}, url(${ASSETS.paper}) center / cover`
+/** The index tabs' paper: the earlier plain paper (paper.webp). */
+export const TAB_PAPER = `${wash(0.4)}, url(${ASSETS.tabPaper}) center / cover`
 /**
  * Where each page shows the (landscape) paper: varied by page, so facing
  * pages don't repeat the same motifs; fixed per page, so a turning leaf
@@ -398,7 +401,10 @@ function OpenerPage({ section, folio }: { section: SectionKey; folio: number }) 
   const { t } = useTranslation()
   return (
     <div className={`flex h-full flex-col ${PAD}`}>
-      <h3 className="font-script text-honey mt-[0.6em] text-[2.5em] leading-[1.35]">
+      <h3
+        className="font-script text-honey mt-[2.4em] text-[2.5em] leading-[1.35]"
+        style={{ textShadow: EMBOSS_SHADOW }}
+      >
         <ScriptText>{t(`city.passport.sections.${section}.title`)}</ScriptText>
       </h3>
       <p className="font-serif text-forest-deep/90 mt-[1.9em] text-[1.15em] leading-[1.38]">
@@ -432,7 +438,10 @@ function HolderPage({ holder }: { holder?: string }) {
         <p className="font-sans text-forest -mr-[0.42em] text-[0.62em] tracking-[0.42em] uppercase">
           {t('city.passport.holder')}
         </p>
-        <p className="font-script text-honey mt-[0.55em] text-[2.6em] leading-[1.4]">
+        <p
+          className="font-script text-honey mt-[0.55em] text-[2.6em] leading-[1.4]"
+          style={{ textShadow: EMBOSS_SHADOW }}
+        >
           <ScriptText>{holder || t('city.passport.holderFallback')}</ScriptText>
         </p>
         <p className="font-serif text-forest-deep/90 mt-[1.4em] max-w-[18em] text-[1.15em] leading-[1.45] italic">

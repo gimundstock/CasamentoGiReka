@@ -1,3 +1,4 @@
+import { EMBOSS_SHADOW } from '../ui/emboss'
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -438,8 +439,7 @@ function Emboss({ className, style }: { className?: string; style?: React.CSSPro
       className={`font-display pointer-events-none whitespace-nowrap leading-none select-none ${className ?? ''}`}
       style={{
         color: '#D89A35',
-        textShadow:
-          '0 1px 0 rgba(255, 250, 235, 0.9), 0 -1px 0 rgba(110, 80, 25, 0.35), 0 0 1px rgba(110, 80, 25, 0.2)',
+        textShadow: EMBOSS_SHADOW,
         ...style,
       }}
     >
