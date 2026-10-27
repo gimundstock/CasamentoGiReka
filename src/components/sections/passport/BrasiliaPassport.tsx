@@ -44,7 +44,7 @@ const FALLBACK_CHUNKS = Object.fromEntries(
 ) as Chunks
 
 /** How long one page takes to turn, ms. Slow, like a real leaf settling. */
-const FLIP_MS = 1100
+const FLIP_MS = 800
 
 const hidden3d: CSSProperties = {
   backfaceVisibility: 'hidden',
@@ -354,7 +354,24 @@ export function BrasiliaPassport({
     if (p.kind === 'inside') {
       // Phones: the inside of the cover is a page of its own, the same board
       // as the one under the pages, its corners round like theirs.
-      return spread ? null : (
+      // Spread: the board itself, cropped to the page and lined up exactly
+      // with the board beneath — opaque, so a page turning back to the first
+      // spread reveals the inside of the cover, not what lay there before.
+      if (spread) {
+        return (
+          <div className="absolute inset-0 overflow-hidden">
+            <InsideBoard
+              rect={{
+                x: g.insideBox.x - g.left.x,
+                y: g.insideBox.y - g.left.y,
+                w: g.insideBox.w,
+                h: g.insideBox.h,
+              }}
+            />
+          </div>
+        )
+      }
+      return (
         // As painted (round at its outer left), and round at the right too,
         // where a page standing alone has no spine.
         <div
@@ -365,9 +382,6 @@ export function BrasiliaPassport({
         </div>
       )
     }
-    // The inside of the back cover is the board itself, under an empty leaf
-    // (phones too: the last page is the board).
-    if (p.kind === 'back') return null
     const side: Side = spread && i % 2 === 0 ? 'left' : 'right'
     return (
       <Paper side={side} background={paperFor(i, p.kind === 'entries')}>

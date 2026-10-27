@@ -129,7 +129,8 @@ export function layer(
 /** cover-inside.webp's own cream, behind it at the spine corners. */
 const BOARD_CREAM = '#F8F1E4'
 
-const STACK_TONES = ['#EADFCB', '#FBF7EF', '#E4D9C3', '#F8F3E8']
+/** One even cream for the whole block: its sheets read as one edge. */
+const STACK_TONE = '#EFE4CF'
 
 /**
  * The page block beside a page: `lines` thin sheets (0–4), each a layer
@@ -159,13 +160,13 @@ export function PageStack({
           className="pointer-events-none absolute"
           style={{
             ...layer(page, side, `calc(${step} * ${n})`, r0, spineR),
-            background: STACK_TONES[n - 1],
-            // Each sheet's edge a hairline darker; the outermost casts a
-            // faint shadow onto the board.
+            background: STACK_TONE,
+            // Only the block's outer edge is drawn (one hairline, a faint
+            // shadow onto the board): the sheets inside it read as one.
             boxShadow:
               n === lines
                 ? 'inset 0 0 0 0.5px rgba(150, 115, 65, 0.35), 0 1px 3px rgba(110, 78, 30, 0.22)'
-                : 'inset 0 0 0 0.5px rgba(150, 115, 65, 0.3)',
+                : undefined,
           }}
         />
       ))}
@@ -475,7 +476,6 @@ export function PageContent({
 }) {
   switch (spec.kind) {
     case 'inside':
-    case 'back':
       return null
     case 'holder':
       return <HolderPage holder={holder} />
