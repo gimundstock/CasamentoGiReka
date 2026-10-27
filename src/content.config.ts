@@ -89,7 +89,6 @@ export const CONFIG = {
           'Boutique 5 estrelas no Setor Hoteleiro Norte, com rooftop panorâmico, piscina aquecida e decoração contemporânea. A poucos minutos a pé da Esplanada dos Ministérios.',
         description_en:
           'Five-star boutique in the North Hotel Sector with a panoramic rooftop, heated pool, and contemporary design. A short walk from the Esplanada dos Ministérios.',
-        stars: 5,
         priceRange: 'R$ 550–850/noite',
         priceRange_en: '~€90–140/night',
         url: '',
@@ -101,7 +100,6 @@ export const CONFIG = {
           'Clássico renovado no Setor Hoteleiro Norte, com apartamentos espaçosos, piscina coberta e restaurante no topo. Ótima base para explorar o Eixo Monumental.',
         description_en:
           'Renovated classic in the North Hotel Sector with spacious rooms, an indoor pool, and a rooftop restaurant. Great base for exploring the Monumental Axis.',
-        stars: 4,
         priceRange: 'R$ 380–600/noite',
         priceRange_en: '~€65–100/night',
         url: '',
@@ -113,7 +111,6 @@ export const CONFIG = {
           'Hotel internacional dentro do complexo Brasil 21, no Setor Hoteleiro Sul, com shopping, restaurantes, academia e spa no próprio prédio. Próximo ao Parque da Cidade.',
         description_en:
           'International hotel inside the Brasil 21 complex in the South Hotel Sector, with shopping, dining, gym, and spa on site. Close to Parque da Cidade.',
-        stars: 4,
         priceRange: 'R$ 400–650/noite',
         priceRange_en: '~€65–110/night',
         url: '',
@@ -125,7 +122,6 @@ export const CONFIG = {
           'Opção econômica ao lado do Aeroporto Internacional (BSB), com café da manhã incluso e shuttle para o terminal. Ideal para chegadas tarde ou voos cedo.',
         description_en:
           'Budget option next to Brasília International Airport (BSB), with breakfast included and a shuttle to the terminal. Ideal for late arrivals or early flights.',
-        stars: 3,
         priceRange: 'R$ 220–340/noite',
         priceRange_en: '~€35–55/night',
         url: '',
@@ -137,7 +133,6 @@ export const CONFIG = {
           'O primeiro hotel de Brasília, projetado por Oscar Niemeyer e inaugurado em 1958, à beira do Lago Paranoá. Totalmente restaurado, une arquitetura modernista histórica a um serviço cinco estrelas.',
         description_en:
           "Brasília's first hotel, designed by Oscar Niemeyer and opened in 1958 on the shore of Lake Paranoá. Fully restored, it pairs historic modernist architecture with five-star service.",
-        stars: 5,
         priceRange: 'a partir de R$ 370/noite',
         priceRange_en: 'from ~€60/night',
         url: '',

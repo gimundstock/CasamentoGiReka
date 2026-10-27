@@ -9,7 +9,6 @@ export interface GuideEntry {
   title: string
   /** Small line under the title (cuisine). */
   meta?: string
-  stars?: number
   description: string
   address?: string
   price?: string
@@ -46,7 +45,6 @@ export function sectionEntries(key: SectionKey, lang: Lang): GuideEntry[] {
     case 'hotels':
       return g.hotels.map((h) => ({
         title: h.name,
-        stars: h.stars,
         description: pt ? h.description_pt : h.description_en,
         address: h.address,
         price: pt ? h.priceRange : h.priceRange_en,

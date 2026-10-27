@@ -326,19 +326,9 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
   const { t } = useTranslation()
   return (
     <article className="border-t pt-[0.75em] pb-[0.8em]" style={{ borderColor: `${GOLD}55` }}>
-      <div className="flex items-baseline justify-between gap-[0.8em]">
-        <h4 className="font-sans text-forest-deep text-[0.95em] leading-tight tracking-[0.03em]">
-          {entry.title}
-        </h4>
-        {entry.stars ? (
-          <span
-            className="text-honey shrink-0 text-[0.7em] tracking-[0.15em]"
-            aria-label={`${entry.stars} ${t('city.stars')}`}
-          >
-            {'★'.repeat(entry.stars)}
-          </span>
-        ) : null}
-      </div>
+      <h4 className="font-sans text-forest-deep text-[0.95em] leading-tight tracking-[0.03em]">
+        {entry.title}
+      </h4>
       {entry.meta && (
         <p className="font-sans text-honey mt-[0.4em] text-[0.6em] tracking-[0.24em] uppercase">
           {entry.meta}

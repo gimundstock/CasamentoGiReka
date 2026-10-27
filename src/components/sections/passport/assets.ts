@@ -24,10 +24,10 @@ export const PAINT_ASPECT = 1376 / 768
 /**
  * How far the boards reach past the pages (top, bottom, fore-edge), in BOOK
  * units — the "squares" of a hardcover: the pages sit inside the boards'
- * turn-in band, their edges on its inner gold line (cover-inside.webp: ~2 %
+ * turn-in band, their edges just on its inner gold line (cover-inside.webp: ~2 %
  * of its height, ~3 % of its width).
  */
-export const COVER_OVERHANG = 20
+export const COVER_OVERHANG = 18.5
 const PAGE = { w: 682, h: 925 }
 /** Room around the boards for the page block's thickness. */
 const EDGE = 12
