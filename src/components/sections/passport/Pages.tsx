@@ -2,6 +2,7 @@ import { forwardRef, type CSSProperties, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../../content.config'
 import { ASSETS, type Illustration } from './assets'
+import type { Rect } from './geometry'
 import { sectionEntries, type GuideEntry, type PageSpec, type SectionKey } from './content'
 
 /** Which side of the spine a sheet lies on (phones show right-hand pages). */
@@ -17,9 +18,14 @@ const PAPER_WASH = 'rgba(252, 248, 240, 0.4)'
 /** The pages' paper: paper.webp under a cream wash that keeps its grain fine. */
 export const PAPER_BG = `linear-gradient(${PAPER_WASH}, ${PAPER_WASH}), url(${ASSETS.paper}) center / cover`
 
-/** Outer corners round, spine corners nearly square. */
+/**
+ * Outer corners round (--page-r, set on the book so pages nest concentric
+ * inside the cover's corners), spine corners nearly square.
+ */
 export const pageRadius = (side: Side) =>
-  side === 'left' ? '0.8em 0.15em 0.15em 0.8em' : '0.15em 0.8em 0.8em 0.15em'
+  side === 'left'
+    ? 'var(--page-r, 0.8em) var(--spine-r, 0.15em) var(--spine-r, 0.15em) var(--page-r, 0.8em)'
+    : 'var(--spine-r, 0.15em) var(--page-r, 0.8em) var(--page-r, 0.8em) var(--spine-r, 0.15em)'
 
 /** Shading toward the spine, so a page reads as bound in. */
 function gutter(side: Side): string {
@@ -78,52 +84,118 @@ export const Paper = forwardRef(function Paper(
 })
 
 /**
- * The page block's edge along a page's outer side: `lines` thin sheets
- * (0–4), each a hairline further out and a touch lower. Put on a box the
- * size of the page, under it.
+ * One layer of the book under a page: `r` (with outer corner radius `r0`)
+ * grown by `d` (a CSS length, so the scroll can drive it through custom
+ * properties) on its outer side and bottom only — never at the spine or the
+ * top. Its outer corners stay concentric with the box's (radius r0 + d about
+ * the same centres), so all the layers' edges run parallel round them.
  */
-export function pageStack(side: Side, lines: number, k: number): CSSProperties {
-  const d = side === 'left' ? -1 : 1
-  const u = Math.max(0.8, Math.min(1.4, k * 1.6))
-  const tones = ['#EADFCB', '#FAF5EB', '#E3D7C0', '#F7F1E5']
+export function layer(
+  r: Rect,
+  side: Side,
+  d: string,
+  r0: number,
+  spineR: number | string = 0
+): CSSProperties {
+  const g = (n: number) => `${n.toFixed(2)}px`
+  const out = `calc(${g(r0)} + ${d})`
+  const sp = typeof spineR === 'number' ? g(spineR) : spineR
   return {
-    borderRadius: pageRadius(side),
-    background: '#F7F0E3',
-    boxShadow:
-      lines > 0
-        ? tones
-            .slice(0, lines)
-            .map(
-              (c, i) =>
-                `${(d * (i + 1) * u).toFixed(1)}px ${((i + 1) * 0.6 * u).toFixed(1)}px 0 ${c}`
-            )
-            .join(', ')
-        : 'none',
+    left: side === 'right' ? r.x : `calc(${g(r.x)} - ${d})`,
+    top: r.y,
+    width: `calc(${g(r.w)} + ${d})`,
+    height: `calc(${g(r.h)} + ${d})`,
+    borderRadius: side === 'right' ? `${sp} ${out} ${out} ${sp}` : `${out} ${sp} ${sp} ${out}`,
   }
 }
 
+/** cover-inside.webp's own cream, behind it at the spine corners. */
+const BOARD_CREAM = '#F8F1E4'
+
+const STACK_TONES = ['#EADFCB', '#FBF7EF', '#E4D9C3', '#F8F3E8']
+
 /**
- * The back board under the pages: the same light board as the cover,
- * offset a few px down and right so that, closed, it and the page block
- * show as the book's thickness past the cover's edge.
+ * The page block beside a page: `lines` thin sheets (0–4), each a layer
+ * (see `layer`) one `step` (a CSS length) further out, outermost first.
  */
-export function BackBoard({ style, k }: { style: CSSProperties; k: number }) {
-  const t = Math.max(1.5, 2.5 * k)
+export function PageStack({
+  page,
+  side,
+  lines,
+  step,
+  r0,
+  spineR = 0,
+}: {
+  page: Rect
+  side: Side
+  lines: number
+  step: string
+  r0: number
+  spineR?: number | string
+}) {
+  return (
+    <>
+      {Array.from({ length: lines }, (_, i) => lines - i).map((n) => (
+        <div
+          key={n}
+          aria-hidden
+          className="pointer-events-none absolute"
+          style={{
+            ...layer(page, side, `calc(${step} * ${n})`, r0, spineR),
+            background: STACK_TONES[n - 1],
+          }}
+        />
+      ))}
+    </>
+  )
+}
+
+/**
+ * A board of the book — the ONE way both are drawn, so they are mirror
+ * images: the inside of the front cover (lying open, left of the spine) and
+ * the back board (under the right pages). Light board from cover-inside.webp,
+ * mirrored on the right (its rule is the edge; its sprig lands on the left
+ * board's outer bottom corner and hides under the pages on the right),
+ * square at the spine, round outer corners (`r0`). `d` grows it past the
+ * cover's edge while the book is shut (see `layer`).
+ */
+export function Board({
+  rect,
+  side,
+  r0,
+  d = '0px',
+  spineR = 0,
+  children,
+}: {
+  rect: Rect
+  side: Side
+  r0: number
+  d?: string
+  /** Radius at the spine: 0 in an open spread; rounded when shut or alone (phones). */
+  spineR?: number | string
+  children?: ReactNode
+}) {
   return (
     <div
-      aria-hidden
-      className="pointer-events-none absolute"
+      className="absolute overflow-hidden"
       style={{
-        ...style,
-        transform: `translate(${t.toFixed(1)}px, ${t.toFixed(1)}px)`,
-        borderRadius: '0.25em 0.9em 0.9em 0.25em',
-        // A slim gold-edged board: light cream, a gilt rim at its edge.
-        background: 'linear-gradient(160deg, #FAF4E8 0%, #F3EADA 100%)',
-        border: '1.5px solid #D9BB7C',
-        boxShadow:
-          'inset 0 0 0 1px rgba(255, 250, 238, 0.8), 0 18px 34px -18px rgba(110, 78, 30, 0.35)',
+        ...layer(rect, side, d, r0, spineR),
+        // Only once open (--open): shut, the cover casts the book's shadow.
+        boxShadow: '0 18px 34px -18px rgba(110, 78, 30, calc(0.35 * var(--open, 1)))',
       }}
-    />
+    >
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          // Its own printed rule is the board's edge; the cream beneath
+          // squares off its rounded spine corners.
+          background: `url(${ASSETS.coverInside}) center / 100% 100% no-repeat, ${BOARD_CREAM}`,
+          transform: side === 'right' ? 'scaleX(-1)' : undefined,
+        }}
+      />
+      {children && <div className="relative h-full">{children}</div>}
+    </div>
   )
 }
 

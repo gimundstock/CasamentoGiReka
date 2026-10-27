@@ -114,6 +114,10 @@ export interface PassportGeometry {
   blotStart: { w: number; h: number }
   /** Base font size of a page (everything inside is in em). */
   fontSize: number
+  /** Corner radius of the cover (cover.webp's rounded corners), px. */
+  radius: number
+  /** How far the cover overhangs the pages, px. */
+  overhang: number
   /**
    * Scroll (vh) at which the painting may start shrinking: once the closing
    * blot fits inside the painting, so the painting's straight edges never
@@ -124,6 +128,8 @@ export interface PassportGeometry {
 
 const NAV_H = 72
 const CONTROLS_H = 56
+/** cover.webp's corner radius, as a fraction of its width (measured: 54 / 989). */
+const COVER_CORNER = 0.055
 /** How far the active tab sticks out past the book's edge. */
 export const TAB_OUT = 30
 
@@ -280,6 +286,8 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     blotStart,
     fontSize: Math.max(12.5, Math.min(15, pageW * 0.027)),
     shrinkFrom: PHASE.shrink[0],
+    radius: coverBox.w * COVER_CORNER,
+    overhang: o,
   }
   // The first scroll position from which the painting may start moving:
   // from there on, the closing blot stays inside the moving painting all

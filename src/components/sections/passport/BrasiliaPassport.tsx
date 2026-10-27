@@ -17,13 +17,13 @@ import { vignetteAt, ease, PHASE, seg, TAB_OUT, type PassportGeometry, type Rect
 import { PassportCover } from './PassportCover'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
-  BackBoard,
+  Board,
   EntriesFrame,
   EntryItem,
   PAPER_BG,
   PageContent,
   Paper,
-  pageStack,
+  PageStack,
   type Side,
 } from './Pages'
 
@@ -202,6 +202,9 @@ export function BrasiliaPassport({
         bookEl.style.transform = 'none'
         cover.style.visibility = 'hidden'
         show(base, 1)
+        bookEl.style.setProperty('--bd', '0px')
+        bookEl.style.setProperty('--open', '1')
+        bookEl.style.setProperty('--ls', `${((g.overhang * 0.85) / 4).toFixed(2)}px`)
         show(inside, 1)
         chrome.style.opacity = '1'
         if (tabsRef.current) tabsRef.current.style.opacity = '1'
@@ -252,7 +255,7 @@ export function BrasiliaPassport({
       // (Opaque before the book beneath it shows, or the first page would
       // show through it.)
       board.style.opacity = String(Math.min(1, grow / 0.8))
-      board.style.visibility = grow > 0 ? 'visible' : 'hidden'
+      board.style.visibility = grow > 0 ? 'inherit' : 'hidden'
 
       const tt = ease(seg(v, PHASE.title))
       title.style.opacity = String(tt)
@@ -274,6 +277,19 @@ export function BrasiliaPassport({
       // the cover finishes growing. Nothing exists left of the spine until
       // the cover has turned: open, the inside of the cover lies there.
       show(base, seg(grow, [0.82, 1]))
+      // Shut, the back board and the page block peek a few px past the
+      // cover; open, the board is flush with its mirror on the left.
+      const boardD = Math.max(3, 5 * g.k) * (1 - o)
+      bookEl.style.setProperty('--bd', `${boardD.toFixed(2)}px`)
+      bookEl.style.setProperty('--open', o.toFixed(3))
+      bookEl.style.setProperty('--ls', `${((g.overhang * 0.85 + boardD * 0.55) / 4).toFixed(2)}px`)
+      // Shut, the layers under the cover round at the spine with the cover
+      // (so only a sliver following its curve shows at the bottom); open,
+      // they square off to meet their mirror at the spine.
+      bookEl.style.setProperty('--sr', `${(g.radius * (1 - o)).toFixed(2)}px`)
+      // The pages too, at the spine, where they meet the cover's edge.
+      if (spread)
+        bookEl.style.setProperty('--spine-r', `${Math.max(2, g.radius * (1 - o)).toFixed(2)}px`)
       show(inside, o >= 1 ? 1 : 0)
       chrome.style.opacity = String(seg(v, [PHASE.open[1] - 25, PHASE.open[1]]))
       if (tabsRef.current) tabsRef.current.style.opacity = chrome.style.opacity
@@ -308,7 +324,11 @@ export function BrasiliaPassport({
     const p = leaves[i]
     if (!p) return null
     if (p.kind === 'inside') {
-      return spread ? null : <Paper side="right" stock="board" />
+      // Phones: the inside of the cover is a page of its own, the same board
+      // as the one under the pages, its corners round like theirs.
+      return spread ? null : (
+        <Board rect={{ x: 0, y: 0, w: W, h: H }} side="right" r0={pageR} spineR={pageR} />
+      )
     }
     const side: Side = spread && i % 2 === 0 ? 'left' : 'right'
     return (
@@ -336,6 +356,15 @@ export function BrasiliaPassport({
   const read = count > 1 ? cur / (count - 1) : 0
   const leftLines = spread ? Math.round(read * 4) : 0
   const rightLines = Math.round((1 - read) * 4)
+  // Layers under the cover, all with corners concentric with its own: the
+  // pages (radius R - overhang), the page block (four steps reaching just
+  // past the cover's edge) and the back board (a little further).
+  const R = g.radius
+  const pageR = R - g.overhang
+  // While shut, the back board and the page block peek past the cover
+  // (--bd, --ls: set by the scroll, back to flush as the book opens).
+  const step = 'var(--ls, 1px)'
+  const insideRect = { x: 0, y: 0, w: g.insideBox.w, h: g.insideBox.h }
 
   return (
     <div
@@ -367,6 +396,9 @@ export function BrasiliaPassport({
           top: g.book.y,
           width: g.book.w,
           height: g.book.h,
+          ['--page-r' as string]: `${(g.radius - g.overhang).toFixed(2)}px`,
+          // Phones: a page stands alone, round on every corner.
+          ['--spine-r' as string]: spread ? undefined : `${(g.radius - g.overhang).toFixed(2)}px`,
           // Mild, so the turning cover barely grows past the book.
           perspective: W * 14,
           fontSize: g.fontSize,
@@ -406,23 +438,38 @@ export function BrasiliaPassport({
             (exactly where the turned cover came down). */}
         {spread && (
           <div ref={insideRef} className="absolute" style={{ ...box(g.insideBox), opacity: 0 }}>
-            <Paper side="left" stock="board" />
+            <Board rect={insideRect} side="left" r0={R} />
             {leftLines > 0 && (
-              <div
-                aria-hidden
-                className="pointer-events-none absolute"
-                style={{
-                  ...box({ ...g.left, x: g.left.x - g.insideBox.x, y: g.left.y - g.insideBox.y }),
-                  ...pageStack('left', leftLines, g.k),
-                }}
-              />
+              <div aria-hidden className="pointer-events-none absolute inset-0">
+                <PageStack
+                  page={{ ...g.left, x: g.left.x - g.insideBox.x, y: g.left.y - g.insideBox.y }}
+                  side="left"
+                  lines={leftLines}
+                  step={step}
+                  r0={pageR}
+                />
+              </div>
             )}
           </div>
         )}
 
         {/* Under the cover: the back board, the page block, the pages. */}
         <div ref={baseRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
-          <BackBoard style={box(g.coverBox)} k={g.k} />
+          <Board
+            rect={g.coverBox}
+            side="right"
+            r0={R}
+            d="var(--bd, 0px)"
+            spineR={spread ? 'var(--sr, 0px)' : R}
+          />
+          <PageStack
+            page={g.right}
+            side="right"
+            lines={rightLines}
+            step={step}
+            r0={pageR}
+            spineR={spread ? 'var(--sr, 0px)' : pageR}
+          />
           {/* Index tabs: tucked in between the pages (the page block and the
               pages lie over their inner end), on the book's own paper. Only
               once the book is open. */}
@@ -457,11 +504,6 @@ export function BrasiliaPassport({
               )
             })}
           </nav>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute"
-            style={{ ...box(g.right), ...pageStack('right', rightLines, g.k) }}
-          />
           <FlipBook
             key={layoutKey}
             ref={flipRef}
@@ -488,6 +530,15 @@ export function BrasiliaPassport({
           }}
         >
           <div ref={frontRef} className="absolute inset-0" style={hidden3d}>
+            {/* The shut book's shadow, cast by the cover. */}
+            <div
+              aria-hidden
+              className="absolute inset-0"
+              style={{
+                borderRadius: R,
+                boxShadow: '0 18px 34px -18px rgba(110, 78, 30, 0.35)',
+              }}
+            />
             <PassportCover
               g={g}
               boardRef={boardRef}
@@ -504,7 +555,7 @@ export function BrasiliaPassport({
             className="absolute inset-0"
             style={{ ...hidden3d, transform: 'rotateY(180deg)', visibility: 'hidden' }}
           >
-            <Paper side="left" stock="board" />
+            <Board rect={insideRect} side="left" r0={R} />
           </div>
         </div>
       </div>
