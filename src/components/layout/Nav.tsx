@@ -14,7 +14,7 @@ import { CONFIG } from '../../content.config'
 const sections = [
   { observe: 'couple', anchor: 'save-the-date', key: 'saveTheDate' },
   { observe: 'wedding', anchor: 'big-day', key: 'wedding' },
-  { observe: 'city', anchor: 'city', key: 'city' },
+  { observe: 'city', anchor: 'passport', key: 'city' },
   { observe: 'rsvp', anchor: 'rsvp', key: 'rsvp' },
   { observe: 'gifts', anchor: 'gifts', key: 'gifts' },
 ] as const

@@ -1,8 +1,27 @@
-import { useRef, type CSSProperties } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
+import { useReducedMotion } from '../motion/useReducedMotion'
 import { CerradoPaint } from './CerradoPaint'
+import { BrasiliaPassport } from './passport/BrasiliaPassport'
+import {
+  BIG_DAY_VH,
+  PASSPORT_ANCHOR_VH,
+  PASSPORT_VH,
+  PHASE,
+  passportGeometry,
+  seg,
+  type PassportGeometry,
+} from './passport/geometry'
 import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
@@ -69,12 +88,49 @@ function sunYAt(v: number): number {
 const PAINT_START = 0.28
 const PAINT_END = 0.82
 
+// The stage scrolls (is pinned) for the big day, then for the passport.
+const LOCKED_VH = BIG_DAY_VH + PASSPORT_VH
+const STAGE_VH = 100 + LOCKED_VH
+// Nav highlight: "The Wedding" until the passport starts taking shape, then
+// "Brasília". The band the Nav watches sits 30–45 % down the screen.
+const CITY_MARK_VH = BIG_DAY_VH + PHASE.infoOut[1] + 30
+
+/** Viewport size as the stage sees it (vw as CSS's 100vw, vh as its height). */
+function useStageGeometry(ref: RefObject<HTMLDivElement | null>) {
+  const [g, setG] = useState<PassportGeometry | null>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () =>
+      setG((prev) => {
+        const vw = window.innerWidth
+        const vh = el.clientHeight
+        return prev && prev.vw === vw && prev.vh === vh ? prev : passportGeometry(vw, vh)
+      })
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [ref])
+  return g
+}
+
 /**
  * "The Big Day" hero — the cosmos center from HeroSaveDateCouple arrives as
  * the sun, rises and travels a setting-sun arc over a watercolor cerrado
- * that is painted in around it, then reveals the wedding info.
+ * that is painted in around it, then reveals the wedding info — and then
+ * becomes the city guide: the finished painting shrinks into a watercolor
+ * blot on the cover of a passport, which opens (passport/BrasiliaPassport).
  *
- * Choreography (scroll progress 0 → 1, on a 400vh outer / 300vh of locked scroll):
+ * The stage is pinned for BIG_DAY_VH + PASSPORT_VH of scroll. The big day
+ * keeps its original 0 → 1 over the first BIG_DAY_VH (300vh, as before);
+ * the passport's phases follow (passport/geometry.ts, PHASE).
+ *
+ * Big-day choreography (its own progress 0 → 1, over the first 300vh):
  *   (seam)       The sun arrives from the previous section in the middle of
  *                the screen and starts rising while the sections pass.
  *   0.00 → 0.30  The landscape slides up while the sun rises and shrinks to
@@ -95,15 +151,23 @@ const PAINT_END = 0.82
  * (`useTransform(scroll, v => ...)`) — the multi-keyframe array form has a
  * subscription bug for opacity in framer-motion 12 here.
  */
-export function HeroBigDay() {
+/** `holder`: the guest the passport is made out to (their group name). */
+export function HeroBigDay({ holder }: { holder?: string }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
 
   const stageRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
+  const { scrollYProgress: stageProgress } = useScroll({
     target: stageRef,
     offset: ['start start', 'end end'],
   })
+  // The big day's own 0 → 1 (its first BIG_DAY_VH of pinned scroll), and the
+  // vh scrolled past it, which drives the passport.
+  const scrollYProgress = useTransform(stageProgress, (v: number) =>
+    Math.min(1, (v * LOCKED_VH) / BIG_DAY_VH)
+  )
+  const passVh = useTransform(stageProgress, (v: number) => v * LOCKED_VH - BIG_DAY_VH)
+  const reduced = useReducedMotion()
 
   // Sun, phase 1: it arrives from HeroSaveDateCouple as the zoomed-in
   // cosmos center — big, in the middle of the screen. It is FIXED on
@@ -116,7 +180,7 @@ export function HeroBigDay() {
     target: stageRef,
     offset: ['start end', 'end end'],
   })
-  const ext = useTransform(seam, (p: number) => (p * 4 - 1) / 3)
+  const ext = useTransform(seam, (p: number) => (p * STAGE_VH - 100) / BIG_DAY_VH)
   // Starts rising while the two sections are still passing each other
   // (-0.15), and reaches the upper-left of the painting at its disc size
   // as the landscape settles (0.30).
@@ -166,11 +230,15 @@ export function HeroBigDay() {
   )
 
   // Info panel fades in once the sun has set.
-  const infoOpacity = useTransform(scrollYProgress, (v: number) => {
+  // …and leaves again as the painting starts turning into the passport.
+  const infoOpacity = useTransform([scrollYProgress, passVh], ([v, pv]: number[]) => {
+    const out = 1 - seg(pv, PHASE.infoOut)
     if (v < 0.85) return 0
-    if (v < 0.92) return (v - 0.85) / 0.07
-    return 1
+    if (v < 0.92) return ((v - 0.85) / 0.07) * out
+    return out
   })
+  const infoVisibility = useTransform(infoOpacity, (o: number) => (o > 0.01 ? 'visible' : 'hidden'))
+  const linesOpacity = useTransform(passVh, (pv: number) => 1 - seg(pv, PHASE.linesOut))
 
   // Cerrado landscape SLIDES UP from below the viewport over the same
   // window as the sun shrink (0.00 → 0.30). By the time the art is fully
@@ -187,7 +255,45 @@ export function HeroBigDay() {
   const sunTopPct = useTransform(sunYPct, (y: number) => `${y}%`)
   // Hand-off between the two sun elements at 0.30, where they match
   // exactly (same position, size, rotation and tint).
-  const sunArcOpacity = useTransform(scrollYProgress, (v: number) => (v < 0.3 ? 0 : 1))
+  // It fades with the info panel once the passport begins.
+  const sunArcOpacity = useTransform([scrollYProgress, passVh], ([v, pv]: number[]) =>
+    v < 0.3 ? 0 : 1 - seg(pv, PHASE.infoOut)
+  )
+
+  // ── Painting → passport ───────────────────────────────────────────────
+  // Once the lines and the sun are gone, the finished painting (still by
+  // now: CerradoPaint is fully drawn) is swapped for the passport cover's
+  // own copy, pixel for pixel in place, which then carries it into the
+  // cover (BrasiliaPassport / vignetteAt). This one just hides. Written
+  // straight to the element's style, so no re-renders.
+  const viewRef = useRef<HTMLDivElement>(null)
+  const geo = useStageGeometry(viewRef)
+  const compactRef = useRef<HTMLDivElement>(null)
+  const compact = useCallback(
+    (v: number) => {
+      const el = compactRef.current
+      if (!el) return
+      if (reduced) {
+        // No shrinking: the painting simply gives way to the open passport.
+        el.style.opacity = String(1 - seg(v, [60, 110]))
+        el.style.visibility = ''
+        return
+      }
+      el.style.opacity = ''
+      // From the swap on, the cover's own copy carries the painting
+      // (BrasiliaPassport): this one, identical and still, just goes.
+      el.style.visibility = v >= PHASE.swap ? 'hidden' : ''
+    },
+    [reduced]
+  )
+  useMotionValueEvent(passVh, 'change', compact)
+  useLayoutEffect(() => compact(passVh.get()), [compact, passVh])
+  const over = geo?.over ?? { l: 0, r: 0, b: 0 }
+  // The set sun carries a CSS filter: out of the group altogether once it has
+  // faded, so the shrinking, masked painting never re-renders it.
+  const sunBoxVisibility = useTransform(passVh, (pv: number) =>
+    pv >= PHASE.infoOut[1] ? 'hidden' : 'visible'
+  )
 
   const weddingDate = new Date(CONFIG.wedding.date)
   const dateStr = weddingDate.toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-GB', {
@@ -205,8 +311,28 @@ export function HeroBigDay() {
   const titleTail = titleRest.join(' ')
 
   return (
-    <section id="wedding" className="relative">
-      <div ref={stageRef} className="relative h-[400vh]">
+    <section className="relative">
+      <div ref={stageRef} className="relative" style={{ height: `${STAGE_VH}vh` }}>
+        {/* What the Nav watches: the big day, then the passport (city guide),
+            and where its "Brasília" link lands — the book just opened. */}
+        <div
+          id="wedding"
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{ height: `${CITY_MARK_VH}vh` }}
+        />
+        <div
+          id="city"
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0"
+          style={{ top: `${CITY_MARK_VH}vh` }}
+        />
+        <div
+          id="passport"
+          aria-hidden
+          className="pointer-events-none absolute h-px w-px"
+          style={{ top: `${PASSPORT_ANCHOR_VH}vh` }}
+        />
         {/* Inner anchor for the Nav "The Wedding" link — placed at scroll
             progress ~0.95 (300vh * 0.95 = 285vh into the stage), the
             moment the info panel + sun-set landscape are fully shown. */}
@@ -242,91 +368,111 @@ export function HeroBigDay() {
           style={{ top: '285vh' }}
         />
         <div
+          ref={viewRef}
           className="bg-peach sticky top-0 h-screen overflow-hidden [--art-top:44vh] md:[--art-top:14vh]"
           style={artVars}
         >
-          {/* ── z-10  Watercolor painting (sky and ground) — painted in
+          {/* ── z-10  The landscape: painting, sun and line art, in one group
+                    that hides at the hand-over to the passport. ── */}
+          <div
+            ref={compactRef}
+            className="pointer-events-none absolute z-10"
+            style={{
+              left: -over.l,
+              top: 0,
+              width: `calc(100% + ${over.l + over.r}px)`,
+              height: `calc(100% + ${over.b}px)`,
+            }}
+          >
+            <div
+              className="absolute top-0"
+              style={{ left: over.l, width: `calc(100% - ${over.l + over.r}px)`, height: '100%' }}
+            >
+              {/* ── z-10  Watercolor painting (sky and ground) — painted in
                     around the sun as it travels, so the color follows its
                     arc. Slides up with the line art. ── */}
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute z-10 overflow-hidden"
-            style={{ ...artBox, y: cerradoY, opacity: 0.9 }}
-          >
-            <CerradoPaint
-              src={`${ART}/paint.webp`}
-              aspect={ART_ASPECT}
-              progress={scrollYProgress}
-              sunX={sunXAt}
-              sunY={sunYAt}
-              start={PAINT_START}
-              end={PAINT_END}
-            />
-          </motion.div>
+              <motion.div
+                aria-hidden
+                className="pointer-events-none absolute z-10 overflow-hidden"
+                style={{ ...artBox, y: cerradoY, opacity: 0.9 }}
+              >
+                <CerradoPaint
+                  src={`${ART}/paint.webp`}
+                  aspect={ART_ASPECT}
+                  progress={scrollYProgress}
+                  sunX={sunXAt}
+                  sunY={sunYAt}
+                  start={PAINT_START}
+                  end={PAINT_END}
+                />
+              </motion.div>
 
-          {/* ── z-20  Sun disc, phase 2 — arcs across the sky and sets. It
+              {/* ── z-20  Sun disc, phase 2 — arcs across the sky and sets. It
                     lives inside a box masked to the sky, so it disappears
                     behind the hills instead of showing over the painted
                     ground. The mask is static; only the sun moves. ── */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute z-20"
-            style={{
-              ...artBox,
-              maskImage: `url(${ART}/sky-mask.webp)`,
-              WebkitMaskImage: `url(${ART}/sky-mask.webp)`,
-              maskSize: '100% 100%',
-              WebkitMaskSize: '100% 100%',
-              maskRepeat: 'no-repeat',
-              WebkitMaskRepeat: 'no-repeat',
-            }}
-          >
-            {/* Golden haze around the sun, so it glows into the painted light. */}
-            <motion.div
-              className="absolute rounded-full"
-              style={{
-                left: sunLeftPct,
-                top: sunTopPct,
-                width: '46vmin',
-                height: '46vmin',
-                x: '-50%',
-                y: '-50%',
-                background:
-                  'radial-gradient(circle, rgba(255, 226, 140, 0.45) 0%, rgba(255, 214, 120, 0.18) 35%, rgba(255, 214, 120, 0) 68%)',
-                opacity: sunArcOpacity,
-              }}
-            />
-            <motion.img
-              src={SUN_SRC}
-              alt=""
-              draggable={false}
-              className="absolute max-w-none select-none"
-              style={{
-                left: sunLeftPct,
-                top: sunTopPct,
-                width: SUN_SIZE,
-                height: SUN_SIZE,
-                x: '-50%',
-                y: '-50%',
-                rotate: sunRotate,
-                filter: sunFilter,
-                opacity: sunArcOpacity,
-                willChange: 'transform',
-              }}
-            />
-          </div>
+              <motion.div
+                aria-hidden
+                className="pointer-events-none absolute z-20"
+                style={{
+                  ...artBox,
+                  visibility: sunBoxVisibility,
+                  maskImage: `url(${ART}/sky-mask.webp)`,
+                  WebkitMaskImage: `url(${ART}/sky-mask.webp)`,
+                  maskSize: '100% 100%',
+                  WebkitMaskSize: '100% 100%',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskRepeat: 'no-repeat',
+                }}
+              >
+                {/* Golden haze around the sun, so it glows into the painted light. */}
+                <motion.div
+                  className="absolute rounded-full"
+                  style={{
+                    left: sunLeftPct,
+                    top: sunTopPct,
+                    width: '46vmin',
+                    height: '46vmin',
+                    x: '-50%',
+                    y: '-50%',
+                    background:
+                      'radial-gradient(circle, rgba(255, 226, 140, 0.45) 0%, rgba(255, 214, 120, 0.18) 35%, rgba(255, 214, 120, 0) 68%)',
+                    opacity: sunArcOpacity,
+                  }}
+                />
+                <motion.img
+                  src={SUN_SRC}
+                  alt=""
+                  draggable={false}
+                  className="absolute max-w-none select-none"
+                  style={{
+                    left: sunLeftPct,
+                    top: sunTopPct,
+                    width: SUN_SIZE,
+                    height: SUN_SIZE,
+                    x: '-50%',
+                    y: '-50%',
+                    rotate: sunRotate,
+                    filter: sunFilter,
+                    opacity: sunArcOpacity,
+                    willChange: 'transform',
+                  }}
+                />
+              </motion.div>
 
-          {/* ── z-30  Pencil line art, registered onto the painting. SLIDES
+              {/* ── z-30  Pencil line art, registered onto the painting. SLIDES
                     UP from below the viewport alongside the sun shrink so
                     the drawing rises into place. ── */}
-          <motion.img
-            src={`${ART}/lines.webp`}
-            alt=""
-            aria-hidden
-            draggable={false}
-            style={{ ...artBox, y: cerradoY }}
-            className="pointer-events-none absolute z-30 max-w-none select-none"
-          />
+              <motion.img
+                src={`${ART}/lines.webp`}
+                alt=""
+                aria-hidden
+                draggable={false}
+                style={{ ...artBox, y: cerradoY, opacity: linesOpacity }}
+                className="pointer-events-none absolute z-30 max-w-none select-none"
+              />
+            </div>
+          </div>
 
           {/* ── z-30  Soft paper fade behind the info strip so the text stays
                     readable over the top of the painted sky. ── */}
@@ -349,6 +495,7 @@ export function HeroBigDay() {
             className="absolute inset-x-0 z-40 flex items-center px-8 md:px-12"
             style={{
               opacity: infoOpacity,
+              visibility: infoVisibility,
               top: '8vh',
               // Down to just above the tree crowns.
               bottom: 'calc(100% - var(--art-top) - var(--art-h) * 0.17)',
@@ -427,6 +574,9 @@ export function HeroBigDay() {
               )}
             </h2>
           </motion.div>
+
+          {/* ── z-40  The city guide, as a passport. ── */}
+          <BrasiliaPassport progress={passVh} g={geo} reduced={reduced} holder={holder} />
         </div>
       </div>
     </section>

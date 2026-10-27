@@ -52,10 +52,44 @@
     "transport": "Getting Around",
     "restaurants": "Where to Eat",
     "tourism": "Tourism",
-    "stars": "stars",
     "perNight": "/night",
     "listLabel": "List of recommendations — scroll for more",
-    "kicker": "For those travelling to"
+    "passport": {
+      "kicker": "Passport to",
+      "title": "Brasília",
+      "insideText": "A little guide to our city, for everyone travelling from afar to celebrate with us.",
+      "more": "Learn more",
+      "map": "View on map",
+      "airbnb": "View on Airbnb",
+      "prev": "Previous page",
+      "next": "Next page",
+      "bookLabel": "Passport to Brasília — city guide",
+      "tabsLabel": "Guide chapters",
+      "sections": {
+        "tourism": {
+          "title": "Sightseeing",
+          "tab": "Sights",
+          "intro": "Niemeyer and Lúcio Costa's modernist capital: monuments, lookouts and the huge cerrado sky. Our favourite places to wander before and after the party."
+        },
+        "restaurants": {
+          "title": "Restaurants",
+          "tab": "Restaurants",
+          "intro": "From corner classics to special-occasion tables: the flavours we love in Brasília, for every taste and budget."
+        },
+        "transport": {
+          "title": "Getting Around",
+          "tab": "Transport",
+          "intro": "Brasília is big and spread out. Here is what works best to arrive and move around the city."
+        },
+        "hotels": {
+          "title": "Where to Stay",
+          "tab": "Lodging",
+          "intro": "A few suggestions of where to stay, close to the center and to everything worth seeing."
+        }
+      },
+      "holder": "This passport belongs to",
+      "holderFallback": "For those coming from afar"
+    }
   },
   "rsvp": {
     "title": "RSVP",
