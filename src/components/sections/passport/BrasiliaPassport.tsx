@@ -24,6 +24,7 @@ import {
   EntriesFrame,
   EntryItem,
   PAPER_BG,
+  paperFor,
   PageContent,
   Paper,
   PageStack,
@@ -369,7 +370,7 @@ export function BrasiliaPassport({
     if (p.kind === 'back') return null
     const side: Side = spread && i % 2 === 0 ? 'left' : 'right'
     return (
-      <Paper side={side}>
+      <Paper side={side} background={paperFor(i, p.kind === 'entries')}>
         <PageContent spec={p} folio={folio(p)} lang={lang} holder={holder} />
       </Paper>
     )

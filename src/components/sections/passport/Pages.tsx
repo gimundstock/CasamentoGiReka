@@ -14,9 +14,20 @@ export const GOLD = '#C9A464'
 /** What a sheet is: a page of the book, or the inside of the cover board. */
 export type Stock = 'page' | 'board'
 
-const PAPER_WASH = 'rgba(252, 248, 240, 0.4)'
-/** The pages' paper: paper.webp under a cream wash that keeps its grain fine. */
-export const PAPER_BG = `linear-gradient(${PAPER_WASH}, ${PAPER_WASH}), url(${ASSETS.paper}) center / cover`
+/** Cream wash over the paper: stronger where there is small text to read. */
+const wash = (a: number) => `linear-gradient(rgba(251, 246, 236, ${a}), rgba(251, 246, 236, ${a}))`
+/** The paper (paper2.webp: cream with a faint toile of Brasília). */
+export const PAPER_BG = `${wash(0.35)}, url(${ASSETS.paper}) center / cover`
+/**
+ * Where each page shows the (landscape) paper: varied by page, so facing
+ * pages don't repeat the same motifs; fixed per page, so a turning leaf
+ * looks like its static self.
+ */
+const PAPER_SPOTS = ['0% 30%', '62% 70%', '28% 0%', '100% 45%', '45% 100%', '15% 60%', '80% 10%']
+/** The paper for page `n`; `busy` washes the watermark further back (lists). */
+export function paperFor(n: number, busy: boolean): string {
+  return `${wash(busy ? 0.6 : 0.35)}, url(${ASSETS.paper}) ${PAPER_SPOTS[n % PAPER_SPOTS.length]} / cover`
+}
 
 /**
  * Outer corners round (--page-r, set on the book so pages nest concentric
@@ -44,10 +55,13 @@ export const Paper = forwardRef(function Paper(
   {
     side,
     stock = 'page',
+    background = PAPER_BG,
     children,
   }: {
     side: Side
     stock?: Stock
+    /** The page's paper (see paperFor). */
+    background?: string
     children?: ReactNode
   },
   ref: Ref<HTMLDivElement>
@@ -69,7 +83,7 @@ export const Paper = forwardRef(function Paper(
       className="absolute inset-0 overflow-hidden"
       style={{
         borderRadius: pageRadius(side),
-        background: PAPER_BG,
+        background,
         boxShadow: 'inset 0 0 0 0.5px rgba(150, 110, 60, 0.22)',
       }}
     >
@@ -189,9 +203,8 @@ export function InsideBoard({ rect, children }: { rect: Rect; children?: ReactNo
 }
 
 /**
- * The inside of the back cover, under the right pages: back-inside.webp as
- * painted (not mirrored: the Congresso stands as painted), fitted to the
- * same footprint as the inside of the front cover. Its art shows only on the
+ * The inside of the back cover, under the right pages: back-inside.webp, the
+ * front inside cover's exact mirror, on the same footprint. Its art shows on the
  * book's last spread; while reading, the page block covers its endpaper.
  * Open, its own shape shows (the clip, at --back-r, matches it); shut, it
  * grows by `d` past the cover and rounds with it (see `layer`), cream
@@ -406,7 +419,15 @@ function HolderPage({ holder }: { holder?: string }) {
   const { t } = useTranslation()
   const year = new Date(CONFIG.wedding.date).getFullYear()
   return (
-    <div className="flex h-full flex-col items-center px-[13%] pt-[3.2em] pb-[2.6em] text-center">
+    <div className="relative flex h-full flex-col items-center px-[13%] pt-[3.2em] pb-[2.6em] text-center">
+      {/* A spray of ipê growing in from the outer top corner. */}
+      <img
+        src={ASSETS.ipeCorner}
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="pointer-events-none absolute top-0 right-0 w-[44%] opacity-90 select-none"
+      />
       <div className="flex flex-1 flex-col items-center justify-center pb-[1.5em]">
         <p className="font-sans text-forest -mr-[0.42em] text-[0.62em] tracking-[0.42em] uppercase">
           {t('city.passport.holder')}

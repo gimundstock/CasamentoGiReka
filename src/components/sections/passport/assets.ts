@@ -2,10 +2,12 @@
 // (The back board and the page block's thickness are CSS.)
 //
 //   cover.webp         front cover: light ivory, double thin gold rule
-//   back-inside.webp   inside of the back cover (Congresso, lake), right board
+//   back-inside.webp   inside of the back cover: cover-inside.webp mirrored
 //   cover-inside.webp  inside of the cover: single gold rule, one sprig in the
 //                      bottom-left (the outer corner once the cover lies open)
-//   paper.webp         every page — lying flat or turning
+//   paper2.webp        every page — lying flat or turning: cream, a faint toile
+//                      of Brasília's monuments (a passport's security pattern)
+//   ipe-corner.webp    the ipê spray in the holder page's top corner
 //   blot-mask.webp     the watercolor blot the painting shrinks into (alpha mask)
 //
 //   blot-mask-2.webp   the 'rise' shape: straight sides and bottom, soft top
@@ -27,7 +29,7 @@ export const PAINT_ASPECT = 1376 / 768
  * turn-in band, their edges just on its inner gold line (cover-inside.webp: ~2 %
  * of its height, ~3 % of its width).
  */
-export const COVER_OVERHANG = 18.5
+export const COVER_OVERHANG = 19
 const PAGE = { w: 682, h: 925 }
 /** Room around the boards for the page block's thickness. */
 const EDGE = 12
@@ -106,11 +108,11 @@ export interface Illustration {
 export const ASSETS = {
   cover: passport('cover.webp'),
   // Inside of the front cover: artwork only, shown full-bleed with no text.
-  // A placeholder — the final, more elaborate inside-cover art replaces it.
   coverInside: passport('cover-inside.webp'),
-  /** The inside of the back cover (right board), as painted. */
+  /** The inside of the back cover (right board): the front's mirror. */
   backInside: passport('back-inside.webp'),
-  paper: passport('paper.webp'),
+  paper: passport('paper2.webp'),
+  ipeCorner: passport('ipe-corner.webp'),
   blotMask: MASK.blot.image,
   // One per chapter opener; their soft watercolor edges are in the art.
   illustrations: {
