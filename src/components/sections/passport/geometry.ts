@@ -45,8 +45,11 @@ export const PHASE = {
   /** The cover turns over to the left; the book slides to center. */
   open: [290, 370] as Span,
 }
-/** Where the Nav "Brasília" link lands: the book just fully open. */
-export const PASSPORT_ANCHOR_VH = BIG_DAY_VH + PHASE.open[1] + 8
+/**
+ * Where the Nav "Brasília" link lands: the closed passport, its cover
+ * complete, before it opens.
+ */
+export const PASSPORT_ANCHOR_VH = BIG_DAY_VH + (PHASE.title[1] + PHASE.open[0]) / 2
 
 /** 0 → 1 across a span, clamped. */
 export function seg(v: number, [a, b]: Span): number {
@@ -378,6 +381,11 @@ export function vignetteBox(g: PassportGeometry): Rect {
   return { x: -g.cover.x, y: -g.cover.y, w: g.vw, h: g.vh }
 }
 
+/** How many times the slot the blot window is laid out: its size at the hand-over. */
+export function windowScale(g: PassportGeometry) {
+  return Math.max(1, blotScreen(g, PHASE.swap).w / g.slot.w)
+}
+
 /**
  * The cover vignette at scroll `v` (vh past the big day) — the ONE painting
  * from the swap until the book opens. Three nested elements:
@@ -412,7 +420,11 @@ export function vignetteAt(g: PassportGeometry, v: number) {
     s: R.w / f / paintingBox(g).w,
   }
   const P = paintingBox(g)
-  const paint = `translate3d(${(t.x - (P.x - slot.x)).toFixed(2)}px, ${(t.y - (P.y - slot.y)).toFixed(2)}px, 0) scale(${t.s.toFixed(5)})`
+  // The window is laid out windowScale times the slot and scaled DOWN from
+  // there: scaled up ×10 from the slot's size, browsers raster it small and
+  // magnify, so the painting landed a few px off and soft at the hand-over.
+  const F = windowScale(g)
+  const paint = `translate3d(${(F * t.x - (P.x - slot.x)).toFixed(4)}px, ${(F * t.y - (P.y - slot.y)).toFixed(4)}px, 0) scale(${(F * t.s).toFixed(8)})`
 
   const mr = ease(seg(m, [0, 0.65]))
   const lerp = (a: number, b: number) => a + (b - a) * mr
@@ -426,7 +438,9 @@ export function vignetteAt(g: PassportGeometry, v: number) {
   const radius = g.coverBox.w * COVER_RULE.radius
   const onCover = shrinkAt(g, v) >= 1
   return {
-    window: `translate3d(0, ${(C.y - Cend.y).toFixed(2)}px, 0) scale(${f.toFixed(5)})`,
+    window: `translate3d(0, ${(C.y - Cend.y).toFixed(3)}px, 0) scale(${(f / F).toFixed(8)})`,
+    scale: f / F,
+    shrink: shrinkAt(g, v),
     paint,
     blotMasked: v >= PHASE.maskIn[0],
     riseMasked: m > 0,

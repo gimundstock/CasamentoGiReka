@@ -2,7 +2,7 @@ import { EMBOSS_SHADOW } from '../../ui/emboss'
 import type { CSSProperties, Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ASSETS, CATHEDRAL, PAINT_SRC } from './assets'
-import { paintingBox, vignetteBox, type PassportGeometry } from './geometry'
+import { paintingBox, vignetteBox, windowScale, type PassportGeometry } from './geometry'
 import { ScriptText } from './Pages'
 
 /** Font size of the cover's script title, as a fraction of the cover's width. */
@@ -44,6 +44,7 @@ export function PassportCover({
   const { t } = useTranslation()
   const p = paintingBox(g)
   const frame = vignetteBox(g)
+  const F = windowScale(g)
   const { slot } = g
   return (
     <div className="absolute inset-0" style={{ fontSize: g.fontSize }}>
@@ -74,10 +75,11 @@ export function PassportCover({
             ref={blotRef}
             className="absolute"
             style={{
-              left: slot.x - frame.x,
-              top: slot.y - frame.y,
-              width: slot.w,
-              height: slot.h,
+              // windowScale × the slot, centred on it (see vignetteAt).
+              left: slot.x - frame.x - (slot.w * (F - 1)) / 2,
+              top: slot.y - frame.y - (slot.h * (F - 1)) / 2,
+              width: slot.w * F,
+              height: slot.h * F,
               transformOrigin: 'center',
             }}
           >

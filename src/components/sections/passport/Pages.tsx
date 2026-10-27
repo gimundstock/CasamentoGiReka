@@ -461,6 +461,21 @@ function BlankPage() {
   return null
 }
 
+/** A buriti palm standing on the page, nothing else. */
+function BuritiPage() {
+  return (
+    <div className="flex h-full items-end justify-center px-[10%] pt-[10%] pb-[9%]">
+      <img
+        src={ASSETS.buriti}
+        alt=""
+        aria-hidden
+        draggable={false}
+        className="h-[76%] w-auto max-w-full object-contain select-none"
+      />
+    </div>
+  )
+}
+
 /** The contents of any page in the book. */
 export function PageContent({
   spec,
@@ -493,5 +508,7 @@ export function PageContent({
     }
     case 'blank':
       return <BlankPage />
+    case 'buriti':
+      return <BuritiPage />
   }
 }

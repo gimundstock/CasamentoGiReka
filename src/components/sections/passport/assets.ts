@@ -8,6 +8,7 @@
 //   paper2.webp        every page — lying flat or turning: cream, a faint toile
 //                      of Brasília's monuments (a passport's security pattern)
 //   ipe-corner.webp    the ipê spray in the holder page's top corner
+//   buriti.webp        a buriti palm, on the first page a chapter leaves empty
 //   paper.webp         the index tabs' plain paper
 //   blot-mask.webp     the watercolor blot the painting shrinks into (alpha mask)
 //
@@ -114,6 +115,8 @@ export const ASSETS = {
   backInside: passport('back-inside.webp'),
   paper: passport('paper2.webp'),
   ipeCorner: passport('ipe-corner.webp'),
+  /** A watercolor buriti palm, for the page a chapter leaves empty. */
+  buriti: passport('buriti.webp'),
   /** The index tabs' paper. */
   tabPaper: passport('paper.webp'),
   blotMask: MASK.blot.image,

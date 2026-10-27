@@ -61,6 +61,8 @@ export type PageSpec =
   | { kind: 'opener'; section: SectionKey }
   | { kind: 'entries'; section: SectionKey; from: number; to: number }
   | { kind: 'blank' }
+  /** The buriti palm: the first page a chapter leaves empty. */
+  | { kind: 'buriti' }
 
 /** Entry ranges [from, to) per page, for each chapter. */
 export type Chunks = Record<SectionKey, [number, number][]>
@@ -91,6 +93,12 @@ export function buildBook(chunks: Chunks): Book {
     ]
     firstSpread[section] = spreads.length
     firstPage[section] = pages.length
+    // A chapter of an odd number of pages leaves the right page of its last
+    // spread empty: the first one gets the buriti palm (a page of its own on
+    // phones too), any later ones stay blank.
+    if (own.length % 2 === 1 && !pages.some((p) => p.kind === 'buriti')) {
+      own.push({ kind: 'buriti' })
+    }
     pages.push(...own)
     for (let i = 0; i < own.length; i += 2) {
       spreads.push([own[i], own[i + 1] ?? { kind: 'blank' }])

@@ -394,6 +394,7 @@ export function HeroBigDay({ holder }: { holder?: string }) {
               <motion.div
                 aria-hidden
                 className="pointer-events-none absolute z-10 overflow-hidden"
+                data-cerrado-paint
                 style={{ ...artBox, y: cerradoY, opacity: 0.9 }}
               >
                 <CerradoPaint
