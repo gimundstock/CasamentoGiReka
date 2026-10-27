@@ -158,8 +158,8 @@ export function PageStack({
 
 /** Corner radius of the board art, as a fraction of its width: cover-inside.webp (88 / 981). */
 export const BOARD_CORNER = 0.09
-/** back-inside.webp's corner radius (80 / 1001). */
-export const BACK_CORNER = 0.08
+/** back-inside.webp's corner radius: the same as the front board's (measured ~85 vs 88 / 981). */
+export const BACK_CORNER = BOARD_CORNER
 
 /**
  * The inside of the front cover (left of the spine, open): cover-inside.webp
@@ -210,6 +210,7 @@ export function BackBoard({ rect, d, spineR }: { rect: Rect; d: string; spineR: 
       <div
         className="absolute inset-0"
         style={{
+          // The image box is the board: any art at this path drops in.
           background: `url(${ASSETS.backInside}) center / 100% 100% no-repeat, ${BOARD_CREAM}`,
         }}
       />
@@ -263,29 +264,6 @@ export function ScriptText({ children }: { children: string }) {
   )
 }
 
-/** Four-point star, the passport's little ornament. */
-export function Star({ className = '', style }: { className?: string; style?: CSSProperties }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className={className} style={style}>
-      <path
-        fill="currentColor"
-        d="M12 0C12.8 7.4 16.6 11.2 24 12 16.6 12.8 12.8 16.6 12 24 11.2 16.6 7.4 12.8 0 12 7.4 11.2 11.2 7.4 12 0Z"
-      />
-    </svg>
-  )
-}
-
-/** A short gold rule with the star in the middle. */
-function Ornament({ className = '' }: { className?: string }) {
-  return (
-    <div className={`flex items-center justify-center gap-[0.7em] ${className}`} aria-hidden>
-      <span className="h-px w-[3.2em]" style={{ background: GOLD }} />
-      <Star className="h-[0.75em] w-[0.75em]" style={{ color: GOLD }} />
-      <span className="h-px w-[3.2em]" style={{ background: GOLD }} />
-    </div>
-  )
-}
-
 /** A painting crop cut into the watercolor blot (or a cut-out shown as is). */
 export function Vignette({ art, className = '' }: { art: Illustration; className?: string }) {
   const mask: CSSProperties = art.blot
@@ -329,7 +307,6 @@ function RunningHead({ section }: { section: SectionKey }) {
       <span className="font-sans text-[0.6em] tracking-[0.32em] text-forest uppercase">
         {t(`city.passport.sections.${section}.title`)}
       </span>
-      <Star className="h-[0.7em] w-[0.7em]" style={{ color: GOLD }} />
     </div>
   )
 }
@@ -421,8 +398,7 @@ function OpenerPage({ section, folio }: { section: SectionKey; folio: number }) 
       <h3 className="font-script text-honey mt-[0.6em] text-[2.5em] leading-[1.35]">
         <ScriptText>{t(`city.passport.sections.${section}.title`)}</ScriptText>
       </h3>
-      <Ornament className="mt-[1.3em] !justify-start" />
-      <p className="font-serif text-forest-deep/90 mt-[1em] text-[1.15em] leading-[1.38]">
+      <p className="font-serif text-forest-deep/90 mt-[1.9em] text-[1.15em] leading-[1.38]">
         {t(`city.passport.sections.${section}.intro`)}
       </p>
       <Vignette art={ASSETS.illustrations[section]} className="mt-[1em] min-h-0 flex-1" />
@@ -441,7 +417,6 @@ function HolderPage({ holder }: { holder?: string }) {
   const year = new Date(CONFIG.wedding.date).getFullYear()
   return (
     <div className="flex h-full flex-col items-center px-[13%] pt-[3.2em] pb-[2.6em] text-center">
-      <Star className="h-[0.9em] w-[0.9em]" style={{ color: GOLD }} />
       <div className="flex flex-1 flex-col items-center justify-center pb-[1.5em]">
         <p className="font-sans text-forest -mr-[0.42em] text-[0.62em] tracking-[0.42em] uppercase">
           {t('city.passport.holder')}
@@ -449,8 +424,7 @@ function HolderPage({ holder }: { holder?: string }) {
         <p className="font-script text-honey mt-[0.55em] text-[2.6em] leading-[1.4]">
           <ScriptText>{holder || t('city.passport.holderFallback')}</ScriptText>
         </p>
-        <Ornament className="mt-[1.1em]" />
-        <p className="font-serif text-forest-deep/90 mt-[1.8em] max-w-[18em] text-[1.15em] leading-[1.45] italic">
+        <p className="font-serif text-forest-deep/90 mt-[1.4em] max-w-[18em] text-[1.15em] leading-[1.45] italic">
           {t('city.passport.insideText')}
         </p>
       </div>
@@ -461,13 +435,9 @@ function HolderPage({ holder }: { holder?: string }) {
   )
 }
 
-/** A decorative blank page (end of a chapter with an odd page count). */
+/** A blank page (end of a chapter with an odd page count, the last page). */
 function BlankPage() {
-  return (
-    <div className="flex h-full items-center justify-center">
-      <Star className="h-[1.2em] w-[1.2em] opacity-60" style={{ color: GOLD }} />
-    </div>
-  )
+  return null
 }
 
 /** The contents of any page in the book. */
