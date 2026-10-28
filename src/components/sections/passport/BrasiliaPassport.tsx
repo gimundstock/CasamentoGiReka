@@ -13,7 +13,16 @@ import { useMotionValueEvent, type MotionValue } from 'framer-motion'
 import { MASK } from './assets'
 import { buildBook, pageSection, sectionEntries, SECTIONS, type Chunks } from './content'
 import type { PageSpec, SectionKey } from './content'
-import { vignetteAt, ease, PHASE, seg, TAB_OUT, type PassportGeometry, type Rect } from './geometry'
+import {
+  liftAt,
+  vignetteAt,
+  ease,
+  PHASE,
+  seg,
+  TAB_OUT,
+  type PassportGeometry,
+  type Rect,
+} from './geometry'
 import { PassportCover } from './PassportCover'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
@@ -286,7 +295,8 @@ export function BrasiliaPassport({
       title.style.transform = `translate3d(0, ${((1 - tt) * 8).toFixed(1)}px, 0)`
 
       const o = ease(seg(v, PHASE.open))
-      bookEl.style.transform = `translate3d(${(g.closedShift * (1 - o)).toFixed(1)}px, 0, 0)`
+      // Shut: centred, and lifted so the blot stays at the screen's centre.
+      bookEl.style.transform = `translate3d(${(g.closedShift * (1 - o)).toFixed(1)}px, ${liftAt(g, v).toFixed(2)}px, 0)`
       cover.style.transform = `rotateY(${(-180 * o).toFixed(2)}deg)`
       // Explicitly hidden before the swap too: a child set 'visible' would
       // otherwise show through the root's 'hidden'.

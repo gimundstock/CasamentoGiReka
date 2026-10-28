@@ -245,10 +245,9 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
   }
   const blotLocal = { w: slotW / scale, h: slotH / scale }
 
-  // The blot is centred mid-screen horizontally throughout. Vertically it
-  // starts in the lower middle of the stage's painting and glides to where
-  // the cover's art slot is. It starts big enough to cover the whole screen.
-  const C = { x: cover.x + sc.x, y: artTop + artH * BLOT_START_Y }
+  // The blot stays at the centre of the screen until the cover forms
+  // around it (see liftAt). It starts big enough to cover the whole screen.
+  const C = { x: cover.x + sc.x, y: vh / 2 }
   const far = Math.max(
     Math.hypot(C.x, C.y),
     Math.hypot(vw - C.x, C.y),
@@ -344,17 +343,21 @@ function shrinkAt(g: PassportGeometry, v: number) {
   return ease(seg(v, [Math.min(g.shrinkFrom, PHASE.shrink[1] - 20), PHASE.shrink[1]]))
 }
 
-/** The blot's center on screen: fixed, where the cover's art slot will be. */
-function blotCenter(g: PassportGeometry, v: number) {
-  const end = { x: g.cover.x + g.slot.x + g.slot.w / 2, y: g.cover.y + g.slot.y + g.slot.h / 2 }
-  const start = g.art.y + g.art.h * BLOT_START_Y
-  // It glides up together with the painting's own move onto the cover.
-  const ky = shrinkAt(g, v)
-  return { x: end.x, y: start + (end.y - start) * ky }
+/**
+ * How far the closed book is lifted from its resting place at `v`, px: so
+ * that the cover's art slot — the blot — sits at the centre of the screen
+ * through the whole shrink; the book then settles as the cover forms.
+ */
+export function liftAt(g: PassportGeometry, v: number) {
+  const slotY = g.cover.y + g.slot.y + g.slot.h / 2
+  return (g.vh / 2 - slotY) * (1 - ease(seg(v, PHASE.coverGrow)))
 }
 
-/** Where (down the stage's painting) the blot is centred as it starts closing in. */
-const BLOT_START_Y = 0.56
+/** The blot's center on screen: the screen's centre until the cover forms. */
+function blotCenter(g: PassportGeometry, v: number) {
+  const x = g.cover.x + g.slot.x + g.slot.w / 2
+  return { x, y: g.cover.y + g.slot.y + g.slot.h / 2 + liftAt(g, v) }
+}
 
 /** The blot's size on screen at `v`, before the bleed: closing in to the slot's size. */
 function blotScreen(g: PassportGeometry, v: number) {
@@ -363,22 +366,44 @@ function blotScreen(g: PassportGeometry, v: number) {
   return { w, h: (w * g.slot.h) / g.slot.w }
 }
 
+/**
+ * How far the stage painting is slid up (negative) at `v`, so that the
+ * closing blot, fixed at the screen's centre, sees painting all round:
+ * as little as possible, never past the painting's hard bottom edge. While
+ * the blot is still taller than the painting allows, only the bottom edge
+ * is kept covered (the top is a soft fade into the paper anyway).
+ */
+function slideAt(g: PassportGeometry, v: number) {
+  const b = blotScreen(g, v)
+  const c = blotCenter(g, v).y
+  const top = g.art.y + g.art.h * 0.08
+  const bottom = g.art.y + g.art.h
+  const lo = c + b.h * 0.45 - bottom
+  const hi = c - b.h * 0.45 - top
+  return hi >= lo ? Math.max(lo, Math.min(0, hi)) : Math.min(0, lo)
+}
+
 /** The painting's rect on screen at `v`: from the stage's to the cover's framing. */
 function paintingScreen(g: PassportGeometry, v: number): Rect {
   const k = shrinkAt(g, v)
   const P = paintingBox(g)
   const lerp = (a: number, b: number) => a + (b - a) * k
+  const lift = liftAt(g, v)
   return {
     x: lerp(g.art.x, g.cover.x + P.x),
-    y: lerp(g.art.y, g.cover.y + P.y),
+    y: lerp(g.art.y + slideAt(g, v), g.cover.y + lift + P.y),
     w: lerp(g.art.w, P.w),
     h: lerp(g.art.h, P.h),
   }
 }
 
-/** The frame the vignette is drawn in: the whole screen, in cover coordinates. */
+/**
+ * The frame the vignette is drawn in: the whole screen, in cover
+ * coordinates, with room for the book's lift (see liftAt).
+ */
 export function vignetteBox(g: PassportGeometry): Rect {
-  return { x: -g.cover.x, y: -g.cover.y, w: g.vw, h: g.vh }
+  const l = Math.abs(liftAt(g, 0))
+  return { x: -g.cover.x, y: -g.cover.y - l, w: g.vw, h: g.vh + 2 * l }
 }
 
 /** How many times the slot the blot window is laid out: its size at the hand-over. */
@@ -406,7 +431,6 @@ export function vignetteAt(g: PassportGeometry, v: number) {
   const { slot, inner, rise, riseFrom } = g
   const V = vignetteBox(g)
   const C = blotCenter(g, v)
-  const Cend = blotCenter(g, PHASE.shrink[1])
   // Bleed: the blot grows out past the frame; the rise settles into place.
   const m = seg(v, PHASE.bleed)
   const mb = seg(m, [0.2, 1])
@@ -438,7 +462,7 @@ export function vignetteAt(g: PassportGeometry, v: number) {
   const radius = g.coverBox.w * COVER_RULE.radius
   const onCover = shrinkAt(g, v) >= 1
   return {
-    window: `translate3d(0, ${(C.y - Cend.y).toFixed(3)}px, 0) scale(${(f / F).toFixed(8)})`,
+    window: `scale(${(f / F).toFixed(8)})`,
     scale: f / F,
     shrink: shrinkAt(g, v),
     paint,
