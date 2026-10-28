@@ -65,6 +65,10 @@
       "next": "Próxima página",
       "bookLabel": "Passaporte de Brasília — guia da cidade",
       "tabsLabel": "Capítulos do guia",
+      "hintOpen": "Role para abrir o passaporte",
+      "hintClick": "Clique nas páginas ou nas abas para folhear",
+      "hintTouch": "Deslize as páginas ou toque nas abas",
+      "hintScroll": "Role para continuar",
       "sections": {
         "tourism": {
           "title": "Pontos Turísticos",

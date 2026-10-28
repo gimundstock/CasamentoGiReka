@@ -20,6 +20,7 @@ import {
   PHASE,
   passportGeometry,
   seg,
+  swapOpacities,
   type PassportGeometry,
 } from './passport/geometry'
 import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
@@ -279,10 +280,11 @@ export function HeroBigDay({ holder }: { holder?: string }) {
         el.style.visibility = ''
         return
       }
-      el.style.opacity = ''
       // From the swap on, the cover's own copy carries the painting
-      // (BrasiliaPassport): this one, identical and still, just goes.
-      el.style.visibility = v >= PHASE.swap ? 'hidden' : ''
+      // (BrasiliaPassport): this one, still, fades out under it.
+      const { stage } = swapOpacities(v)
+      el.style.opacity = stage >= 1 ? '' : String(stage)
+      el.style.visibility = stage <= 0 ? 'hidden' : ''
     },
     [reduced]
   )

@@ -65,6 +65,10 @@
       "next": "Next page",
       "bookLabel": "Passport to Brasília — city guide",
       "tabsLabel": "Guide chapters",
+      "hintOpen": "Scroll to open the passport",
+      "hintClick": "Click the pages or the tabs to leaf through",
+      "hintTouch": "Swipe the pages or tap the tabs",
+      "hintScroll": "Scroll to continue",
       "sections": {
         "tourism": {
           "title": "Sightseeing",
