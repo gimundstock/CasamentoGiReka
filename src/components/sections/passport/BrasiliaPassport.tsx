@@ -599,7 +599,7 @@ export function BrasiliaPassport({
       )}
 
       {/* Wildflowers lying round the passport and the envelope. */}
-      {layout && (
+      {layout && !layout.hand && (
         <DeskFlowers
           g={g}
           desk={layout}
@@ -630,7 +630,9 @@ export function BrasiliaPassport({
               width: layout.env.ew,
               height: layout.env.eh,
               left: '50%',
-              top: '50%',
+              // The invitation's stage is the small viewport (100svh) where
+              // this one is 100vh: centred as it is centred.
+              top: '50svh',
               marginLeft: -layout.env.ew / 2,
               marginTop: -layout.env.eh / 2,
               visibility: 'hidden',
