@@ -19,6 +19,7 @@ import {
   ease,
   PHASE,
   seg,
+  swapOpacities,
   TAB_OUT,
   type PassportGeometry,
   type Rect,
@@ -54,6 +55,21 @@ const FALLBACK_CHUNKS = Object.fromEntries(
 
 /** How long one page takes to turn, ms. Slow, like a real leaf settling. */
 const FLIP_MS = 800
+/**
+ * Scrolled back up while reading: the pages first turn back to the start
+ * (one leaf, FLIP_MS) with the book held open, then the cover catches up
+ * with the scroll over this long, ms.
+ */
+const SETTLE_MS = 600
+
+type Hold = { flipped: boolean; flipEnd: number }
+
+/** How far a hold keeps the book open (1: fully), at time `now`. */
+function heldOpen(h: Hold | null, now: number): number {
+  if (!h) return 0
+  if (!h.flipped || now < h.flipEnd) return 1
+  return 1 - ease(Math.min(1, (now - h.flipEnd) / SETTLE_MS))
+}
 
 const hidden3d: CSSProperties = {
   backfaceVisibility: 'hidden',
@@ -139,6 +155,12 @@ export function BrasiliaPassport({
   // ── Click navigation ───────────────────────────────────────────────────
   const [opened, setOpened] = useState(false)
   const [cur, setCur] = useState(0)
+  // Where the book is going: `cur` as soon as a turn starts (the tabs move
+  // with the leaf, not after it lands).
+  const [aim, setAim] = useState(0)
+  // Has the guest turned a page yet? Until then, the hint says how.
+  const [browsed, setBrowsed] = useState(false)
+  const [touch] = useState(() => window.matchMedia('(pointer: coarse)').matches)
   const flipRef = useRef<FlipBookHandle>(null)
 
   // A new layout, language or pagination is a new book: start it over.
@@ -147,6 +169,7 @@ export function BrasiliaPassport({
   if (seenLayout !== layoutKey) {
     setSeenLayout(layoutKey)
     setCur(0)
+    setAim(0)
   }
 
   const go = useCallback(
@@ -154,13 +177,24 @@ export function BrasiliaPassport({
       const fb = flipRef.current
       if (!fb || fb.busy() || to === cur || to < 0 || to >= count) return
       const page = spread ? to * 2 : to
+      setBrowsed(true)
+      setAim(to)
       if (reduced) fb.turnTo(page)
       else fb.flip(page)
     },
     [cur, count, spread, reduced]
   )
   const onFlip = useCallback(
-    (page: number) => setCur(spread ? Math.floor(page / 2) : page),
+    (page: number) => {
+      const at = spread ? Math.floor(page / 2) : page
+      setCur(at)
+      setAim(at)
+      if (at !== 0) setBrowsed(true)
+    },
+    [spread]
+  )
+  const onTurn = useCallback(
+    (page: number) => setAim(spread ? Math.floor(page / 2) : page),
     [spread]
   )
   const goSection = (s: SectionKey) => go(spread ? book.firstSpread[s] : book.firstPage[s])
@@ -183,6 +217,8 @@ export function BrasiliaPassport({
   const chromeRef = useRef<HTMLDivElement>(null)
   const tabsRef = useRef<HTMLElement>(null)
   const hazeRef = useRef<HTMLDivElement>(null)
+  const shutHintRef = useRef<HTMLDivElement>(null)
+  const holdRef = useRef<Hold | null>(null)
   const curRef = useRef(cur)
   useLayoutEffect(() => {
     curRef.current = cur
@@ -241,12 +277,14 @@ export function BrasiliaPassport({
         show(inside, 1)
         chrome.style.opacity = '1'
         if (tabsRef.current) tabsRef.current.style.opacity = '1'
+        if (shutHintRef.current) shutHintRef.current.style.opacity = '0'
         haze.style.opacity = '1'
         return o > 0.5
       }
 
-      root.style.visibility = v >= PHASE.swap ? 'visible' : 'hidden'
-      root.style.opacity = '1'
+      // Drawn, all but transparent, a little before the swap (see PHASE.warm).
+      root.style.visibility = v >= PHASE.warm ? 'visible' : 'hidden'
+      root.style.opacity = String(Math.max(0.01, swapOpacities(v).cover))
       // The painting, from the swap on (see vignetteAt).
       if (vignette) {
         const vs = vignetteAt(g, v)
@@ -266,12 +304,12 @@ export function BrasiliaPassport({
           }
         }
         // The blot window: a static mask; only its scale changes.
-        setMask(blotRef.current, vs.blotMasked ? MASK.blot.image : 'none', true)
+        setMask(blotRef.current, MASK.blot.image, true)
         if (blotRef.current) blotRef.current.style.transform = vs.window
         if (paintRef.current) paintRef.current.style.transform = vs.paint
         // The rise shape, during the bleed.
         const rise = riseRef.current
-        setMask(rise, vs.riseMasked ? MASK.rise.image : 'none', false)
+        setMask(rise, MASK.rise.image, false)
         if (rise) {
           rise.style.setProperty('mask-size', vs.rise.size)
           rise.style.setProperty('-webkit-mask-size', vs.rise.size)
@@ -294,13 +332,15 @@ export function BrasiliaPassport({
       title.style.opacity = String(tt)
       title.style.transform = `translate3d(0, ${((1 - tt) * 8).toFixed(1)}px, 0)`
 
-      const o = ease(seg(v, PHASE.open))
+      // Held open while the pages turn back to the start (see SETTLE_MS).
+      const oScroll = ease(seg(v, PHASE.open))
+      const o = oScroll + (1 - oScroll) * heldOpen(holdRef.current, performance.now())
       // Shut: centred, and lifted so the blot stays at the screen's centre.
       bookEl.style.transform = `translate3d(${(g.closedShift * (1 - o)).toFixed(1)}px, ${liftAt(g, v).toFixed(2)}px, 0)`
       cover.style.transform = `rotateY(${(-180 * o).toFixed(2)}deg)`
       // Explicitly hidden before the swap too: a child set 'visible' would
       // otherwise show through the root's 'hidden'.
-      cover.style.visibility = v >= PHASE.swap && o < 1 ? 'visible' : 'hidden'
+      cover.style.visibility = v >= PHASE.warm && o < 1 ? 'visible' : 'hidden'
       // Which face shows is chosen here, not left to backface-visibility:
       // WebKit draws a hidden backface's composited children anyway.
       if (frontRef.current) frontRef.current.style.visibility = o < 0.5 ? 'inherit' : 'hidden'
@@ -331,19 +371,67 @@ export function BrasiliaPassport({
       show(inside, o >= 1 ? 1 : 0)
       chrome.style.opacity = String(seg(v, [PHASE.open[1] - 25, PHASE.open[1]]))
       if (tabsRef.current) tabsRef.current.style.opacity = chrome.style.opacity
+      // "Scroll to open", under the finished cover until it starts to turn.
+      if (shutHintRef.current) {
+        shutHintRef.current.style.opacity = String(
+          ease(seg(v, [PHASE.title[1] - 5, PHASE.title[1] + 15])) *
+            (1 - seg(v, [PHASE.open[0], PHASE.open[0] + 20]))
+        )
+      }
       haze.style.opacity = String(grow)
       return o >= 1
     },
     [g, reduced, spread]
   )
-  useMotionValueEvent(progress, 'change', (v) => {
-    const isOpen = update(v) ?? false
-    setOpened(isOpen)
-    // Scrolled back into the transition: the book closes on its first spread.
-    if (!isOpen && curRef.current !== 0) {
-      flipRef.current?.turnTo(0)
-      setCur(0)
+  const sync = useCallback(
+    (v: number) => {
+      const isOpen = update(v) ?? false
+      setOpened(isOpen)
+      return isOpen
+    },
+    [update]
+  )
+  const syncRef = useRef(sync)
+  useLayoutEffect(() => {
+    syncRef.current = sync
+  })
+
+  // Scrolled back up while reading: the book turns back to its first spread,
+  // held open, and only then closes — following the scroll again.
+  const rafRef = useRef(0)
+  const holdOpen = useCallback(() => {
+    holdRef.current = { flipped: false, flipEnd: Infinity }
+    const tick = () => {
+      const h = holdRef.current
+      if (!h) return
+      const now = performance.now()
+      const fb = flipRef.current
+      // A page still turning by hand lands first.
+      if (!h.flipped && !fb?.busy()) {
+        h.flipped = true
+        h.flipEnd = now + FLIP_MS
+        if (fb && curRef.current !== 0) fb.flip(0)
+        else h.flipEnd = now
+      }
+      if (h.flipped && now >= h.flipEnd + SETTLE_MS) holdRef.current = null
+      syncRef.current(progress.get())
+      if (holdRef.current) rafRef.current = requestAnimationFrame(tick)
     }
+    rafRef.current = requestAnimationFrame(tick)
+  }, [progress])
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), [])
+
+  useMotionValueEvent(progress, 'change', (v) => {
+    const isOpen = sync(v)
+    if (curRef.current === 0 || holdRef.current) return
+    if (reduced) {
+      // No motion: the book simply closes on its first spread.
+      if (!isOpen) {
+        flipRef.current?.turnTo(0)
+        setCur(0)
+        setAim(0)
+      }
+    } else if (v < PHASE.open[1]) holdOpen()
   })
   // After every render too: re-mounted parts start hidden until styled.
   useLayoutEffect(() => {
@@ -404,10 +492,10 @@ export function BrasiliaPassport({
   }
 
   // Active chapter.
+  // (Where the book is going: the tabs move as the leaf starts to turn.)
   const activeSection = spread
-    ? (pageSection(book.spreads[cur][0]) ?? pageSection(book.spreads[cur][1]))
-    : pageSection(book.pages[cur])
-
+    ? (pageSection(book.spreads[aim][0]) ?? pageSection(book.spreads[aim][1]))
+    : pageSection(book.pages[aim])
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'ArrowRight') go(cur + 1)
     if (e.key === 'ArrowLeft') go(cur - 1)
@@ -427,6 +515,10 @@ export function BrasiliaPassport({
   // While shut, the back board and the page block peek past the cover
   // (--bd, --ls: set by the scroll, back to flush as the book opens).
   const step = 'var(--ls, 1px)'
+  // Room under the page controls for a line of hint, and under the shut
+  // cover for "scroll to open".
+  const below = g.vh - (g.book.y + g.book.h)
+  const shutHintTop = g.book.y + g.coverBox.y + g.coverBox.h + 14
   const insideRect = { x: 0, y: 0, w: g.insideBox.w, h: g.insideBox.h }
 
   return (
@@ -446,6 +538,18 @@ export function BrasiliaPassport({
             'radial-gradient(60% 55% at 50% 55%, rgba(246, 214, 160, 0.55) 0%, rgba(246, 214, 160, 0.18) 45%, rgba(246, 214, 160, 0) 75%)',
         }}
       />
+
+      {/* Under the shut cover: scroll to open it. */}
+      {!reduced && g.vh - shutHintTop >= 28 && (
+        <div
+          ref={shutHintRef}
+          aria-hidden
+          className="absolute inset-x-0"
+          style={{ top: shutHintTop, opacity: 0, fontSize: g.fontSize }}
+        >
+          <Hint label={t('city.passport.hintOpen')} down />
+        </div>
+      )}
 
       <div
         ref={bookRef}
@@ -494,6 +598,17 @@ export function BrasiliaPassport({
               <Chevron dir={1} />
             </button>
           </div>
+          {/* How the book works, until a page has been turned; then (and on
+              the last page) that the site goes on below. */}
+          {below >= 64 && (
+            <div className="absolute inset-x-0" style={{ top: g.book.h + 46 }}>
+              {browsed || cur === count - 1 ? (
+                <Hint label={t('city.passport.hintScroll')} down />
+              ) : (
+                <Hint label={t(touch ? 'city.passport.hintTouch' : 'city.passport.hintClick')} />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Open: the inside of the front cover, lying flat left of the spine
@@ -542,25 +657,36 @@ export function BrasiliaPassport({
           >
             {SECTIONS.map((s, i) => {
               const active = s === activeSection
+              // The tab is on the chapter's first leaf (its opener, always a
+              // left page): once that leaf has turned, the tab has gone over
+              // with it to the left edge (two-page spreads only).
+              const passed = spread && aim >= book.firstSpread[s]
+              const w = TAB_TUCK + (active ? TAB_OUT : TAB_OUT - 8)
+              const edge = 'rgba(190, 150, 80, 0.5)'
               return (
                 <button
                   key={s}
                   type="button"
                   onClick={() => goSection(s)}
                   aria-current={active ? 'true' : undefined}
-                  className="font-sans absolute flex items-center justify-center transition-[width,color] duration-500 ease-out"
+                  className="font-sans absolute flex items-center justify-center"
                   style={{
-                    left: g.right.x + g.right.w - TAB_TUCK,
+                    // Under the pages all the way across, like the leaf it
+                    // is on.
+                    left: passed ? g.left.x + TAB_TUCK - w : g.right.x + g.right.w - TAB_TUCK,
                     top: g.right.y + H * 0.07 + i * (tabH + 6),
-                    width: TAB_TUCK + (active ? TAB_OUT : TAB_OUT - 8),
+                    width: w,
                     height: tabH,
-                    paddingLeft: TAB_TUCK,
-                    borderRadius: '0 0.6em 0.6em 0',
-                    border: '1px solid rgba(190, 150, 80, 0.5)',
-                    borderLeft: 'none',
+                    paddingLeft: passed ? 0 : TAB_TUCK,
+                    paddingRight: passed ? TAB_TUCK : 0,
+                    borderRadius: passed ? '0.6em 0 0 0.6em' : '0 0.6em 0.6em 0',
+                    border: `1px solid ${edge}`,
+                    borderLeftColor: passed ? edge : 'transparent',
+                    borderRightColor: passed ? 'transparent' : edge,
                     background: TAB_PAPER,
                     color: active ? '#B07A26' : '#8A7458',
-                    boxShadow: '1px 1px 3px -1px rgba(110, 78, 30, 0.28)',
+                    boxShadow: `${passed ? -1 : 1}px 1px 3px -1px rgba(110, 78, 30, 0.28)`,
+                    transition: `left ${FLIP_MS}ms cubic-bezier(0.45, 0, 0.25, 1), padding ${FLIP_MS}ms, border-radius ${FLIP_MS}ms, border-color ${FLIP_MS}ms, box-shadow ${FLIP_MS}ms, width 500ms ease-out, color 500ms ease-out`,
                   }}
                 >
                   <span className="text-[0.6em] tracking-[0.24em] whitespace-nowrap uppercase [writing-mode:vertical-rl]">
@@ -580,6 +706,7 @@ export function BrasiliaPassport({
             renderPage={renderLeaf}
             flippingTime={FLIP_MS}
             onFlip={onFlip}
+            onTurn={onTurn}
             className="absolute"
             style={{ left: spread ? g.left.x : g.right.x, top: g.right.y }}
           />
@@ -636,6 +763,27 @@ export function BrasiliaPassport({
         </EntriesFrame>
       </div>
     </div>
+  )
+}
+
+/** A small line of guidance, optionally with a chevron nudging downwards. */
+function Hint({ label, down }: { label: string; down?: boolean }) {
+  return (
+    <p className="font-sans flex items-center justify-center gap-[0.6em] text-[0.58em] tracking-[0.28em] text-[#8A7458] uppercase">
+      <span>{label}</span>
+      {down && (
+        <svg viewBox="0 0 24 24" className="animate-nudge h-[1.4em] w-[1.4em]" aria-hidden>
+          <path
+            d="M6 9l6 6 6-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+    </p>
   )
 }
 

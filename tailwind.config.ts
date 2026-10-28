@@ -59,8 +59,13 @@ export default {
         breath: 'breath 4s ease-in-out infinite',
         'drift-down': 'drift-down 18s linear infinite',
         bloom: 'bloom 1.2s ease-out forwards',
+        nudge: 'nudge 2.2s ease-in-out infinite',
       },
       keyframes: {
+        nudge: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(3px)' },
+        },
         fadeIn: {
           from: { opacity: '0' },
           to: { opacity: '1' },

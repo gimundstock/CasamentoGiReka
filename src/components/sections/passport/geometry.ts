@@ -30,6 +30,18 @@ export const PHASE = {
    * painting into the cover.
    */
   swap: 90,
+  /**
+   * From here to the swap the cover's copy is already drawn, all but
+   * transparent over the stage painting: shown for the first time at the
+   * swap, Safari drew it blank for a frame.
+   */
+  warm: 65,
+  /**
+   * The swap itself, a cross-fade: the two copies are resampled differently
+   * (their edges differ in sharpness), so cut from one to the other the
+   * painting visibly blinked.
+   */
+  swapFade: [90, 102] as Span,
   /** The blot closes in from beyond the screen edges. */
   maskIn: [95, 165] as Span,
   /** The painting shrinks and drifts to the cover's art slot. */
@@ -50,6 +62,19 @@ export const PHASE = {
  * complete, before it opens.
  */
 export const PASSPORT_ANCHOR_VH = BIG_DAY_VH + (PHASE.title[1] + PHASE.open[0]) / 2
+
+/**
+ * Opacities of the stage painting and of the cover's copy across the swap.
+ * Both are drawn at 0.9 and stacked (the cover's on top); the stage's fades
+ * so that together they always cover exactly as much as one does — the
+ * colour never pulses through the cross-fade.
+ */
+export function swapOpacities(v: number) {
+  const PAINT = 0.9
+  const cover = ease(seg(v, PHASE.swapFade))
+  const stage = cover >= 1 ? 0 : (1 - cover) / (1 - PAINT * cover)
+  return { stage, cover }
+}
 
 /** 0 → 1 across a span, clamped. */
 export function seg(v: number, [a, b]: Span): number {
@@ -367,20 +392,42 @@ function blotScreen(g: PassportGeometry, v: number) {
 }
 
 /**
- * How far the stage painting is slid up (negative) at `v`, so that the
- * closing blot, fixed at the screen's centre, sees painting all round:
- * as little as possible, never past the painting's hard bottom edge. While
- * the blot is still taller than the painting allows, only the bottom edge
- * is kept covered (the top is a soft fade into the paper anyway).
+ * The least and most the stage painting may be slid (negative: up) at `v`
+ * so that the closing blot, fixed at the screen's centre, sees painting all
+ * round: `lo` keeps the painting's hard bottom edge out of it, `hi` its
+ * soft top.
  */
-function slideAt(g: PassportGeometry, v: number) {
+function slideBounds(g: PassportGeometry, v: number) {
   const b = blotScreen(g, v)
   const c = blotCenter(g, v).y
   const top = g.art.y + g.art.h * 0.08
   const bottom = g.art.y + g.art.h
-  const lo = c + b.h * 0.45 - bottom
-  const hi = c - b.h * 0.45 - top
+  return { lo: c + b.h * 0.45 - bottom, hi: c - b.h * 0.45 - top }
+}
+
+/**
+ * As little slide as the blot allows at `v`. While the blot is still taller
+ * than the painting allows, only the bottom edge is kept covered (the top is
+ * a soft fade into the paper anyway).
+ */
+function fitSlide(g: PassportGeometry, v: number) {
+  const { lo, hi } = slideBounds(g, v)
   return hi >= lo ? Math.max(lo, Math.min(0, hi)) : Math.min(0, lo)
+}
+
+/**
+ * How far the stage painting is slid up (negative) at `v`. Before the
+ * shrink it glides, only ever upwards, to where the shrink needs it — from
+ * the moment the blot has closed in enough for it to move without the
+ * bottom edge showing: following fitSlide there, it went up and came back
+ * down for no visible reason. From the shrink on, fitSlide.
+ */
+function slideAt(g: PassportGeometry, v: number) {
+  if (v >= g.shrinkFrom) return fitSlide(g, v)
+  let from = PHASE.swap
+  while (from < g.shrinkFrom && slideBounds(g, from).lo > 0) from += 1
+  const glide = fitSlide(g, g.shrinkFrom) * ease(seg(v, [from, g.shrinkFrom]))
+  return Math.min(0, Math.max(slideBounds(g, v).lo, glide))
 }
 
 /** The painting's rect on screen at `v`: from the stage's to the cover's framing. */
@@ -452,12 +499,19 @@ export function vignetteAt(g: PassportGeometry, v: number) {
 
   const mr = ease(seg(m, [0, 0.65]))
   const lerp = (a: number, b: number) => a + (b - a) * mr
-  const r = {
-    x: lerp(riseFrom.x, rise.x) - V.x,
-    y: lerp(riseFrom.y, rise.y) - V.y,
-    w: lerp(riseFrom.w, rise.w),
-    h: lerp(riseFrom.h, rise.h),
-  }
+  // Both masks are on from the start (applied mid-transition, Safari drew
+  // the painting blank for a frame): the rise one as big as the whole frame
+  // until the blot has closed in to the slot, from where its start box holds
+  // the blot whole — neither cuts anything until the bleed.
+  const r =
+    v < PHASE.maskIn[1]
+      ? riseAround({ x: 0, y: 0, w: V.w, h: V.h })
+      : {
+          x: lerp(riseFrom.x, rise.x) - V.x,
+          y: lerp(riseFrom.y, rise.y) - V.y,
+          w: lerp(riseFrom.w, rise.w),
+          h: lerp(riseFrom.h, rise.h),
+        }
   const px = (n: number) => `${n.toFixed(1)}px`
   const radius = g.coverBox.w * COVER_RULE.radius
   const onCover = shrinkAt(g, v) >= 1
@@ -466,8 +520,6 @@ export function vignetteAt(g: PassportGeometry, v: number) {
     scale: f / F,
     shrink: shrinkAt(g, v),
     paint,
-    blotMasked: v >= PHASE.maskIn[0],
-    riseMasked: m > 0,
     rise: { size: `${px(r.w)} ${px(r.h)}`, position: `${px(r.x)} ${px(r.y)}` },
     clip: onCover
       ? `inset(${px(inner.y - V.y)} ${px(V.x + V.w - inner.x - inner.w)} ` +

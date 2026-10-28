@@ -30,6 +30,8 @@ interface Props {
   /** ms for one turn. */
   flippingTime: number
   onFlip: (page: number) => void
+  /** A turn by click or `flip` begins, towards this page (`onFlip` fires as it lands). */
+  onTurn?: (page: number) => void
   className?: string
   style?: CSSProperties
 }
@@ -56,7 +58,7 @@ type Render = {
  * nothing — which matters on a page that is otherwise scroll-animated.
  */
 export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
-  { width, height, portrait, count, renderPage, flippingTime, onFlip, className, style },
+  { width, height, portrait, count, renderPage, flippingTime, onFlip, onTurn, className, style },
   ref
 ) {
   const hostRef = useRef<HTMLDivElement>(null)
@@ -71,8 +73,10 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
     })
   )
   const onFlipRef = useRef(onFlip)
+  const onTurnRef = useRef(onTurn)
   useLayoutEffect(() => {
     onFlipRef.current = onFlip
+    onTurnRef.current = onTurn
   })
 
   useLayoutEffect(() => {
@@ -142,6 +146,9 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
       if ((e.target as HTMLElement).closest('a, button')) return
       const r = host.getBoundingClientRect()
       const back = e.clientX - r.left < r.width / 2
+      const step = portrait ? 1 : 2
+      const to = pf.getCurrentPageIndex() + (back ? -step : step)
+      if (to >= 0 && to < count) onTurnRef.current?.(to)
       kick()
       if (back) pf.flipPrev()
       else pf.flipNext()
@@ -159,6 +166,7 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
   useImperativeHandle(ref, () => ({
     flip: (page) => {
       kickRef.current()
+      onTurnRef.current?.(page)
       pfRef.current?.flip(page)
     },
     turnTo: (page) => {
