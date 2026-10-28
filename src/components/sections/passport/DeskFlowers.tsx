@@ -37,19 +37,11 @@ const FLOWER_BED: {
   { src: 'petal_09', x: 0.21, y: 1.13, rot: -70 },
   { src: 'petal_04', x: 0.82, y: -0.1, rot: 110 },
   // Close by.
-  { src: 'flower_08', x: -0.035, y: 0.3, rot: -18, near: true },
-  { src: 'flower_09', x: 0.5, y: 0.02, rot: 28, near: true },
-  { src: 'flower_10', x: 1.02, y: 0.62, rot: -12, near: true },
-  { src: 'flower_00', x: 0.3, y: 1.05, rot: 52, near: true },
-  { src: 'flower_12', x: 0.64, y: 1.03, rot: -30, near: true },
-  { src: 'flower_07', x: 0.82, y: 0.06, rot: 14, near: true },
-  { src: 'flower_01', x: -0.03, y: 1.0, rot: -40, near: true },
-  { src: 'petal_01', x: 0.16, y: -0.035, rot: 40, near: true },
-  { src: 'petal_06', x: 0.99, y: 0.04, rot: -35, near: true },
-  { src: 'petal_05', x: 0.44, y: 1.06, rot: 70, near: true },
-  { src: 'petal_03', x: 1.035, y: 0.9, rot: 15, near: true },
-  { src: 'petal_09', x: -0.045, y: 0.66, rot: -55, near: true },
-  { src: 'petal_07', x: 0.6, y: 0.08, rot: 100, near: true },
+  { src: 'flower_00', x: 0.3, y: 1.07, rot: 52, near: true },
+  { src: 'flower_07', x: 0.8, y: 0.05, rot: 14, near: true },
+  { src: 'flower_12', x: 0.66, y: 1.06, rot: -30, near: true },
+  { src: 'petal_05', x: 0.46, y: 1.08, rot: 70, near: true },
+  { src: 'petal_09', x: -0.06, y: 0.64, rot: -55, near: true },
 ]
 const FLOWERS_BASE = `${import.meta.env.BASE_URL}flowers/falling`
 
