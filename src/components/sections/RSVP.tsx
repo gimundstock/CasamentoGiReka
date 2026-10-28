@@ -1,4 +1,3 @@
-import { EMBOSS_SHADOW } from '../ui/emboss'
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -15,9 +14,19 @@ import { submitRSVP } from '../../api/sheets'
 import type { Guest, RSVPAttendee } from '../../types'
 import { CONFIG } from '../../content.config'
 import { useReducedMotion } from '../motion/useReducedMotion'
+import { isDesk } from './passport/geometry'
+import {
+  BREATH_MS,
+  ENV_CLOSED_Y,
+  ENVELOPE,
+  ENVELOPE_BACK_CLASS,
+  envelopeSize,
+  FlapFront,
+  NAV_HEIGHT,
+  useClockDelay,
+} from './Envelope'
 
 const base = import.meta.env.BASE_URL
-const NAV_HEIGHT = 68
 
 /*
  * Scroll timeline (progress through the pinned track):
@@ -86,38 +95,12 @@ interface Geometry {
   cardFinalY: number
 }
 
-/*
- * The envelope is four painted layers (public/rsvp/), registered onto the
- * same rectangle: the back with its blue liner, the front pocket with its
- * wavy opening, and the flap outside and inside. Landscape on wide screens,
- * standing upright on phones to match the upright card.
- */
-const ENVELOPE = {
-  h: { aspect: 1493 / 828, flap: 546 / 828 },
-  v: { aspect: 963 / 1491, flap: 754 / 1491 },
-}
-
-/** Space kept under the envelope for the "scroll to open" hint. */
-const ENV_HINT_ROOM = 64
-
 /** How much of the envelope the card fills while it sits inside. */
 const IN_ENVELOPE = 0.96
 
 function measure(w: number, h: number): Geometry {
-  const wide = w >= 768
-  const env = ENVELOPE[wide ? 'h' : 'v']
-  // Up to half the screen's height on wide screens, and taller on phones
-  // where it stands upright; never wider than most of the screen. The open
-  // flap stands above it, so envelope + flap must fit between the nav and
-  // the scroll hint underneath.
-  const room = h - NAV_HEIGHT - 8 - ENV_HINT_ROOM
-  const eh = Math.min(
-    wide
-      ? Math.min(840 / env.aspect, (w * 0.8) / env.aspect, h * 0.5)
-      : Math.min(h * 0.62, (w * 0.86) / env.aspect),
-    room / (1 + env.flap)
-  )
-  const ew = eh * env.aspect
+  const { wide, orient, room, ew, eh } = envelopeSize(w, h)
+  const env = ENVELOPE[orient]
   // Landscape card on wide screens; on phones a landscape card would be
   // unreadably small, so it stands upright instead.
   const cw = wide ? Math.min(1100, w * 0.94, (h - NAV_HEIGHT - 56) / 0.625) : w - 20
@@ -127,7 +110,7 @@ function measure(w: number, h: number): Geometry {
   const envTop = NAV_HEIGHT + 8 + env.flap * eh + (room - (1 + env.flap) * eh) / 2
   const envY = envTop + eh / 2 - h / 2
   // Closed, it sits in the middle of the screen below the nav.
-  const envClosedY = NAV_HEIGHT / 2
+  const envClosedY = ENV_CLOSED_Y
   // Card centre relative to the envelope's: its top edge 2% below the envelope's.
   const cardInOffset = -eh / 2 + eh * 0.02 + (s0 * ch) / 2
   return {
@@ -212,6 +195,24 @@ export function RSVP({ guest }: Props) {
 
   const { w, h } = useStageSize()
   const geo = measure(w, h)
+  const breathDelay = useClockDelay(BREATH_MS)
+  // On a wide screen the envelope has already arrived, on the passport's
+  // stage (HeroBigDay, the desk): this section lies over that stage's last
+  // screen and shows as it pins — the envelope exactly where the desk left
+  // its copy, so the hand-over can't be seen. Until then, all but invisible
+  // (drawn, so it isn't blank its first frame) and not in the way.
+  const desk = !reduced && isDesk(w, h)
+  const deskRef = useRef(desk)
+  useLayoutEffect(() => {
+    deskRef.current = desk
+  })
+  const { scrollYProgress: arrival } = useScroll({
+    target: trackRef,
+    offset: ['start end', 'start start'],
+  })
+  const pinned = (v: number) => !deskRef.current || v >= 0.999
+  const sectionOpacity = useTransform(arrival, (v) => (pinned(v) ? 1 : 0.01))
+  const sectionEvents = useTransform(arrival, (v) => (pinned(v) ? 'auto' : 'none'))
   const orient = geo.wide ? 'h' : 'v'
   // Transforms read the latest geometry through a ref so a resize never
   // remounts the card (and never loses what the guest has typed).
@@ -231,6 +232,10 @@ export function RSVP({ guest }: Props) {
   ])
   const envOpacity = useScrollRange(p, [T.cardOut + 0.05, T.settled], [1, 0])
   const flapRotate = useScrollRange(p, [T.flapStart, T.flapOpen], [0, 180])
+  // Which face of the flap shows is chosen here, not left to
+  // backface-visibility: WebKit drew the inside over the outside while shut.
+  const flapOutside = useTransform(flapRotate, (r) => (r < 90 ? 'visible' : 'hidden'))
+  const flapInside = useTransform(flapRotate, (r) => (r < 90 ? 'hidden' : 'visible'))
   const flapZ = useTransform(p, (v) => (v > T.flapVertical ? 2 : 5))
   const hintOpacity = useScrollRange(p, [0, 0.05], [1, 0])
   const replyHintOpacity = useScrollRange(
@@ -275,11 +280,17 @@ export function RSVP({ guest }: Props) {
   const envBox = { ...box(geo.ew, geo.eh), y: envY, opacity: envOpacity }
 
   return (
-    <section
+    <motion.section
       id="rsvp"
       ref={trackRef}
       className="relative bg-peach bg-paper"
-      style={{ height: reduced ? '100svh' : '480vh' }}
+      style={{
+        height: reduced ? '100svh' : '480vh',
+        marginTop: desk ? '-100vh' : undefined,
+        zIndex: desk ? 41 : undefined,
+        opacity: sectionOpacity,
+        pointerEvents: sectionEvents,
+      }}
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         <motion.p
@@ -297,7 +308,7 @@ export function RSVP({ guest }: Props) {
           src={`${base}rsvp/envelope-back-${orient}.webp`}
           alt=""
           draggable={false}
-          className="absolute max-w-none select-none rounded-[3px] shadow-[0_24px_40px_-12px_rgba(70,80,95,0.28)]"
+          className={ENVELOPE_BACK_CLASS}
           style={{ ...envBox, zIndex: 1 }}
         />
         <motion.img
@@ -325,27 +336,18 @@ export function RSVP({ guest }: Props) {
               transformStyle: 'preserve-3d',
             }}
           >
-            <div className="absolute inset-0 [backface-visibility:hidden]">
-              <img
-                src={`${base}rsvp/envelope-flap-${orient}.webp`}
-                alt=""
-                draggable={false}
-                className="absolute inset-0 h-full w-full max-w-none select-none"
-              />
-              <Emboss
-                className="absolute -translate-x-1/2 -translate-y-1/2 -rotate-[12deg]"
-                style={{
-                  left: `${EMBOSS[orient].x * 100}%`,
-                  top: `${EMBOSS[orient].y * 100}%`,
-                  fontSize: geo.ew * EMBOSS[orient].size,
-                }}
-              />
-            </div>
-            <img
+            <motion.div
+              className="absolute inset-0 [backface-visibility:hidden]"
+              style={{ visibility: flapOutside }}
+            >
+              <FlapFront orient={orient} ew={geo.ew} />
+            </motion.div>
+            <motion.img
               src={`${base}rsvp/envelope-flap-inside-${orient}.webp`}
               alt=""
               draggable={false}
               className="absolute inset-0 h-full w-full max-w-none select-none [backface-visibility:hidden] [transform:rotateX(180deg)]"
+              style={{ visibility: flapInside }}
             />
           </motion.div>
         </motion.div>
@@ -358,7 +360,9 @@ export function RSVP({ guest }: Props) {
             className="absolute inset-x-0 -bottom-16 text-center font-serif italic text-title/70 text-lg"
             style={{ opacity: hintOpacity }}
           >
-            <span className="animate-breath inline-block">{t('rsvp.envelopeHint')} ↓</span>
+            <span className="animate-breath inline-block" style={{ animationDelay: breathDelay }}>
+              {t('rsvp.envelopeHint')} ↓
+            </span>
           </motion.p>
         </motion.div>
 
@@ -413,40 +417,7 @@ export function RSVP({ guest }: Props) {
           </motion.div>
         </motion.div>
       </div>
-    </section>
-  )
-}
-
-/**
- * Where the blind-embossed monogram sits on each flap, on a clear patch of
- * paper (fractions of the flap's width/height), and its size as a fraction of
- * the envelope's width.
- */
-const EMBOSS = {
-  h: { x: 0.66, y: 0.36, size: 0.036 },
-  v: { x: 0.5, y: 0.3, size: 0.06 },
-}
-
-/**
- * The couple's monogram pressed into the paper and foiled in the invitation's
- * amber (the colour of its "&"): letters lifted by light catching their lower edges
- * and shadow along the upper ones, set at a slight angle like a hand stamp.
- */
-function Emboss({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <span
-      aria-hidden
-      className={`font-display pointer-events-none whitespace-nowrap leading-none select-none ${className ?? ''}`}
-      style={{
-        color: '#D89A35',
-        textShadow: EMBOSS_SHADOW,
-        ...style,
-      }}
-    >
-      {CONFIG.couple.bride[0]}
-      <span className="ml-[0.3em]">&amp;</span>
-      <span className="-ml-[0.15em]">{CONFIG.couple.groom[0]}</span>
-    </span>
+    </motion.section>
   )
 }
 

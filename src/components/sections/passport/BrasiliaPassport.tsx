@@ -14,7 +14,10 @@ import { MASK } from './assets'
 import { buildBook, pageSection, sectionEntries, SECTIONS, type Chunks } from './content'
 import type { PageSpec, SectionKey } from './content'
 import {
+  DESK,
+  deskLayout,
   liftAt,
+  passportTime,
   vignetteAt,
   ease,
   PHASE,
@@ -25,6 +28,7 @@ import {
   type Rect,
 } from './geometry'
 import { PassportCover } from './PassportCover'
+import { BREATH_MS, NAV_HEIGHT, ShutEnvelope, useClockDelay } from '../Envelope'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
   BackBoard,
@@ -210,9 +214,19 @@ export function BrasiliaPassport({
   const hazeRef = useRef<HTMLDivElement>(null)
   const shutHintRef = useRef<HTMLDivElement>(null)
   const leavesRef = useRef<HTMLDivElement>(null)
+  // The desk (wide screens, see DESK): the book's carrier, and the envelope
+  // with its words and the invitation's paper.
+  const deskRef = useRef<HTMLDivElement>(null)
+  const envRef = useRef<HTMLDivElement>(null)
+  const envWordsRef = useRef<HTMLDivElement>(null)
+  const envHintRef = useRef<HTMLDivElement>(null)
+  const envPaperRef = useRef<HTMLDivElement>(null)
+  const desk = !!g?.desk && !reduced
+  const layout = useMemo(() => (g && desk ? deskLayout(g) : null), [g, desk])
+  const breathDelay = useClockDelay(BREATH_MS)
 
   const update = useCallback(
-    (v: number) => {
+    (at: number) => {
       const root = rootRef.current
       const bookEl = bookRef.current
       const cover = coverRef.current
@@ -222,6 +236,8 @@ export function BrasiliaPassport({
       const chrome = chromeRef.current
       const haze = hazeRef.current
       if (!g || !root || !bookEl || !cover || !board || !title || !base || !chrome || !haze) return
+      // The passport's own time: still while it lies on the desk.
+      const v = passportTime(at, desk)
       const inside = insideRef.current
       const vignette = vignetteRef.current
       // Boards from the cover's corner (shut) to the board art's own (open);
@@ -319,7 +335,9 @@ export function BrasiliaPassport({
       title.style.opacity = String(tt)
       title.style.transform = `translate3d(0, ${((1 - tt) * 8).toFixed(1)}px, 0)`
 
-      const o = ease(seg(v, PHASE.open))
+      // Open — and, on the desk, closed again once read.
+      const closing = desk ? ease(seg(v, DESK.close)) : 0
+      const o = ease(seg(v, PHASE.open)) * (1 - closing)
       // Shut: centred, and lifted so the blot stays at the screen's centre.
       bookEl.style.transform = `translate3d(${(g.closedShift * (1 - o)).toFixed(1)}px, ${liftAt(g, v).toFixed(2)}px, 0)`
       cover.style.transform = `rotateY(${(-180 * o).toFixed(2)}deg)`
@@ -363,7 +381,7 @@ export function BrasiliaPassport({
         leavesEl.style.clipPath = clip
         leavesEl.style.setProperty('-webkit-clip-path', clip)
       }
-      chrome.style.opacity = String(seg(v, [PHASE.open[1] - 25, PHASE.open[1]]))
+      chrome.style.opacity = String(seg(v, [PHASE.open[1] - 25, PHASE.open[1]]) * (1 - closing))
       if (tabsRef.current) tabsRef.current.style.opacity = chrome.style.opacity
       // "Scroll to open", under the finished cover until it starts to turn.
       if (shutHintRef.current) {
@@ -372,10 +390,68 @@ export function BrasiliaPassport({
             (1 - seg(v, [PHASE.open[0], PHASE.open[0] + 20]))
         )
       }
-      haze.style.opacity = String(grow)
+      // The desk: how far the passport lies on it (0 → 1 → 0), and has left.
+      const lying = layout ? ease(seg(at, DESK.back)) - ease(seg(at, DESK.pickUp)) : 0
+      const gone = layout ? ease(seg(v, DESK.leave)) : 0
+      haze.style.opacity = String(grow * (1 - 0.5 * lying) * (1 - gone))
+      if (shutHintRef.current && lying > 0) {
+        shutHintRef.current.style.opacity = String(
+          Number(shutHintRef.current.style.opacity) * (1 - lying)
+        )
+      }
+      const carrier = deskRef.current
+      if (carrier) {
+        if (!layout || (lying <= 0 && gone <= 0)) {
+          carrier.style.transform = 'none'
+          carrier.style.visibility = 'inherit'
+        } else {
+          const { C, passport: P } = layout
+          const dx = (P.x - C.x) * lying + layout.offLeft * gone
+          const dy = (P.y - C.y) * lying + g.vh * 0.04 * gone
+          const rot = P.rot * lying - 10 * gone
+          const sc = 1 + (P.s - 1) * lying
+          carrier.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(5)})`
+          carrier.style.visibility = gone >= 1 ? 'hidden' : 'inherit'
+        }
+      }
+      // The envelope: in on the right as the passport draws back, out again
+      // as it's picked up; back at the end, to the invitation's own place.
+      const envEl = envRef.current
+      if (envEl && layout) {
+        const { envelope: E, closed: F, offRight } = layout
+        const come = ease(seg(at, DESK.back))
+        const go = ease(seg(at, DESK.pickUp))
+        const arrive = ease(seg(v, DESK.arrive))
+        let x: number, y: number, rot: number, sc: number
+        if (arrive > 0) {
+          x = offRight + (F.x - offRight) * arrive
+          y = F.y
+          rot = 6 * (1 - arrive)
+          sc = 1
+        } else {
+          const lx = offRight + (E.x - offRight) * come
+          x = lx + (offRight - lx) * go
+          y = E.y
+          rot = E.rot
+          sc = E.s
+        }
+        const seen = arrive > 0 || (come > 0 && go < 1)
+        envEl.style.visibility = seen ? 'inherit' : 'hidden'
+        envEl.style.transform =
+          arrive >= 1
+            ? `translateY(${F.y}px)`
+            : `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(5)})`
+        const words = ease(seg(v, DESK.words))
+        for (const el of [envWordsRef.current, envHintRef.current]) {
+          if (!el) continue
+          el.style.opacity = String(words)
+          el.style.visibility = words > 0 ? 'inherit' : 'hidden'
+        }
+        show(envPaperRef.current, ease(seg(v, DESK.arrive)))
+      }
       return o >= 1
     },
-    [g, reduced, spread]
+    [g, reduced, spread, desk, layout]
   )
   // Scrolled back up (or on, past the book): it closes on the page it was
   // open at, and opens again on it.
@@ -463,6 +539,16 @@ export function BrasiliaPassport({
       className="pointer-events-none absolute inset-0 z-40"
       style={{ visibility: 'hidden' }}
     >
+      {/* The desk's end: the invitation's paper comes in with its envelope. */}
+      {layout && (
+        <div
+          ref={envPaperRef}
+          aria-hidden
+          className="bg-peach bg-paper absolute inset-0"
+          style={{ opacity: 0, visibility: 'hidden' }}
+        />
+      )}
+
       {/* Golden haze behind the book. */}
       <div
         ref={hazeRef}
@@ -487,214 +573,265 @@ export function BrasiliaPassport({
         </div>
       )}
 
+      {/* What carries the book across the desk (see DESK): turned about the
+          shut cover's centre. */}
       <div
-        ref={bookRef}
-        role="region"
-        aria-label={t('city.passport.bookLabel')}
-        tabIndex={opened ? 0 : -1}
-        onKeyDown={onKey}
-        className={`absolute outline-none ${opened ? 'pointer-events-auto' : ''}`}
+        ref={deskRef}
+        className="absolute inset-0"
         style={{
-          left: g.book.x,
-          top: g.book.y,
-          width: g.book.w,
-          height: g.book.h,
-          // Mild, so the turning cover barely grows past the book.
-          perspective: W * 14,
-          fontSize: g.fontSize,
+          transformOrigin: layout ? `${layout.C.x}px ${layout.C.y}px` : undefined,
         }}
       >
-        {/* Page controls: only once the book is open. */}
-        <div ref={chromeRef} style={{ opacity: 0 }}>
-          <div
-            className="font-sans text-forest absolute inset-x-0 flex items-center justify-center gap-6"
-            style={{ top: g.book.h + 8 }}
-          >
-            <button
-              type="button"
-              onClick={() => go(cur - 1)}
-              disabled={cur === 0}
-              aria-label={t('city.passport.prev')}
-              className="hover:text-honey p-2 transition-colors disabled:opacity-30"
+        <div
+          ref={bookRef}
+          role="region"
+          aria-label={t('city.passport.bookLabel')}
+          tabIndex={opened ? 0 : -1}
+          onKeyDown={onKey}
+          className={`absolute outline-none ${opened ? 'pointer-events-auto' : ''}`}
+          style={{
+            left: g.book.x,
+            top: g.book.y,
+            width: g.book.w,
+            height: g.book.h,
+            // Mild, so the turning cover barely grows past the book.
+            perspective: W * 14,
+            fontSize: g.fontSize,
+          }}
+        >
+          {/* Page controls: only once the book is open. */}
+          <div ref={chromeRef} style={{ opacity: 0 }}>
+            <div
+              className="font-sans text-forest absolute inset-x-0 flex items-center justify-center gap-6"
+              style={{ top: g.book.h + 8 }}
             >
-              <Chevron dir={-1} />
-            </button>
-            <span className="min-w-[4.5em] text-center text-[0.72em] tracking-[0.3em] tabular-nums">
-              {cur + 1} / {count}
-            </span>
-            <button
-              type="button"
-              onClick={() => go(cur + 1)}
-              disabled={cur === count - 1}
-              aria-label={t('city.passport.next')}
-              className="hover:text-honey p-2 transition-colors disabled:opacity-30"
-            >
-              <Chevron dir={1} />
-            </button>
-          </div>
-          {/* How the book works, until a page has been turned; then (and on
-              the last page) that the site goes on below. */}
-          {below >= 64 && (
-            <div className="absolute inset-x-0" style={{ top: g.book.h + 46 }}>
-              {browsed || cur === count - 1 ? (
-                <Hint label={t('city.passport.hintScroll')} down />
-              ) : (
-                <Hint label={t(touch ? 'city.passport.hintTouch' : 'city.passport.hintClick')} />
-              )}
+              <button
+                type="button"
+                onClick={() => go(cur - 1)}
+                disabled={cur === 0}
+                aria-label={t('city.passport.prev')}
+                className="hover:text-honey p-2 transition-colors disabled:opacity-30"
+              >
+                <Chevron dir={-1} />
+              </button>
+              <span className="min-w-[4.5em] text-center text-[0.72em] tracking-[0.3em] tabular-nums">
+                {cur + 1} / {count}
+              </span>
+              <button
+                type="button"
+                onClick={() => go(cur + 1)}
+                disabled={cur === count - 1}
+                aria-label={t('city.passport.next')}
+                className="hover:text-honey p-2 transition-colors disabled:opacity-30"
+              >
+                <Chevron dir={1} />
+              </button>
             </div>
-          )}
-        </div>
-
-        {/* Open: the inside of the front cover, lying flat left of the spine
-            (exactly where the turned cover came down). */}
-        {spread && (
-          <div ref={insideRef} className="absolute" style={{ ...box(g.insideBox), opacity: 0 }}>
-            <InsideBoard rect={insideRect} />
-            {leftLines > 0 && (
-              <div aria-hidden className="pointer-events-none absolute inset-0">
-                <PageStack
-                  page={leftOnInside}
-                  side="left"
-                  lines={leftLines}
-                  step={step}
-                  r0="var(--page-r)"
-                />
+            {/* How the book works, until a page has been turned; then (and on
+              the last page) that the site goes on below. */}
+            {below >= 64 && (
+              <div className="absolute inset-x-0" style={{ top: g.book.h + 46 }}>
+                {browsed || cur === count - 1 ? (
+                  <Hint label={t('city.passport.hintScroll')} down />
+                ) : (
+                  <Hint label={t(touch ? 'city.passport.hintTouch' : 'city.passport.hintClick')} />
+                )}
               </div>
             )}
           </div>
-        )}
 
-        {/* Under the cover: the back board, the page block, the pages. */}
-        <div ref={baseRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
-          <BackBoard rect={g.coverBox} d="var(--bd, 0px)" spineR="var(--sr, 0px)" />
-          <PageStack
-            page={g.right}
-            side="right"
-            lines={rightLines}
-            step={step}
-            r0="var(--page-rr)"
-            spineR="var(--sr, 0px)"
-          />
-          {/* Index tabs: tucked in between the pages (the page block and the
+          {/* Open: the inside of the front cover, lying flat left of the spine
+            (exactly where the turned cover came down). */}
+          {spread && (
+            <div ref={insideRef} className="absolute" style={{ ...box(g.insideBox), opacity: 0 }}>
+              <InsideBoard rect={insideRect} />
+              {leftLines > 0 && (
+                <div aria-hidden className="pointer-events-none absolute inset-0">
+                  <PageStack
+                    page={leftOnInside}
+                    side="left"
+                    lines={leftLines}
+                    step={step}
+                    r0="var(--page-r)"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Under the cover: the back board, the page block, the pages. */}
+          <div ref={baseRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
+            <BackBoard rect={g.coverBox} d="var(--bd, 0px)" spineR="var(--sr, 0px)" />
+            <PageStack
+              page={g.right}
+              side="right"
+              lines={rightLines}
+              step={step}
+              r0="var(--page-rr)"
+              spineR="var(--sr, 0px)"
+            />
+            {/* Index tabs: tucked in between the pages (the page block and the
               pages lie over their inner end), on the book's own paper. Only
               once the book is open. */}
-          {/* Not on the last stop: the inside back cover is the end, its art
+            {/* Not on the last stop: the inside back cover is the end, its art
               left clear. */}
-          <nav
-            ref={tabsRef}
-            aria-label={t('city.passport.tabsLabel')}
-            style={{ opacity: 0, visibility: spread && cur === count - 1 ? 'hidden' : undefined }}
-          >
-            {SECTIONS.map((s, i) => {
-              const active = s === activeSection
-              // The tab is on the chapter's first leaf (its opener, always a
-              // left page): once that leaf has turned, the tab has gone over
-              // with it to the left edge (two-page spreads only).
-              const passed = spread && aim >= book.firstSpread[s]
-              const w = TAB_TUCK + (active ? TAB_OUT : TAB_OUT - 8)
-              const edge = 'rgba(190, 150, 80, 0.5)'
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => goSection(s)}
-                  aria-current={active ? 'true' : undefined}
-                  className="font-sans absolute flex items-center justify-center"
-                  style={{
-                    // Under the pages all the way across, like the leaf it
-                    // is on.
-                    left: passed ? g.left.x + TAB_TUCK - w : g.right.x + g.right.w - TAB_TUCK,
-                    top: g.right.y + H * 0.07 + i * (tabH + 6),
-                    width: w,
-                    height: tabH,
-                    paddingLeft: passed ? 0 : TAB_TUCK,
-                    paddingRight: passed ? TAB_TUCK : 0,
-                    borderRadius: passed ? '0.6em 0 0 0.6em' : '0 0.6em 0.6em 0',
-                    border: `1px solid ${edge}`,
-                    borderLeftColor: passed ? edge : 'transparent',
-                    borderRightColor: passed ? 'transparent' : edge,
-                    background: TAB_PAPER,
-                    color: active ? '#B07A26' : '#8A7458',
-                    boxShadow: `${passed ? -1 : 1}px 1px 3px -1px rgba(110, 78, 30, 0.28)`,
-                    // Read chapters' tabs ride on the cover's inside: gone
-                    // while it turns.
-                    opacity: passed && !opened ? 0 : 1,
-                    transition: `opacity 250ms, left ${FLIP_MS}ms cubic-bezier(0.45, 0, 0.25, 1), padding ${FLIP_MS}ms, border-radius ${FLIP_MS}ms, border-color ${FLIP_MS}ms, box-shadow ${FLIP_MS}ms, width 500ms ease-out, color 500ms ease-out`,
-                  }}
-                >
-                  <span className="text-[0.6em] tracking-[0.24em] whitespace-nowrap uppercase [writing-mode:vertical-rl]">
-                    {t(`city.passport.sections.${s}.tab`)}
-                  </span>
-                </button>
-              )
-            })}
-          </nav>
-          <div ref={leavesRef} className="pointer-events-none absolute inset-0">
-            <FlipBook
-              key={layoutKey}
-              ref={flipRef}
-              width={W}
-              height={H}
-              portrait={!spread}
-              count={leaves.length}
-              renderPage={renderLeaf}
-              flippingTime={FLIP_MS}
-              onFlip={onFlip}
-              onTurn={onTurn}
-              className="pointer-events-auto absolute"
-              style={{ left: spread ? g.left.x : g.right.x, top: g.right.y }}
-            />
+            <nav
+              ref={tabsRef}
+              aria-label={t('city.passport.tabsLabel')}
+              style={{ opacity: 0, visibility: spread && cur === count - 1 ? 'hidden' : undefined }}
+            >
+              {SECTIONS.map((s, i) => {
+                const active = s === activeSection
+                // The tab is on the chapter's first leaf (its opener, always a
+                // left page): once that leaf has turned, the tab has gone over
+                // with it to the left edge (two-page spreads only).
+                const passed = spread && aim >= book.firstSpread[s]
+                const w = TAB_TUCK + (active ? TAB_OUT : TAB_OUT - 8)
+                const edge = 'rgba(190, 150, 80, 0.5)'
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => goSection(s)}
+                    aria-current={active ? 'true' : undefined}
+                    className="font-sans absolute flex items-center justify-center"
+                    style={{
+                      // Under the pages all the way across, like the leaf it
+                      // is on.
+                      left: passed ? g.left.x + TAB_TUCK - w : g.right.x + g.right.w - TAB_TUCK,
+                      top: g.right.y + H * 0.07 + i * (tabH + 6),
+                      width: w,
+                      height: tabH,
+                      paddingLeft: passed ? 0 : TAB_TUCK,
+                      paddingRight: passed ? TAB_TUCK : 0,
+                      borderRadius: passed ? '0.6em 0 0 0.6em' : '0 0.6em 0.6em 0',
+                      border: `1px solid ${edge}`,
+                      borderLeftColor: passed ? edge : 'transparent',
+                      borderRightColor: passed ? 'transparent' : edge,
+                      background: TAB_PAPER,
+                      color: active ? '#B07A26' : '#8A7458',
+                      boxShadow: `${passed ? -1 : 1}px 1px 3px -1px rgba(110, 78, 30, 0.28)`,
+                      // Read chapters' tabs ride on the cover's inside: gone
+                      // while it turns.
+                      opacity: passed && !opened ? 0 : 1,
+                      transition: `opacity 250ms, left ${FLIP_MS}ms cubic-bezier(0.45, 0, 0.25, 1), padding ${FLIP_MS}ms, border-radius ${FLIP_MS}ms, border-color ${FLIP_MS}ms, box-shadow ${FLIP_MS}ms, width 500ms ease-out, color 500ms ease-out`,
+                    }}
+                  >
+                    <span className="text-[0.6em] tracking-[0.24em] whitespace-nowrap uppercase [writing-mode:vertical-rl]">
+                      {t(`city.passport.sections.${s}.tab`)}
+                    </span>
+                  </button>
+                )
+              })}
+            </nav>
+            <div ref={leavesRef} className="pointer-events-none absolute inset-0">
+              <FlipBook
+                key={layoutKey}
+                ref={flipRef}
+                width={W}
+                height={H}
+                portrait={!spread}
+                count={leaves.length}
+                renderPage={renderLeaf}
+                flippingTime={FLIP_MS}
+                onFlip={onFlip}
+                onTurn={onTurn}
+                className="pointer-events-auto absolute"
+                style={{ left: spread ? g.left.x : g.right.x, top: g.right.y }}
+              />
+            </div>
           </div>
-        </div>
 
-        {/* The cover: scroll-driven, a rigid board hinged on its left edge. */}
-        <div
-          ref={coverRef}
-          className="absolute"
-          style={{
-            ...box(g.coverBox),
-            transformOrigin: 'left center',
-            transformStyle: 'preserve-3d',
-          }}
-        >
-          <div ref={frontRef} className="absolute inset-0" style={hidden3d}>
-            <PassportCover
-              g={g}
-              boardRef={boardRef}
-              vignetteRef={vignetteRef}
-              riseRef={riseRef}
-              blotRef={blotRef}
-              paintRef={paintRef}
-              cathedralRef={cathedralRef}
-              titleRef={titleRef}
-            />
-          </div>
+          {/* The cover: scroll-driven, a rigid board hinged on its left edge. */}
           <div
-            ref={backRef}
-            className="absolute inset-0"
-            style={{ ...hidden3d, transform: 'rotateY(180deg)', visibility: 'hidden' }}
+            ref={coverRef}
+            className="absolute"
+            style={{
+              ...box(g.coverBox),
+              transformOrigin: 'left center',
+              transformStyle: 'preserve-3d',
+            }}
           >
-            <InsideBoard rect={insideRect} />
-            {/* Closed part-way through the book: the pages read lie on the
+            <div ref={frontRef} className="absolute inset-0" style={hidden3d}>
+              <PassportCover
+                g={g}
+                boardRef={boardRef}
+                vignetteRef={vignetteRef}
+                riseRef={riseRef}
+                blotRef={blotRef}
+                paintRef={paintRef}
+                cathedralRef={cathedralRef}
+                titleRef={titleRef}
+              />
+            </div>
+            <div
+              ref={backRef}
+              className="absolute inset-0"
+              style={{ ...hidden3d, transform: 'rotateY(180deg)', visibility: 'hidden' }}
+            >
+              <InsideBoard rect={insideRect} />
+              {/* Closed part-way through the book: the pages read lie on the
                 cover's inside, the open one on top — turning back over, the
                 book opens on it again. */}
-            {spread && cur !== 0 && (
-              <>
-                <PageStack
-                  page={leftOnInside}
-                  side="left"
-                  lines={leftLines}
-                  step={step}
-                  r0="var(--page-r)"
-                />
-                <div className="absolute" style={box(leftOnInside)}>
-                  {renderLeaf(cur * 2)}
-                </div>
-              </>
-            )}
+              {spread && cur !== 0 && (
+                <>
+                  <PageStack
+                    page={leftOnInside}
+                    side="left"
+                    lines={leftLines}
+                    step={step}
+                    r0="var(--page-r)"
+                  />
+                  <div className="absolute" style={box(leftOnInside)}>
+                    {renderLeaf(cur * 2)}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* The desk's envelope: the invitation's own, shut — the same layers,
+          size and place where it ends, so the invitation (RSVP) takes over
+          unseen. With its kicker above, and its hint below. */}
+      {layout && (
+        <>
+          <div
+            ref={envWordsRef}
+            aria-hidden
+            className="font-sans text-amber absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
+            style={{ top: NAV_HEIGHT + 32, opacity: 0, visibility: 'hidden' }}
+          >
+            {t('rsvp.kicker')}
+          </div>
+          <div
+            ref={envRef}
+            aria-hidden
+            className="absolute"
+            style={{
+              width: layout.env.ew,
+              height: layout.env.eh,
+              left: '50%',
+              top: '50%',
+              marginLeft: -layout.env.ew / 2,
+              marginTop: -layout.env.eh / 2,
+              visibility: 'hidden',
+            }}
+          >
+            <ShutEnvelope orient={layout.env.orient} ew={layout.env.ew} />
+            <div
+              ref={envHintRef}
+              className="font-serif text-title/70 absolute inset-x-0 -bottom-16 text-center text-lg italic"
+              style={{ opacity: 0, visibility: 'hidden' }}
+            >
+              <span className="animate-breath inline-block" style={{ animationDelay: breathDelay }}>
+                {t('rsvp.envelopeHint')} ↓
+              </span>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Off-screen copy of an entries page, measured to paginate. */}
       <div

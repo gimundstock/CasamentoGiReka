@@ -15,8 +15,9 @@ import { CerradoPaint } from './CerradoPaint'
 import { BrasiliaPassport } from './passport/BrasiliaPassport'
 import {
   BIG_DAY_VH,
-  PASSPORT_ANCHOR_VH,
-  PASSPORT_VH,
+  isDesk,
+  passportAnchorVh,
+  passportVh,
   PHASE,
   passportGeometry,
   seg,
@@ -89,9 +90,10 @@ function sunYAt(v: number): number {
 const PAINT_START = 0.28
 const PAINT_END = 0.82
 
-// The stage scrolls (is pinned) for the big day, then for the passport.
-const LOCKED_VH = BIG_DAY_VH + PASSPORT_VH
-const STAGE_VH = 100 + LOCKED_VH
+// The stage scrolls (is pinned) for the big day, then for the passport
+// (longer on a wide screen, where it shares a desk with the invitation).
+const lockedVh = (desk: boolean) => BIG_DAY_VH + passportVh(desk)
+const deskNow = () => isDesk(window.innerWidth, window.innerHeight)
 // Nav highlight: "The Wedding" until the passport starts taking shape, then
 // "Brasília". The band the Nav watches sits 30–45 % down the screen.
 const CITY_MARK_VH = BIG_DAY_VH + PHASE.infoOut[1] + 30
@@ -127,7 +129,7 @@ function useStageGeometry(ref: RefObject<HTMLDivElement | null>) {
  * becomes the city guide: the finished painting shrinks into a watercolor
  * blot on the cover of a passport, which opens (passport/BrasiliaPassport).
  *
- * The stage is pinned for BIG_DAY_VH + PASSPORT_VH of scroll. The big day
+ * The stage is pinned for BIG_DAY_VH + passportVh() of scroll. The big day
  * keeps its original 0 → 1 over the first BIG_DAY_VH (300vh, as before);
  * the passport's phases follow (passport/geometry.ts, PHASE).
  *
@@ -158,6 +160,8 @@ export function HeroBigDay({ holder }: { holder?: string }) {
   const lang = i18n.language as 'pt' | 'en'
 
   const stageRef = useRef<HTMLDivElement>(null)
+  // The stage's pinned length, read by the scroll transforms below.
+  const lockedRef = useRef(lockedVh(deskNow()))
   const { scrollYProgress: stageProgress } = useScroll({
     target: stageRef,
     offset: ['start start', 'end end'],
@@ -165,9 +169,9 @@ export function HeroBigDay({ holder }: { holder?: string }) {
   // The big day's own 0 → 1 (its first BIG_DAY_VH of pinned scroll), and the
   // vh scrolled past it, which drives the passport.
   const scrollYProgress = useTransform(stageProgress, (v: number) =>
-    Math.min(1, (v * LOCKED_VH) / BIG_DAY_VH)
+    Math.min(1, (v * lockedRef.current) / BIG_DAY_VH)
   )
-  const passVh = useTransform(stageProgress, (v: number) => v * LOCKED_VH - BIG_DAY_VH)
+  const passVh = useTransform(stageProgress, (v: number) => v * lockedRef.current - BIG_DAY_VH)
   const reduced = useReducedMotion()
 
   // Sun, phase 1: it arrives from HeroSaveDateCouple as the zoomed-in
@@ -181,7 +185,7 @@ export function HeroBigDay({ holder }: { holder?: string }) {
     target: stageRef,
     offset: ['start end', 'end end'],
   })
-  const ext = useTransform(seam, (p: number) => (p * STAGE_VH - 100) / BIG_DAY_VH)
+  const ext = useTransform(seam, (p: number) => (p * (100 + lockedRef.current) - 100) / BIG_DAY_VH)
   // Starts rising while the two sections are still passing each other
   // (-0.15), and reaches the upper-left of the painting at its disc size
   // as the landscape settles (0.30).
@@ -269,6 +273,11 @@ export function HeroBigDay({ holder }: { holder?: string }) {
   // straight to the element's style, so no re-renders.
   const viewRef = useRef<HTMLDivElement>(null)
   const geo = useStageGeometry(viewRef)
+  const desk = geo?.desk ?? deskNow()
+  const locked = lockedVh(desk)
+  useLayoutEffect(() => {
+    lockedRef.current = locked
+  })
   const compactRef = useRef<HTMLDivElement>(null)
   const compact = useCallback(
     (v: number) => {
@@ -314,7 +323,7 @@ export function HeroBigDay({ holder }: { holder?: string }) {
 
   return (
     <section className="relative">
-      <div ref={stageRef} className="relative" style={{ height: `${STAGE_VH}vh` }}>
+      <div ref={stageRef} className="relative" style={{ height: `${100 + locked}vh` }}>
         {/* What the Nav watches: the big day, then the passport (city guide),
             and where its "Brasília" link lands — the book just opened. */}
         <div
@@ -333,7 +342,7 @@ export function HeroBigDay({ holder }: { holder?: string }) {
           id="passport"
           aria-hidden
           className="pointer-events-none absolute h-px w-px"
-          style={{ top: `${PASSPORT_ANCHOR_VH}vh` }}
+          style={{ top: `${passportAnchorVh(desk)}vh` }}
         />
         {/* Inner anchor for the Nav "The Wedding" link — placed at scroll
             progress ~0.95 (300vh * 0.95 = 285vh into the stage), the
