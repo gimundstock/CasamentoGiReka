@@ -7,6 +7,7 @@ import {
   PAINT_ASPECT,
   SLOT_ASPECT,
 } from './assets'
+import { ENV_CLOSED_Y, envelopeSize, NAV_HEIGHT as ENV_NAV_H } from '../Envelope'
 
 // ── Scroll timeline ──────────────────────────────────────────────────────
 //
@@ -63,6 +64,223 @@ export const PHASE = {
  */
 export const PASSPORT_ANCHOR_VH = BIG_DAY_VH + (PHASE.title[1] + PHASE.open[0]) / 2
 
+// ── The desk (wide screens) ──────────────────────────────────────────────
+//
+// On a wide screen the passport and the invitation lie side by side, as on
+// a desk: the painting closes in to the left, where the cover forms around
+// it, and the envelope fades in with it on the right, under its edge, with
+// wildflowers lying round them.
+// Scrolling on picks the passport up — it comes to the
+// centre and opens, the envelope leaves — and, once read, it closes, and
+// the envelope is drawn back in, pushing it off the screen, to the very spot
+// where the invitation (RSVP) takes it over.
+//
+// The passport's own timeline (PHASE) holds still while the desk is shown
+// (`hold`); everything after it runs `hold` later (see passportTime).
+
+export const DESK = {
+  /**
+   * The passport is carried to its place on the desk while the blot is
+   * still bigger than the screen: the painting itself stays put (see
+   * vignetteAt), so the blot closes in on the passport's place, and the
+   * cover forms there.
+   */
+  back: [102, 150] as Span,
+  /** Picked up: the passport comes to the centre, the envelope leaves. */
+  pickUp: [300, 350] as Span,
+  /** The passport's timeline stands still across this, at its start. */
+  hold: [262, 352] as Span,
+  // In the passport's own time (after the hold):
+  /** Read: the book closes on the page it is open at. */
+  close: [410, 445] as Span,
+  /**
+   * The envelope is drawn in from the right, to where the invitation takes
+   * over, pushing the shut passport off to the left.
+   */
+  arrive: [444, 500] as Span,
+  /** The passport it pushes slides on a little longer, off the screen. */
+  shove: [444, 508] as Span,
+  /** The kicker and the hint come with it. */
+  words: [485, 500] as Span,
+  /** End of the stage, in the passport's own time. */
+  end: 510,
+}
+const DESK_HOLD = DESK.hold[1] - DESK.hold[0]
+
+/** Wide enough for the passport and the envelope side by side. */
+export function isDesk(vw: number, vh: number) {
+  return vw >= 1100 && vw >= vh * 1.25
+}
+
+/** vh of scroll the passport takes after the big day. */
+export function passportVh(desk: boolean) {
+  return desk ? DESK.end + DESK_HOLD : PASSPORT_VH
+}
+
+/** Where the Nav "Brasília" link lands: on the desk, both lying there. */
+export function passportAnchorVh(desk: boolean) {
+  return desk ? BIG_DAY_VH + (DESK.hold[0] + DESK.pickUp[0]) / 2 : PASSPORT_ANCHOR_VH
+}
+
+/**
+ * The desk's layout: where the shut passport and the envelope lie on it
+ * (centres on screen, scale, tilt), and where the envelope ends up — the
+ * invitation's own closed envelope, centre relative to the screen's.
+ * The envelope is about twice the passport's width, and tucked under its
+ * right edge.
+ */
+export function deskLayout(g: PassportGeometry): DeskLayout {
+  let d = desks.get(g)
+  if (!d) {
+    d = layDesk(g)
+    desks.set(g, d)
+  }
+  return d
+}
+export type DeskLayout = ReturnType<typeof layDesk>
+const desks = new WeakMap<PassportGeometry, DeskLayout>()
+
+function layDesk(g: PassportGeometry) {
+  const env = envelopeSize(g.vw, g.vh)
+  const cw = g.coverBox.w
+  const ch = g.coverBox.h
+  /** The shut cover's centre on screen, at rest. */
+  const C = { x: g.vw / 2, y: g.cover.y + ch / 2 }
+  const ratio = 2
+  /** How much of the envelope's width lies under the passport. */
+  const under = 0.16
+  const fit = (g.vw * 0.84) / (cw * (1 + ratio * (1 - under)))
+  const sp = Math.min(0.74, fit, (g.vh * 0.66) / ch)
+  const se = (ratio * sp * cw) / env.ew
+  const gap = -under * se * env.ew
+  const groupW = sp * cw + gap + se * env.ew
+  const x0 = (g.vw - groupW) / 2
+  const midY = ENV_NAV_H + (g.vh - ENV_NAV_H) / 2
+  const offRight = g.vw / 2 + env.ew * 0.6 + 80
+  return {
+    C,
+    env,
+    passport: { x: x0 + (sp * cw) / 2, y: midY - g.vh * 0.015, s: sp, rot: -4 },
+    envelope: {
+      x: x0 + sp * cw + gap + (se * env.ew) / 2 - g.vw / 2,
+      y: midY + g.vh * 0.04 - g.vh / 2,
+      s: se,
+      rot: 5,
+    },
+    /** The invitation's envelope, shut: centred, a little below the middle. */
+    closed: { x: 0, y: ENV_CLOSED_Y },
+    /** Off the right edge, at any of its sizes and tilts. */
+    offRight,
+    /** The push at the end (see pushPath). */
+    ...pushPath(g, env.ew, offRight),
+  }
+}
+
+/**
+ * What carries the book to the desk: about `o` (the shut cover's centre at
+ * rest), scaled by `s`, turned by `rot` degrees, moved by `d` — the book as
+ * laid out (local) → the screen.
+ */
+export interface Carry {
+  o: { x: number; y: number }
+  d: { x: number; y: number }
+  s: number
+  rot: number
+}
+export const NO_CARRY: Carry = { o: { x: 0, y: 0 }, d: { x: 0, y: 0 }, s: 1, rot: 0 }
+
+/** The carry with the passport `lying` (0 → 1) on the desk. */
+export function carryAt(desk: DeskLayout, lying: number): Carry {
+  const { C, passport: P } = desk
+  return {
+    o: C,
+    d: { x: (P.x - C.x) * lying, y: (P.y - C.y) * lying },
+    s: 1 + (P.s - 1) * lying,
+    rot: P.rot * lying,
+  }
+}
+
+/** A point on the screen, where it is in the carried book's own layout. */
+function uncarry(c: Carry, p: { x: number; y: number }) {
+  const x = p.x - c.o.x - c.d.x
+  const y = p.y - c.o.y - c.d.y
+  const a = (-c.rot * Math.PI) / 180
+  return {
+    x: c.o.x + (x * Math.cos(a) - y * Math.sin(a)) / c.s,
+    y: c.o.y + (x * Math.sin(a) + y * Math.cos(a)) / c.s,
+  }
+}
+
+/** Samples of pushPath across the push. */
+const PUSH_STEPS = 240
+
+/**
+ * The shut passport pushed off by the envelope, as `dx` (px from its centre
+ * position) at PUSH_STEPS + 1 even steps of DESK.shove. The envelope comes in
+ * (eased) from `offRight` to the centre; its left edge, reaching a little
+ * over the passport, carries the passport along at its own speed, and as
+ * the envelope slows the passport slides on by itself, slowing with the
+ * friction, until it is off the screen — the most friction that still
+ * gets it there, so it never looks thrown.
+ */
+function pushPath(g: PassportGeometry, ew: number, offRight: number) {
+  const half = g.coverBox.w / 2
+  const lip = ew * 0.04
+  // The envelope's share of the shove (it has arrived when the passport
+  // still has a little way to slide).
+  const share = (DESK.arrive[1] - DESK.shove[0]) / (DESK.shove[1] - DESK.shove[0])
+  let from = offRight
+  const edge = (t: number) => from * (1 - ease(Math.min(1, t / share))) - ew / 2 + lip
+  // Off the screen with room for its turn.
+  const out = -g.vw / 2 - g.coverBox.h * 0.25
+  const run = (friction: number) => {
+    const xs = [0]
+    let r = half
+    let speed = 0
+    for (let i = 1; i <= PUSH_STEPS; i++) {
+      const dt = 1 / PUSH_STEPS
+      speed = Math.min(0, speed + friction * dt)
+      r += speed * dt
+      const l = edge(i * dt)
+      if (r > l) {
+        speed = Math.min(speed, (l - edge((i - 1) * dt)) / dt)
+        r = l
+      }
+      xs.push(r - half)
+    }
+    return xs
+  }
+  const exits = (xs: number[]) => xs[PUSH_STEPS] + half <= out
+  // A small envelope on a big screen: drawn in from further off, faster.
+  while (!exits(run(0)) && from < 4 * g.vw) from *= 1.1
+  let lo = 0
+  let hi = 20 * g.vw
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2
+    if (exits(run(mid))) lo = mid
+    else hi = mid
+  }
+  return {
+    /** The passport's x offset (px) at even steps of the shove. */
+    pushed: run(lo),
+    /** Where the envelope is drawn in from (its centre, px right of the screen's). */
+    pushFrom: from,
+  }
+}
+
+/** The pushed passport's x offset at push progress `t` (0 → 1). */
+export function pushedAt(path: number[], t: number) {
+  const f = Math.min(1, Math.max(0, t)) * (path.length - 1)
+  const i = Math.min(path.length - 2, Math.floor(f))
+  return path[i] + (path[i + 1] - path[i]) * (f - i)
+}
+
+/** The passport's own time (PHASE) at scroll `v`: still across the desk's hold. */
+export function passportTime(v: number, desk: boolean) {
+  if (!desk || v <= DESK.hold[0]) return v
+  return v < DESK.hold[1] ? DESK.hold[0] : v - DESK_HOLD
+}
+
 /**
  * Opacities of the stage painting and of the cover's copy across the swap.
  * Both are drawn at 0.9 and stacked (the cover's on top); the stage's fades
@@ -100,6 +318,8 @@ export interface PassportGeometry {
   vh: number
   /** Two pages side by side (true), or one page at a time (phones). */
   spread: boolean
+  /** Wide: the passport and the invitation lie side by side first (DESK). */
+  desk: boolean
   /** Scale of the book on screen (px per BOOK unit). */
   k: number
   /** The book image's box, open layout: whole spread, or its right half on phones. */
@@ -286,6 +506,7 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     vw,
     vh,
     spread,
+    desk: isDesk(vw, vh),
     k,
     book: { x: bookX, y: bookY, w: bookW, h: bookH },
     split: (BOOK.split - dx) * k,
@@ -450,7 +671,25 @@ function paintingScreen(g: PassportGeometry, v: number): Rect {
  */
 export function vignetteBox(g: PassportGeometry): Rect {
   const l = Math.abs(liftAt(g, 0))
-  return { x: -g.cover.x, y: -g.cover.y - l, w: g.vw, h: g.vh + 2 * l }
+  const box = { x: -g.cover.x, y: -g.cover.y - l, w: g.vw, h: g.vh + 2 * l }
+  if (!g.desk) return box
+  // Carried to the desk (smaller, turned), the frame must still reach the
+  // screen's edges: as far as the screen is, in the carried layout.
+  const c = carryAt(deskLayout(g), 1)
+  let [x0, y0, x1, y1] = [box.x, box.y, box.x + box.w, box.y + box.h]
+  for (const [sx, sy] of [
+    [0, 0],
+    [g.vw, 0],
+    [0, g.vh],
+    [g.vw, g.vh],
+  ]) {
+    const p = uncarry(c, { x: sx, y: sy })
+    x0 = Math.min(x0, p.x - g.cover.x - 8)
+    y0 = Math.min(y0, p.y - g.cover.y - l - 8)
+    x1 = Math.max(x1, p.x - g.cover.x + 8)
+    y1 = Math.max(y1, p.y - g.cover.y + l + 8)
+  }
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }
 }
 
 /** How many times the slot the blot window is laid out: its size at the hand-over. */
@@ -474,7 +713,7 @@ export function windowScale(g: PassportGeometry) {
  *
  * Masks intersect by nesting (WebKit has no reliable mask-composite).
  */
-export function vignetteAt(g: PassportGeometry, v: number) {
+export function vignetteAt(g: PassportGeometry, v: number, carry: Carry = NO_CARRY) {
   const { slot, inner, rise, riseFrom } = g
   const V = vignetteBox(g)
   const C = blotCenter(g, v)
@@ -483,19 +722,42 @@ export function vignetteAt(g: PassportGeometry, v: number) {
   const mb = seg(m, [0.2, 1])
   const bleedF = Math.pow(g.bleed, mb * mb)
   const f = (blotScreen(g, v).w / slot.w) * bleedF
-  // The painting, in the window's own (unscaled) coordinates.
-  const R = paintingScreen(g, v)
+  // The painting, in the book's own layout: from where the stage drew it on
+  // the screen — wherever the book is carried meanwhile (turned back and
+  // scaled up against the carry, so it doesn't move) — to its framing on
+  // the cover.
+  const P = paintingBox(g)
+  const k = shrinkAt(g, v)
+  const lift = liftAt(g, v)
+  const from = { x: g.art.x, y: g.art.y + slideAt(g, v), w: g.art.w, h: g.art.h }
+  const to = { x: g.cover.x + P.x, y: g.cover.y + lift + P.y, w: P.w, h: P.h }
+  const c0 = uncarry(carry, { x: from.x + from.w / 2, y: from.y + from.h / 2 })
+  const mix = (a: number, b: number) => a + (b - a) * k
+  const w = mix(from.w / carry.s, to.w)
+  const h = mix(from.h / carry.s, to.h)
+  const turn = -carry.rot * (1 - k)
+  const a = (turn * Math.PI) / 180
+  const cx = mix(c0.x, to.x + to.w / 2)
+  const cy = mix(c0.y, to.y + to.h / 2)
+  // Its top-left corner (the transform's origin), turned with it.
+  const R = {
+    x: cx + (-w / 2) * Math.cos(a) - (-h / 2) * Math.sin(a),
+    y: cy + (-w / 2) * Math.sin(a) + (-h / 2) * Math.cos(a),
+  }
+  // In the window's own (unscaled) coordinates.
   const t = {
     x: slot.w / 2 + (R.x - C.x) / f,
     y: slot.h / 2 + (R.y - C.y) / f,
-    s: R.w / f / paintingBox(g).w,
+    s: w / f / P.w,
   }
-  const P = paintingBox(g)
   // The window is laid out windowScale times the slot and scaled DOWN from
   // there: scaled up ×10 from the slot's size, browsers raster it small and
   // magnify, so the painting landed a few px off and soft at the hand-over.
   const F = windowScale(g)
-  const paint = `translate3d(${(F * t.x - (P.x - slot.x)).toFixed(4)}px, ${(F * t.y - (P.y - slot.y)).toFixed(4)}px, 0) scale(${(F * t.s).toFixed(8)})`
+  const paint =
+    `translate3d(${(F * t.x - (P.x - slot.x)).toFixed(4)}px, ${(F * t.y - (P.y - slot.y)).toFixed(4)}px, 0)` +
+    (turn ? ` rotate(${turn.toFixed(4)}deg)` : '') +
+    ` scale(${(F * t.s).toFixed(8)})`
 
   const mr = ease(seg(m, [0, 0.65]))
   const lerp = (a: number, b: number) => a + (b - a) * mr
