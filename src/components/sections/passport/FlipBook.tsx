@@ -109,6 +109,25 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
     })
     pf.loadFromHTML(pages)
 
+    // One page at a time, turning back never started: the library's
+    // flipPrev only goes ahead from a page corner (as disableFlipByClick asks),
+    // and its corner test assumes two pages — no back point passes it. Waived
+    // for these turns (buttons, tabs, swipes all come through here).
+    if (portrait) {
+      const fc = (pf as unknown as { flipController: { flipPrev: (corner: unknown) => void } })
+        .flipController
+      const flipPrev = fc.flipPrev.bind(fc)
+      fc.flipPrev = (corner) => {
+        const settings = pf.getSettings()
+        settings.disableFlipByClick = false
+        try {
+          flipPrev(corner)
+        } finally {
+          settings.disableFlipByClick = true
+        }
+      }
+    }
+
     // Draw only while something moves, and a few frames after.
     const render = pf.getRender() as Render
     const draw = render.drawFrame.bind(render)
