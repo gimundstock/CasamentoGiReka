@@ -14,10 +14,13 @@ import { MASK } from './assets'
 import { buildBook, pageSection, sectionEntries, SECTIONS, type Chunks } from './content'
 import type { PageSpec, SectionKey } from './content'
 import {
+  carryAt,
   DESK,
   deskLayout,
+  NO_CARRY,
   liftAt,
   passportTime,
+  pushedAt,
   vignetteAt,
   ease,
   PHASE,
@@ -28,6 +31,7 @@ import {
   type Rect,
 } from './geometry'
 import { PassportCover } from './PassportCover'
+import { DeskFlowers } from './DeskFlowers'
 import { BREATH_MS, NAV_HEIGHT, ShutEnvelope, useClockDelay } from '../Envelope'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
@@ -221,6 +225,7 @@ export function BrasiliaPassport({
   const envWordsRef = useRef<HTMLDivElement>(null)
   const envHintRef = useRef<HTMLDivElement>(null)
   const envPaperRef = useRef<HTMLDivElement>(null)
+  const flowersRef = useRef<HTMLDivElement>(null)
   const desk = !!g?.desk && !reduced
   const layout = useMemo(() => (g && desk ? deskLayout(g) : null), [g, desk])
   const breathDelay = useClockDelay(BREATH_MS)
@@ -238,6 +243,10 @@ export function BrasiliaPassport({
       if (!g || !root || !bookEl || !cover || !board || !title || !base || !chrome || !haze) return
       // The passport's own time: still while it lies on the desk.
       const v = passportTime(at, desk)
+      // The desk: how far the passport lies on it (0 → 1 → 0), and what
+      // carries it there.
+      const lying = layout ? ease(seg(at, DESK.back)) - ease(seg(at, DESK.pickUp)) : 0
+      const carry = layout ? carryAt(layout, lying) : NO_CARRY
       const inside = insideRef.current
       const vignette = vignetteRef.current
       // Boards from the cover's corner (shut) to the board art's own (open);
@@ -290,7 +299,7 @@ export function BrasiliaPassport({
       root.style.opacity = String(Math.max(0.01, swapOpacities(v).cover))
       // The painting, from the swap on (see vignetteAt).
       if (vignette) {
-        const vs = vignetteAt(g, v)
+        const vs = vignetteAt(g, v, carry)
         const st = vignette.style
         st.clipPath = vs.clip
         st.setProperty('-webkit-clip-path', vs.clip)
@@ -390,55 +399,68 @@ export function BrasiliaPassport({
             (1 - seg(v, [PHASE.open[0], PHASE.open[0] + 20]))
         )
       }
-      // The desk: how far the passport lies on it (0 → 1 → 0), and has left.
-      const lying = layout ? ease(seg(at, DESK.back)) - ease(seg(at, DESK.pickUp)) : 0
-      const gone = layout ? ease(seg(v, DESK.leave)) : 0
+      // At the end the envelope is drawn in from the right and pushes the
+      // shut passport off to the left, as a hand would, sliding it over.
+      const push = layout ? seg(v, DESK.arrive) : 0
+      const drawn = ease(push)
+      const gone = drawn
       haze.style.opacity = String(grow * (1 - 0.5 * lying) * (1 - gone))
       if (shutHintRef.current && lying > 0) {
         shutHintRef.current.style.opacity = String(
           Number(shutHintRef.current.style.opacity) * (1 - lying)
         )
       }
+      // Where the envelope is (centre from the screen's, px) as it's drawn in.
+      const envX = layout ? layout.pushFrom * (1 - drawn) : 0
       const carrier = deskRef.current
       if (carrier) {
-        if (!layout || (lying <= 0 && gone <= 0)) {
+        carrier.style.zIndex = '1'
+        if (!layout || (lying <= 0 && push <= 0)) {
           carrier.style.transform = 'none'
           carrier.style.visibility = 'inherit'
         } else {
-          const { C, passport: P } = layout
-          const dx = (P.x - C.x) * lying + layout.offLeft * gone
-          const dy = (P.y - C.y) * lying + g.vh * 0.04 * gone
-          const rot = P.rot * lying - 10 * gone
-          const sc = 1 + (P.s - 1) * lying
+          // Pushed by the envelope's edge, then sliding on (pushPath); it
+          // turns a little as it goes.
+          const shove = pushedAt(layout.pushed, seg(v, DESK.shove))
+          const away = Math.min(1, -shove / (g.vw / 2))
+          const dx = carry.d.x + shove
+          const dy = carry.d.y + g.vh * 0.03 * away
+          const rot = carry.rot - 9 * away
+          const sc = carry.s
           carrier.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(5)})`
-          carrier.style.visibility = gone >= 1 ? 'hidden' : 'inherit'
+          carrier.style.visibility = seg(v, DESK.shove) >= 1 ? 'hidden' : 'inherit'
         }
       }
-      // The envelope: in on the right as the passport draws back, out again
-      // as it's picked up; back at the end, to the invitation's own place.
+      // The envelope fades in where it lies, with the cover (one thing, the
+      // two of them); it slides out as the passport is picked up, and is
+      // drawn back in at the end, to the invitation's own place — on top of
+      // the passport, which it pushes away.
+      // (In step with the whole cover: board, bleed and title, done together.)
+      const coverIn = ease(seg(v, [PHASE.coverGrow[0], PHASE.title[1]]))
       const envEl = envRef.current
       if (envEl && layout) {
         const { envelope: E, closed: F, offRight } = layout
-        const come = ease(seg(at, DESK.envIn))
         const go = ease(seg(at, DESK.pickUp))
-        const arrive = ease(seg(v, DESK.arrive))
         let x: number, y: number, rot: number, sc: number
-        if (arrive > 0) {
-          x = offRight + (F.x - offRight) * arrive
+        if (push > 0) {
+          x = envX
           y = F.y
-          rot = 6 * (1 - arrive)
+          rot = 5 * (1 - drawn)
           sc = 1
         } else {
-          const lx = offRight + (E.x - offRight) * come
-          x = lx + (offRight - lx) * go
+          x = E.x + (offRight - E.x) * go
           y = E.y
           rot = E.rot
           sc = E.s
         }
-        const seen = arrive > 0 || (come > 0 && go < 1)
+        // Drawn, all but transparent, before it shows (as the cover is: a
+        // first-shown layer can come up blank for a frame in Safari).
+        const seen = push > 0 || (at >= PHASE.warm && go < 1)
         envEl.style.visibility = seen ? 'inherit' : 'hidden'
+        envEl.style.opacity = push > 0 ? '1' : String(Math.max(0.01, coverIn))
+        envEl.style.zIndex = push > 0 ? '2' : '0'
         envEl.style.transform =
-          arrive >= 1
+          push >= 1
             ? `translateY(${F.y}px)`
             : `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(5)})`
         const words = ease(seg(v, DESK.words))
@@ -447,7 +469,10 @@ export function BrasiliaPassport({
           el.style.opacity = String(words)
           el.style.visibility = words > 0 ? 'inherit' : 'hidden'
         }
-        show(envPaperRef.current, ease(seg(v, DESK.arrive)))
+        show(envPaperRef.current, drawn)
+        // The wildflowers lying round the two: in with them, and there to
+        // stay (the invitation lays the same ones out, where these are).
+        show(flowersRef.current, coverIn)
       }
       return o >= 1
     },
@@ -571,6 +596,16 @@ export function BrasiliaPassport({
         >
           <Hint label={t('city.passport.hintOpen')} down />
         </div>
+      )}
+
+      {/* Wildflowers lying round the passport and the envelope. */}
+      {layout && (
+        <DeskFlowers
+          g={g}
+          desk={layout}
+          divRef={flowersRef}
+          style={{ opacity: 0, visibility: 'hidden' }}
+        />
       )}
 
       {/* The desk's envelope: the invitation's own, shut — the same layers,

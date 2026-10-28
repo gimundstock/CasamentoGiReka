@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   interpolate,
@@ -14,7 +14,8 @@ import { submitRSVP } from '../../api/sheets'
 import type { Guest, RSVPAttendee } from '../../types'
 import { CONFIG } from '../../content.config'
 import { useReducedMotion } from '../motion/useReducedMotion'
-import { isDesk } from './passport/geometry'
+import { deskLayout, isDesk, passportGeometry } from './passport/geometry'
+import { DeskFlowers } from './passport/DeskFlowers'
 import {
   BREATH_MS,
   ENV_CLOSED_Y,
@@ -202,6 +203,8 @@ export function RSVP({ guest }: Props) {
   // its copy, so the hand-over can't be seen. Until then, all but invisible
   // (drawn, so it isn't blank its first frame) and not in the way.
   const desk = !reduced && isDesk(w, h)
+  // The desk's wildflowers, where the passport's stage left them.
+  const deskGeo = useMemo(() => (desk ? passportGeometry(w, h) : null), [desk, w, h])
   const deskRef = useRef(desk)
   useLayoutEffect(() => {
     deskRef.current = desk
@@ -293,6 +296,7 @@ export function RSVP({ guest }: Props) {
       }}
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden">
+        {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
         <motion.p
           className="absolute inset-x-0 text-center font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber"
           style={{ top: NAV_HEIGHT + 32, opacity: kickerOpacity }}
