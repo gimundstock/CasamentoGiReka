@@ -43,6 +43,42 @@ type Render = {
   flippingPage: unknown
 }
 
+// The library's internals the reversed turn back drives (not in its types).
+type Point = { x: number; y: number }
+type FlipController = {
+  calc: unknown
+  flipPrev: (corner?: string) => void
+  start: (globalPos: Point) => boolean
+  do: (pagePos: Point) => void
+  setState: (state: string) => void
+  reset: () => void
+}
+type FlipRender = {
+  getRect: () => { left: number; pageWidth: number; height: number }
+  startAnimation: (frames: (() => void)[], duration: number, onEnd: () => void) => void
+  finishAnimation: () => void
+  setBottomPage: (page: null) => void
+  setFlippingPage: (page: null) => void
+  clearShadow: () => void
+  setRightPage: (page: unknown) => void
+}
+type PageCollection = {
+  currentSpreadIndex: number
+  currentPageIndex: number
+  pages: unknown[]
+  getCurrentSpreadIndex: () => number
+  show: (page: number) => void
+}
+
+/** One point per px along a line, as the library animates a turn. */
+function line(a: Point, b: Point): Point[] {
+  const n = Math.max(1, Math.ceil(Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y))))
+  return Array.from({ length: n + 1 }, (_, i) => ({
+    x: a.x + ((b.x - a.x) * i) / n,
+    y: a.y + ((b.y - a.y) * i) / n,
+  }))
+}
+
 /**
  * A book of soft, curling pages: a small React wrapper around StPageFlip
  * (`page-flip`, MIT), used directly rather than through react-pageflip.
@@ -109,22 +145,58 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
     })
     pf.loadFromHTML(pages)
 
-    // One page at a time, turning back never started: the library's
-    // flipPrev only goes ahead from a page corner (as disableFlipByClick asks),
-    // and its corner test assumes two pages — no back point passes it. Waived
-    // for these turns (buttons, tabs, swipes all come through here).
+    // One page at a time, the library's own turn back slides the previous page
+    // in from off the book (and never started at all: its corner test assumes
+    // two pages). Turning back here is the turn forward played in reverse:
+    // the previous page starts curled away to the left and lays back down
+    // over this one. Buttons, tabs and swipes all come through flipPrev.
     if (portrait) {
-      const fc = (pf as unknown as { flipController: { flipPrev: (corner: unknown) => void } })
-        .flipController
-      const flipPrev = fc.flipPrev.bind(fc)
+      const fc = (pf as unknown as { flipController: FlipController }).flipController
+      const render = pf.getRender() as unknown as Render & FlipRender
+      const pc = pf.getPageCollection() as unknown as PageCollection
       fc.flipPrev = (corner) => {
-        const settings = pf.getSettings()
-        settings.disableFlipByClick = false
-        try {
-          flipPrev(corner)
-        } finally {
-          settings.disableFlipByClick = true
+        const to = pc.getCurrentSpreadIndex() - 1
+        if (to < 0) return
+        if (fc.calc !== null) render.finishAnimation()
+        // As if on the previous page, about to turn it.
+        pc.currentSpreadIndex = to
+        pc.currentPageIndex = to
+        const r = render.getRect()
+        const top = corner !== 'bottom'
+        if (!fc.start({ x: r.left + r.pageWidth * 2 - 10, y: top ? 1 : r.height - 2 })) {
+          pc.show(to + 1)
+          return
         }
+        // The part still lying flat is the previous page's (its 'flip' event
+        // waits for the landing, as a turn forward's does).
+        render.setRightPage(pc.pages[to])
+        fc.setState('flipping')
+        // The forward turn's path, backwards: from fully turned to the corner
+        // it was lifted at, then the last few px flat into the corner.
+        const margin = r.height / 10
+        const edge = top ? 0 : r.height
+        const path = [
+          ...line(
+            { x: -r.pageWidth, y: edge },
+            { x: r.pageWidth - margin, y: top ? margin : r.height - margin }
+          ),
+          ...line(
+            { x: r.pageWidth - margin, y: top ? margin : r.height - margin },
+            { x: r.pageWidth, y: edge }
+          ),
+        ]
+        fc.do(path[0])
+        const frames = path.map((p) => () => fc.do(p))
+        const ms = flippingTime * Math.min(1, path.length / 1000)
+        render.startAnimation(frames, ms, () => {
+          if (fc.calc === null) return
+          render.setBottomPage(null)
+          render.setFlippingPage(null)
+          render.clearShadow()
+          fc.setState('read')
+          fc.reset()
+          pc.show(to)
+        })
       }
     }
 

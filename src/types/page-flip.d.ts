@@ -41,8 +41,7 @@ declare module 'page-flip/dist/js/page-flip.module.js' {
     getCurrentPageIndex(): number
     getPageCount(): number
     getState(): FlipState
-    /** The live settings object (changes take effect). */
-    getSettings(): FlipSetting
+    getPageCollection(): unknown
     getRender(): unknown
     on(
       event: 'flip' | 'changeState' | 'changeOrientation' | 'init',
