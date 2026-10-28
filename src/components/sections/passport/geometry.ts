@@ -67,8 +67,9 @@ export const PASSPORT_ANCHOR_VH = BIG_DAY_VH + (PHASE.title[1] + PHASE.open[0]) 
 // ── The desk (wide screens) ──────────────────────────────────────────────
 //
 // On a wide screen the passport and the invitation lie side by side, as on
-// a desk: the finished cover draws back to the left and the envelope comes
-// in on the right. Scrolling on picks the passport up — it comes to the
+// a desk: the painting closes in to the left, where the cover forms around
+// it, and the envelope comes in on the right, under the passport's edge.
+// Scrolling on picks the passport up — it comes to the
 // centre and opens, the envelope leaves — and, once read, it closes and
 // leaves in turn while the envelope comes back, to the very spot where the
 // invitation (RSVP) takes it over.
@@ -77,12 +78,18 @@ export const PASSPORT_ANCHOR_VH = BIG_DAY_VH + (PHASE.title[1] + PHASE.open[0]) 
 // (`hold`); everything after it runs `hold` later (see passportTime).
 
 export const DESK = {
-  /** The cover draws back to the left, the envelope comes in on the right. */
-  back: [262, 307] as Span,
+  /**
+   * The closing blot drifts to the passport's place on the desk while the
+   * cover forms around it (only the blot shows by then: nothing of the
+   * painting's edges can come into view).
+   */
+  back: [140, 240] as Span,
+  /** The envelope comes in on the right. */
+  envIn: [175, 245] as Span,
   /** Picked up: the passport comes to the centre, the envelope leaves. */
-  pickUp: [332, 380] as Span,
+  pickUp: [300, 350] as Span,
   /** The passport's timeline stands still across this, at its start. */
-  hold: [262, 382] as Span,
+  hold: [262, 352] as Span,
   // In the passport's own time (after the hold):
   /** Read: the book closes on the page it is open at. */
   close: [410, 445] as Span,
@@ -109,14 +116,15 @@ export function passportVh(desk: boolean) {
 
 /** Where the Nav "Brasília" link lands: on the desk, both lying there. */
 export function passportAnchorVh(desk: boolean) {
-  return desk ? BIG_DAY_VH + (DESK.back[1] + DESK.pickUp[0]) / 2 : PASSPORT_ANCHOR_VH
+  return desk ? BIG_DAY_VH + (DESK.hold[0] + DESK.pickUp[0]) / 2 : PASSPORT_ANCHOR_VH
 }
 
 /**
  * The desk's layout: where the shut passport and the envelope lie on it
  * (centres on screen, scale, tilt), and where the envelope ends up — the
  * invitation's own closed envelope, centre relative to the screen's.
- * Passport-length envelopes are about half again as wide as the passport.
+ * The envelope is about twice the passport's width, and tucked under its
+ * right edge.
  */
 export function deskLayout(g: PassportGeometry) {
   const env = envelopeSize(g.vw, g.vh)
@@ -124,11 +132,13 @@ export function deskLayout(g: PassportGeometry) {
   const ch = g.coverBox.h
   /** The shut cover's centre on screen, at rest. */
   const C = { x: g.vw / 2, y: g.cover.y + ch / 2 }
-  const ratio = 1.5
-  const gap = g.vw * 0.07
-  const fit = (g.vw * 0.8 - gap) / (cw + ratio * cw)
+  const ratio = 2
+  /** How much of the envelope's width lies under the passport. */
+  const under = 0.16
+  const fit = (g.vw * 0.84) / (cw * (1 + ratio * (1 - under)))
   const sp = Math.min(0.74, fit, (g.vh * 0.66) / ch)
   const se = (ratio * sp * cw) / env.ew
+  const gap = -under * se * env.ew
   const groupW = sp * cw + gap + se * env.ew
   const x0 = (g.vw - groupW) / 2
   const midY = ENV_NAV_H + (g.vh - ENV_NAV_H) / 2
@@ -138,7 +148,7 @@ export function deskLayout(g: PassportGeometry) {
     passport: { x: x0 + (sp * cw) / 2, y: midY - g.vh * 0.015, s: sp, rot: -4 },
     envelope: {
       x: x0 + sp * cw + gap + (se * env.ew) / 2 - g.vw / 2,
-      y: midY + g.vh * 0.05 - g.vh / 2,
+      y: midY + g.vh * 0.04 - g.vh / 2,
       s: se,
       rot: 5,
     },

@@ -419,7 +419,7 @@ export function BrasiliaPassport({
       const envEl = envRef.current
       if (envEl && layout) {
         const { envelope: E, closed: F, offRight } = layout
-        const come = ease(seg(at, DESK.back))
+        const come = ease(seg(at, DESK.envIn))
         const go = ease(seg(at, DESK.pickUp))
         const arrive = ease(seg(v, DESK.arrive))
         let x: number, y: number, rot: number, sc: number
@@ -571,6 +571,48 @@ export function BrasiliaPassport({
         >
           <Hint label={t('city.passport.hintOpen')} down />
         </div>
+      )}
+
+      {/* The desk's envelope: the invitation's own, shut — the same layers,
+          size and place where it ends, so the invitation (RSVP) takes over
+          unseen. With its kicker above, and its hint below. Under the passport,
+          which lies on its edge. */}
+      {layout && (
+        <>
+          <div
+            ref={envWordsRef}
+            aria-hidden
+            className="font-sans text-amber absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
+            style={{ top: NAV_HEIGHT + 32, opacity: 0, visibility: 'hidden' }}
+          >
+            {t('rsvp.kicker')}
+          </div>
+          <div
+            ref={envRef}
+            aria-hidden
+            className="absolute"
+            style={{
+              width: layout.env.ew,
+              height: layout.env.eh,
+              left: '50%',
+              top: '50%',
+              marginLeft: -layout.env.ew / 2,
+              marginTop: -layout.env.eh / 2,
+              visibility: 'hidden',
+            }}
+          >
+            <ShutEnvelope orient={layout.env.orient} ew={layout.env.ew} />
+            <div
+              ref={envHintRef}
+              className="font-serif text-title/70 absolute inset-x-0 -bottom-16 text-center text-lg italic"
+              style={{ opacity: 0, visibility: 'hidden' }}
+            >
+              <span className="animate-breath inline-block" style={{ animationDelay: breathDelay }}>
+                {t('rsvp.envelopeHint')} ↓
+              </span>
+            </div>
+          </div>
+        </>
       )}
 
       {/* What carries the book across the desk (see DESK): turned about the
@@ -791,47 +833,6 @@ export function BrasiliaPassport({
           </div>
         </div>
       </div>
-
-      {/* The desk's envelope: the invitation's own, shut — the same layers,
-          size and place where it ends, so the invitation (RSVP) takes over
-          unseen. With its kicker above, and its hint below. */}
-      {layout && (
-        <>
-          <div
-            ref={envWordsRef}
-            aria-hidden
-            className="font-sans text-amber absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
-            style={{ top: NAV_HEIGHT + 32, opacity: 0, visibility: 'hidden' }}
-          >
-            {t('rsvp.kicker')}
-          </div>
-          <div
-            ref={envRef}
-            aria-hidden
-            className="absolute"
-            style={{
-              width: layout.env.ew,
-              height: layout.env.eh,
-              left: '50%',
-              top: '50%',
-              marginLeft: -layout.env.ew / 2,
-              marginTop: -layout.env.eh / 2,
-              visibility: 'hidden',
-            }}
-          >
-            <ShutEnvelope orient={layout.env.orient} ew={layout.env.ew} />
-            <div
-              ref={envHintRef}
-              className="font-serif text-title/70 absolute inset-x-0 -bottom-16 text-center text-lg italic"
-              style={{ opacity: 0, visibility: 'hidden' }}
-            >
-              <span className="animate-breath inline-block" style={{ animationDelay: breathDelay }}>
-                {t('rsvp.envelopeHint')} ↓
-              </span>
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Off-screen copy of an entries page, measured to paginate. */}
       <div
