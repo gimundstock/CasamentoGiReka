@@ -107,9 +107,18 @@ export const DESK = {
 }
 const DESK_HOLD = DESK.hold[1] - DESK.hold[0]
 
-/** Wide enough for the passport and the envelope side by side. */
+/**
+ * The desk scene: wide enough for the passport and the envelope side by
+ * side — or a phone held upright, where the two stand fanned like two cards
+ * held in the hand (isHand). Tablets in between keep the passport alone.
+ */
 export function isDesk(vw: number, vh: number) {
-  return vw >= 1100 && vw >= vh * 1.25
+  return (vw >= 1100 && vw >= vh * 1.25) || isHand(vw, vh)
+}
+
+/** A phone held upright: the passport and the envelope as two cards in the hand. */
+export function isHand(vw: number, vh: number) {
+  return vw < 768 && vh >= vw * 1.3
 }
 
 /** vh of scroll the passport takes after the big day. */
@@ -141,11 +150,53 @@ export type DeskLayout = ReturnType<typeof layDesk>
 const desks = new WeakMap<PassportGeometry, DeskLayout>()
 
 function layDesk(g: PassportGeometry) {
-  const env = envelopeSize(g.vw, g.vh)
+  // (Sized as the invitation sizes it, on the screen's own height.)
+  const env = envelopeSize(g.vw, g.screenH)
   const cw = g.coverBox.w
   const ch = g.coverBox.h
   /** The shut cover's centre on screen, at rest. */
   const C = { x: g.vw / 2, y: g.cover.y + ch / 2 }
+  const midY = ENV_NAV_H + (g.vh - ENV_NAV_H) / 2
+  const offRight = g.vw / 2 + env.ew * 0.6 + 80
+  const common = {
+    C,
+    env,
+    /** The invitation's envelope, shut: centred, a little below the middle. */
+    closed: { x: 0, y: ENV_CLOSED_Y },
+    /** Off the right edge, at any of its sizes and tilts. */
+    offRight,
+    /** The push at the end (see pushPath). */
+    ...pushPath(g, env.ew, offRight),
+  }
+  if (isHand(g.vw, g.vh)) {
+    // Two cards held in the hand, fanned about a point below them: the
+    // passport in front, turned left; the envelope behind it, turned right,
+    // as tall as the passport.
+    const cardH = Math.min((g.vh - ENV_NAV_H) * 0.52, ((g.vw * 0.54) / cw) * ch)
+    const sp = cardH / ch
+    const se = (cardH * 0.97) / env.eh
+    const fan = (11 * Math.PI) / 180
+    const reach = cardH * 0.9
+    // Apart a little too, so the card behind shows a good part of itself.
+    const apart = sp * cw * 0.14
+    const pivot = { x: g.vw / 2, y: midY + reach * Math.cos(fan) * 0.98 }
+    return {
+      ...common,
+      hand: true,
+      passport: {
+        x: pivot.x - reach * Math.sin(fan) - apart,
+        y: pivot.y - reach * Math.cos(fan),
+        s: sp,
+        rot: -11,
+      },
+      envelope: {
+        x: reach * Math.sin(fan) + apart,
+        y: pivot.y - reach * Math.cos(fan) - g.vh / 2,
+        s: se,
+        rot: 11,
+      },
+    }
+  }
   const ratio = 2
   /** How much of the envelope's width lies under the passport. */
   const under = 0.16
@@ -155,11 +206,9 @@ function layDesk(g: PassportGeometry) {
   const gap = -under * se * env.ew
   const groupW = sp * cw + gap + se * env.ew
   const x0 = (g.vw - groupW) / 2
-  const midY = ENV_NAV_H + (g.vh - ENV_NAV_H) / 2
-  const offRight = g.vw / 2 + env.ew * 0.6 + 80
   return {
-    C,
-    env,
+    ...common,
+    hand: false,
     passport: { x: x0 + (sp * cw) / 2, y: midY - g.vh * 0.015, s: sp, rot: -4 },
     envelope: {
       x: x0 + sp * cw + gap + (se * env.ew) / 2 - g.vw / 2,
@@ -167,12 +216,6 @@ function layDesk(g: PassportGeometry) {
       s: se,
       rot: 5,
     },
-    /** The invitation's envelope, shut: centred, a little below the middle. */
-    closed: { x: 0, y: ENV_CLOSED_Y },
-    /** Off the right edge, at any of its sizes and tilts. */
-    offRight,
-    /** The push at the end (see pushPath). */
-    ...pushPath(g, env.ew, offRight),
   }
 }
 
@@ -320,6 +363,8 @@ export interface PassportGeometry {
   spread: boolean
   /** Wide: the passport and the invitation lie side by side first (DESK). */
   desk: boolean
+  /** The screen's height as the invitation lays itself out. */
+  screenH: number
   /** Scale of the book on screen (px per BOOK unit). */
   k: number
   /** The book image's box, open layout: whole spread, or its right half on phones. */
@@ -388,7 +433,11 @@ const scaleRect = (r: Rect, k: number, dx = 0): Rect => ({
   h: r.h * k,
 })
 
-export function passportGeometry(vw: number, vh: number): PassportGeometry {
+/**
+ * `screenH`: the screen's height as the invitation lays itself out (the
+ * window's), where a phone's stage (100vh) may run taller, under its bars.
+ */
+export function passportGeometry(vw: number, vh: number, screenH = vh): PassportGeometry {
   // Same box as HeroBigDay's artVars (--art-top is 44vh below md, 14vh above).
   const artTop = vw >= 768 ? 0.14 * vh : 0.44 * vh
   const artW = Math.max(vw, (vh - artTop) * PAINT_ASPECT)
@@ -507,6 +556,7 @@ export function passportGeometry(vw: number, vh: number): PassportGeometry {
     vh,
     spread,
     desk: isDesk(vw, vh),
+    screenH,
     k,
     book: { x: bookX, y: bookY, w: bookW, h: bookH },
     split: (BOOK.split - dx) * k,

@@ -108,7 +108,9 @@ function useStageGeometry(ref: RefObject<HTMLDivElement | null>) {
       setG((prev) => {
         const vw = window.innerWidth
         const vh = el.clientHeight
-        return prev && prev.vw === vw && prev.vh === vh ? prev : passportGeometry(vw, vh)
+        return prev && prev.vw === vw && prev.vh === vh
+          ? prev
+          : passportGeometry(vw, vh, window.innerHeight)
       })
     measure()
     const ro = new ResizeObserver(measure)

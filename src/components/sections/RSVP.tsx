@@ -14,7 +14,7 @@ import { submitRSVP } from '../../api/sheets'
 import type { Guest, RSVPAttendee } from '../../types'
 import { CONFIG } from '../../content.config'
 import { useReducedMotion } from '../motion/useReducedMotion'
-import { deskLayout, isDesk, passportGeometry } from './passport/geometry'
+import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { DeskFlowers } from './passport/DeskFlowers'
 import {
   BREATH_MS,
@@ -204,7 +204,11 @@ export function RSVP({ guest }: Props) {
   // (drawn, so it isn't blank its first frame) and not in the way.
   const desk = !reduced && isDesk(w, h)
   // The desk's wildflowers, where the passport's stage left them.
-  const deskGeo = useMemo(() => (desk ? passportGeometry(w, h) : null), [desk, w, h])
+  // (Not on a phone, where the two are held in the hand.)
+  const deskGeo = useMemo(
+    () => (desk && !isHand(w, h) ? passportGeometry(w, h) : null),
+    [desk, w, h]
+  )
   const deskRef = useRef(desk)
   useLayoutEffect(() => {
     deskRef.current = desk
