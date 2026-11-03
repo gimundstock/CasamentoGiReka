@@ -642,16 +642,19 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         {/* As in the G&R monogram: the R drawn in under the &. */}
         <span className={wide ? '-ml-[0.15em]' : undefined}>{CONFIG.couple.groom}</span>
       </h2>
-      <p className="font-serif italic text-base md:text-lg mt-8">{t('rsvp.inviteRequest')}</p>
-      {/* Guests' names in Jost, here and on the reply side. */}
-      <p className="font-sans text-base md:text-xl tracking-[0.18em] md:tracking-[0.25em] uppercase leading-normal mt-3 text-forest-deep">
-        {guest.groupName}
-      </p>
-      <p className="font-serif italic text-base md:text-lg mt-2">{t('rsvp.inviteCelebrate')}</p>
+      {/* The invitation itself, set a little lower (the names above lifted). */}
+      <div className="relative top-5 md:top-6">
+        <p className="font-serif italic text-base md:text-lg mt-8">{t('rsvp.inviteRequest')}</p>
+        {/* Guests' names in Jost, here and on the reply side. */}
+        <p className="font-sans text-base md:text-xl tracking-[0.18em] md:tracking-[0.25em] uppercase leading-normal mt-3 text-forest-deep">
+          {guest.groupName}
+        </p>
+        <p className="font-serif italic text-base md:text-lg mt-2">{t('rsvp.inviteCelebrate')}</p>
 
-      <p className="font-serif italic text-sm md:text-base text-title/70 mt-6">
-        {t('rsvp.replyBy', { date: deadline })}
-      </p>
+        <p className="font-serif italic text-sm md:text-base text-title/70 mt-6">
+          {t('rsvp.replyBy', { date: deadline })}
+        </p>
+      </div>
     </div>
   )
 }
