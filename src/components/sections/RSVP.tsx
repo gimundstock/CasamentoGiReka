@@ -625,20 +625,25 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         <p className="font-serif text-sm">{CONFIG.wedding.venue}</p>
       </div>
 
+      {/* Lifted a little above the lines under it. */}
       <h2
-        className={`font-display leading-[1.45] ${
-          wide ? 'text-[2.6rem] whitespace-nowrap' : 'text-4xl flex flex-col'
+        className={`font-display relative -top-[0.25em] leading-[1.45] ${
+          wide ? 'text-[3.1rem] whitespace-nowrap' : 'text-[2.6rem] flex flex-col'
         }`}
       >
         {CONFIG.couple.bride}
-        <span className={`text-amber ${wide ? 'text-3xl mx-3' : 'text-2xl leading-none -my-1'}`}>
+        {/* The script's capital R stands well right of its own loop: the "&"
+            sits closer to it than to the name before. */}
+        <span
+          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em] mr-[0.05em]' : 'text-3xl leading-none -my-1'}`}
+        >
           &amp;
         </span>
         {CONFIG.couple.groom}
       </h2>
       <p className="font-serif italic text-base md:text-lg mt-8">{t('rsvp.inviteRequest')}</p>
       {/* Guests' names in Jost, here and on the reply side. */}
-      <p className="font-sans text-base md:text-lg tracking-[0.25em] uppercase leading-normal mt-3 text-forest-deep">
+      <p className="font-sans font-semibold text-base md:text-xl tracking-[0.18em] md:tracking-[0.25em] uppercase leading-normal mt-3 text-forest-deep">
         {guest.groupName}
       </p>
       <p className="font-serif italic text-base md:text-lg mt-2">{t('rsvp.inviteCelebrate')}</p>
@@ -717,7 +722,7 @@ function ReplyForm({ guest }: { guest: Guest }) {
             return (
               <div key={label}>
                 <p className={LABEL}>{t(label)}</p>
-                <p className="font-sans text-sm tracking-[0.2em] uppercase mt-1">
+                <p className="font-sans font-semibold text-sm tracking-[0.2em] uppercase mt-1">
                   {names.join(' · ')}
                 </p>
               </div>
@@ -745,7 +750,7 @@ function ReplyForm({ guest }: { guest: Guest }) {
       <div className="space-y-5">
         {attendees.map((attendee, i) => (
           <div key={i} className="border-t border-forest-deep/10 pt-4 text-center">
-            <p className="font-sans text-base md:text-lg tracking-[0.2em] uppercase">
+            <p className="font-sans font-semibold text-base md:text-lg tracking-[0.2em] uppercase">
               {attendee.name}
             </p>
             <div className="mt-2 flex justify-center gap-6 text-xs tracking-[0.3em] uppercase font-sans">
