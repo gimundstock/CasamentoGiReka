@@ -267,6 +267,10 @@ export function RSVP({ guest }: Props) {
     easeInOut(clamp01((v - T.flipStart) / (T.flipEnd - T.flipStart)))
   )
   const cardFlip = useTransform(flipT, (t) => t * 180)
+  // Which face shows is chosen by the angle, not left to backface-visibility:
+  // WebKit drew the reply side, mirrored, over the front.
+  const frontShown = useTransform(cardFlip, (r) => (r < 90 ? 'visible' : 'hidden'))
+  const backShown = useTransform(cardFlip, (r) => (r < 90 ? 'hidden' : 'visible'))
   const flipArc = useTransform(flipT, (t) => Math.sin(t * Math.PI))
   const flipLift = useTransform(flipArc, (a) => -a * 18)
   const flipScale = useTransform(flipArc, (a) => 1 + a * 0.04)
@@ -409,6 +413,7 @@ export function RSVP({ guest }: Props) {
           >
             <CardFace
               hidden={face !== 'front'}
+              shown={frontShown}
               image={`${base}flowers/invitation-bg.webp`}
               rotate={geo.wide ? undefined : { w: geo.cw, h: geo.ch }}
             >
@@ -416,6 +421,7 @@ export function RSVP({ guest }: Props) {
             </CardFace>
             <CardFace
               hidden={face !== 'back'}
+              shown={backShown}
               back
               paper={`${base}rsvp/card-back.webp`}
               rotate={geo.wide ? { w: geo.cw, h: geo.ch } : undefined}
@@ -434,6 +440,7 @@ export function RSVP({ guest }: Props) {
 function CardFace({
   children,
   hidden,
+  shown,
   back,
   image,
   paper,
@@ -441,6 +448,8 @@ function CardFace({
 }: {
   children: ReactNode
   hidden: boolean
+  /** Whether this face is the one turned towards the guest (by the card's angle). */
+  shown: MotionValue<'visible' | 'hidden'>
   back?: boolean
   /** Painted artwork for this face; replaces the paper and the ruled border. */
   image?: string
@@ -475,7 +484,7 @@ function CardFace({
   }, [hidden])
 
   return (
-    <div
+    <motion.div
       ref={ref}
       aria-hidden={hidden}
       className={`relative rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden ${
@@ -486,6 +495,7 @@ function CardFace({
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden',
         transform: back ? 'rotateY(180deg)' : undefined,
+        visibility: shown,
       }}
     >
       {image ? (
@@ -515,7 +525,7 @@ function CardFace({
         </>
       )}
       <FitToCard className="px-8 py-10 md:px-14 md:py-11">{children}</FitToCard>
-    </div>
+    </motion.div>
   )
 }
 
@@ -627,7 +637,8 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         {CONFIG.couple.groom}
       </h2>
       <p className="font-serif italic text-base md:text-lg mt-8">{t('rsvp.inviteRequest')}</p>
-      <p className="font-display text-2xl md:text-3xl leading-normal mt-4 mb-2 text-forest-deep">
+      {/* Guests' names in Jost, here and on the reply side. */}
+      <p className="font-sans text-xl md:text-2xl tracking-[0.04em] leading-normal mt-4 mb-2 text-forest-deep">
         {guest.groupName}
       </p>
       <p className="font-serif italic text-base md:text-lg mt-3">{t('rsvp.inviteCelebrate')}</p>
@@ -706,7 +717,7 @@ function ReplyForm({ guest }: { guest: Guest }) {
             return (
               <div key={label}>
                 <p className={LABEL}>{t(label)}</p>
-                <p className="font-serif text-xl mt-1">{names.join(' · ')}</p>
+                <p className="font-sans text-lg tracking-[0.03em] mt-1">{names.join(' · ')}</p>
               </div>
             )
           })}
@@ -732,7 +743,7 @@ function ReplyForm({ guest }: { guest: Guest }) {
       <div className="space-y-5">
         {attendees.map((attendee, i) => (
           <div key={i} className="border-t border-forest-deep/10 pt-4 text-center">
-            <p className="font-serif text-2xl md:text-[1.7rem]">{attendee.name}</p>
+            <p className="font-sans text-xl md:text-[1.4rem] tracking-[0.03em]">{attendee.name}</p>
             <div className="mt-2 flex justify-center gap-6 text-xs tracking-[0.3em] uppercase font-sans">
               {([true, false] as const).map((value) => (
                 <button

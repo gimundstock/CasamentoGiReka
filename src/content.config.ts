@@ -30,7 +30,7 @@ export const CONFIG = {
   // ── Wedding Day ──────────────────────────────────────────
   wedding: {
     date: '2027-06-05', // ISO format YYYY-MM-DD
-    time: '17h30',
+    time: '15h30',
     venue: 'Clube do Congresso',
     address: 'SHIN QI 16 Área Especial, Brasília - DF, 71530-200',
     mapsUrl:
