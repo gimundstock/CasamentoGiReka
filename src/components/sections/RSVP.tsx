@@ -638,10 +638,10 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
       </h2>
       <p className="font-serif italic text-base md:text-lg mt-8">{t('rsvp.inviteRequest')}</p>
       {/* Guests' names in Jost, here and on the reply side. */}
-      <p className="font-sans text-xl md:text-2xl tracking-[0.04em] leading-normal mt-4 mb-2 text-forest-deep">
+      <p className="font-sans text-base md:text-lg tracking-[0.25em] uppercase leading-normal mt-3 text-forest-deep">
         {guest.groupName}
       </p>
-      <p className="font-serif italic text-base md:text-lg mt-3">{t('rsvp.inviteCelebrate')}</p>
+      <p className="font-serif italic text-base md:text-lg mt-2">{t('rsvp.inviteCelebrate')}</p>
 
       <p className="font-serif italic text-sm md:text-base text-title/70 mt-6">
         {t('rsvp.replyBy', { date: deadline })}
@@ -717,7 +717,9 @@ function ReplyForm({ guest }: { guest: Guest }) {
             return (
               <div key={label}>
                 <p className={LABEL}>{t(label)}</p>
-                <p className="font-sans text-lg tracking-[0.03em] mt-1">{names.join(' · ')}</p>
+                <p className="font-sans text-sm tracking-[0.2em] uppercase mt-1">
+                  {names.join(' · ')}
+                </p>
               </div>
             )
           })}
@@ -743,7 +745,9 @@ function ReplyForm({ guest }: { guest: Guest }) {
       <div className="space-y-5">
         {attendees.map((attendee, i) => (
           <div key={i} className="border-t border-forest-deep/10 pt-4 text-center">
-            <p className="font-sans text-xl md:text-[1.4rem] tracking-[0.03em]">{attendee.name}</p>
+            <p className="font-sans text-base md:text-lg tracking-[0.2em] uppercase">
+              {attendee.name}
+            </p>
             <div className="mt-2 flex justify-center gap-6 text-xs tracking-[0.3em] uppercase font-sans">
               {([true, false] as const).map((value) => (
                 <button
