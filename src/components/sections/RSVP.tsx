@@ -635,11 +635,12 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         {/* The script's capital R stands well right of its own loop: the "&"
             sits closer to it than to the name before. */}
         <span
-          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em] mr-[0.05em]' : 'text-3xl leading-none -my-1'}`}
+          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-3xl leading-none -my-1'}`}
         >
           &amp;
         </span>
-        {CONFIG.couple.groom}
+        {/* As in the G&R monogram: the R drawn in under the &. */}
+        <span className={wide ? '-ml-[0.15em]' : undefined}>{CONFIG.couple.groom}</span>
       </h2>
       <p className="font-serif italic text-base md:text-lg mt-8">{t('rsvp.inviteRequest')}</p>
       {/* Guests' names in Jost, here and on the reply side. */}
