@@ -618,16 +618,16 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
       {/* The details, tucked into a corner like a printed card's colophon: top right on
           wide cards, bottom right on upright ones where the painted flowers fill the left. */}
       <div className={`absolute right-0 text-right leading-snug ${wide ? 'top-0' : 'bottom-0'}`}>
-        <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase">{date}</p>
-        <p className="font-serif text-sm mt-1">
+        <p className="font-sans text-[0.7rem] tracking-[0.3em] uppercase">{date}</p>
+        <p className="font-serif text-base mt-1">
           {t('rsvp.inviteTime', { time: CONFIG.wedding.time })}
         </p>
-        <p className="font-serif text-sm">{CONFIG.wedding.venue}</p>
+        <p className="font-serif text-base">{CONFIG.wedding.venue}</p>
       </div>
 
       {/* Lifted a little above the lines under it. */}
       <h2
-        className={`font-display relative -top-[0.25em] leading-[1.45] ${
+        className={`font-display relative -top-[0.55em] leading-[1.45] ${
           wide ? 'text-[3.1rem] whitespace-nowrap' : 'text-[2.6rem] flex flex-col'
         }`}
       >
@@ -642,15 +642,17 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         {/* As in the G&R monogram: the R drawn in under the &. */}
         <span className={wide ? '-ml-[0.15em]' : undefined}>{CONFIG.couple.groom}</span>
       </h2>
-      <p className="font-serif italic text-base md:text-lg mt-8">{t('rsvp.inviteRequest')}</p>
+      <p className="font-serif italic text-[1.05rem] md:text-xl mt-8">{t('rsvp.inviteRequest')}</p>
       {/* Guests' names in Jost, here and on the reply side. */}
       <p className="font-sans text-base md:text-xl tracking-[0.18em] md:tracking-[0.25em] uppercase leading-normal mt-3 text-forest-deep">
         {guest.groupName}
       </p>
-      <p className="font-serif italic text-base md:text-lg mt-2">{t('rsvp.inviteCelebrate')}</p>
+      <p className="font-serif italic text-[1.05rem] md:text-xl mt-2">
+        {t('rsvp.inviteCelebrate')}
+      </p>
 
       {/* A little lower than the lines above it would put it. */}
-      <p className="font-serif italic text-sm md:text-base text-title/70 mt-6 relative top-5 md:top-6">
+      <p className="font-serif italic text-[0.92rem] md:text-lg text-title/70 mt-6 relative top-5 md:top-6">
         {t('rsvp.replyBy', { date: deadline })}
       </p>
     </div>
