@@ -17,7 +17,9 @@ export default {
         forest: '#7A6758', // secondary text (body)
         'forest-deep': '#3D3229', // primary text (headings, CTA bg)
         title: '#535351', // todo o texto do site
-        cta: '#69B4DF', // botões de ação — azul da aquarela do convite, hsl(202 65% 64%)
+        // Azul da aquarela do convite escurecido até o texto creme por cima ler
+        // bem (5:1). O tom original, #69B4DF, dava 2:1 — ilegível em 12px.
+        cta: '#2E6E99', // botões de ação, hsl(204 54% 39%)
         mauve: '#A88A9D', // muted mauve — subtitle / accent
         'mauve-light': '#B9AFC1', // faded lilac — soft text / decoration
         // Greens — used for botanical detail (leaves, vines, sage borders)
@@ -26,8 +28,11 @@ export default {
         // Warm accents
         amber: '#D89A35', // honey amber — kicker labels, price weight
         gold: '#C58A7A', // dusty rose — soft accents
-        terracotta: '#B96F52', // clay terracotta — error / accent
+        terracotta: '#9E5638', // clay terracotta — mensagens de erro (5:1 sobre o fundo)
         honey: '#D89A35', // alias of amber — prices, countdown numbers
+        // Âmbar para texto pequeno: o #D89A35 sobre o fundo dá 2,3:1, bom só
+        // para títulos grandes. Este dá 4,9:1.
+        'amber-deep': '#94651A',
       },
       fontFamily: {
         // As três fontes do save the date. Ver @font-face em src/index.css.

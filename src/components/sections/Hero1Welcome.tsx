@@ -59,13 +59,15 @@ export function Hero1Welcome({ guest, onReset }: Props) {
           começa abaixo da nav (pt-20) para as fotos não passarem por baixo
           dela. */}
       <div className="relative w-full lg:w-[58%]">
-        <div className="h-[50vh] w-full lg:h-screen">
+        <div className="h-[46svh] w-full lg:h-screen">
           <PhotoCarousel photos={photos} />
         </div>
       </div>
 
       {/* Text column — right on desktop, below on mobile */}
-      <div className="flex w-full flex-1 items-center justify-center px-6 py-16 lg:px-10 lg:py-0">
+      {/* lg:pr-24 deixa livre a faixa da direita onde fica o rótulo do lago, que
+          antes caía em cima de "conosco". */}
+      <div className="flex w-full flex-1 items-center justify-center px-6 py-10 lg:py-0 lg:pr-24 lg:pl-10">
         <div className="relative w-full max-w-xl text-center">
           {/* Lavanda escondida temporariamente — descomente para trazer de volta.
           <img
@@ -81,7 +83,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
             {t('welcome.greeting', { name: guest.groupName })}
           </h1>
 
-          <p className="font-sans text-title relative z-10 mt-24 text-sm tracking-[0.25em] uppercase">
+          <p className="font-sans text-title relative z-10 mt-10 text-sm tracking-[0.25em] text-balance uppercase lg:mt-24">
             {t('welcome.invitation')}
           </p>
 
@@ -89,15 +91,16 @@ export function Hero1Welcome({ guest, onReset }: Props) {
           <button
             type="button"
             onClick={onReset}
-            className="font-garamond text-title/60 hover:text-cta relative z-10 mt-8 border-t border-current pt-2 text-sm transition-colors"
+            className="font-garamond text-title/70 hover:text-cta relative z-10 mt-6 border-t border-current py-3 text-sm transition-colors lg:mt-8"
           >
             {t('welcome.notYou')}
           </button>
         </div>
       </div>
 
-      {/* Scroll cue — bottom-right, static */}
-      <div className="absolute right-6 bottom-6 text-center">
+      {/* Scroll cue — bottom-right, static. Só no desktop: no celular ele
+          caía em cima do "Não é você?". */}
+      <div aria-hidden="true" className="absolute right-6 bottom-6 hidden text-center lg:block">
         <span className="font-sans text-title text-[0.55rem] tracking-[0.4em] uppercase">
           SCROLL
         </span>

@@ -536,7 +536,9 @@ export function BrasiliaPassport({
     if (e.key === 'ArrowLeft') go(cur - 1)
   }
 
-  const tabH = Math.min(H * 0.17, 128)
+  // 20% da página: no celular o rótulo mais longo ("Restaurantes", a 9px)
+  // precisa de ~85px; as quatro abas ainda cabem na altura da página.
+  const tabH = Math.min(H * 0.2, 128)
   // How far the tabs reach in under the pages.
   const TAB_TUCK = 12
   // Thickness of the page block either side: what has been read lies on the
@@ -617,7 +619,7 @@ export function BrasiliaPassport({
           <div
             ref={envWordsRef}
             aria-hidden
-            className="font-sans text-amber absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
+            className="font-sans text-amber-deep absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
             style={{ top: NAV_HEIGHT + 32, opacity: 0, visibility: 'hidden' }}
           >
             {t('rsvp.kicker')}
@@ -667,7 +669,7 @@ export function BrasiliaPassport({
           aria-label={t('city.passport.bookLabel')}
           tabIndex={opened ? 0 : -1}
           onKeyDown={onKey}
-          className={`absolute outline-none ${opened ? 'pointer-events-auto' : ''}`}
+          className={`absolute outline-offset-8 ${opened ? 'pointer-events-auto' : ''}`}
           style={{
             left: g.book.x,
             top: g.book.y,
@@ -689,11 +691,11 @@ export function BrasiliaPassport({
                 onClick={() => go(cur - 1)}
                 disabled={cur === 0}
                 aria-label={t('city.passport.prev')}
-                className="hover:text-honey p-2 transition-colors disabled:opacity-30"
+                className="hover:text-honey p-3 transition-colors disabled:opacity-30"
               >
                 <Chevron dir={-1} />
               </button>
-              <span className="min-w-[4.5em] text-center text-[0.72em] tracking-[0.3em] tabular-nums">
+              <span className="min-w-[4.5em] text-center text-[max(0.72em,10px)] tracking-[0.3em] tabular-nums">
                 {cur + 1} / {count}
               </span>
               <button
@@ -701,7 +703,7 @@ export function BrasiliaPassport({
                 onClick={() => go(cur + 1)}
                 disabled={cur === count - 1}
                 aria-label={t('city.passport.next')}
-                className="hover:text-honey p-2 transition-colors disabled:opacity-30"
+                className="hover:text-honey p-3 transition-colors disabled:opacity-30"
               >
                 <Chevron dir={1} />
               </button>
@@ -788,7 +790,7 @@ export function BrasiliaPassport({
                       borderLeftColor: passed ? edge : 'transparent',
                       borderRightColor: passed ? 'transparent' : edge,
                       background: TAB_PAPER,
-                      color: active ? '#B07A26' : '#8A7458',
+                      color: active ? '#94651A' : '#75624A',
                       boxShadow: `${passed ? -1 : 1}px 1px 3px -1px rgba(110, 78, 30, 0.28)`,
                       // Read chapters' tabs ride on the cover's inside: gone
                       // while it turns.
@@ -796,7 +798,7 @@ export function BrasiliaPassport({
                       transition: `opacity 250ms, left ${FLIP_MS}ms cubic-bezier(0.45, 0, 0.25, 1), padding ${FLIP_MS}ms, border-radius ${FLIP_MS}ms, border-color ${FLIP_MS}ms, box-shadow ${FLIP_MS}ms, width 500ms ease-out, color 500ms ease-out`,
                     }}
                   >
-                    <span className="text-[0.6em] tracking-[0.24em] whitespace-nowrap uppercase [writing-mode:vertical-rl]">
+                    <span className="text-[max(0.6em,9px)] tracking-[0.16em] whitespace-nowrap uppercase [writing-mode:vertical-rl]">
                       {t(`city.passport.sections.${s}.tab`)}
                     </span>
                   </button>
@@ -896,7 +898,7 @@ export function BrasiliaPassport({
 /** A small line of guidance, optionally with a chevron nudging downwards. */
 function Hint({ label, down }: { label: string; down?: boolean }) {
   return (
-    <p className="font-sans flex items-center justify-center gap-[0.6em] text-[0.58em] tracking-[0.28em] text-[#8A7458] uppercase">
+    <p className="font-sans flex items-center justify-center gap-[0.6em] px-4 text-center text-[max(0.58em,10px)] tracking-[0.28em] text-[#75624A] uppercase">
       <span>{label}</span>
       {down && (
         <svg viewBox="0 0 24 24" className="animate-nudge h-[1.4em] w-[1.4em]" aria-hidden>

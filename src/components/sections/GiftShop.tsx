@@ -150,7 +150,7 @@ export function GiftShop({ guest }: Props) {
       <div className="max-w-5xl mx-auto px-6">
         <MaskReveal direction="up" delay={0.05}>
           <div className="text-center mb-20 md:mb-28">
-            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber mb-6">
+            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber-deep mb-6">
               {t('nav.gifts')}
             </p>
             <h2 className="font-display text-2xl md:text-3xl text-title">{t('gifts.title')}</h2>
@@ -219,6 +219,7 @@ function GiftPlaceholder({ seed }: { seed: number }) {
         src={PLACEHOLDER_FLOWERS[seed % PLACEHOLDER_FLOWERS.length]}
         alt=""
         aria-hidden
+        loading="lazy"
         className="w-1/2 opacity-80"
         style={{ rotate: `${((seed * 37) % 60) - 30}deg` }}
       />
@@ -267,6 +268,8 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
             <img
               src={gift.imageUrl}
               alt={name}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
               onError={() => setImageFailed(true)}
             />
@@ -289,7 +292,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
       )}
 
       <div className="mt-4 flex items-baseline justify-between gap-3">
-        <p className="font-sans tabular-nums text-lg text-amber">
+        <p className="font-sans tabular-nums text-lg text-amber-deep">
           {gift.total > 1 && (
             <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mr-2">
               {t('gifts.fromPrice')}
@@ -368,7 +371,7 @@ function GiftModal(props: ModalProps) {
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <div className="pr-4">
-              <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-honey mb-1">
+              <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-amber-deep mb-1">
                 {step === 'success' ? t('gifts.successKicker') : t('gifts.stepKicker')}
               </p>
               <h3
@@ -415,7 +418,7 @@ function GiftModal(props: ModalProps) {
                   const label = lang === 'pt' ? cota.label_pt : cota.label_en
 
                   const baseChip =
-                    'inline-flex items-center gap-2 rounded-full px-4 py-2 font-sans text-sm transition-all'
+                    'inline-flex items-center gap-2 rounded-full px-4 py-2 font-sans text-sm transition-[background-color,color,box-shadow,opacity]'
                   let chipClass = ''
 
                   if (isSold) {
@@ -456,7 +459,7 @@ function GiftModal(props: ModalProps) {
                             ? 'text-peach-light/90 font-semibold'
                             : isSold
                               ? 'text-title'
-                              : 'text-honey font-semibold'
+                              : 'text-amber-deep font-semibold'
                         }
                       >
                         · R$ {cota.price}
@@ -504,7 +507,7 @@ function GiftModal(props: ModalProps) {
                 </ArchQrFrame>
               </div>
 
-              <p className="text-center font-sans tabular-nums text-3xl text-honey mb-1">
+              <p className="text-center font-sans tabular-nums text-3xl text-amber-deep mb-1">
                 R$ {props.totalAmount.toFixed(2)}
               </p>
               <p className="text-center font-serif text-xs text-title mb-6">
@@ -555,22 +558,31 @@ function GiftModal(props: ModalProps) {
             <>
               <div className="space-y-5 mb-6">
                 <div>
-                  <label className="font-sans text-[10px] tracking-[0.3em] uppercase text-title block mb-2">
+                  <label
+                    htmlFor="gift-email"
+                    className="font-sans text-[10px] tracking-[0.3em] uppercase text-title block mb-2"
+                  >
                     {t('gifts.yourEmail')}
                   </label>
                   <input
+                    id="gift-email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
+                    spellCheck={false}
                     value={email}
                     onChange={(e) => props.onEmailChange(e.target.value)}
                     placeholder={t('gifts.emailPlaceholder')}
                     required
-                    className="w-full px-5 py-3.5 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title placeholder: focus:outline-none focus:border-forest/60 focus:bg-white/90 transition-colors"
+                    className="w-full px-5 py-3.5 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title/50 focus:outline-none focus:border-forest focus:bg-white/90 focus:ring-2 focus:ring-forest/20 transition-colors"
                   />
                 </div>
               </div>
 
               {error && (
-                <p className="text-sm text-terracotta text-center mb-4 font-serif">{error}</p>
+                <p role="alert" className="text-sm text-terracotta text-center mb-4 font-serif">
+                  {error}
+                </p>
               )}
 
               <PrimaryButton
@@ -611,7 +623,7 @@ function GiftModal(props: ModalProps) {
                       onClick={() => props.onCardThemeChange(th.id)}
                       aria-pressed={active}
                       aria-label={lang === 'pt' ? th.label_pt : th.label_en}
-                      className={`overflow-hidden rounded-lg border-2 text-left transition-all ${
+                      className={`overflow-hidden rounded-lg border-2 text-left transition-[border-color,box-shadow,opacity] ${
                         active ? 'border-forest-deep shadow-md' : 'border-transparent opacity-80'
                       }`}
                     >
@@ -641,31 +653,40 @@ function GiftModal(props: ModalProps) {
 
               <div className="space-y-4 mb-5">
                 <textarea
+                  name="cardMessage"
                   value={cardMessage}
                   onChange={(e) => props.onCardMessageChange(e.target.value)}
                   placeholder={t('gifts.cardPlaceholder')}
                   rows={4}
                   maxLength={400}
                   aria-label={t('gifts.cardMessage')}
-                  className="w-full px-5 py-4 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title/50 focus:outline-none focus:border-forest/60 focus:bg-white/90 resize-none transition-colors"
+                  className="w-full px-5 py-4 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title/50 focus:outline-none focus:border-forest focus:bg-white/90 focus:ring-2 focus:ring-forest/20 resize-none transition-[border-color,background-color,box-shadow]"
                 />
                 <div>
-                  <label className="font-sans text-[10px] tracking-[0.3em] uppercase text-title block mb-2">
+                  <label
+                    htmlFor="gift-card-from"
+                    className="font-sans text-[10px] tracking-[0.3em] uppercase text-title block mb-2"
+                  >
                     {t('gifts.cardFrom')}
                   </label>
                   <input
+                    id="gift-card-from"
+                    name="cardFrom"
                     type="text"
+                    autoComplete="off"
                     value={cardFrom}
                     onChange={(e) => props.onCardFromChange(e.target.value)}
                     placeholder={t('gifts.cardFromPlaceholder')}
                     maxLength={60}
-                    className="w-full px-5 py-3.5 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title/50 focus:outline-none focus:border-forest/60 focus:bg-white/90 transition-colors"
+                    className="w-full px-5 py-3.5 rounded-2xl border border-sage/40 bg-white/70 font-serif text-base text-title placeholder:text-title/50 focus:outline-none focus:border-forest focus:bg-white/90 focus:ring-2 focus:ring-forest/20 transition-colors"
                   />
                 </div>
               </div>
 
               {error && (
-                <p className="text-sm text-terracotta text-center mb-4 font-serif">{error}</p>
+                <p role="alert" className="text-sm text-terracotta text-center mb-4 font-serif">
+                  {error}
+                </p>
               )}
 
               <PrimaryButton
@@ -780,14 +801,16 @@ function GiftModal(props: ModalProps) {
                     <span className="font-serif text-sm text-title">
                       {lang === 'pt' ? c.label_pt : c.label_en}
                     </span>
-                    <span className="font-sans text-sm font-semibold text-honey">R$ {c.price}</span>
+                    <span className="font-sans text-sm font-semibold text-amber-deep">
+                      R$ {c.price}
+                    </span>
                   </div>
                 ))}
                 <div className="border-t border-sage/30 mt-3 pt-2 flex justify-between">
                   <span className="font-sans text-xs uppercase tracking-widest text-title">
                     {t('gifts.total')}
                   </span>
-                  <span className="font-sans tabular-nums text-lg text-honey">
+                  <span className="font-sans tabular-nums text-lg text-amber-deep">
                     R$ {props.totalAmount.toFixed(2)}
                   </span>
                 </div>
@@ -829,7 +852,7 @@ function PrimaryButton({ onClick, disabled, submitting, children }: PrimaryButto
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`group inline-flex w-full items-center justify-center gap-2 rounded-full bg-forest-deep px-8 py-3 font-sans text-sm tracking-widest uppercase text-peach-light transition-all duration-300 hover:bg-forest-deep/90 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
+      className={`group inline-flex w-full items-center justify-center gap-2 rounded-full bg-forest-deep px-8 py-3 font-sans text-sm tracking-widest uppercase text-peach-light transition-[background-color,transform,opacity] duration-300 hover:bg-forest-deep/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
     >
       <svg
         width="14"

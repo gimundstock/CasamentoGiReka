@@ -31,6 +31,22 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* A nav é fixa: um elemento focado pelo teclado nunca para debaixo dela. */
+    scroll-padding-top: 5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Anel de foco para quem navega pelo teclado; o clique não o mostra.
+     Campos de texto têm o próprio estado de foco (a linha escurece). */
+  :focus-visible {
+    outline: 2px solid theme('colors.cta');
+    outline-offset: 3px;
+  }
+
+  button,
+  a,
+  [role='button'] {
+    touch-action: manipulation;
   }
 
   body {
@@ -60,6 +76,22 @@
 }
 
 @layer utilities {
+  /* Área de toque de 44px em volta de um controle pequeno, sem mudar o
+     desenho: um ::after invisível maior que o elemento. */
+  .hit-area {
+    position: relative;
+  }
+
+  .hit-area::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;

@@ -14,6 +14,11 @@ export function NameEntry({ state, onSubmit }: Props) {
   const { t } = useTranslation()
   const [name, setName] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  // Foco automático só onde há teclado físico: no celular ele abriria o
+  // teclado virtual antes da pessoa ver a tela.
+  const [autoFocus] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches
+  )
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -46,28 +51,51 @@ export function NameEntry({ state, onSubmit }: Props) {
         </p>
 
         <form onSubmit={handleSubmit} className="relative z-10">
+          <label htmlFor="guest-name" className="sr-only">
+            {t('nameEntry.subtitle')}
+          </label>
           <input
             ref={inputRef}
+            id="guest-name"
+            name="name"
             type="text"
+            autoComplete="name"
+            autoCapitalize="words"
+            spellCheck={false}
+            aria-invalid={state.status === 'not_found' || undefined}
+            aria-describedby={
+              state.status === 'not_found' || state.status === 'error'
+                ? 'guest-name-error'
+                : undefined
+            }
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('nameEntry.placeholder')}
             disabled={isLoading}
-            className="font-garamond text-title border-forest-deep/20 placeholder-title/40 focus:border-forest-deep/60 w-full border-b bg-transparent px-1 pt-3 pb-0.5 text-center text-base transition-all focus:outline-none disabled:opacity-60"
-            autoFocus
+            className="font-garamond text-title border-forest-deep/20 placeholder-title/40 w-full border-b bg-transparent px-1 pt-3 pb-0.5 text-center text-base transition-[border-color,box-shadow] focus:border-forest-deep focus:shadow-[0_1px_0_0_#3D3229] focus:outline-none disabled:opacity-60"
+            autoFocus={autoFocus}
           />
 
-          {state.status === 'not_found' && (
-            <p className="text-terracotta font-serif mt-4 text-sm">{t('nameEntry.notFound')}</p>
-          )}
-          {state.status === 'error' && (
-            <p className="text-terracotta font-serif mt-4 text-sm">{t('nameEntry.error')}</p>
-          )}
+          {/* Região viva: o leitor de tela anuncia o erro assim que aparece. */}
+          <div id="guest-name-error" aria-live="polite">
+            {state.status === 'not_found' && (
+              <p className="text-terracotta font-serif mt-4 text-sm">{t('nameEntry.notFound')}</p>
+            )}
+            {state.status === 'error' && (
+              <p className="text-terracotta font-serif mt-4 text-sm">{t('nameEntry.error')}</p>
+            )}
+          </div>
 
           <button
             type="submit"
             disabled={isLoading || !name.trim()}
-            className="bg-cta text-peach-light font-sans mt-10 inline-block rounded-none px-12 py-4 text-xs tracking-[0.35em] uppercase transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-75"
+            className={`font-sans mt-10 inline-block rounded-none px-12 py-4 text-xs tracking-[0.35em] uppercase transition-[background-color,color,opacity] ${
+              // Sem nome digitado o botão fica claramente apagado; enquanto
+              // procura, continua azul e respira.
+              name.trim()
+                ? 'bg-cta text-peach-light hover:opacity-90'
+                : 'bg-title/10 text-title/50 cursor-not-allowed'
+            }`}
           >
             <span className={isLoading ? 'animate-breath' : ''}>
               {isLoading ? t('nameEntry.loading') : t('nameEntry.button')}

@@ -203,7 +203,8 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
 
       {/* Marcadores, logo abaixo da pilha */}
       {count > 1 && (
-        <div className="z-40 flex gap-2">
+        <div className="z-40 flex">
+          {/* O botão é a área de toque (44px de altura); o ponto é o span. */}
           {visible.map((photo, i) => (
             <button
               key={`dot-${photo.src}`}
@@ -211,10 +212,14 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
               onClick={() => andar(distancia(i))}
               aria-label={`Foto ${i + 1} de ${count}`}
               aria-current={i === safeIndex}
-              className={`h-1.5 rounded-full transition-all duration-700 ${
-                i === safeIndex ? 'bg-title w-6' : 'bg-title/30 hover:bg-title/60 w-1.5'
-              }`}
-            />
+              className="group flex h-11 items-center px-[9px]"
+            >
+              <span
+                className={`block h-1.5 rounded-full transition-[width,background-color] duration-700 ${
+                  i === safeIndex ? 'bg-title w-6' : 'bg-title/30 group-hover:bg-title/60 w-1.5'
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}

@@ -319,7 +319,9 @@ export function HeroSaveDateCouple() {
               petals={FALLING_PETALS}
               scrollProgress={scrollYProgress}
             />
-            <div className="relative flex h-full flex-col items-center justify-center gap-14 px-6 pt-16 text-center md:gap-20">
+            {/* z-10: as flores caem por trás do texto, nunca por cima da data ou
+                da contagem. */}
+            <div className="relative z-10 flex h-full flex-col items-center justify-center gap-14 px-6 pt-16 text-center md:gap-20">
               <FlipLetters
                 text="Save the Date"
                 spaceClassNames={['', '-ml-[0.3em]']}
