@@ -83,17 +83,21 @@ function grid(w: number, h: number) {
   const phone = w < 640
   const cols = w >= 1024 ? 4 : phone ? 2 : 3
   const rows = 2
-  const gapX = w >= 1024 ? 40 : 16
-  const gapY = phone ? 20 : 32
-  // Room left for the grid: under the nav, the label, the title and the
-  // chapter tabs; over the hint at the foot.
-  const top = NAV_HEIGHT + (phone ? 142 : 160)
+  const gapX = w >= 1024 ? 36 : 14
+  const gapY = phone ? 18 : 28
+  // The chapter tabs stand in a column left of the polaroids: names on a
+  // wide screen, a narrow strip of upright labels (as the passport's) on a
+  // phone.
+  const tabsW = phone ? 30 : 200
+  // Room left for the grid: under the nav, the label and the title; over
+  // the hint at the foot.
+  const top = NAV_HEIGHT + (phone ? 112 : 128)
   const bottom = phone ? 56 : 66
   const byHeight = (h - top - bottom - gapY * (rows - 1)) / rows / CARD_ASPECT
-  // Room at the sides for the arrows.
-  const byWidth = (Math.min(w - (phone ? 72 : 160), 1100) - gapX * (cols - 1)) / cols
-  const cardW = Math.max(110, Math.min(byHeight, byWidth, 240))
-  return { cols, rows, gapX, gapY, cardW, top, bottom, phone }
+  // Room for the tabs and, at the sides, the arrows.
+  const byWidth = (Math.min(w - tabsW - (phone ? 100 : 180), 1000) - gapX * (cols - 1)) / cols
+  const cardW = Math.max(100, Math.min(byHeight, byWidth, 240))
+  return { cols, rows, gapX, gapY, cardW, top, bottom, phone, tabsW }
 }
 
 /** Splits each chapter into pages of at most `per`, as evenly as possible. */
@@ -119,31 +123,28 @@ const easeInOut = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
 export function giftsTitleLayout(w: number, h: number) {
   const phone = w < 640
   return {
-    midY: h / 2 - (phone ? 40 : 34),
+    midY: h / 2 - 10,
     topY: NAV_HEIGHT + (phone ? 74 : 84),
     // From the large title to the list's heading size.
     endScale: phone ? 0.71 : 0.67,
-    subtitleY: h / 2 + (phone ? 34 : 44),
   }
 }
 
 /**
- * The list's kicker, title and note, centred on the desk. Drawn by the RSVP
- * as its reply card leaves and, in the very same place, by the list as it
- * pins, so the hand-over between the two can't be seen. The list then moves
- * the title up (y, scale) and lets the note go.
+ * The list's kicker and title, centred on the desk. Drawn by the RSVP as its
+ * reply card leaves and, in the very same place, by the list as it pins, so
+ * the hand-over between the two can't be seen. The list then moves the
+ * title up (y, scale).
  */
 export function GiftsTitle({
   opacity = 1,
   y,
   scale = 1,
-  noteOpacity = 1,
   hidden,
 }: {
   opacity?: number | MotionValue<number>
   y?: MotionValue<number>
   scale?: number | MotionValue<number>
-  noteOpacity?: number | MotionValue<number>
   hidden?: boolean
 }) {
   const { t } = useTranslation()
@@ -166,12 +167,6 @@ export function GiftsTitle({
           {t('gifts.title')}
         </h2>
       </motion.div>
-      <motion.p
-        className="font-serif text-title absolute inset-x-0 mx-auto max-w-xl px-6 text-center text-lg leading-relaxed md:text-xl"
-        style={{ top: L.subtitleY, opacity: noteOpacity }}
-      >
-        {t('gifts.subtitle')}
-      </motion.p>
     </motion.div>
   )
 }
@@ -181,13 +176,14 @@ export function GiftsTitle({
  * section and takes the screen as it pins — the same paper, the same
  * wildflowers, the reply card just gone — so there is no seam. The scroll
  * only brings the list onto the desk; from there the guest browses it by
- * hand: the chapter tabs, the arrows beside the polaroids, a swipe.
+ * hand: the chapter tabs in a column at the left, the arrows beside the
+ * polaroids, a swipe. The polaroids always come in rising.
  */
 export function GiftChapters({ gifts, renderCard }: Props) {
   const { t } = useTranslation()
   const chapters = useChapters(gifts)
   const { w, h } = useScreen()
-  const { cols, rows, gapX, gapY, cardW, top, bottom, phone } = grid(w, h)
+  const { cols, rows, gapX, gapY, cardW, top, bottom, phone, tabsW } = grid(w, h)
   const pages = useMemo(() => paginate(chapters, cols * rows), [chapters, cols, rows])
   // The desk's wildflowers, where the RSVP left them (not on a phone, where
   // the passport and the invitation are held in the hand).
@@ -214,18 +210,15 @@ export function GiftChapters({ gifts, renderCard }: Props) {
   const rise = useTransform(p, (v) => easeInOut(ramp(v, RISE)))
   const titleY = useTransform(rise, (r) => L.midY + (L.topY - L.midY) * r)
   const titleScale = useTransform(rise, (r) => 1 + (L.endScale - 1) * r)
-  const noteOpacity = useTransform(p, (v) => 1 - ramp(v, [RISE[0], RISE[0] + 0.16]))
   const tabsOpacity = useTransform(p, (v) => ramp(v, [RISE[1] - 0.1, RISE[1]]))
 
   const [shown, setShown] = useState(false)
   useMotionValueEvent(p, 'change', (v) => setShown(v >= LIST_AT))
 
   const [at, setAt] = useState(0)
-  const [dir, setDir] = useState(1)
   const page = pages[Math.min(at, pages.length - 1)]
   const go = (to: number) => {
     if (to < 0 || to >= pages.length || to === at) return
-    setDir(to > at ? 1 : -1)
     setAt(to)
   }
   const goChapter = (ci: number) => go(pages.findIndex((pg) => pg.chapter === ci))
@@ -245,14 +238,20 @@ export function GiftChapters({ gifts, renderCard }: Props) {
       <div className="bg-peach bg-paper sticky top-0 h-[100svh] overflow-hidden">
         {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
 
-        <GiftsTitle y={titleY} scale={titleScale} noteOpacity={noteOpacity} />
+        <GiftsTitle y={titleY} scale={titleScale} />
 
-        {/* Under the risen title: the chapter tabs. */}
-        <motion.div
-          className="absolute inset-x-0 px-2 text-center"
-          style={{ top: L.topY + (phone ? 20 : 26), opacity: tabsOpacity }}
+        <div
+          className="absolute inset-x-0 flex items-center justify-center"
+          style={{ top, bottom }}
         >
-          <div role="tablist" aria-label={t('gifts.chapters')} className="mt-1 flex justify-center">
+          {/* The chapter tabs, a column at the left of the polaroids. */}
+          <motion.div
+            role="tablist"
+            aria-orientation="vertical"
+            aria-label={t('gifts.chapters')}
+            className="flex shrink-0 flex-col"
+            style={{ width: tabsW, opacity: tabsOpacity }}
+          >
             {chapters.map((c, ci) => {
               const active = page?.chapter === ci
               return (
@@ -262,25 +261,22 @@ export function GiftChapters({ gifts, renderCard }: Props) {
                   role="tab"
                   aria-selected={active}
                   tabIndex={shown ? 0 : -1}
-                  title={c.title}
                   onClick={() => goChapter(ci)}
-                  className={`font-sans border-b px-2 py-3 text-[0.6rem] tracking-[0.22em] whitespace-nowrap uppercase transition-colors md:px-4 md:text-[0.65rem] md:tracking-[0.3em] ${
+                  className={`font-sans border-l text-left uppercase transition-colors ${
+                    phone
+                      ? 'px-2 py-3 text-[0.55rem] tracking-[0.2em] whitespace-nowrap [writing-mode:vertical-rl] rotate-180'
+                      : 'py-3 pl-4 text-[0.65rem] tracking-[0.28em]'
+                  } ${
                     active
                       ? 'text-title border-amber-deep'
-                      : 'text-title/60 hover:text-title border-transparent'
+                      : 'text-title/55 hover:text-title border-title/15'
                   }`}
                 >
-                  {c.tab}
+                  {phone ? c.tab : c.title}
                 </button>
               )
             })}
-          </div>
-        </motion.div>
-
-        <div
-          className="absolute inset-x-0 flex items-center justify-center"
-          style={{ top, bottom }}
-        >
+          </motion.div>
           <Arrow
             dir={-1}
             hidden={!shown || at === 0}
@@ -288,7 +284,7 @@ export function GiftChapters({ gifts, renderCard }: Props) {
             label={t('gifts.prevPage')}
             phone={phone}
           />
-          <AnimatePresence mode="wait" custom={dir}>
+          <AnimatePresence mode="wait">
             {shown && page && (
               // As few columns as fill the rows evenly (5 lie 3 + 2), the
               // shorter row centred under the fuller one. A swipe turns the
@@ -297,7 +293,7 @@ export function GiftChapters({ gifts, renderCard }: Props) {
                 key={at}
                 role="tabpanel"
                 aria-label={chapters[page.chapter].title}
-                className="flex flex-wrap content-center justify-center"
+                className="flex shrink-0 flex-wrap content-center justify-center"
                 style={{
                   width:
                     Math.min(cols, Math.ceil(page.gifts.length / rows)) * (cardW + gapX) - gapX,
@@ -316,7 +312,6 @@ export function GiftChapters({ gifts, renderCard }: Props) {
                   <motion.div
                     key={g.giftId}
                     style={{ width: cardW }}
-                    custom={dir}
                     variants={DEAL}
                     initial="enter"
                     animate="rest"
@@ -346,17 +341,16 @@ export function GiftChapters({ gifts, renderCard }: Props) {
   )
 }
 
-// Cards drop in from above, a little turned, and settle; the leaving ones
-// slide off the way the list goes. `custom` is the direction: 1 forwards.
+// The polaroids always rise: they come up from a little below and settle;
+// the leaving ones carry on up as they fade.
 const DEAL: Variants = {
-  enter: (dir: number) => ({ opacity: 0, y: -28, x: 24 * dir, rotate: 4 * dir, scale: 0.97 }),
-  rest: { opacity: 1, y: 0, x: 0, rotate: 0, scale: 1 },
-  leave: (dir: number) => ({
+  enter: { opacity: 0, y: 48, scale: 0.98 },
+  rest: { opacity: 1, y: 0, scale: 1 },
+  leave: {
     opacity: 0,
-    x: -36 * dir,
-    rotate: -3 * dir,
-    transition: { duration: 0.25, ease: [0.4, 0, 1, 1] as const },
-  }),
+    y: -24,
+    transition: { duration: 0.22, ease: [0.4, 0, 1, 1] as const },
+  },
 }
 
 /** A thin chevron beside the polaroids: the previous or next page. */

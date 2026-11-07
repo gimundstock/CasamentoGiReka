@@ -181,9 +181,6 @@ export function GiftShop({ guest }: Props) {
               {t('nav.gifts')}
             </p>
             <h2 className="font-display text-title text-2xl md:text-3xl">{t('gifts.title')}</h2>
-            <p className="font-serif text-title mx-auto mt-6 max-w-xl text-lg leading-relaxed md:text-xl">
-              {t('gifts.subtitle')}
-            </p>
           </div>
           <GiftChaptersStatic gifts={gifts} renderCard={renderCard} />
         </div>
