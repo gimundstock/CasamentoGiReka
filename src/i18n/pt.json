@@ -177,7 +177,9 @@
     "close": "Fechar",
     "chapters": "Capítulos da lista",
     "scrollToBrowse": "Role para ver os presentes",
-    "scrollToEnd": "Role para terminar"
+    "scrollToEnd": "Role para continuar",
+    "prevPage": "Presentes anteriores",
+    "nextPage": "Próximos presentes"
   },
   "footer": {
     "made": "Feito com amor",

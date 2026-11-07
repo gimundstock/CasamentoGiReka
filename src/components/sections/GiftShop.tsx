@@ -161,8 +161,15 @@ export function GiftShop({ guest }: Props) {
   }
 
   return (
-    <section id="gifts" className="bg-peach">
-      {loading ? (
+    // Pinned, it lies over the RSVP's last screen (see GiftChapters).
+    <section
+      id="gifts"
+      className="bg-peach bg-paper relative"
+      style={reduced ? undefined : { marginTop: '-100vh', zIndex: 42 }}
+    >
+      {/* Pinned, the list keeps its place while it loads (it shows the
+          title first, and the polaroids only once there). */}
+      {loading && reduced ? (
         <div className="text-title py-32 text-center font-serif">…</div>
       ) : reduced ? (
         // Reduced motion: nothing pinned — the title, then each chapter.

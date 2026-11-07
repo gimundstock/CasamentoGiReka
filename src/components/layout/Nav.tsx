@@ -16,7 +16,7 @@ const sections = [
   { observe: 'wedding', anchor: 'big-day', key: 'wedding' },
   { observe: 'city', anchor: 'passport', key: 'city' },
   { observe: 'rsvp', anchor: 'rsvp', key: 'rsvp' },
-  { observe: 'gifts', anchor: 'gifts', key: 'gifts' },
+  { observe: 'gifts', anchor: 'gifts-list', key: 'gifts' },
 ] as const
 type ObserveId = (typeof sections)[number]['observe']
 

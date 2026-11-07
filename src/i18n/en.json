@@ -177,7 +177,9 @@
     "close": "Close",
     "chapters": "List chapters",
     "scrollToBrowse": "Scroll to see the gifts",
-    "scrollToEnd": "Scroll to finish"
+    "scrollToEnd": "Scroll to continue",
+    "prevPage": "Previous gifts",
+    "nextPage": "Next gifts"
   },
   "footer": {
     "made": "Made with love",
