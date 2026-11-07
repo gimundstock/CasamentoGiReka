@@ -164,11 +164,11 @@ export function GiftShop({ guest }: Props) {
       ) : null}
 
       <GiftsDesk opening={!reduced}>
-        <div className="mx-auto max-w-4xl px-4 pb-32 sm:px-6 md:pb-48">
+        <div className="mx-auto max-w-6xl px-4 pb-32 sm:px-8 md:pb-48">
           {loading ? (
             <div className="text-title py-16 text-center font-serif">…</div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-8">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-16 lg:gap-y-14">
               {gifts.map((gift, i) => (
                 <RevealOnScroll key={gift.giftId} delay={(i % 4) * 0.05}>
                   <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
@@ -1036,6 +1036,8 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
 const RISE_VH = 0.6
 // From the risen title's middle to the top of the gifts.
 const TITLE_TO_GIFTS = 84
+// The title's size once it has risen into the list's header.
+const HEADER_SCALE = 0.6
 
 /**
  * The gift list on the desk the RSVP leaves behind. Its first screen — the
@@ -1059,6 +1061,7 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
     offset: ['start start', `start -${RISE_VH * 100}vh`],
   })
   const titleY = useTransform(rising, (v) => (GIFTS_TITLE_TOP - h / 2) * v)
+  const titleScale = useTransform(rising, (v) => 1 + (HEADER_SCALE - 1) * v)
   // The desk's wildflowers, where the RSVP left them (not on a phone, where
   // the passport and the invitation are held in the hand).
   const deskGeo = useMemo(
@@ -1080,19 +1083,29 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
           </div>
         </div>
       )}
-      {/* The title, held on the screen while it rises. */}
-      <div className="relative" style={{ height: `${(1 + RISE_VH) * 100}svh` }}>
-        <div className="sticky top-0 h-[100svh] overflow-hidden">
-          <GiftsTitle y={titleY} />
-        </div>
-      </div>
-      {/* The gifts: they come up under the rising title and, once it has
-          risen, start just below it. */}
+      {/* Room for the title to rise in, then the gifts: they come up under
+          the rising title and, once it has risen, start just below it. */}
       <div
-        className="relative"
-        style={{ marginTop: `calc(${GIFTS_TITLE_TOP + TITLE_TO_GIFTS}px - 100svh)` }}
-      >
-        {children}
+        aria-hidden
+        style={{ height: `calc(${RISE_VH * 100}svh + ${GIFTS_TITLE_TOP + TITLE_TO_GIFTS}px)` }}
+      />
+      <div className="relative">{children}</div>
+      {/* The title: in the middle of the desk, then risen and smaller, held
+          at the top as the list's header the whole length of the list, on
+          a band of paper the gifts pass under. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
+        <div className="sticky top-0 h-[100svh] overflow-hidden">
+          <motion.div
+            className="absolute inset-x-0 top-0"
+            style={{
+              // Opaque to a little under the title, then a short fade.
+              height: GIFTS_TITLE_TOP + 60,
+              opacity: rising,
+              background: `linear-gradient(to bottom, #FBFAF8 0, #FBFAF8 ${GIFTS_TITLE_TOP + 34}px, rgba(251, 250, 248, 0) 100%)`,
+            }}
+          />
+          <GiftsTitle y={titleY} scale={titleScale} />
+        </div>
       </div>
     </motion.div>
   )
