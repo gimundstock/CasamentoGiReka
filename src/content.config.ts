@@ -84,7 +84,7 @@ export const CONFIG = {
           'Renato preparou o pedido durante uma viagem romântica a Maiorca, em um piquenique boho no alto de uma colina, com vista para o mar ao pôr do sol. Fingiu tirar uma foto de Giovanna olhando para o horizonte, enquanto escondia a aliança na própria mão. Quando ela se virou para conferir a foto, ele já estava de joelhos. Giovanna já desconfiava... mas isso não tornou o momento menos mágico. E, claro, ela disse sim!',
         text_en:
           "Renato planned the proposal during a romantic trip to Mallorca: a boho picnic on a hilltop, overlooking the sea at sunset. He pretended to take a photo of Giovanna gazing at the horizon while hiding the ring in his own hand. When she turned around to check the photo, he was already on one knee. Giovanna had her suspicions… but that didn't make the moment any less magical. And, of course, she said yes!",
-        photo: 'couple.jpg',
+        photo: 'proposta.jpg',
       },
       {
         year: '2027',
@@ -94,7 +94,7 @@ export const CONFIG = {
           'Depois de tantos encontros, aventuras e sonhos compartilhados, chegou a hora de celebrar um novo capítulo da nossa história! Estamos preparando cada detalhe com muito amor e carinho, sonhando com uma celebração acolhedora, cheia de alegria e afeto. Mais do que celebrar nossa união, queremos compartilhar esse momento com as famílias e os amigos que fazem parte da nossa história. Afinal, o amor é ainda mais bonito quando celebrado juntos.',
         text_en:
           "After so many encounters, adventures and shared dreams, it's time to celebrate a new chapter of our story! We are preparing every detail with love and care, dreaming of a warm celebration full of joy and affection. More than celebrating our union, we want to share this moment with the families and friends who are part of our story. After all, love is even more beautiful when celebrated together.",
-        photo: 'r02.jpg',
+        photo: 'couple.jpg',
       },
     ],
   },

@@ -210,7 +210,7 @@ function StoryWords({ item }: { item: OrbitItem }) {
       <p className="font-sans text-amber-deep text-[0.8rem] tracking-[0.4em] uppercase md:text-[0.85rem]">
         {item.year}
       </p>
-      <h3 className="font-display text-title mt-3 pb-1 text-[1.5rem] leading-[1.35] md:text-[1.8rem]">
+      <h3 className="font-display text-title mt-5 pb-1 text-[1.5rem] leading-[1.35] md:text-[1.8rem]">
         {item.title}
       </h3>
       <p className="font-serif text-title mt-4 text-left text-[0.95rem] leading-relaxed whitespace-pre-line md:mt-5 md:text-justify md:text-[1.0625rem] md:[hyphens:auto]">
