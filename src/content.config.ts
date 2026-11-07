@@ -78,7 +78,7 @@ export const CONFIG = {
       },
       {
         year: '2025',
-        title_pt: 'A proposta',
+        title_pt: 'O pedido',
         title_en: 'The proposal',
         text_pt:
           'Renato preparou o pedido durante uma viagem romântica a Maiorca, em um piquenique boho no alto de uma colina, com vista para o mar ao pôr do sol. Fingiu tirar uma foto de Giovanna olhando para o horizonte, enquanto escondia a aliança na própria mão. Quando ela se virou para conferir a foto, ele já estava de joelhos. Giovanna já desconfiava... mas isso não tornou o momento menos mágico. E, claro, ela disse sim!',
