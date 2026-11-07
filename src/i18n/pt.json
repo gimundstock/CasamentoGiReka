@@ -175,11 +175,12 @@
     "cardMessageRequired": "Escreva uma mensagem para o cartão",
     "cardSent": "Cartão enviado",
     "close": "Fechar",
-    "chapters": "Capítulos da lista",
     "scrollToBrowse": "Role para ver os presentes",
     "scrollToEnd": "Role para continuar",
-    "prevPage": "Presentes anteriores",
-    "nextPage": "Próximos presentes"
+    "prevPage": "Presente anterior",
+    "nextPage": "Próximo presente",
+    "fanRole": "leque de presentes",
+    "fanAt": "{{name}}, {{n}} de {{total}}"
   },
   "footer": {
     "made": "Feito com amor",
