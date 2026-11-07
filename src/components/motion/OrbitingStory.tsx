@@ -161,7 +161,7 @@ export function OrbitingStory({
             className="-translate-x-1/2 -translate-y-1/2"
             style={{ width: textWidth }}
           >
-            <StoryCard className="px-9 pt-8 pb-9 text-center">
+            <StoryCard className="px-9 pt-8 pb-9 text-left">
               <StoryWords item={item} />
             </StoryCard>
           </div>
@@ -201,8 +201,7 @@ function Polaroid({ item, className = '' }: { item: OrbitItem; className?: strin
 
 /**
  * A milestone's words: the year as a small label, the title in script, the
- * text in full ink, justified from tablet up (left-aligned on a phone, where
- * the lines are too short to justify).
+ * text in full ink, all left-aligned.
  */
 function StoryWords({ item }: { item: OrbitItem }) {
   return (
@@ -213,7 +212,7 @@ function StoryWords({ item }: { item: OrbitItem }) {
       <h3 className="font-display text-title mt-5 pb-1 text-[1.5rem] leading-[1.35] md:text-[1.8rem]">
         {item.title}
       </h3>
-      <p className="font-serif text-title mt-4 text-left text-[0.95rem] leading-relaxed whitespace-pre-line md:mt-5 md:text-justify md:text-[1.0625rem] md:[hyphens:auto]">
+      <p className="font-serif text-title mt-4 text-left text-[0.95rem] leading-relaxed whitespace-pre-line md:mt-5 md:text-[1.0625rem]">
         {item.text}
       </p>
     </>
