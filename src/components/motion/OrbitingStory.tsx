@@ -109,7 +109,11 @@ export function OrbitingStory({
       const a = Math.PI / 2 + eased
       const b = a + Math.PI
       imageX.set(rx * Math.cos(a))
-      imageY.set(ry * Math.sin(a))
+      // On a phone the piece goes straight through the middle, and every
+      // milestone comes in the same way the scroll goes: up from below and
+      // off over the top (round the ellipse, every other one would come
+      // down from the top instead).
+      imageY.set(onPhone ? ry * Math.cos(eased - half * Math.PI) : ry * Math.sin(a))
       imageRotate.set(onPhone ? 0 : 8 * Math.sin(a))
       textX.set(trx * Math.cos(b))
       textY.set(ry * Math.sin(b))
