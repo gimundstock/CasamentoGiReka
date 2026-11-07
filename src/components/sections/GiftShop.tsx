@@ -164,7 +164,9 @@ export function GiftShop({ guest }: Props) {
     // Pinned, it lies over the RSVP's last screen (see GiftChapters).
     <section
       id="gifts"
-      className="bg-peach bg-paper relative"
+      // Its paper is on the pinned list itself (GiftChapters), which stays
+      // unseen until it pins: an opaque section would rise over the RSVP.
+      className={`relative ${reduced ? 'bg-peach bg-paper' : ''}`}
       style={reduced ? undefined : { marginTop: '-100vh', zIndex: 42 }}
     >
       {/* Pinned, the list keeps its place while it loads (it shows the

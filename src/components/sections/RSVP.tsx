@@ -26,6 +26,7 @@ import {
   useClockDelay,
 } from './Envelope'
 import { NUDGE_MS, ScrollHint } from '../ui/ScrollHint'
+import { GiftsTitle } from '../gifts/GiftChapters'
 
 const base = import.meta.env.BASE_URL
 
@@ -200,8 +201,14 @@ export function RSVP({ guest }: Props) {
     target: timelineRef,
     offset: ['end end', 'end start'],
   })
-  const leaveY = useTransform(leaving, (v) => -easeInOut(v) * window.innerHeight * 0.8)
-  const leaveOpacity = useTransform(leaving, (v) => 1 - clamp01((v - 0.35) / 0.5))
+  const leaveY = useTransform(
+    leaving,
+    (v) => -easeInOut(clamp01(v / 0.7)) * window.innerHeight * 0.8
+  )
+  const leaveOpacity = useTransform(leaving, (v) => 1 - clamp01((v - 0.15) / 0.45))
+  // As the card goes, the gift list's title comes onto the desk, exactly
+  // where the list will draw it when it takes the screen.
+  const giftsTitleOpacity = useTransform(leaving, (v) => clamp01((v - 0.3) / 0.55))
   const settled = useMotionValue(1)
   // One smoothed progress drives the whole scene (envelope, card travel and
   // the turn), so each wheel tick glides and every part stays in step: the
@@ -409,6 +416,8 @@ export function RSVP({ guest }: Props) {
         >
           <ScrollHint label={t('rsvp.scrollToReply')} />
         </motion.p>
+
+        {!reduced && <GiftsTitle opacity={giftsTitleOpacity} hidden />}
 
         {/* The invitation. At the end it rises off the desk (leaveY). */}
         <motion.div

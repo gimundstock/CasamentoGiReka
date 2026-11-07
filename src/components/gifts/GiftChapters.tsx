@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   AnimatePresence,
   motion,
+  type MotionValue,
   useMotionValueEvent,
   useScroll,
   useTransform,
@@ -18,14 +19,15 @@ import { ScrollHint } from '../ui/ScrollHint'
 /** A polaroid's height over its width (picture 4:5 plus the strip under it). */
 export const CARD_ASPECT = 6.3 / 4
 
-// The section's own scroll, as fractions of it: the title comes onto the
-// bare desk, stays a moment, gives way to the list (the polaroids dealt
-// from LIST_AT), which then stays until the section lets go.
-const INTRO = [0, 0.12]
-const SWAP = [0.3, 0.42]
+// The section's own scroll, as fractions of it. It pins with the title
+// already in the middle of the desk (the RSVP drew it there as its reply
+// card left); the title rises to the top (RISE) and the list comes in
+// under it (the polaroids dealt from LIST_AT); a short stay, then the page
+// goes on.
+const RISE = [0.04, 0.42]
 const LIST_AT = 0.36
 // Section height, and the scroll it pins for (the height but one screen).
-const HEIGHT_VH = 260
+const HEIGHT_VH = 180
 const PINNED_VH = HEIGHT_VH - 100
 
 interface Chapter {
@@ -85,7 +87,7 @@ function grid(w: number, h: number) {
   const gapY = phone ? 20 : 32
   // Room left for the grid: under the nav, the label, the title and the
   // chapter tabs; over the hint at the foot.
-  const top = NAV_HEIGHT + (phone ? 132 : 158)
+  const top = NAV_HEIGHT + (phone ? 142 : 160)
   const bottom = phone ? 56 : 66
   const byHeight = (h - top - bottom - gapY * (rows - 1)) / rows / CARD_ASPECT
   // Room at the sides for the arrows.
@@ -111,6 +113,68 @@ function paginate(chapters: Chapter[], per: number): Page[] {
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 const ramp = (v: number, [a, b]: number[]) => clamp01((v - a) / (b - a))
+const easeInOut = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
+
+/** Where the list's title sits: in the middle of the screen, then at the top. */
+export function giftsTitleLayout(w: number, h: number) {
+  const phone = w < 640
+  return {
+    midY: h / 2 - (phone ? 40 : 34),
+    topY: NAV_HEIGHT + (phone ? 74 : 84),
+    // From the large title to the list's heading size.
+    endScale: phone ? 0.71 : 0.67,
+    subtitleY: h / 2 + (phone ? 34 : 44),
+  }
+}
+
+/**
+ * The list's kicker, title and note, centred on the desk. Drawn by the RSVP
+ * as its reply card leaves and, in the very same place, by the list as it
+ * pins, so the hand-over between the two can't be seen. The list then moves
+ * the title up (y, scale) and lets the note go.
+ */
+export function GiftsTitle({
+  opacity = 1,
+  y,
+  scale = 1,
+  noteOpacity = 1,
+  hidden,
+}: {
+  opacity?: number | MotionValue<number>
+  y?: MotionValue<number>
+  scale?: number | MotionValue<number>
+  noteOpacity?: number | MotionValue<number>
+  hidden?: boolean
+}) {
+  const { t } = useTranslation()
+  const { w, h } = useScreen()
+  const L = giftsTitleLayout(w, h)
+  return (
+    <motion.div
+      aria-hidden={hidden}
+      className="pointer-events-none absolute inset-0"
+      style={{ opacity }}
+    >
+      <p
+        className="font-sans text-amber-deep absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
+        style={{ top: NAV_HEIGHT + 32 }}
+      >
+        {t('nav.gifts')}
+      </p>
+      <motion.div className="absolute inset-x-0 top-0 h-0" style={{ y: y ?? L.midY, scale }}>
+        <h2 className="font-display text-title -translate-y-1/2 px-4 text-center text-4xl leading-[1.35] md:text-5xl">
+          {t('gifts.title')}
+        </h2>
+      </motion.div>
+      <motion.p
+        className="font-serif text-title absolute inset-x-0 mx-auto max-w-xl px-6 text-center text-lg leading-relaxed md:text-xl"
+        style={{ top: L.subtitleY, opacity: noteOpacity }}
+      >
+        {t('gifts.subtitle')}
+      </motion.p>
+    </motion.div>
+  )
+}
 
 /**
  * The gift list on the invitation's desk. It lies over the end of the RSVP
@@ -143,13 +207,15 @@ export function GiftChapters({ gifts, renderCard }: Props) {
     target: sectionRef,
     offset: ['start end', 'start start'],
   })
-  const sectionOpacity = useTransform(arrival, (v) => (v >= 0.999 ? 1 : 0.01))
+  const sectionOpacity = useTransform(arrival, (v) => (v >= 0.999 ? 1 : 0))
   const sectionEvents = useTransform(arrival, (v) => (v >= 0.999 ? 'auto' : 'none'))
 
-  const kickerOpacity = useTransform(p, (v) => ramp(v, INTRO))
-  const introOpacity = useTransform(p, (v) => ramp(v, INTRO) * (1 - ramp(v, SWAP)))
-  const introY = useTransform(p, (v) => -ramp(v, SWAP) * 24)
-  const headOpacity = useTransform(p, (v) => ramp(v, [SWAP[0] + 0.04, SWAP[1] + 0.04]))
+  const L = giftsTitleLayout(w, h)
+  const rise = useTransform(p, (v) => easeInOut(ramp(v, RISE)))
+  const titleY = useTransform(rise, (r) => L.midY + (L.topY - L.midY) * r)
+  const titleScale = useTransform(rise, (r) => 1 + (L.endScale - 1) * r)
+  const noteOpacity = useTransform(p, (v) => 1 - ramp(v, [RISE[0], RISE[0] + 0.16]))
+  const tabsOpacity = useTransform(p, (v) => ramp(v, [RISE[1] - 0.1, RISE[1]]))
 
   const [shown, setShown] = useState(false)
   useMotionValueEvent(p, 'change', (v) => setShown(v >= LIST_AT))
@@ -174,41 +240,18 @@ export function GiftChapters({ gifts, renderCard }: Props) {
       <div
         id="gifts-list"
         className="absolute inset-x-0"
-        style={{ top: `${(SWAP[1] + 0.06) * PINNED_VH}vh` }}
+        style={{ top: `${(RISE[1] + 0.04) * PINNED_VH}vh` }}
       />
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
+      <div className="bg-peach bg-paper sticky top-0 h-[100svh] overflow-hidden">
         {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
 
-        <motion.p
-          className="font-sans text-amber-deep absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
-          style={{ top: NAV_HEIGHT + 32, opacity: kickerOpacity }}
-        >
-          {t('nav.gifts')}
-        </motion.p>
+        <GiftsTitle y={titleY} scale={titleScale} noteOpacity={noteOpacity} />
 
-        {/* First the title and its note, alone on the desk. */}
-        <motion.div
-          aria-hidden={shown}
-          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center"
-          style={{ opacity: introOpacity, y: introY }}
-        >
-          <h2 className="font-display text-title text-4xl md:text-5xl">{t('gifts.title')}</h2>
-          <p className="font-serif text-title mx-auto mt-6 max-w-xl text-lg leading-relaxed md:text-xl">
-            {t('gifts.subtitle')}
-          </p>
-        </motion.div>
-
-        {/* Then the list: its title, the chapter tabs, the polaroids. */}
+        {/* Under the risen title: the chapter tabs. */}
         <motion.div
           className="absolute inset-x-0 px-2 text-center"
-          style={{ top: NAV_HEIGHT + (phone ? 56 : 60), opacity: headOpacity }}
+          style={{ top: L.topY + (phone ? 20 : 26), opacity: tabsOpacity }}
         >
-          <p
-            aria-hidden
-            className="font-display text-title text-[1.6rem] leading-[1.35] md:text-[2rem]"
-          >
-            {t('gifts.title')}
-          </p>
           <div role="tablist" aria-label={t('gifts.chapters')} className="mt-1 flex justify-center">
             {chapters.map((c, ci) => {
               const active = page?.chapter === ci
