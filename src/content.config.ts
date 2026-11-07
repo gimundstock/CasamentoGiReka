@@ -88,7 +88,7 @@ export const CONFIG = {
       },
       {
         year: '2027',
-        title_pt: 'A celebração',
+        title_pt: 'Celebração',
         title_en: 'The celebration',
         text_pt:
           'Depois de tantos encontros, aventuras e sonhos compartilhados, chegou a hora de celebrar um novo capítulo da nossa história! Estamos preparando cada detalhe com muito amor e carinho, sonhando com uma celebração acolhedora, cheia de alegria e afeto. Mais do que celebrar nossa união, queremos compartilhar esse momento com as famílias e os amigos que fazem parte da nossa história. Afinal, o amor é ainda mais bonito quando celebrado juntos.',
