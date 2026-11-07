@@ -17,7 +17,6 @@ import { useReducedMotion } from '../motion/useReducedMotion'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { DeskFlowers } from './passport/DeskFlowers'
 import {
-  BREATH_MS,
   ENV_CLOSED_Y,
   ENVELOPE,
   ENVELOPE_BACK_CLASS,
@@ -26,6 +25,7 @@ import {
   NAV_HEIGHT,
   useClockDelay,
 } from './Envelope'
+import { NUDGE_MS, ScrollHint } from '../ui/ScrollHint'
 
 const base = import.meta.env.BASE_URL
 
@@ -196,7 +196,7 @@ export function RSVP({ guest }: Props) {
 
   const { w, h } = useStageSize()
   const geo = measure(w, h)
-  const breathDelay = useClockDelay(BREATH_MS)
+  const nudgeDelay = useClockDelay(NUDGE_MS)
   // On a wide screen the envelope has already arrived, on the passport's
   // stage (HeroBigDay, the desk): this section lies over that stage's last
   // screen and shows as it pins — the envelope exactly where the desk left
@@ -365,24 +365,22 @@ export function RSVP({ guest }: Props) {
           style={{ ...envBox, zIndex: 6 }}
         >
           <motion.p
-            className="absolute inset-x-0 -bottom-16 text-center font-serif italic text-title/70 text-lg"
+            className="absolute inset-x-0 -bottom-12 text-center"
             style={{ opacity: hintOpacity }}
           >
-            <span className="animate-breath inline-block" style={{ animationDelay: breathDelay }}>
-              {t('rsvp.envelopeHint')} ↓
-            </span>
+            <ScrollHint label={t('rsvp.envelopeHint')} delay={nudgeDelay} />
           </motion.p>
         </motion.div>
 
         <motion.p
           aria-hidden
-          className="absolute inset-x-0 text-center font-sans text-[0.6rem] tracking-[0.35em] uppercase text-cta"
+          className="absolute inset-x-0 text-center"
           style={{
             top: `calc(50% + ${geo.cardFinalY + geo.ch / 2 + 16}px)`,
             opacity: replyHintOpacity,
           }}
         >
-          <span className="animate-breath inline-block">{t('rsvp.scrollToReply')} ↓</span>
+          <ScrollHint label={t('rsvp.scrollToReply')} />
         </motion.p>
 
         {/* The invitation. */}
