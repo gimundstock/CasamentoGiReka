@@ -558,13 +558,14 @@ export function BrasiliaPassport({
   // cover for "scroll to open".
   const below = g.vh - (g.book.y + g.book.h)
   // "Click to turn": on the desk just past the book's lower right corner
-  // (the arrow at the corner, the words under it) when there is room for it,
-  // else under that corner. Never on the page, where it would take room from
-  // the content.
+  // (the words above, the arrow coming down to the corner: there is little
+  // room under the book) when there is room for it, else under that corner.
+  // Never on the page, where it would take room from the content.
   const noteW = g.fontSize * 10
   const noteBeside = spread && g.vw - (g.book.x + g.book.w) >= noteW + 16
   const noteH = g.fontSize * 8.5
   const pageRight = g.right.x + g.right.w
+  const noteText = t(touch ? 'city.passport.cornerTouch' : 'city.passport.cornerClick')
   const pageBottom = g.right.y + g.right.h
   const shutHintTop = g.book.y + g.coverBox.y + g.coverBox.h + 14
   const insideRect = { x: 0, y: 0, w: g.insideBox.w, h: g.insideBox.h }
@@ -803,8 +804,8 @@ export function BrasiliaPassport({
               />
             </div>
             {/* "Click to turn", hand-written on the desk with an S-shaped
-              arrow running up to the page corner it turns from. It is also
-              the next-page button. Not on the last stop. */}
+              arrow running to the page corner it turns from. It is also the
+              next-page button. Not on the last stop. */}
             <div
               ref={cornerRef}
               style={{
@@ -823,18 +824,27 @@ export function BrasiliaPassport({
                 style={
                   // The arrow's tip sits just off the page corner.
                   noteBeside
-                    ? { left: pageRight - g.fontSize * 0.1, top: pageBottom - g.fontSize * 0.1 }
+                    ? {
+                        left: pageRight - g.fontSize * 0.1,
+                        bottom: g.book.h - pageBottom - g.fontSize * 0.1,
+                      }
                     : {
                         right: g.book.w - pageRight - g.fontSize * 0.1,
                         top: pageBottom - g.fontSize * 0.1,
                       }
                 }
               >
-                <CornerArrow mirror={!noteBeside} />
-                <NoteWords
-                  text={t(touch ? 'city.passport.cornerTouch' : 'city.passport.cornerClick')}
-                  side={noteBeside ? 'right' : 'left'}
-                />
+                {noteBeside ? (
+                  <>
+                    <NoteWords text={noteText} side="right" />
+                    <CornerArrow to="down" />
+                  </>
+                ) : (
+                  <>
+                    <CornerArrow to="up" />
+                    <NoteWords text={noteText} side="left" />
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -912,18 +922,18 @@ export function BrasiliaPassport({
 }
 
 /**
- * A hand-drawn arrow: a loose S from under the words up to the page corner,
- * its tip at the top left (top right, mirrored, when the words are left of
- * the corner).
+ * A hand-drawn arrow: a loose S from the words to the page corner. Beside
+ * the book it comes down from the words above, its tip at the bottom left;
+ * under the book it goes up from the words below, its tip at the top right.
  */
-function CornerArrow({ mirror }: { mirror: boolean }) {
+function CornerArrow({ to }: { to: 'down' | 'up' }) {
   return (
     <svg
       viewBox="0 0 40 60"
       className={`h-[4.4em] w-[2.95em] shrink-0 transition-transform duration-300 ${
-        mirror
-          ? '-scale-x-100 group-hover:translate-x-[0.15em] group-hover:-translate-y-[0.15em]'
-          : 'group-hover:-translate-x-[0.15em] group-hover:-translate-y-[0.15em]'
+        to === 'down'
+          ? '-scale-y-100 group-hover:-translate-x-[0.15em] group-hover:translate-y-[0.15em]'
+          : '-scale-x-100 group-hover:translate-x-[0.15em] group-hover:-translate-y-[0.15em]'
       }`}
       aria-hidden
     >
@@ -947,16 +957,20 @@ function CornerArrow({ mirror }: { mirror: boolean }) {
 }
 
 /**
- * The note's words, hand-set in two staggered lines under the arrow's tail:
- * the first word, then the rest set further out, away from the book.
+ * The note's words, hand-set in two staggered lines at the arrow's tail: the
+ * first word, then the rest set further out, away from the book. Right of
+ * the book they stand above the arrow (clear of the tabs); left of the corner,
+ * under it.
  */
 function NoteWords({ text, side }: { text: string; side: 'left' | 'right' }) {
   const [first, ...rest] = text.split(' ')
   const out = side === 'right' ? 'self-start' : 'self-end'
   return (
     <span
-      className={`font-script -mt-[0.35em] flex flex-col text-[1.6em] leading-[1.15] whitespace-nowrap ${
-        side === 'right' ? 'ml-[0.9em] items-start' : 'mr-[0.9em] items-end'
+      className={`font-script flex flex-col text-[1.6em] leading-[1.15] whitespace-nowrap ${
+        side === 'right'
+          ? '-mb-[0.2em] ml-[1.5em] items-start'
+          : '-mt-[0.35em] mr-[0.9em] items-end'
       }`}
     >
       <span className={out}>{first}</span>
