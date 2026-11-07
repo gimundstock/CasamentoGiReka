@@ -5,6 +5,7 @@ import { CONFIG } from '../../content.config'
 import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
+import { NAV_HEIGHT } from './Envelope'
 import { OrbitingStory } from '../motion/OrbitingStory'
 import { SUN_BIG_SCALE, SUN_BIG_VMIN, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
@@ -466,12 +467,14 @@ export function HeroSaveDateCouple() {
           </div>
 
           {/* ── z-30  Story heading — plain opacity fade in/out, sits on
-                    top of everything once the save-the-date is gone. ── */}
+                    top of everything once the save-the-date is gone. The
+                    same kicker as the other sections (RSVP, gifts), at the
+                    same height under the nav. ── */}
           <motion.div
-            className="pointer-events-none absolute inset-x-0 top-0 z-30 px-6 pt-16 text-center md:pt-20"
-            style={{ opacity: coupleHeadingOpacity }}
+            className="pointer-events-none absolute inset-x-0 top-0 z-30 px-6 text-center"
+            style={{ opacity: coupleHeadingOpacity, paddingTop: NAV_HEIGHT + 32 }}
           >
-            <h2 className="font-display text-title text-[1.3125rem] lowercase md:text-[1.575rem]">
+            <h2 className="font-sans text-amber-deep text-[0.65rem] leading-normal tracking-[0.4em] uppercase">
               {t('couple.ourStory')}
             </h2>
           </motion.div>
