@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { QRCode } from 'react-qrcode-logo'
 import { Flower, Petal } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
-import { MaskReveal } from '../motion/MaskReveal'
-import { RevealOnScroll } from '../motion/RevealOnScroll'
+import { useReducedMotion } from '../motion/useReducedMotion'
+import { GiftChapters, GiftChaptersStatic } from '../gifts/GiftChapters'
 import { useGifts } from '../../hooks/useGifts'
 import { purchaseGift, submitCard } from '../../api/sheets'
 import { CARD_THEMES, MessageCard, getCardTheme, type CardThemeId } from '../gifts/cardThemes'
@@ -39,6 +39,7 @@ export function GiftShop({ guest }: Props) {
   const lang = i18n.language as 'pt' | 'en'
   const { gifts, loading, markCotasPurchased } = useGifts()
   const [purchase, setPurchase] = useState<PurchaseState | null>(null)
+  const reduced = useReducedMotion()
 
   function openGift(gift: Gift) {
     const availableCotas = gift.cotas.filter((c) => !c.purchased)
@@ -135,6 +136,19 @@ export function GiftShop({ guest }: Props) {
     }
   }
 
+  function renderCard(gift: Gift, index: number, width: number) {
+    return (
+      <GiftCard
+        gift={gift}
+        index={index}
+        lang={lang}
+        compact={width < 170}
+        onOpen={() => openGift(gift)}
+        t={t}
+      />
+    )
+  }
+
   async function copyPix() {
     if (!purchase) return
     try {
@@ -147,32 +161,26 @@ export function GiftShop({ guest }: Props) {
   }
 
   return (
-    <section id="gifts" className="bg-peach py-32 md:py-48">
-      <div className="max-w-5xl mx-auto px-6">
-        <MaskReveal direction="up" delay={0.05}>
-          <div className="text-center mb-20 md:mb-28">
-            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber-deep mb-6">
+    <section id="gifts" className="bg-peach">
+      {loading ? (
+        <div className="text-title py-32 text-center font-serif">…</div>
+      ) : reduced ? (
+        // Reduced motion: nothing pinned — the title, then each chapter.
+        <div className="mx-auto max-w-5xl px-6 py-32 md:py-48">
+          <div className="mb-20 text-center md:mb-28">
+            <p className="font-sans text-amber-deep mb-6 text-[0.65rem] tracking-[0.4em] uppercase">
               {t('nav.gifts')}
             </p>
-            <h2 className="font-display text-2xl md:text-3xl text-title">{t('gifts.title')}</h2>
-            <p className="font-serif text-title text-lg md:text-xl mt-6 max-w-xl mx-auto leading-relaxed">
+            <h2 className="font-display text-title text-2xl md:text-3xl">{t('gifts.title')}</h2>
+            <p className="font-serif text-title mx-auto mt-6 max-w-xl text-lg leading-relaxed md:text-xl">
               {t('gifts.subtitle')}
             </p>
           </div>
-        </MaskReveal>
-
-        {loading ? (
-          <div className="text-center py-16 text-title font-serif">…</div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-            {gifts.map((gift, i) => (
-              <RevealOnScroll key={gift.giftId} delay={i * 0.05}>
-                <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
-              </RevealOnScroll>
-            ))}
-          </div>
-        )}
-      </div>
+          <GiftChaptersStatic gifts={gifts} renderCard={renderCard} />
+        </div>
+      ) : (
+        <GiftChapters gifts={gifts} renderCard={renderCard} />
+      )}
 
       {purchase && (
         <GiftModal
@@ -234,11 +242,13 @@ interface GiftCardProps {
   gift: Gift
   index: number
   lang: 'pt' | 'en'
+  /** A small polaroid (a phone's grid): smaller type, a shorter back. */
+  compact: boolean
   onOpen: () => void
   t: (key: string, opts?: Record<string, unknown>) => string
 }
 
-function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
+function GiftCard({ gift, index, lang, compact, onOpen, t }: GiftCardProps) {
   const [imageFailed, setImageFailed] = useState(!gift.imageUrl)
   // No hover on touch screens: the first tap turns the polaroid over, the
   // next one (on its back) opens the gift.
@@ -300,7 +310,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
         } ${turned ? 'rotate-0' : ''}`}
       >
         <motion.div
-          className="relative aspect-[4/5.9] [transform-style:preserve-3d]"
+          className="relative aspect-[4/6.3] [transform-style:preserve-3d]"
           style={{
             transformPerspective: 1600,
             y: lift,
@@ -338,24 +348,47 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                 </div>
               )}
             </div>
-            {/* Gift names in Jost, as the guests' names on the invitation:
-                centred in the strip under the picture. */}
-            <div className="flex flex-1 items-center justify-center px-2 py-1">
-              <h3 className="font-sans text-lg text-title leading-snug text-center line-clamp-2">
+            {/* Gift names in Jost, as the guests' names on the invitation,
+                and the price under them: centred in the strip under the
+                picture. */}
+            <div className="flex flex-1 flex-col items-center justify-center px-1.5 py-1 text-center">
+              <h3
+                className={`font-sans text-title leading-snug line-clamp-2 ${
+                  compact ? 'text-[0.8rem]' : 'text-[0.95rem]'
+                }`}
+              >
                 {name}
               </h3>
+              {!isSoldOut && (
+                <p
+                  className={`font-sans text-amber-deep mt-0.5 tabular-nums ${
+                    compact ? 'text-[0.75rem]' : 'text-sm'
+                  }`}
+                >
+                  {gift.total > 1 && <span className="text-title/70">{t('gifts.fromPrice')} </span>}
+                  R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
+                </p>
+              )}
             </div>
           </motion.div>
 
           {/* Back: what it is and what it costs. */}
           <motion.div
-            className={`${face} bg-[#FDFBF6] bg-paper flex flex-col p-6 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] [transform:rotateY(180deg)]`}
+            className={`${face} bg-[#FDFBF6] bg-paper flex flex-col shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] [transform:rotateY(180deg)] ${compact ? 'p-3' : 'p-5'}`}
             style={{ visibility: backShown }}
           >
-            <p className="font-sans text-lg text-title leading-snug">{name}</p>
-            <div className="mt-3 h-px w-10 bg-amber/40" />
+            <p className={`font-sans text-title leading-snug ${compact ? 'text-sm' : 'text-base'}`}>
+              {name}
+            </p>
+            <div className={`h-px w-10 bg-amber/40 ${compact ? 'mt-2' : 'mt-3'}`} />
             {description && (
-              <p className="font-serif text-[0.95rem] text-title mt-4 leading-relaxed line-clamp-[8]">
+              <p
+                className={`font-serif text-title leading-relaxed ${
+                  compact
+                    ? 'mt-2 text-[0.8rem] line-clamp-[5]'
+                    : 'mt-3 text-[0.9rem] line-clamp-[7]'
+                }`}
+              >
                 {description}
               </p>
             )}
@@ -366,7 +399,9 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                 </p>
               ) : (
                 <>
-                  <p className="font-sans tabular-nums text-xl text-amber-deep">
+                  <p
+                    className={`font-sans tabular-nums text-amber-deep ${compact ? 'text-base' : 'text-xl'}`}
+                  >
                     {gift.total > 1 && (
                       <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mr-2">
                         {t('gifts.fromPrice')}
@@ -382,7 +417,11 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                       })}
                     </p>
                   )}
-                  <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep mt-4">
+                  <p
+                    className={`font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep ${
+                      compact ? 'mt-2' : 'mt-3'
+                    }`}
+                  >
                     {t(hover ? 'gifts.backHintClick' : 'gifts.backHintTap')}
                   </p>
                 </>

@@ -21,6 +21,8 @@ export interface Cota {
 
 export interface Gift {
   giftId: string
+  /** One of CONFIG.giftCategories' ids: the chapter it is listed in. */
+  category: string
   name_pt: string
   name_en: string
   description_pt: string

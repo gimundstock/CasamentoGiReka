@@ -174,7 +174,10 @@
     "cardError": "We couldn't send the card. Please try again.",
     "cardMessageRequired": "Please write a message for the card",
     "cardSent": "Card sent",
-    "close": "Close"
+    "close": "Close",
+    "chapters": "List chapters",
+    "scrollToBrowse": "Scroll to see the gifts",
+    "scrollToEnd": "Scroll to finish"
   },
   "footer": {
     "made": "Made with love",

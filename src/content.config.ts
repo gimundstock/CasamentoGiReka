@@ -653,12 +653,54 @@ export const CONFIG = {
   },
 
   // ── Gift Shop ─────────────────────────────────────────────
-  // Add your gifts here. Each gift can have one or more cotas (shares).
+  // The list is shown in chapters, in this order, one screen at a time.
+  // `title` heads the screen; `tab` is the short name in the chapter index.
+  giftCategories: [
+    {
+      id: 'experiences',
+      title_pt: 'Lua de mel e experiências',
+      title_en: 'Honeymoon and experiences',
+      tab_pt: 'Experiências',
+      tab_en: 'Experiences',
+    },
+    {
+      id: 'home',
+      title_pt: 'Para a casa',
+      title_en: 'For the home',
+      tab_pt: 'Casa',
+      tab_en: 'Home',
+    },
+    {
+      id: 'kitchen',
+      title_pt: 'Cozinha',
+      title_en: 'Kitchen',
+      tab_pt: 'Cozinha',
+      tab_en: 'Kitchen',
+    },
+    {
+      id: 'us',
+      title_pt: 'Para nós dois',
+      title_en: 'For the two of us',
+      tab_pt: 'Nós dois',
+      tab_en: 'The two of us',
+    },
+    {
+      id: 'funds',
+      title_pt: 'Fundos divertidos',
+      title_en: 'Fun funds',
+      tab_pt: 'Fundos',
+      tab_en: 'Funds',
+    },
+  ],
+
+  // Add your gifts here. Each gift can have one or more cotas (shares) and
+  // belongs to one of the giftCategories above (`category`).
   // Single-priced gift: one item in cotas array.
   // Multi-share gift: multiple items — guests can buy one or more shares.
   gifts: [
     {
       giftId: 'gift_002',
+      category: 'experiences',
       name_pt: 'Lua de Mel',
       name_en: 'Honeymoon',
       description_pt:
@@ -719,6 +761,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_003',
+      category: 'kitchen',
       name_pt: 'Air Fryer',
       name_en: 'Air Fryer',
       description_pt:
@@ -732,6 +775,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_004',
+      category: 'home',
       name_pt: 'Jogo de Cama',
       name_en: 'Bed Linen Set',
       description_pt:
@@ -750,6 +794,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_006',
+      category: 'home',
       name_pt: 'Jogo de Toalhas',
       name_en: 'Towel Set',
       description_pt: 'Toalhas macias e felpudas, para a gente sair do banho parecendo uma nuvem.',
@@ -767,6 +812,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_007',
+      category: 'home',
       name_pt: 'Tapetes para Casa',
       name_en: 'Home Rugs',
       description_pt:
@@ -784,6 +830,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_008',
+      category: 'us',
       name_pt: 'Bike Elétrica',
       name_en: 'Electric Bike',
       description_pt:
@@ -975,6 +1022,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_009',
+      category: 'us',
       name_pt: 'Suporte e Banquinho de Piano',
       name_en: 'Piano Stand and Bench',
       description_pt:
@@ -993,6 +1041,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_010',
+      category: 'home',
       name_pt: 'Banco de Madeira',
       name_en: 'Wooden Bench',
       description_pt:
@@ -1010,6 +1059,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_011',
+      category: 'home',
       name_pt: 'Estante de Madeira',
       name_en: 'Wooden Bookshelf',
       description_pt:
@@ -1028,6 +1078,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_012',
+      category: 'home',
       name_pt: 'Tapete para o Escritório',
       name_en: 'Office Rug',
       description_pt:
@@ -1046,6 +1097,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_013',
+      category: 'home',
       name_pt: 'Tapete para o Hall',
       name_en: 'Hall Rug',
       description_pt:
@@ -1063,6 +1115,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_014',
+      category: 'home',
       name_pt: 'Espelho para o Hall',
       name_en: 'Hall Mirror',
       description_pt:
@@ -1081,6 +1134,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_015',
+      category: 'experiences',
       name_pt: 'Jantar Romântico',
       name_en: 'Romantic Dinner',
       description_pt:
@@ -1099,6 +1153,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_016',
+      category: 'experiences',
       name_pt: 'Massagens',
       name_en: 'Massages',
       description_pt:
@@ -1129,6 +1184,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_017',
+      category: 'experiences',
       name_pt: 'Hotel da Noite de Núpcias',
       name_en: 'Wedding Night Hotel',
       description_pt:
@@ -1153,6 +1209,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_018',
+      category: 'experiences',
       name_pt: 'Primeira Classe na Volta',
       name_en: 'First Class Home',
       description_pt:
@@ -1201,6 +1258,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_019',
+      category: 'us',
       name_pt: 'Cadeira de Escritório para o Reka',
       name_en: 'Office Chair for Reka',
       description_pt:
@@ -1231,6 +1289,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_020',
+      category: 'kitchen',
       name_pt: 'Faca Japonesa',
       name_en: 'Japanese Knife',
       description_pt:
@@ -1249,6 +1308,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_021',
+      category: 'kitchen',
       name_pt: 'Churrasqueira',
       name_en: 'Barbecue Grill',
       description_pt:
@@ -1279,6 +1339,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_022',
+      category: 'kitchen',
       name_pt: 'Batedeira KitchenAid',
       name_en: 'KitchenAid Stand Mixer',
       description_pt:
@@ -1327,6 +1388,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_023',
+      category: 'kitchen',
       name_pt: 'Panela Le Creuset',
       name_en: 'Le Creuset Pot',
       description_pt:
@@ -1362,6 +1424,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_024',
+      category: 'kitchen',
       name_pt: 'Mini Le Creuset',
       name_en: 'Mini Le Creuset',
       description_pt:
@@ -1380,6 +1443,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_025',
+      category: 'kitchen',
       name_pt: 'Panelas Sem Cabo e Mini Frigideira',
       name_en: 'Detachable-Handle Pans & Mini Skillet',
       description_pt:
@@ -1398,6 +1462,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_026',
+      category: 'kitchen',
       name_pt: 'Potes de Vidro',
       name_en: 'Glass Containers',
       description_pt:
@@ -1416,6 +1481,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_027',
+      category: 'home',
       name_pt: 'Robô de Lavar Janela',
       name_en: 'Window-Cleaning Robot',
       description_pt:
@@ -1440,6 +1506,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_028',
+      category: 'kitchen',
       name_pt: 'Forno de Pizza Ooni',
       name_en: 'Ooni Pizza Oven',
       description_pt:
@@ -1488,6 +1555,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_029',
+      category: 'kitchen',
       name_pt: 'Um Ano de Cápsulas Nespresso',
       name_en: 'A Year of Nespresso Capsules',
       description_pt:
@@ -1572,6 +1640,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_030',
+      category: 'funds',
       name_pt: 'Estoque de Tapioca para a Gi',
       name_en: 'Tapioca Stock for Gi',
       description_pt:
@@ -1619,6 +1688,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_031',
+      category: 'funds',
       name_pt: 'Fundo para o Próximo Jogo do Renato',
       name_en: 'Renato’s Next Game Fund',
       description_pt:
@@ -1679,6 +1749,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_032',
+      category: 'funds',
       name_pt: 'Fundo do Cachorro',
       name_en: 'Dog Fund',
       description_pt:
@@ -1751,6 +1822,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_033',
+      category: 'funds',
       name_pt: 'Fundo de Utensílios de Café do Renato',
       name_en: 'Renato’s Coffee Gear Fund',
       description_pt:
@@ -1811,6 +1883,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_034',
+      category: 'funds',
       name_pt: 'Fundo para a Giovanna Visitar Jojo e Olivia',
       name_en: 'Fund for Giovanna to Visit Jojo and Olivia',
       description_pt:
@@ -1871,6 +1944,7 @@ export const CONFIG = {
     },
     {
       giftId: 'gift_035',
+      category: 'kitchen',
       name_pt: 'Panela de Pressão Elétrica',
       name_en: 'Electric Pressure Cooker',
       description_pt:

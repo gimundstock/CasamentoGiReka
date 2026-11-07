@@ -174,7 +174,10 @@
     "cardError": "Não conseguimos enviar o cartão. Tente novamente.",
     "cardMessageRequired": "Escreva uma mensagem para o cartão",
     "cardSent": "Cartão enviado",
-    "close": "Fechar"
+    "close": "Fechar",
+    "chapters": "Capítulos da lista",
+    "scrollToBrowse": "Role para ver os presentes",
+    "scrollToEnd": "Role para terminar"
   },
   "footer": {
     "made": "Feito com amor",
