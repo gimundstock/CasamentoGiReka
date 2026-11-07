@@ -175,12 +175,11 @@
     "cardMessageRequired": "Please write a message for the card",
     "cardSent": "Card sent",
     "close": "Close",
+    "chapters": "List chapters",
     "scrollToBrowse": "Scroll to see the gifts",
     "scrollToEnd": "Scroll to continue",
-    "prevPage": "Previous gift",
-    "nextPage": "Next gift",
-    "fanRole": "fan of gifts",
-    "fanAt": "{{name}}, {{n}} of {{total}}"
+    "prevPage": "Previous gifts",
+    "nextPage": "Next gifts"
   },
   "footer": {
     "made": "Made with love",

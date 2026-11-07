@@ -136,14 +136,13 @@ export function GiftShop({ guest }: Props) {
     }
   }
 
-  function renderCard(gift: Gift, index: number, width: number, inactive = false) {
+  function renderCard(gift: Gift, index: number, width: number) {
     return (
       <GiftCard
         gift={gift}
         index={index}
         lang={lang}
         compact={width < 170}
-        inactive={inactive}
         onOpen={() => openGift(gift)}
         t={t}
       />
@@ -182,6 +181,9 @@ export function GiftShop({ guest }: Props) {
               {t('nav.gifts')}
             </p>
             <h2 className="font-display text-title text-2xl md:text-3xl">{t('gifts.title')}</h2>
+            <p className="font-serif text-title mx-auto mt-6 max-w-xl text-lg leading-relaxed md:text-xl">
+              {t('gifts.subtitle')}
+            </p>
           </div>
           <GiftChaptersStatic gifts={gifts} renderCard={renderCard} />
         </div>
@@ -251,20 +253,16 @@ interface GiftCardProps {
   lang: 'pt' | 'en'
   /** A small polaroid (a phone's grid): smaller type, a shorter back. */
   compact: boolean
-  /** Lying in the fan, not in front: shown, but not focusable or clickable. */
-  inactive?: boolean
   onOpen: () => void
   t: (key: string, opts?: Record<string, unknown>) => string
 }
 
-function GiftCard({ gift, index, lang, compact, inactive, onOpen, t }: GiftCardProps) {
+function GiftCard({ gift, index, lang, compact, onOpen, t }: GiftCardProps) {
   const [imageFailed, setImageFailed] = useState(!gift.imageUrl)
   // No hover on touch screens: the first tap turns the polaroid over, the
   // next one (on its back) opens the gift.
   const [hover] = useState(() => window.matchMedia('(hover: hover)').matches)
   const [turned, setTurned] = useState(false)
-  // A card that goes back into the fan lies face up again.
-  if (inactive && turned) setTurned(false)
   // Turned over as the invitation is (RSVP): like a card in the hand, not a
   // sign on a pivot — the turn eases in and out, and on the way the card
   // lifts a little, grows, leans back and swings a few degrees before
@@ -302,17 +300,15 @@ function GiftCard({ gift, index, lang, compact, inactive, onOpen, t }: GiftCardP
       onClick={onClick}
       // Turned over by hover or keyboard focus (mouse), or by the first tap
       // (touch).
-      tabIndex={inactive ? -1 : undefined}
-      aria-hidden={inactive || undefined}
-      onMouseEnter={() => hover && !inactive && setTurned(true)}
+      onMouseEnter={() => hover && setTurned(true)}
       onMouseLeave={() => hover && setTurned(false)}
       onFocus={(e) => hover && e.currentTarget.matches(':focus-visible') && setTurned(true)}
       onBlur={() => setTurned(false)}
       aria-disabled={isSoldOut}
       aria-label={name}
       className={`group mx-auto block w-full max-w-[16rem] text-left [perspective:1200px] ${
-        inactive ? 'pointer-events-none' : ''
-      } ${isSoldOut ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+        isSoldOut ? 'cursor-not-allowed' : 'cursor-pointer'
+      }`}
     >
       {/* Polaroid, same as the story photos: white border, thicker bottom
           edge with the gift's name written on it, soft shadow. Tilts a

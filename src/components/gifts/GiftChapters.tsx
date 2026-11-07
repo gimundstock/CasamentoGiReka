@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
+  AnimatePresence,
   motion,
   type MotionValue,
   useMotionValueEvent,
   useScroll,
   useTransform,
+  type Variants,
 } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../content.config'
@@ -19,11 +21,11 @@ export const CARD_ASPECT = 6.3 / 4
 
 // The section's own scroll, as fractions of it. It pins with the title
 // already in the middle of the desk (the RSVP drew it there as its reply
-// card left); the title rises to the top (RISE) and the deck is dealt and
-// opens into a fan under it (from FAN_AT); a short stay, then the page
+// card left); the title rises to the top (RISE) and the list comes in
+// under it (the polaroids dealt from LIST_AT); a short stay, then the page
 // goes on.
 const RISE = [0.04, 0.42]
-const FAN_AT = 0.3
+const LIST_AT = 0.36
 // Section height, and the scroll it pins for (the height but one screen).
 const HEIGHT_VH = 180
 const PINNED_VH = HEIGHT_VH - 100
@@ -31,16 +33,21 @@ const PINNED_VH = HEIGHT_VH - 100
 interface Chapter {
   id: string
   title: string
+  tab: string
   gifts: Gift[]
+}
+
+interface Page {
+  chapter: number
+  gifts: Gift[]
+  /** Index of the first gift on this page in the whole list. */
+  first: number
 }
 
 interface Props {
   gifts: Gift[]
-  /**
-   * Renders one gift's polaroid at the given width; `inactive` for a card
-   * lying in the fan (not the one in front): not focusable, not clickable.
-   */
-  renderCard: (gift: Gift, index: number, width: number, inactive?: boolean) => ReactNode
+  /** Renders one gift's polaroid at the given width. */
+  renderCard: (gift: Gift, index: number, width: number) => ReactNode
 }
 
 /** The gifts grouped in CONFIG.giftCategories' order. */
@@ -53,6 +60,7 @@ export function useChapters(gifts: Gift[]): Chapter[] {
         .map((c) => ({
           id: c.id,
           title: pt ? c.title_pt : c.title_en,
+          tab: pt ? c.tab_pt : c.tab_en,
           gifts: gifts.filter((g) => g.category === c.id),
         }))
         .filter((c) => c.gifts.length > 0),
@@ -70,6 +78,39 @@ function useScreen() {
   return size
 }
 
+/** How many polaroids fit on one screen, and how wide each is. */
+function grid(w: number, h: number) {
+  const phone = w < 640
+  const cols = w >= 1024 ? 4 : phone ? 2 : 3
+  const rows = 2
+  const gapX = w >= 1024 ? 40 : 16
+  const gapY = phone ? 20 : 32
+  // Room left for the grid: under the nav, the label, the title and the
+  // chapter tabs; over the hint at the foot.
+  const top = NAV_HEIGHT + (phone ? 142 : 160)
+  const bottom = phone ? 56 : 66
+  const byHeight = (h - top - bottom - gapY * (rows - 1)) / rows / CARD_ASPECT
+  // Room at the sides for the arrows.
+  const byWidth = (Math.min(w - (phone ? 72 : 160), 1100) - gapX * (cols - 1)) / cols
+  const cardW = Math.max(110, Math.min(byHeight, byWidth, 240))
+  return { cols, rows, gapX, gapY, cardW, top, bottom, phone }
+}
+
+/** Splits each chapter into pages of at most `per`, as evenly as possible. */
+function paginate(chapters: Chapter[], per: number): Page[] {
+  const pages: Page[] = []
+  let first = 0
+  chapters.forEach((chapter, ci) => {
+    const n = chapter.gifts.length
+    const size = Math.ceil(n / Math.ceil(n / per))
+    for (let i = 0; i < n; i += size) {
+      pages.push({ chapter: ci, gifts: chapter.gifts.slice(i, i + size), first: first + i })
+    }
+    first += n
+  })
+  return pages
+}
+
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 const ramp = (v: number, [a, b]: number[]) => clamp01((v - a) / (b - a))
 const easeInOut = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
@@ -78,28 +119,31 @@ const easeInOut = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
 export function giftsTitleLayout(w: number, h: number) {
   const phone = w < 640
   return {
-    midY: h / 2 - 10,
+    midY: h / 2 - (phone ? 40 : 34),
     topY: NAV_HEIGHT + (phone ? 74 : 84),
     // From the large title to the list's heading size.
     endScale: phone ? 0.71 : 0.67,
+    subtitleY: h / 2 + (phone ? 34 : 44),
   }
 }
 
 /**
- * The list's kicker and title, centred on the desk. Drawn by the RSVP as its
- * reply card leaves and, in the very same place, by the list as it pins, so
- * the hand-over between the two can't be seen. The list then moves the
- * title up (y, scale).
+ * The list's kicker, title and note, centred on the desk. Drawn by the RSVP
+ * as its reply card leaves and, in the very same place, by the list as it
+ * pins, so the hand-over between the two can't be seen. The list then moves
+ * the title up (y, scale) and lets the note go.
  */
 export function GiftsTitle({
   opacity = 1,
   y,
   scale = 1,
+  noteOpacity = 1,
   hidden,
 }: {
   opacity?: number | MotionValue<number>
   y?: MotionValue<number>
   scale?: number | MotionValue<number>
+  noteOpacity?: number | MotionValue<number>
   hidden?: boolean
 }) {
   const { t } = useTranslation()
@@ -122,65 +166,29 @@ export function GiftsTitle({
           {t('gifts.title')}
         </h2>
       </motion.div>
+      <motion.p
+        className="font-serif text-title absolute inset-x-0 mx-auto max-w-xl px-6 text-center text-lg leading-relaxed md:text-xl"
+        style={{ top: L.subtitleY, opacity: noteOpacity }}
+      >
+        {t('gifts.subtitle')}
+      </motion.p>
     </motion.div>
   )
-}
-
-/**
- * The fan's geometry: the card in front, upright and full size, and the
- * others lying smaller along an arc to each side of it.
- */
-function fanLayout(w: number, h: number) {
-  const phone = w < 640
-  const top = NAV_HEIGHT + (phone ? 140 : 168)
-  const bottom = phone ? 104 : 136
-  // The card in front fills the height left between the title and the foot.
-  const frontW = Math.min(256, (h - top - bottom) / CARD_ASPECT, w * (phone ? 0.58 : 0.3))
-  const frontH = frontW * CARD_ASPECT
-  const frontY = top + frontH / 2
-  const side = phone ? 0.6 : 0.68
-  // The first card to each side clears most of the front one; the rest
-  // overlap one another, a hand of cards.
-  const first = frontW * 0.5 + frontW * side * (phone ? 0.2 : 0.3)
-  const step = frontW * side * (phone ? 0.24 : 0.42)
-  const radius = phone ? 900 : 1500
-  const reach = phone ? 5 : 8
-  return { phone, frontW, frontY, frontH, side, first, step, radius, reach }
-}
-
-/** Where card `d` places away from the front one lies in the fan. */
-function fanSpot(d: number, F: ReturnType<typeof fanLayout>) {
-  if (d === 0) return { x: 0, y: F.frontY, rotate: 0, scale: 1 }
-  const n = Math.abs(d)
-  const x = Math.sign(d) * (F.first + (n - 1) * F.step)
-  const a = x / F.radius
-  // Lying lower than the front card (whose foot they tuck under), and lower
-  // still along the arc.
-  const y = F.frontY + F.frontH * (1 - F.side) * 0.5 + F.radius * (1 - Math.cos(a))
-  return { x, y, rotate: (a * 180) / Math.PI, scale: F.side }
 }
 
 /**
  * The gift list on the invitation's desk. It lies over the end of the RSVP
  * section and takes the screen as it pins — the same paper, the same
  * wildflowers, the reply card just gone — so there is no seam. The scroll
- * brings the title up and deals the gifts as a deck that opens into a fan;
- * from there the guest turns the fan by hand: a drag, the arrows, a click
- * on a card at the side. The card in front opens its gift.
+ * only brings the list onto the desk; from there the guest browses it by
+ * hand: the chapter tabs, the arrows beside the polaroids, a swipe.
  */
 export function GiftChapters({ gifts, renderCard }: Props) {
-  const { t, i18n } = useTranslation()
-  const nameOf = (g: Gift) => (i18n.language === 'pt' ? g.name_pt : g.name_en)
+  const { t } = useTranslation()
   const chapters = useChapters(gifts)
-  // The fan's order: chapter by chapter.
-  const list = useMemo(() => chapters.flatMap((c) => c.gifts), [chapters])
-  const chapterOf = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const c of chapters) for (const g of c.gifts) m.set(g.giftId, c.title)
-    return m
-  }, [chapters])
   const { w, h } = useScreen()
-  const F = fanLayout(w, h)
+  const { cols, rows, gapX, gapY, cardW, top, bottom, phone } = grid(w, h)
+  const pages = useMemo(() => paginate(chapters, cols * rows), [chapters, cols, rows])
   // The desk's wildflowers, where the RSVP left them (not on a phone, where
   // the passport and the invitation are held in the hand).
   const deskGeo = useMemo(
@@ -206,46 +214,29 @@ export function GiftChapters({ gifts, renderCard }: Props) {
   const rise = useTransform(p, (v) => easeInOut(ramp(v, RISE)))
   const titleY = useTransform(rise, (r) => L.midY + (L.topY - L.midY) * r)
   const titleScale = useTransform(rise, (r) => 1 + (L.endScale - 1) * r)
-  const labelOpacity = useTransform(p, (v) => ramp(v, [RISE[1] - 0.08, RISE[1]]))
+  const noteOpacity = useTransform(p, (v) => 1 - ramp(v, [RISE[0], RISE[0] + 0.16]))
+  const tabsOpacity = useTransform(p, (v) => ramp(v, [RISE[1] - 0.1, RISE[1]]))
 
-  // The deck is dealt once the scroll reaches FAN_AT, and gathered back up
-  // if it goes back above it. Once dealt, a turn of the fan moves at once
-  // (no dealing delay).
-  const [open, setOpen] = useState(false)
-  const [dealt, setDealt] = useState(false)
-  const dealTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
-  useMotionValueEvent(p, 'change', (v) => {
-    const now = v >= FAN_AT
-    if (now === open) return
-    setOpen(now)
-    clearTimeout(dealTimer.current)
-    if (now) dealTimer.current = setTimeout(() => setDealt(true), 900)
-    else setDealt(false)
-  })
-  useEffect(() => () => clearTimeout(dealTimer.current), [])
+  const [shown, setShown] = useState(false)
+  useMotionValueEvent(p, 'change', (v) => setShown(v >= LIST_AT))
 
-  const [front, setFront] = useState(0)
-  const go = (to: number) => setFront(Math.max(0, Math.min(list.length - 1, to)))
-
-  // A trackpad's sideways swipe turns the fan, a card per notch.
-  const wheel = useRef(0)
-  const onWheel = (e: React.WheelEvent) => {
-    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return
-    wheel.current += e.deltaX
-    if (Math.abs(wheel.current) >= 60) {
-      go(front + Math.sign(wheel.current))
-      wheel.current = 0
-    }
+  const [at, setAt] = useState(0)
+  const [dir, setDir] = useState(1)
+  const page = pages[Math.min(at, pages.length - 1)]
+  const go = (to: number) => {
+    if (to < 0 || to >= pages.length || to === at) return
+    setDir(to > at ? 1 : -1)
+    setAt(to)
   }
+  const goChapter = (ci: number) => go(pages.findIndex((pg) => pg.chapter === ci))
 
-  const current = list[front]
   return (
     <motion.div
       ref={sectionRef}
       className="relative"
       style={{ height: `${HEIGHT_VH}vh`, opacity: sectionOpacity, pointerEvents: sectionEvents }}
     >
-      {/* The nav's "Presentes" lands here: the fan open on the desk. */}
+      {/* The nav's "Presentes" lands here: the list lying on the desk. */}
       <div
         id="gifts-list"
         className="absolute inset-x-0"
@@ -254,134 +245,133 @@ export function GiftChapters({ gifts, renderCard }: Props) {
       <div className="bg-peach bg-paper sticky top-0 h-[100svh] overflow-hidden">
         {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
 
-        <GiftsTitle y={titleY} scale={titleScale} />
+        <GiftsTitle y={titleY} scale={titleScale} noteOpacity={noteOpacity} />
 
-        {/* The chapter of the card in front, under the title. */}
-        <motion.p
-          aria-hidden
-          className="font-sans text-amber-deep absolute inset-x-0 text-center text-[0.65rem] tracking-[0.35em] uppercase"
-          style={{ top: L.topY + (F.phone ? 38 : 48), opacity: labelOpacity }}
-        >
-          {current ? chapterOf.get(current.giftId) : ''}
-        </motion.p>
-
-        {/* The fan. A group the arrow keys turn; a drag or a sideways swipe
-            turns it too. */}
+        {/* Under the risen title: the chapter tabs. */}
         <motion.div
-          role="group"
-          aria-roledescription={t('gifts.fanRole')}
-          aria-label={t('gifts.title')}
-          tabIndex={open ? 0 : -1}
-          className="absolute inset-0 touch-pan-y outline-offset-[-12px]"
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowRight') go(front + 1)
-            if (e.key === 'ArrowLeft') go(front - 1)
-          }}
-          onWheel={onWheel}
-          onPanEnd={(_, info) => {
-            const n = Math.round(-info.offset.x / Math.max(40, F.step * 1.4))
-            if (n) go(front + n)
-          }}
+          className="absolute inset-x-0 px-2 text-center"
+          style={{ top: L.topY + (phone ? 20 : 26), opacity: tabsOpacity }}
         >
-          {list.map((g, i) => {
-            const d = i - front
-            const far = Math.abs(d) > F.reach
-            const spot = fanSpot(Math.max(-F.reach - 1, Math.min(F.reach + 1, d)), F)
-            // Gathered: the deck, lying under where the front card goes.
-            const deck = { x: 0, y: F.frontY + 40, rotate: ((i * 37) % 9) - 4, scale: F.side }
-            const at = open ? spot : deck
-            return (
-              <motion.div
-                key={g.giftId}
-                className="absolute top-0 left-1/2"
-                style={{
-                  width: F.frontW,
-                  marginLeft: -F.frontW / 2,
-                  marginTop: -F.frontH / 2,
-                  zIndex: 100 - Math.abs(d),
-                  pointerEvents: open && !far ? 'auto' : 'none',
-                }}
-                initial={false}
-                animate={{
-                  x: at.x,
-                  y: at.y,
-                  rotate: at.rotate,
-                  scale: at.scale,
-                  opacity: open ? (far ? 0 : 1) : 0,
-                }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 170,
-                  damping: 24,
-                  // Dealt from the middle out the first time it opens.
-                  delay: open && !dealt ? 0.08 + Math.abs(d) * 0.045 : 0,
-                }}
-              >
-                {renderCard(g, i, F.frontW, d !== 0)}
-                {d !== 0 && (
-                  // A card at the side: a click brings it to the front.
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    aria-hidden
-                    onClick={() => go(i)}
-                    className="absolute inset-0 cursor-pointer"
-                  />
-                )}
-              </motion.div>
-            )
-          })}
+          <div role="tablist" aria-label={t('gifts.chapters')} className="mt-1 flex justify-center">
+            {chapters.map((c, ci) => {
+              const active = page?.chapter === ci
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  tabIndex={shown ? 0 : -1}
+                  title={c.title}
+                  onClick={() => goChapter(ci)}
+                  className={`font-sans border-b px-2 py-3 text-[0.6rem] tracking-[0.22em] whitespace-nowrap uppercase transition-colors md:px-4 md:text-[0.65rem] md:tracking-[0.3em] ${
+                    active
+                      ? 'text-title border-amber-deep'
+                      : 'text-title/60 hover:text-title border-transparent'
+                  }`}
+                >
+                  {c.tab}
+                </button>
+              )
+            })}
+          </div>
         </motion.div>
 
-        <Arrow
-          dir={-1}
-          hidden={!open || front === 0}
-          onClick={() => go(front - 1)}
-          label={t('gifts.prevPage')}
-          y={F.frontY + F.frontH / 2 + (F.phone ? 36 : 40)}
-          x={F.phone ? 12 : 16}
-        />
-        <Arrow
-          dir={1}
-          hidden={!open || front === list.length - 1}
-          onClick={() => go(front + 1)}
-          label={t('gifts.nextPage')}
-          y={F.frontY + F.frontH / 2 + (F.phone ? 36 : 40)}
-          x={F.phone ? 12 : 16}
-        />
+        <div
+          className="absolute inset-x-0 flex items-center justify-center"
+          style={{ top, bottom }}
+        >
+          <Arrow
+            dir={-1}
+            hidden={!shown || at === 0}
+            onClick={() => go(at - 1)}
+            label={t('gifts.prevPage')}
+            phone={phone}
+          />
+          <AnimatePresence mode="wait" custom={dir}>
+            {shown && page && (
+              // As few columns as fill the rows evenly (5 lie 3 + 2), the
+              // shorter row centred under the fuller one. A swipe turns the
+              // page on a touch screen.
+              <motion.div
+                key={at}
+                role="tabpanel"
+                aria-label={chapters[page.chapter].title}
+                className="flex flex-wrap content-center justify-center"
+                style={{
+                  width:
+                    Math.min(cols, Math.ceil(page.gifts.length / rows)) * (cardW + gapX) - gapX,
+                  columnGap: gapX,
+                  rowGap: gapY,
+                }}
+                drag={phone ? 'x' : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.25}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x < -50) go(at + 1)
+                  else if (info.offset.x > 50) go(at - 1)
+                }}
+              >
+                {page.gifts.map((g, i) => (
+                  <motion.div
+                    key={g.giftId}
+                    style={{ width: cardW }}
+                    custom={dir}
+                    variants={DEAL}
+                    initial="enter"
+                    animate="rest"
+                    exit="leave"
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
+                  >
+                    {renderCard(g, page.first + i, cardW)}
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <Arrow
+            dir={1}
+            hidden={!shown || at === pages.length - 1}
+            onClick={() => go(at + 1)}
+            label={t('gifts.nextPage')}
+            phone={phone}
+          />
+        </div>
 
-        {/* Read out as the fan turns. */}
-        <p aria-live="polite" className="sr-only">
-          {open && current
-            ? t('gifts.fanAt', { name: nameOf(current), n: front + 1, total: list.length })
-            : ''}
-        </p>
-
-        <div className="absolute inset-x-0 text-center" style={{ bottom: F.phone ? 18 : 26 }}>
-          <ScrollHint label={open ? t('gifts.scrollToEnd') : t('gifts.scrollToBrowse')} />
+        <div className="absolute inset-x-0 text-center" style={{ bottom: phone ? 18 : 26 }}>
+          <ScrollHint label={shown ? t('gifts.scrollToEnd') : t('gifts.scrollToBrowse')} />
         </div>
       </div>
     </motion.div>
   )
 }
 
-/** A thin chevron under the card in front: the previous or next gift. */
+// Cards drop in from above, a little turned, and settle; the leaving ones
+// slide off the way the list goes. `custom` is the direction: 1 forwards.
+const DEAL: Variants = {
+  enter: (dir: number) => ({ opacity: 0, y: -28, x: 24 * dir, rotate: 4 * dir, scale: 0.97 }),
+  rest: { opacity: 1, y: 0, x: 0, rotate: 0, scale: 1 },
+  leave: (dir: number) => ({
+    opacity: 0,
+    x: -36 * dir,
+    rotate: -3 * dir,
+    transition: { duration: 0.25, ease: [0.4, 0, 1, 1] as const },
+  }),
+}
+
+/** A thin chevron beside the polaroids: the previous or next page. */
 function Arrow({
   dir,
   hidden,
   onClick,
   label,
-  x,
-  y,
+  phone,
 }: {
   dir: 1 | -1
   hidden: boolean
   onClick: () => void
   label: string
-  /** Distance from the screen's middle to the arrow's inner edge (under
-   * the card in front, clear of the fan). */
-  x: number
-  y: number
+  phone: boolean
 }) {
   return (
     <button
@@ -389,21 +379,16 @@ function Arrow({
       onClick={onClick}
       aria-label={label}
       disabled={hidden}
-      className={`text-title hover:text-amber-deep absolute z-[200] -translate-y-1/2 rounded-full bg-peach/70 p-3 backdrop-blur-sm transition-[opacity,color] duration-300 ${
+      className={`text-title hover:text-amber-deep shrink-0 p-3 transition-[opacity,color] duration-300 ${
         hidden ? 'pointer-events-none opacity-0' : 'opacity-100'
-      }`}
-      style={{
-        top: y,
-        left: dir === 1 ? `calc(50% + ${x}px)` : undefined,
-        right: dir === -1 ? `calc(50% + ${x}px)` : undefined,
-      }}
+      } ${phone ? '-mx-1' : 'mx-4'}`}
     >
-      <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
+      <svg viewBox="0 0 24 24" className={phone ? 'h-5 w-5' : 'h-7 w-7'} aria-hidden>
         <path
           d={dir === 1 ? 'M9 4.5l7.5 7.5L9 19.5' : 'M15 4.5L7.5 12l7.5 7.5'}
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.2"
+          strokeWidth="1.1"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
