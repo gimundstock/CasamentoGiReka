@@ -1086,7 +1086,10 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
       {/* The wildflowers stay on the screen the whole length of the list. */}
       {deskGeo && (
         <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="sticky top-0 h-[100svh]">
+          {/* A layer of its own for good: otherwise, as a polaroid (a 3D
+              layer) comes onto or leaves the screen over the flowers, the
+              browser regroups the layers and the flowers move a pixel. */}
+          <div className="sticky top-0 h-[100svh]" style={{ willChange: 'transform' }}>
             <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
           </div>
         </div>

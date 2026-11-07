@@ -98,8 +98,10 @@ export function DeskFlowers({
             draggable={false}
             className="absolute max-w-none select-none"
             style={{
-              left: b.x0 + (b.x1 - b.x0) * f.x,
-              top: b.y0 + (b.y1 - b.y0) * f.y,
+              // Whole pixels: the same on every stage that draws them, however
+              // the browser happens to layer them.
+              left: Math.round(b.x0 + (b.x1 - b.x0) * f.x),
+              top: Math.round(b.y0 + (b.y1 - b.y0) * f.y),
               transform: `translate(-50%, -50%) rotate(${f.rot}deg) scale(${k * (f.s ?? 1)})`,
             }}
           />
