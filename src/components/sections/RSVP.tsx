@@ -26,6 +26,7 @@ import {
   useClockDelay,
 } from './Envelope'
 import { NUDGE_MS, ScrollHint } from '../ui/ScrollHint'
+import { GiftsTitle } from '../gifts/GiftsTitle'
 
 const base = import.meta.env.BASE_URL
 
@@ -186,7 +187,28 @@ export function RSVP({ guest }: Props) {
   const reduced = useReducedMotion()
 
   const trackRef = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({ target: trackRef, offset: ['start start', 'end end'] })
+  // The scene's own timeline: the section but its last screen of scroll,
+  // which is the hand-over to the gift list (below).
+  const timelineRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: timelineRef,
+    offset: ['start start', 'end end'],
+  })
+  // The hand-over: over the last screen of scroll the reply card rises off
+  // the desk, leaving it bare for the gift list, whose first screen lies
+  // over this section's end and takes over as it reaches the top.
+  const { scrollYProgress: leaving } = useScroll({
+    target: timelineRef,
+    offset: ['end end', 'end start'],
+  })
+  const leaveY = useTransform(
+    leaving,
+    (v) => -easeInOut(clamp01(v / 0.7)) * window.innerHeight * 0.8
+  )
+  const leaveOpacity = useTransform(leaving, (v) => 1 - clamp01((v - 0.15) / 0.45))
+  // As the card goes, the gift list's title comes onto the desk, exactly
+  // where the list will draw it when it takes the screen.
+  const giftsTitleOpacity = useTransform(leaving, (v) => clamp01((v - 0.3) / 0.55))
   const settled = useMotionValue(1)
   // One smoothed progress drives the whole scene (envelope, card travel and
   // the turn), so each wheel tick glides and every part stays in step: the
@@ -259,6 +281,7 @@ export function RSVP({ guest }: Props) {
     [0, T.envDown, T.flapOpen, T.cardOut, T.settled],
     (g) => [g.cardInClosedY, g.cardInY, g.cardInY, g.cardOutY, g.cardFinalY]
   )
+  const cardTravel = useTransform(() => cardY.get() + leaveY.get())
   const cardScale = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.s0, 1])
   // Turned over like a card in the hand rather than a sign on a pivot: the
   // turn eases in and out, and on the way the card lifts a little, grows,
@@ -296,13 +319,20 @@ export function RSVP({ guest }: Props) {
       ref={trackRef}
       className="relative bg-peach bg-paper"
       style={{
-        height: reduced ? '100svh' : '480vh',
+        // 480vh for the scene, then one more screen for the hand-over.
+        height: reduced ? '100svh' : '580vh',
         marginTop: desk ? '-100vh' : undefined,
         zIndex: desk ? 41 : undefined,
         opacity: sectionOpacity,
         pointerEvents: sectionEvents,
       }}
     >
+      <div
+        ref={timelineRef}
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0"
+        style={{ height: reduced ? '100svh' : '480vh' }}
+      />
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
         <motion.p
@@ -387,12 +417,15 @@ export function RSVP({ guest }: Props) {
           <ScrollHint label={t('rsvp.scrollToReply')} />
         </motion.p>
 
-        {/* The invitation. */}
+        {!reduced && <GiftsTitle opacity={giftsTitleOpacity} hidden />}
+
+        {/* The invitation. At the end it rises off the desk (leaveY). */}
         <motion.div
           className="absolute"
           style={{
             ...box(geo.cw, geo.ch),
-            y: cardY,
+            y: cardTravel,
+            opacity: leaveOpacity,
             scale: cardScale,
             zIndex: cardZ,
           }}

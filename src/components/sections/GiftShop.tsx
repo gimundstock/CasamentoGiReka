@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react'
-import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { animate, motion, useMotionValue, useScroll, useTransform } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { QRCode } from 'react-qrcode-logo'
 import { Flower, Petal } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
-import { MaskReveal } from '../motion/MaskReveal'
 import { RevealOnScroll } from '../motion/RevealOnScroll'
+import { useReducedMotion } from '../motion/useReducedMotion'
+import { GiftsTitle } from '../gifts/GiftsTitle'
+import { DeskFlowers } from './passport/DeskFlowers'
+import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
 import { purchaseGift, submitCard } from '../../api/sheets'
 import { CARD_THEMES, MessageCard, getCardTheme, type CardThemeId } from '../gifts/cardThemes'
@@ -39,6 +42,7 @@ export function GiftShop({ guest }: Props) {
   const lang = i18n.language as 'pt' | 'en'
   const { gifts, loading, markCotasPurchased } = useGifts()
   const [purchase, setPurchase] = useState<PurchaseState | null>(null)
+  const reduced = useReducedMotion()
 
   function openGift(gift: Gift) {
     const availableCotas = gift.cotas.filter((c) => !c.purchased)
@@ -147,32 +151,33 @@ export function GiftShop({ guest }: Props) {
   }
 
   return (
-    <section id="gifts" className="bg-peach py-32 md:py-48">
-      <div className="max-w-5xl mx-auto px-6">
-        <MaskReveal direction="up" delay={0.05}>
-          <div className="text-center mb-20 md:mb-28">
-            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber-deep mb-6">
-              {t('nav.gifts')}
-            </p>
-            <h2 className="font-display text-2xl md:text-3xl text-title">{t('gifts.title')}</h2>
-            <p className="font-serif text-title text-lg md:text-xl mt-6 max-w-xl mx-auto leading-relaxed">
-              {t('gifts.subtitle')}
-            </p>
-          </div>
-        </MaskReveal>
+    // No background on the section itself: its opening screen lies over the
+    // RSVP's last one and must stay unseen until it reaches the top.
+    <section id="gifts" className="relative">
+      {reduced ? (
+        <div className="bg-peach bg-paper mx-auto max-w-5xl px-6 pt-32 pb-16 text-center md:pt-48">
+          <p className="font-sans text-amber-deep mb-6 text-[0.65rem] tracking-[0.4em] uppercase">
+            {t('nav.gifts')}
+          </p>
+          <h2 className="font-display text-title text-4xl md:text-5xl">{t('gifts.title')}</h2>
+        </div>
+      ) : null}
 
-        {loading ? (
-          <div className="text-center py-16 text-title font-serif">…</div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-            {gifts.map((gift, i) => (
-              <RevealOnScroll key={gift.giftId} delay={i * 0.05}>
-                <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
-              </RevealOnScroll>
-            ))}
-          </div>
-        )}
-      </div>
+      <GiftsDesk opening={!reduced}>
+        <div className="mx-auto max-w-5xl px-6 pb-32 md:pb-48">
+          {loading ? (
+            <div className="text-title py-16 text-center font-serif">…</div>
+          ) : (
+            <div className="grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+              {gifts.map((gift, i) => (
+                <RevealOnScroll key={gift.giftId} delay={(i % 3) * 0.05}>
+                  <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
+                </RevealOnScroll>
+              ))}
+            </div>
+          )}
+        </div>
+      </GiftsDesk>
 
       {purchase && (
         <GiftModal
@@ -300,7 +305,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
         } ${turned ? 'rotate-0' : ''}`}
       >
         <motion.div
-          className="relative aspect-[4/5.9] [transform-style:preserve-3d]"
+          className="relative aspect-[4/6.3] [transform-style:preserve-3d]"
           style={{
             transformPerspective: 1600,
             y: lift,
@@ -338,12 +343,17 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                 </div>
               )}
             </div>
-            {/* Gift names in Jost, as the guests' names on the invitation:
-                centred in the strip under the picture. */}
-            <div className="flex flex-1 items-center justify-center px-2 py-1">
-              <h3 className="font-sans text-lg text-title leading-snug text-center line-clamp-2">
-                {name}
-              </h3>
+            {/* Gift names in Jost, as the guests' names on the invitation,
+                and the price under them: centred in the strip under the
+                picture. */}
+            <div className="flex flex-1 flex-col items-center justify-center px-2 py-1 text-center">
+              <h3 className="font-sans text-lg text-title leading-snug line-clamp-2">{name}</h3>
+              {!isSoldOut && (
+                <p className="font-sans text-amber-deep mt-0.5 text-sm tabular-nums">
+                  {gift.total > 1 && <span className="text-title/70">{t('gifts.fromPrice')} </span>}
+                  R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
+                </p>
+              )}
             </div>
           </motion.div>
 
@@ -1016,5 +1026,46 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
         <div className="p-2 bg-white/80 rounded-xl border border-sage/30">{children}</div>
       </div>
     </div>
+  )
+}
+
+/**
+ * The gift list on the desk the RSVP leaves behind. Its first screen — the
+ * desk's wildflowers and the list's title in the middle — lies over the
+ * RSVP's last one and shows only once it reaches the top, where it is the
+ * same picture the RSVP ends on. From there it all scrolls like any page,
+ * the gifts starting just under the title.
+ */
+function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress: arrival } = useScroll({
+    target: ref,
+    offset: ['start end', 'start start'],
+  })
+  const opacity = useTransform(arrival, (v) => (v >= 0.999 ? 1 : 0))
+  const [w, h] = [window.innerWidth, window.innerHeight]
+  // The desk's wildflowers, where the RSVP left them (not on a phone, where
+  // the passport and the invitation are held in the hand).
+  const deskGeo = useMemo(
+    () => (isDesk(w, h) && !isHand(w, h) ? passportGeometry(w, h) : null),
+    [w, h]
+  )
+  if (!opening) return <div className="bg-peach bg-paper">{children}</div>
+  return (
+    <motion.div
+      ref={ref}
+      className="bg-peach bg-paper relative"
+      style={{ marginTop: '-100vh', zIndex: 42, opacity }}
+    >
+      <div className="relative h-[100svh] overflow-hidden">
+        {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
+        <GiftsTitle />
+      </div>
+      {/* The gifts start under the title, over the opening screen's
+          lower half. */}
+      <div className="relative" style={{ marginTop: 'calc(-50svh + 128px)' }}>
+        {children}
+      </div>
+    </motion.div>
   )
 }
