@@ -267,6 +267,10 @@ export function RSVP({ guest }: Props) {
     easeInOut(clamp01((v - T.flipStart) / (T.flipEnd - T.flipStart)))
   )
   const cardFlip = useTransform(flipT, (t) => t * 180)
+  // Which face shows is chosen by the angle, not left to backface-visibility:
+  // WebKit drew the reply side, mirrored, over the front.
+  const frontShown = useTransform(cardFlip, (r) => (r < 90 ? 'visible' : 'hidden'))
+  const backShown = useTransform(cardFlip, (r) => (r < 90 ? 'hidden' : 'visible'))
   const flipArc = useTransform(flipT, (t) => Math.sin(t * Math.PI))
   const flipLift = useTransform(flipArc, (a) => -a * 18)
   const flipScale = useTransform(flipArc, (a) => 1 + a * 0.04)
@@ -409,6 +413,7 @@ export function RSVP({ guest }: Props) {
           >
             <CardFace
               hidden={face !== 'front'}
+              shown={frontShown}
               image={`${base}flowers/invitation-bg.webp`}
               rotate={geo.wide ? undefined : { w: geo.cw, h: geo.ch }}
             >
@@ -416,6 +421,7 @@ export function RSVP({ guest }: Props) {
             </CardFace>
             <CardFace
               hidden={face !== 'back'}
+              shown={backShown}
               back
               paper={`${base}rsvp/card-back.webp`}
               rotate={geo.wide ? { w: geo.cw, h: geo.ch } : undefined}
@@ -434,6 +440,7 @@ export function RSVP({ guest }: Props) {
 function CardFace({
   children,
   hidden,
+  shown,
   back,
   image,
   paper,
@@ -441,6 +448,8 @@ function CardFace({
 }: {
   children: ReactNode
   hidden: boolean
+  /** Whether this face is the one turned towards the guest (by the card's angle). */
+  shown: MotionValue<'visible' | 'hidden'>
   back?: boolean
   /** Painted artwork for this face; replaces the paper and the ruled border. */
   image?: string
@@ -475,7 +484,7 @@ function CardFace({
   }, [hidden])
 
   return (
-    <div
+    <motion.div
       ref={ref}
       aria-hidden={hidden}
       className={`relative rounded-[3px] shadow-[0_30px_60px_-30px_rgba(61,50,41,0.4)] min-h-0 overflow-hidden ${
@@ -486,6 +495,7 @@ function CardFace({
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden',
         transform: back ? 'rotateY(180deg)' : undefined,
+        visibility: shown,
       }}
     >
       {image ? (
@@ -515,7 +525,7 @@ function CardFace({
         </>
       )}
       <FitToCard className="px-8 py-10 md:px-14 md:py-11">{children}</FitToCard>
-    </div>
+    </motion.div>
   )
 }
 
@@ -608,31 +618,41 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
       {/* The details, tucked into a corner like a printed card's colophon: top right on
           wide cards, bottom right on upright ones where the painted flowers fill the left. */}
       <div className={`absolute right-0 text-right leading-snug ${wide ? 'top-0' : 'bottom-0'}`}>
-        <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase">{date}</p>
-        <p className="font-serif text-sm mt-1">
+        <p className="font-sans text-[0.7rem] tracking-[0.3em] uppercase">{date}</p>
+        <p className="font-serif text-base mt-1">
           {t('rsvp.inviteTime', { time: CONFIG.wedding.time })}
         </p>
-        <p className="font-serif text-sm">{CONFIG.wedding.venue}</p>
+        <p className="font-serif text-base">{CONFIG.wedding.venue}</p>
       </div>
 
+      {/* Lifted a little above the lines under it. */}
       <h2
-        className={`font-display leading-[1.45] ${
-          wide ? 'text-[2.6rem] whitespace-nowrap' : 'text-4xl flex flex-col'
+        className={`font-display relative -top-[0.55em] leading-[1.45] ${
+          wide ? 'text-[3.1rem] whitespace-nowrap' : 'text-[2.6rem] flex flex-col'
         }`}
       >
         {CONFIG.couple.bride}
-        <span className={`text-amber ${wide ? 'text-3xl mx-3' : 'text-2xl leading-none -my-1'}`}>
+        {/* The script's capital R stands well right of its own loop: the "&"
+            sits closer to it than to the name before. */}
+        <span
+          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-3xl leading-none -my-1'}`}
+        >
           &amp;
         </span>
-        {CONFIG.couple.groom}
+        {/* As in the G&R monogram: the R drawn in under the &. */}
+        <span className={wide ? '-ml-[0.15em]' : undefined}>{CONFIG.couple.groom}</span>
       </h2>
-      <p className="font-serif italic text-base md:text-lg mt-8">{t('rsvp.inviteRequest')}</p>
-      <p className="font-display text-2xl md:text-3xl leading-normal mt-4 mb-2 text-forest-deep">
+      <p className="font-serif italic text-[1.05rem] md:text-xl mt-8">{t('rsvp.inviteRequest')}</p>
+      {/* Guests' names in Jost, here and on the reply side. */}
+      <p className="font-sans text-base md:text-xl tracking-[0.18em] md:tracking-[0.25em] uppercase leading-normal mt-3 text-forest-deep">
         {guest.groupName}
       </p>
-      <p className="font-serif italic text-base md:text-lg mt-3">{t('rsvp.inviteCelebrate')}</p>
+      <p className="font-serif italic text-[1.05rem] md:text-xl mt-2">
+        {t('rsvp.inviteCelebrate')}
+      </p>
 
-      <p className="font-serif italic text-sm md:text-base text-title/70 mt-6">
+      {/* A little lower than the lines above it would put it. */}
+      <p className="font-serif italic text-[0.92rem] md:text-lg text-title/70 mt-6 relative top-5 md:top-6">
         {t('rsvp.replyBy', { date: deadline })}
       </p>
     </div>
@@ -706,7 +726,9 @@ function ReplyForm({ guest }: { guest: Guest }) {
             return (
               <div key={label}>
                 <p className={LABEL}>{t(label)}</p>
-                <p className="font-serif text-xl mt-1">{names.join(' · ')}</p>
+                <p className="font-sans text-sm tracking-[0.2em] uppercase mt-1">
+                  {names.join(' · ')}
+                </p>
               </div>
             )
           })}
@@ -732,7 +754,9 @@ function ReplyForm({ guest }: { guest: Guest }) {
       <div className="space-y-5">
         {attendees.map((attendee, i) => (
           <div key={i} className="border-t border-forest-deep/10 pt-4 text-center">
-            <p className="font-serif text-2xl md:text-[1.7rem]">{attendee.name}</p>
+            <p className="font-sans text-base md:text-lg tracking-[0.2em] uppercase">
+              {attendee.name}
+            </p>
             <div className="mt-2 flex justify-center gap-6 text-xs tracking-[0.3em] uppercase font-sans">
               {([true, false] as const).map((value) => (
                 <button
