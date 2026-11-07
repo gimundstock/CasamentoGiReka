@@ -1037,7 +1037,7 @@ const RISE_VH = 0.6
 // From the risen title's middle to the top of the gifts.
 const TITLE_TO_GIFTS = 84
 // The title's size once it has risen into the list's header.
-const HEADER_SCALE = 0.6
+const HEADER_SCALE = 0.5
 
 /**
  * The gift list on the desk the RSVP leaves behind. Its first screen — the

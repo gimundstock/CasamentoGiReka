@@ -14,7 +14,7 @@ function useScreenHeight() {
 }
 
 /** Where the title's middle comes to rest once it has risen, from the top. */
-export const GIFTS_TITLE_TOP = NAV_HEIGHT + 72
+export const GIFTS_TITLE_TOP = NAV_HEIGHT + 86
 
 /**
  * The gift list's kicker and title, centred on a screen. Drawn by the RSVP
