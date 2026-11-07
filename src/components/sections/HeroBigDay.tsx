@@ -526,7 +526,7 @@ export function HeroBigDay({ holder }: { holder?: string }) {
                   href={CONFIG.wedding.mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-title border-forest-deep/50 hover:border-forest-deep font-sans mt-3 inline-block border-b pb-0.5 text-[0.6rem] tracking-[0.3em] uppercase transition-colors"
+                  className="hit-area text-title border-forest-deep/50 hover:border-forest-deep font-sans mt-3 inline-block border-b pb-0.5 text-[0.6rem] tracking-[0.3em] uppercase transition-colors"
                 >
                   {t('wedding.directions')}
                 </a>

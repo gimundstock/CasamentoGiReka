@@ -17,7 +17,6 @@ import { useReducedMotion } from '../motion/useReducedMotion'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { DeskFlowers } from './passport/DeskFlowers'
 import {
-  BREATH_MS,
   ENV_CLOSED_Y,
   ENVELOPE,
   ENVELOPE_BACK_CLASS,
@@ -26,6 +25,7 @@ import {
   NAV_HEIGHT,
   useClockDelay,
 } from './Envelope'
+import { NUDGE_MS, ScrollHint } from '../ui/ScrollHint'
 
 const base = import.meta.env.BASE_URL
 
@@ -196,7 +196,7 @@ export function RSVP({ guest }: Props) {
 
   const { w, h } = useStageSize()
   const geo = measure(w, h)
-  const breathDelay = useClockDelay(BREATH_MS)
+  const nudgeDelay = useClockDelay(NUDGE_MS)
   // On a wide screen the envelope has already arrived, on the passport's
   // stage (HeroBigDay, the desk): this section lies over that stage's last
   // screen and shows as it pins — the envelope exactly where the desk left
@@ -306,7 +306,7 @@ export function RSVP({ guest }: Props) {
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
         <motion.p
-          className="absolute inset-x-0 text-center font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber"
+          className="absolute inset-x-0 text-center font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber-deep"
           style={{ top: NAV_HEIGHT + 32, opacity: kickerOpacity }}
         >
           {t('rsvp.kicker')}
@@ -369,24 +369,22 @@ export function RSVP({ guest }: Props) {
           style={{ ...envBox, zIndex: 6 }}
         >
           <motion.p
-            className="absolute inset-x-0 -bottom-16 text-center font-serif italic text-title/70 text-lg"
+            className="absolute inset-x-0 -bottom-12 text-center"
             style={{ opacity: hintOpacity }}
           >
-            <span className="animate-breath inline-block" style={{ animationDelay: breathDelay }}>
-              {t('rsvp.envelopeHint')} ↓
-            </span>
+            <ScrollHint label={t('rsvp.envelopeHint')} delay={nudgeDelay} />
           </motion.p>
         </motion.div>
 
         <motion.p
           aria-hidden
-          className="absolute inset-x-0 text-center font-sans text-[0.6rem] tracking-[0.35em] uppercase text-cta"
+          className="absolute inset-x-0 text-center"
           style={{
             top: `calc(50% + ${geo.cardFinalY + geo.ch / 2 + 16}px)`,
             opacity: replyHintOpacity,
           }}
         >
-          <span className="animate-breath inline-block">{t('rsvp.scrollToReply')} ↓</span>
+          <ScrollHint label={t('rsvp.scrollToReply')} />
         </motion.p>
 
         {/* The invitation. */}
@@ -597,7 +595,7 @@ function FitToCard({ children, className }: { children: ReactNode; className?: s
 }
 
 const CTA =
-  'bg-cta text-peach-light font-sans px-10 py-4 text-xs tracking-[0.35em] uppercase transition-all duration-500 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-8px_rgba(105,180,223,0.7)]'
+  'bg-cta text-peach-light font-sans px-10 py-4 text-xs tracking-[0.35em] uppercase transition-[transform,box-shadow] duration-500 hover:-translate-y-0.5 active:translate-y-0 hover:shadow-[0_10px_24px_-8px_rgba(46,110,153,0.5)]'
 
 function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: boolean }) {
   const { t } = useTranslation()
@@ -662,7 +660,7 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
 // ── Reply form (back of the card) ─────────────────────────
 
 const FIELD =
-  'w-full bg-transparent border-b border-forest-deep/20 py-2 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep/60 transition-colors'
+  'w-full bg-transparent border-b border-forest-deep/20 py-2 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep focus:shadow-[0_1px_0_0_#3D3229] transition-[border-color,box-shadow]'
 const LABEL = 'font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/80 block mb-1'
 
 function ReplyForm({ guest }: { guest: Guest }) {
@@ -764,7 +762,7 @@ function ReplyForm({ guest }: { guest: Guest }) {
                   type="button"
                   onClick={() => updateAttendee(i, 'attending', value)}
                   aria-pressed={attendee.attending === value}
-                  className={`pb-1 border-b transition-colors ${
+                  className={`hit-area pb-1 border-b transition-colors ${
                     attendee.attending === value
                       ? 'text-title border-forest-deep'
                       : 'text-title/45 border-transparent hover:text-title'
@@ -784,7 +782,9 @@ function ReplyForm({ guest }: { guest: Guest }) {
         </label>
         <input
           id="rsvp-song"
+          name="song"
           type="text"
+          autoComplete="off"
           value={songRequest}
           onChange={(e) => setSongRequest(e.target.value)}
           placeholder={t('rsvp.songPlaceholder')}
@@ -792,7 +792,11 @@ function ReplyForm({ guest }: { guest: Guest }) {
         />
       </div>
 
-      {error && <p className="font-serif text-terracotta text-center">{error}</p>}
+      {error && (
+        <p role="alert" className="font-serif text-terracotta text-center">
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"

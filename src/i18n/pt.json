@@ -9,9 +9,9 @@
   "nameEntry": {
     "welcome": "Bem-vindo",
     "subtitle": "Digite seu nome para acessar o convite personalizado",
-    "placeholder": "Seu nome...",
+    "placeholder": "Seu nome…",
     "button": "Entrar",
-    "loading": "Procurando seu convite...",
+    "loading": "Procurando seu convite…",
     "notFound": "Nome não encontrado. Verifique a ortografia ou entre em contato com os noivos.",
     "error": "Erro ao buscar convite. Tente novamente."
   },
@@ -66,8 +66,8 @@
       "bookLabel": "Passaporte de Brasília — guia da cidade",
       "tabsLabel": "Capítulos do guia",
       "hintOpen": "Role para abrir o passaporte",
-      "hintClick": "Clique nas páginas ou nas abas para folhear",
-      "hintTouch": "Deslize as páginas ou toque nas abas",
+      "cornerClick": "clique para passar",
+      "cornerTouch": "toque para passar",
       "hintScroll": "Role para continuar",
       "sections": {
         "tourism": {
@@ -103,11 +103,11 @@
     "menu": "Cardápio",
     "menuPlaceholder": "Escolha o prato",
     "song": "Sugestão de música",
-    "songPlaceholder": "Uma música para a pista de dança...",
+    "songPlaceholder": "Uma música para a pista de dança…",
     "message": "Mensagem para os noivos",
-    "messagePlaceholder": "Uma mensagem especial para {{bride}} & {{groom}}...",
+    "messagePlaceholder": "Uma mensagem especial para {{bride}} & {{groom}}…",
     "submit": "Confirmar presença",
-    "submitting": "Enviando...",
+    "submitting": "Enviando…",
     "successTitle": "Confirmação enviada!",
     "successText": "Mal podemos esperar para celebrar com você!",
     "alreadyTitle": "Você já confirmou",
@@ -143,11 +143,11 @@
     "pixCopy": "Copiar código PIX",
     "pixCopied": "Copiado!",
     "cardMessage": "Mensagem no cartão",
-    "cardPlaceholder": "Escreva uma mensagem carinhosa para os noivos...",
+    "cardPlaceholder": "Escreva uma mensagem carinhosa para os noivos…",
     "yourEmail": "Seu e-mail (para receber confirmação)",
     "emailPlaceholder": "seu@email.com",
     "confirmPurchase": "Confirmar presente",
-    "confirming": "Confirmando...",
+    "confirming": "Confirmando…",
     "successTitle": "Presente enviado!",
     "successText": "Obrigado pelo carinho! Um e-mail de confirmação foi enviado para você.",
     "error": "Erro ao confirmar. Tente novamente.",
@@ -169,7 +169,7 @@
     "cardFrom": "Seu nome",
     "cardFromPlaceholder": "Como quer assinar",
     "cardSend": "Enviar cartão",
-    "cardSending": "Enviando...",
+    "cardSending": "Enviando…",
     "cardSkip": "Pular",
     "cardError": "Não conseguimos enviar o cartão. Tente novamente.",
     "cardMessageRequired": "Escreva uma mensagem para o cartão",
@@ -180,5 +180,10 @@
     "made": "Feito com amor",
     "for": "para"
   },
-  "language": "EN"
+  "language": "EN",
+  "a11y": {
+    "top": "Voltar ao início",
+    "menu": "Menu",
+    "switchLanguage": "Ver o site em inglês"
+  }
 }

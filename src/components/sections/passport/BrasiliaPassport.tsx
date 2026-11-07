@@ -32,7 +32,8 @@ import {
 } from './geometry'
 import { PassportCover } from './PassportCover'
 import { DeskFlowers } from './DeskFlowers'
-import { BREATH_MS, NAV_HEIGHT, ShutEnvelope, useClockDelay } from '../Envelope'
+import { NAV_HEIGHT, ShutEnvelope, useClockDelay } from '../Envelope'
+import { NUDGE_MS, ScrollHint } from '../../ui/ScrollHint'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
   BackBoard,
@@ -156,8 +157,6 @@ export function BrasiliaPassport({
   // Where the book is going: `cur` as soon as a turn starts (the tabs move
   // with the leaf, not after it lands).
   const [aim, setAim] = useState(0)
-  // Has the guest turned a page yet? Until then, the hint says how.
-  const [browsed, setBrowsed] = useState(false)
   const [touch] = useState(() => window.matchMedia('(pointer: coarse)').matches)
   const flipRef = useRef<FlipBookHandle>(null)
 
@@ -175,7 +174,6 @@ export function BrasiliaPassport({
       const fb = flipRef.current
       if (!fb || fb.busy() || to === cur || to < 0 || to >= count) return
       const page = spread ? to * 2 : to
-      setBrowsed(true)
       setAim(to)
       if (reduced) fb.turnTo(page)
       else fb.flip(page)
@@ -187,7 +185,6 @@ export function BrasiliaPassport({
       const at = spread ? Math.floor(page / 2) : page
       setCur(at)
       setAim(at)
-      if (at !== 0) setBrowsed(true)
     },
     [spread]
   )
@@ -215,6 +212,7 @@ export function BrasiliaPassport({
   const insideRef = useRef<HTMLDivElement>(null)
   const chromeRef = useRef<HTMLDivElement>(null)
   const tabsRef = useRef<HTMLElement>(null)
+  const cornerRef = useRef<HTMLDivElement>(null)
   const hazeRef = useRef<HTMLDivElement>(null)
   const shutHintRef = useRef<HTMLDivElement>(null)
   const leavesRef = useRef<HTMLDivElement>(null)
@@ -228,7 +226,7 @@ export function BrasiliaPassport({
   const flowersRef = useRef<HTMLDivElement>(null)
   const desk = !!g?.desk && !reduced
   const layout = useMemo(() => (g && desk ? deskLayout(g) : null), [g, desk])
-  const breathDelay = useClockDelay(BREATH_MS)
+  const nudgeDelay = useClockDelay(NUDGE_MS)
 
   const update = useCallback(
     (at: number) => {
@@ -289,6 +287,7 @@ export function BrasiliaPassport({
         show(inside, 1)
         chrome.style.opacity = '1'
         if (tabsRef.current) tabsRef.current.style.opacity = '1'
+        if (cornerRef.current) showNote(cornerRef.current, true)
         if (shutHintRef.current) shutHintRef.current.style.opacity = '0'
         haze.style.opacity = '1'
         return o > 0.5
@@ -392,6 +391,9 @@ export function BrasiliaPassport({
       }
       chrome.style.opacity = String(seg(v, [PHASE.open[1] - 25, PHASE.open[1]]) * (1 - closing))
       if (tabsRef.current) tabsRef.current.style.opacity = chrome.style.opacity
+      // The corner note only once the book lies fully open; it then fades
+      // in on its own (CSS transition), not with the scroll.
+      if (cornerRef.current) showNote(cornerRef.current, v >= PHASE.open[1] && closing === 0)
       // "Scroll to open", under the finished cover until it starts to turn.
       if (shutHintRef.current) {
         shutHintRef.current.style.opacity = String(
@@ -536,7 +538,9 @@ export function BrasiliaPassport({
     if (e.key === 'ArrowLeft') go(cur - 1)
   }
 
-  const tabH = Math.min(H * 0.17, 128)
+  // 20% da página: no celular o rótulo mais longo ("Restaurantes", a 9px)
+  // precisa de ~85px; as quatro abas ainda cabem na altura da página.
+  const tabH = Math.min(H * 0.2, 128)
   // How far the tabs reach in under the pages.
   const TAB_TUCK = 12
   // Thickness of the page block either side: what has been read lies on the
@@ -553,6 +557,16 @@ export function BrasiliaPassport({
   // Room under the page controls for a line of hint, and under the shut
   // cover for "scroll to open".
   const below = g.vh - (g.book.y + g.book.h)
+  // "Click to turn": on the desk just past the book's lower right corner
+  // (the words above, the arrow coming down to the corner: there is little
+  // room under the book) when there is room for it, else under that corner.
+  // Never on the page, where it would take room from the content.
+  const noteW = g.fontSize * 10
+  const noteBeside = spread && g.vw - (g.book.x + g.book.w) >= noteW + 16
+  const noteH = g.fontSize * 8.5
+  const pageRight = g.right.x + g.right.w
+  const noteText = t(touch ? 'city.passport.cornerTouch' : 'city.passport.cornerClick')
+  const pageBottom = g.right.y + g.right.h
   const shutHintTop = g.book.y + g.coverBox.y + g.coverBox.h + 14
   const insideRect = { x: 0, y: 0, w: g.insideBox.w, h: g.insideBox.h }
   // The left page, where it lies on the inside of the cover.
@@ -591,10 +605,10 @@ export function BrasiliaPassport({
         <div
           ref={shutHintRef}
           aria-hidden
-          className="absolute inset-x-0"
-          style={{ top: shutHintTop, opacity: 0, fontSize: g.fontSize }}
+          className="absolute inset-x-0 text-center"
+          style={{ top: shutHintTop, opacity: 0 }}
         >
-          <Hint label={t('city.passport.hintOpen')} down />
+          <ScrollHint label={t('city.passport.hintOpen')} />
         </div>
       )}
 
@@ -617,7 +631,7 @@ export function BrasiliaPassport({
           <div
             ref={envWordsRef}
             aria-hidden
-            className="font-sans text-amber absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
+            className="font-sans text-amber-deep absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
             style={{ top: NAV_HEIGHT + 32, opacity: 0, visibility: 'hidden' }}
           >
             {t('rsvp.kicker')}
@@ -641,12 +655,10 @@ export function BrasiliaPassport({
             <ShutEnvelope orient={layout.env.orient} ew={layout.env.ew} />
             <div
               ref={envHintRef}
-              className="font-serif text-title/70 absolute inset-x-0 -bottom-16 text-center text-lg italic"
+              className="absolute inset-x-0 -bottom-12 text-center"
               style={{ opacity: 0, visibility: 'hidden' }}
             >
-              <span className="animate-breath inline-block" style={{ animationDelay: breathDelay }}>
-                {t('rsvp.envelopeHint')} ↓
-              </span>
+              <ScrollHint label={t('rsvp.envelopeHint')} delay={nudgeDelay} />
             </div>
           </div>
         </>
@@ -667,7 +679,7 @@ export function BrasiliaPassport({
           aria-label={t('city.passport.bookLabel')}
           tabIndex={opened ? 0 : -1}
           onKeyDown={onKey}
-          className={`absolute outline-none ${opened ? 'pointer-events-auto' : ''}`}
+          className={`absolute outline-offset-8 ${opened ? 'pointer-events-auto' : ''}`}
           style={{
             left: g.book.x,
             top: g.book.y,
@@ -678,43 +690,15 @@ export function BrasiliaPassport({
             fontSize: g.fontSize,
           }}
         >
-          {/* Page controls: only once the book is open. */}
+          {/* Under the book, once it is open: the site goes on below. Turning
+            the pages is the corner note's job (on the page itself). */}
           <div ref={chromeRef} style={{ opacity: 0 }}>
-            <div
-              className="font-sans text-forest absolute inset-x-0 flex items-center justify-center gap-6"
-              style={{ top: g.book.h + 8 }}
-            >
-              <button
-                type="button"
-                onClick={() => go(cur - 1)}
-                disabled={cur === 0}
-                aria-label={t('city.passport.prev')}
-                className="hover:text-honey p-2 transition-colors disabled:opacity-30"
+            {below >= (noteBeside ? 40 : noteH + 56) && (
+              <div
+                className="absolute inset-x-0 text-center"
+                style={{ top: g.book.h + 16 + (noteBeside ? 0 : noteH) }}
               >
-                <Chevron dir={-1} />
-              </button>
-              <span className="min-w-[4.5em] text-center text-[0.72em] tracking-[0.3em] tabular-nums">
-                {cur + 1} / {count}
-              </span>
-              <button
-                type="button"
-                onClick={() => go(cur + 1)}
-                disabled={cur === count - 1}
-                aria-label={t('city.passport.next')}
-                className="hover:text-honey p-2 transition-colors disabled:opacity-30"
-              >
-                <Chevron dir={1} />
-              </button>
-            </div>
-            {/* How the book works, until a page has been turned; then (and on
-              the last page) that the site goes on below. */}
-            {below >= 64 && (
-              <div className="absolute inset-x-0" style={{ top: g.book.h + 46 }}>
-                {browsed || cur === count - 1 ? (
-                  <Hint label={t('city.passport.hintScroll')} down />
-                ) : (
-                  <Hint label={t(touch ? 'city.passport.hintTouch' : 'city.passport.hintClick')} />
-                )}
+                <ScrollHint label={t('city.passport.hintScroll')} />
               </div>
             )}
           </div>
@@ -788,7 +772,7 @@ export function BrasiliaPassport({
                       borderLeftColor: passed ? edge : 'transparent',
                       borderRightColor: passed ? 'transparent' : edge,
                       background: TAB_PAPER,
-                      color: active ? '#B07A26' : '#8A7458',
+                      color: active ? '#94651A' : '#75624A',
                       boxShadow: `${passed ? -1 : 1}px 1px 3px -1px rgba(110, 78, 30, 0.28)`,
                       // Read chapters' tabs ride on the cover's inside: gone
                       // while it turns.
@@ -796,7 +780,7 @@ export function BrasiliaPassport({
                       transition: `opacity 250ms, left ${FLIP_MS}ms cubic-bezier(0.45, 0, 0.25, 1), padding ${FLIP_MS}ms, border-radius ${FLIP_MS}ms, border-color ${FLIP_MS}ms, box-shadow ${FLIP_MS}ms, width 500ms ease-out, color 500ms ease-out`,
                     }}
                   >
-                    <span className="text-[0.6em] tracking-[0.24em] whitespace-nowrap uppercase [writing-mode:vertical-rl]">
+                    <span className="text-[max(0.6em,9px)] tracking-[0.16em] whitespace-nowrap uppercase [writing-mode:vertical-rl]">
                       {t(`city.passport.sections.${s}.tab`)}
                     </span>
                   </button>
@@ -818,6 +802,50 @@ export function BrasiliaPassport({
                 className="pointer-events-auto absolute"
                 style={{ left: spread ? g.left.x : g.right.x, top: g.right.y }}
               />
+            </div>
+            {/* "Click to turn", hand-written on the desk with an S-shaped
+              arrow running to the page corner it turns from. It is also the
+              next-page button. Not on the last stop. */}
+            <div
+              ref={cornerRef}
+              style={{
+                opacity: 0,
+                visibility: 'hidden',
+                transition: 'opacity 900ms ease-out, visibility 900ms',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => go(cur + 1)}
+                aria-label={t('city.passport.next')}
+                className={`group text-amber-deep pointer-events-auto absolute flex flex-col transition-opacity duration-500 ${
+                  noteBeside ? 'items-start' : 'items-end'
+                } ${cur === count - 1 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
+                style={
+                  // The arrow's tip stops a little short of the page corner.
+                  noteBeside
+                    ? {
+                        left: pageRight + g.fontSize * 0.55,
+                        bottom: g.book.h - pageBottom + g.fontSize * 0.55,
+                      }
+                    : {
+                        right: g.book.w - pageRight - g.fontSize * 0.6,
+                        top: pageBottom + g.fontSize * 0.6,
+                      }
+                }
+              >
+                {noteBeside ? (
+                  <>
+                    <NoteWords text={noteText} side="right" />
+                    <CornerArrow to="down" />
+                  </>
+                ) : (
+                  <>
+                    <CornerArrow to="up" />
+                    <NoteWords text={noteText} side="left" />
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
@@ -893,38 +921,70 @@ export function BrasiliaPassport({
   )
 }
 
-/** A small line of guidance, optionally with a chevron nudging downwards. */
-function Hint({ label, down }: { label: string; down?: boolean }) {
+/**
+ * A hand-drawn arrow: a loose S from the words to the page corner. Beside
+ * the book it comes down from the words above, its tip at the bottom left;
+ * under the book it goes up from the words below, its tip at the top right.
+ */
+function CornerArrow({ to }: { to: 'down' | 'up' }) {
   return (
-    <p className="font-sans flex items-center justify-center gap-[0.6em] text-[0.58em] tracking-[0.28em] text-[#8A7458] uppercase">
-      <span>{label}</span>
-      {down && (
-        <svg viewBox="0 0 24 24" className="animate-nudge h-[1.4em] w-[1.4em]" aria-hidden>
-          <path
-            d="M6 9l6 6 6-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
-    </p>
-  )
-}
-
-function Chevron({ dir }: { dir: 1 | -1 }) {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
+    <svg
+      viewBox="0 0 40 60"
+      className={`h-[4.4em] w-[2.95em] shrink-0 transition-transform duration-300 ${
+        to === 'down'
+          ? '-scale-y-100 group-hover:-translate-x-[0.15em] group-hover:translate-y-[0.15em]'
+          : '-scale-x-100 group-hover:translate-x-[0.15em] group-hover:-translate-y-[0.15em]'
+      }`}
+      aria-hidden
+    >
       <path
-        d={dir === 1 ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'}
+        d="M31 57c-9-3.5-14-9.5-10.5-17.5 3-6.5 10.5-9 9-17-1.2-6.3-9.8-11.8-23-16"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.2"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10.8 13.6c-1.8-2.4-3.4-4.9-4.3-7.1 2.6-.6 5.4-.9 8.4-.8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
     </svg>
   )
+}
+
+/**
+ * The note's words, hand-set in two staggered lines at the arrow's tail: the
+ * first word, then the rest set further out, away from the book. Right of
+ * the book they stand above the arrow (clear of the tabs); left of the corner,
+ * under it.
+ */
+function NoteWords({ text, side }: { text: string; side: 'left' | 'right' }) {
+  const [first, ...rest] = text.split(' ')
+  const out = side === 'right' ? 'self-start' : 'self-end'
+  return (
+    <span
+      className={`font-script flex flex-col text-[1.6em] leading-[1.15] whitespace-nowrap ${
+        side === 'right'
+          ? '-mb-[0.2em] ml-[1.5em] items-start'
+          : '-mt-[0.35em] mr-[0.9em] items-end'
+      }`}
+    >
+      <span className={out}>{first}</span>
+      <span className={`${out} ${side === 'right' ? 'ml-[0.8em]' : 'mr-[1.1em]'}`}>
+        {rest.join(' ')}
+      </span>
+    </span>
+  )
+}
+
+/** Fades the corner note in or out (its transition is on the element). */
+function showNote(el: HTMLElement, on: boolean) {
+  const v = on ? 'visible' : 'hidden'
+  if (el.style.visibility === v) return
+  el.style.opacity = on ? '1' : '0'
+  el.style.visibility = v
 }

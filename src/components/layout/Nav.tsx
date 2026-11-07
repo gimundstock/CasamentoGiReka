@@ -131,8 +131,8 @@ export function Nav() {
       <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
         <button
           onClick={() => smoothScrollToY(0)}
-          className="font-display text-title text-xl"
-          aria-label="Top"
+          className="font-display text-title -my-2 py-2 text-xl"
+          aria-label={t('a11y.top')}
         >
           {/* Kerning à mão: o R da fonte cursiva abre um vão grande depois do
               &, então ele é puxado para perto. */}
@@ -163,22 +163,22 @@ export function Nav() {
           <LanguageToggle />
           <button
             onClick={() => setMenuOpen((o) => !o)}
-            className="flex flex-col gap-1.5 p-1"
-            aria-label="Menu"
+            className="-m-2 flex flex-col gap-1.5 p-3"
+            aria-label={t('a11y.menu')}
             aria-expanded={menuOpen}
           >
             <span
-              className={`bg-forest-deep block h-px w-5 transition-all duration-300 ${
+              className={`bg-forest-deep block h-px w-5 transition-[transform,opacity] duration-300 ${
                 menuOpen ? 'translate-y-2 rotate-45' : ''
               }`}
             />
             <span
-              className={`bg-forest-deep block h-px w-5 transition-all duration-300 ${
+              className={`bg-forest-deep block h-px w-5 transition-[transform,opacity] duration-300 ${
                 menuOpen ? 'opacity-0' : ''
               }`}
             />
             <span
-              className={`bg-forest-deep block h-px w-5 transition-all duration-300 ${
+              className={`bg-forest-deep block h-px w-5 transition-[transform,opacity] duration-300 ${
                 menuOpen ? '-translate-y-2 -rotate-45' : ''
               }`}
             />
@@ -188,14 +188,14 @@ export function Nav() {
 
       {menuOpen && (
         <div className="bg-peach border-t border-forest-deep/15 md:hidden">
-          <div className="flex flex-col gap-5 px-6 py-8">
+          <div className="flex flex-col gap-1 px-6 py-5">
             {sections.map((s) => {
               const isActive = activeSection === s.observe
               return (
                 <button
                   key={s.observe}
                   onClick={() => scrollTo(s.anchor)}
-                  className={`font-sans text-left text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
+                  className={`font-sans py-3 text-left text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
                     isActive ? 'text-title' : 'text-title/60 hover:text-title'
                   }`}
                 >

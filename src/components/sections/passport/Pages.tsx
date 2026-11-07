@@ -321,7 +321,7 @@ function RunningHead({ section }: { section: SectionKey }) {
       className="flex items-center justify-between border-b pb-[0.55em]"
       style={{ borderColor: `${GOLD}88` }}
     >
-      <span className="font-sans text-[0.6em] tracking-[0.32em] text-forest uppercase">
+      <span className="font-sans text-[max(0.6em,10px)] tracking-[0.32em] text-forest uppercase">
         {t(`city.passport.sections.${section}.title`)}
       </span>
     </div>
@@ -330,7 +330,7 @@ function RunningHead({ section }: { section: SectionKey }) {
 
 function Folio({ n }: { n: number }) {
   return (
-    <p className="font-sans text-forest/70 mt-auto pt-[0.6em] text-center text-[0.62em] tracking-[0.2em] tabular-nums">
+    <p className="font-sans text-forest/70 mt-auto pt-[0.6em] text-center text-[max(0.62em,10px)] tracking-[0.2em] tabular-nums">
       {n}
     </p>
   )
@@ -347,7 +347,7 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
         {entry.title}
       </h4>
       {entry.meta && (
-        <p className="font-sans text-honey mt-[0.4em] text-[0.6em] tracking-[0.24em] uppercase">
+        <p className="font-sans text-amber-deep mt-[0.4em] text-[max(0.6em,10px)] tracking-[0.24em] uppercase">
           {entry.meta}
         </p>
       )}
@@ -355,9 +355,9 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
         {entry.description}
       </p>
       {(entry.address || entry.price) && (
-        <div className="font-sans text-forest mt-[0.5em] flex flex-wrap items-baseline justify-between gap-x-[1em] text-[0.66em] leading-snug">
+        <div className="font-sans text-forest mt-[0.5em] flex flex-wrap items-baseline justify-between gap-x-[1em] text-[max(0.66em,10px)] leading-snug">
           <span>{entry.address}</span>
-          {entry.price && <span className="text-honey tabular-nums">{entry.price}</span>}
+          {entry.price && <span className="text-amber-deep tabular-nums">{entry.price}</span>}
         </div>
       )}
       {entry.href && (
@@ -365,7 +365,7 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
           href={entry.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-sans text-forest-deep mt-[0.5em] inline-block border-b pb-[0.1em] text-[0.58em] tracking-[0.3em] uppercase"
+          className="hit-area font-sans text-forest-deep mt-[0.5em] inline-block border-b pb-[0.1em] text-[max(0.58em,10px)] tracking-[0.3em] uppercase"
           style={{ borderColor: GOLD }}
         >
           {t(`city.passport.${entry.linkKey ?? 'more'}`)}
@@ -436,7 +436,7 @@ function HolderPage({ holder }: { holder?: string }) {
         className="pointer-events-none absolute top-0 right-0 w-[44%] opacity-90 select-none"
       />
       <div className="flex flex-1 flex-col items-center justify-center pb-[1.5em]">
-        <p className="font-sans text-forest -mr-[0.42em] text-[0.62em] tracking-[0.42em] uppercase">
+        <p className="font-sans text-forest -mr-[0.42em] text-[max(0.62em,10px)] tracking-[0.42em] uppercase">
           {t('city.passport.holder')}
         </p>
         <p
@@ -449,7 +449,7 @@ function HolderPage({ holder }: { holder?: string }) {
           {t('city.passport.insideText')}
         </p>
       </div>
-      <p className="font-sans text-forest -mr-[0.36em] text-[0.58em] tracking-[0.36em] uppercase">
+      <p className="font-sans text-forest -mr-[0.36em] text-[max(0.58em,10px)] tracking-[0.36em] uppercase">
         {CONFIG.couple.bride} &amp; {CONFIG.couple.groom} · {year}
       </p>
     </div>
@@ -471,6 +471,8 @@ function BuritiPage() {
         src={ASSETS.buriti}
         alt=""
         aria-hidden
+        width={965}
+        height={1482}
         draggable={false}
         className="h-[90%] w-auto max-w-full object-contain object-bottom select-none"
       />

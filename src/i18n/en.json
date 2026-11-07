@@ -9,9 +9,9 @@
   "nameEntry": {
     "welcome": "Welcome",
     "subtitle": "Enter your name to access your personalised invitation",
-    "placeholder": "Your name...",
+    "placeholder": "Your name…",
     "button": "Enter",
-    "loading": "Looking up your invitation...",
+    "loading": "Looking up your invitation…",
     "notFound": "Name not found. Please check your spelling or contact the couple.",
     "error": "Error fetching invitation. Please try again."
   },
@@ -66,8 +66,8 @@
       "bookLabel": "Passport to Brasília — city guide",
       "tabsLabel": "Guide chapters",
       "hintOpen": "Scroll to open the passport",
-      "hintClick": "Click the pages or the tabs to leaf through",
-      "hintTouch": "Swipe the pages or tap the tabs",
+      "cornerClick": "click to turn",
+      "cornerTouch": "tap to turn",
       "hintScroll": "Scroll to continue",
       "sections": {
         "tourism": {
@@ -103,11 +103,11 @@
     "menu": "Meal",
     "menuPlaceholder": "Choose your meal",
     "song": "Song request",
-    "songPlaceholder": "A song for the dance floor...",
+    "songPlaceholder": "A song for the dance floor…",
     "message": "Message to the couple",
-    "messagePlaceholder": "A special message for {{bride}} & {{groom}}...",
+    "messagePlaceholder": "A special message for {{bride}} & {{groom}}…",
     "submit": "Confirm attendance",
-    "submitting": "Sending...",
+    "submitting": "Sending…",
     "successTitle": "RSVP confirmed!",
     "successText": "We can't wait to celebrate with you!",
     "alreadyTitle": "Already confirmed",
@@ -143,11 +143,11 @@
     "pixCopy": "Copy PIX code",
     "pixCopied": "Copied!",
     "cardMessage": "Card message",
-    "cardPlaceholder": "Write a heartfelt message for the couple...",
+    "cardPlaceholder": "Write a heartfelt message for the couple…",
     "yourEmail": "Your email (to receive confirmation)",
     "emailPlaceholder": "your@email.com",
     "confirmPurchase": "Confirm gift",
-    "confirming": "Confirming...",
+    "confirming": "Confirming…",
     "successTitle": "Gift sent!",
     "successText": "Thank you for your kindness! A confirmation email has been sent to you.",
     "error": "Error confirming. Please try again.",
@@ -169,7 +169,7 @@
     "cardFrom": "Your name",
     "cardFromPlaceholder": "How you'd like to sign",
     "cardSend": "Send card",
-    "cardSending": "Sending...",
+    "cardSending": "Sending…",
     "cardSkip": "Skip",
     "cardError": "We couldn't send the card. Please try again.",
     "cardMessageRequired": "Please write a message for the card",
@@ -180,5 +180,10 @@
     "made": "Made with love",
     "for": "for"
   },
-  "language": "PT"
+  "language": "PT",
+  "a11y": {
+    "top": "Back to top",
+    "menu": "Menu",
+    "switchLanguage": "View the site in Portuguese"
+  }
 }

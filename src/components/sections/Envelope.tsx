@@ -141,6 +141,3 @@ export function useClockDelay(periodMs: number) {
   const [delay] = useState(() => `${-(performance.now() % periodMs).toFixed(0)}ms`)
   return delay
 }
-
-/** tailwind.config's `breath` animation's period. */
-export const BREATH_MS = 4000
