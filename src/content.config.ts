@@ -48,7 +48,7 @@ export const CONFIG = {
     milestones: [
       {
         year: '2016',
-        title_pt: 'A primeira vista',
+        title_pt: 'Primeira vista',
         title_en: 'First sight',
         text_pt:
           'Nossa história começou em 2016, na Universidade de Brasília. Entre as cansativas aulas de Design e Computação, nossos caminhos se cruzavam no Centro Acadêmico de Desenho Industrial, onde cada um se reunia com seus amigos. Entre encontros casuais, olhares trocados e uma boa dose de falta de iniciativa, foi só em 2019 que um match no Tinder deu o empurrãozinho que faltava para nossa história começar.',
@@ -58,7 +58,7 @@ export const CONFIG = {
       },
       {
         year: '2019',
-        title_pt: 'O primeiro encontro',
+        title_pt: 'Primeiro encontro',
         title_en: 'First date',
         text_pt:
           'Depois de quatro meses de conversas e alguns imprevistos, nosso primeiro encontro finalmente aconteceu em uma festa junina! Giovanna tentou arrastar Renato para a quadrilha, sem sucesso. Mas conseguimos nossa primeira dança, com direito a uma pequena aula improvisada. A noite foi tão especial que, assim que Renato chegou em casa, já estava mandando mensagem para marcar o próximo encontro.',
@@ -88,7 +88,7 @@ export const CONFIG = {
       },
       {
         year: '2027',
-        title_pt: 'Celebração',
+        title_pt: 'A celebração',
         title_en: 'The celebration',
         text_pt:
           'Depois de tantos encontros, aventuras e sonhos compartilhados, chegou a hora de celebrar um novo capítulo da nossa história! Estamos preparando cada detalhe com muito amor e carinho, sonhando com uma celebração acolhedora, cheia de alegria e afeto. Mais do que celebrar nossa união, queremos compartilhar esse momento com as famílias e os amigos que fazem parte da nossa história. Afinal, o amor é ainda mais bonito quando celebrado juntos.',
