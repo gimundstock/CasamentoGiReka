@@ -28,8 +28,10 @@ export function Hero1Welcome({ guest, onReset }: Props) {
       alt: altText,
       caption: lang === 'pt' ? m.title_pt : m.title_en,
     })),
-    { src: `${base}photos/r01.jpg`, alt: altText },
-    { src: `${base}photos/r02.jpg`, alt: altText },
+    // Extras sem legenda, só se a história ainda não os usa.
+    ...['couple2.jpg', 'r01.jpg', 'r02.jpg']
+      .filter((f) => !CONFIG.story.milestones.some((m) => m.photo === f))
+      .map((f) => ({ src: `${base}photos/${f}`, alt: altText })),
   ]
 
   return (

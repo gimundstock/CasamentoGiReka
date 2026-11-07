@@ -47,28 +47,54 @@ export const CONFIG = {
   story: {
     milestones: [
       {
-        year: '2019',
-        title_pt: 'Primeiro encontro',
-        title_en: 'First meeting',
-        text_pt: 'Texto sobre como se conheceram...',
-        text_en: 'Text about how they met...',
-        photo: 'couple.jpg',
+        year: '2016',
+        title_pt: 'Primeira vista',
+        title_en: 'First sight',
+        text_pt:
+          'Nossa história começou em 2016, na Universidade de Brasília. Entre as cansativas aulas de Design e Computação, nossos caminhos se cruzavam no Centro Acadêmico de Desenho Industrial, onde cada um se reunia com seus amigos. Entre encontros casuais, olhares trocados e uma boa dose de falta de iniciativa, foi só em 2019 que um match no Tinder deu o empurrãozinho que faltava para nossa história começar.',
+        text_en:
+          'Our story began in 2016, at the University of Brasília. Between long, tiring Design and Computer Science classes, our paths kept crossing at the Industrial Design student lounge, where each of us met up with our friends. After chance encounters, exchanged glances and a good dose of shyness on both sides, it took until 2019 for a Tinder match to give us the nudge we needed for our story to begin.',
+        photo: 'couple3.jpg',
       },
       {
-        year: '2022',
+        year: '2019',
+        title_pt: 'Primeiro encontro',
+        title_en: 'First date',
+        text_pt:
+          'Depois de quatro meses de conversas e alguns imprevistos, nosso primeiro encontro finalmente aconteceu em uma festa junina! Giovanna tentou arrastar Renato para a quadrilha, sem sucesso. Mas conseguimos nossa primeira dança, com direito a uma pequena aula improvisada. A noite foi tão especial que, assim que Renato chegou em casa, já estava mandando mensagem para marcar o próximo encontro.',
+        text_en:
+          "After four months of talking and a few setbacks, our first date finally happened at a festa junina, Brazil's June festival! Giovanna tried to drag Renato into the quadrilha, the traditional square dance, with no luck. But we did get our first dance, complete with a little improvised lesson. The night was so special that, as soon as Renato got home, he was already texting to set up the next date.",
+        photo: 'festa-junina.jpg',
+      },
+      {
+        year: '2021',
+        title_pt: 'Vida a dois',
+        title_en: 'Life together',
+        text_pt:
+          'Depois de apenas um ano juntos, tomamos coragem para dar dois grandes passos: morar juntos e mudar de país! De malas prontas e corações cheios de sonhos, partimos para Milão, que se tornou nosso lar e ponto de partida para aventuras, descobertas e amizades incríveis. Anos depois, seguimos para Luxemburgo, onde continuamos construindo nossa vida e descobrindo que lar é onde estamos juntos.',
+        text_en:
+          'After just one year together, we found the courage to take two big steps: moving in together and moving abroad! Bags packed and hearts full of dreams, we left for Milan, which became our home and the starting point for adventures, discoveries and amazing friendships. Years later, we moved on to Luxembourg, where we keep building our life and learning that home is wherever we are together.',
+        photo: 'milao.jpg',
+      },
+      {
+        year: '2025',
         title_pt: 'O pedido',
         title_en: 'The proposal',
-        text_pt: 'Texto sobre o pedido de casamento...',
-        text_en: 'Text about the proposal...',
-        photo: 'couple2.jpg',
+        text_pt:
+          'Renato preparou o pedido durante uma viagem romântica a Maiorca, em um piquenique boho no alto de uma colina, com vista para o mar ao pôr do sol. Fingiu tirar uma foto de Giovanna olhando para o horizonte, enquanto escondia a aliança na própria mão. Quando ela se virou para conferir a foto, ele já estava de joelhos. Giovanna já desconfiava... mas isso não tornou o momento menos mágico. E, claro, ela disse sim!',
+        text_en:
+          "Renato planned the proposal during a romantic trip to Mallorca: a boho picnic on a hilltop, overlooking the sea at sunset. He pretended to take a photo of Giovanna gazing at the horizon while hiding the ring in his own hand. When she turned around to check the photo, he was already on one knee. Giovanna had her suspicions… but that didn't make the moment any less magical. And, of course, she said yes!",
+        photo: 'proposta.jpg',
       },
       {
         year: '2027',
         title_pt: 'A celebração',
         title_en: 'The celebration',
-        text_pt: 'E agora chegou a hora de celebrar com todos vocês!',
-        text_en: "And now it's time to celebrate with all of you!",
-        photo: 'couple3.jpg',
+        text_pt:
+          'Depois de tantos encontros, aventuras e sonhos compartilhados, chegou a hora de celebrar um novo capítulo da nossa história! Estamos preparando cada detalhe com muito amor e carinho, sonhando com uma celebração acolhedora, cheia de alegria e afeto. Mais do que celebrar nossa união, queremos compartilhar esse momento com as famílias e os amigos que fazem parte da nossa história. Afinal, o amor é ainda mais bonito quando celebrado juntos.',
+        text_en:
+          "After so many encounters, adventures and shared dreams, it's time to celebrate a new chapter of our story! We are preparing every detail with love and care, dreaming of a warm celebration full of joy and affection. More than celebrating our union, we want to share this moment with the families and friends who are part of our story. After all, love is even more beautiful when celebrated together.",
+        photo: 'couple.jpg',
       },
     ],
   },
