@@ -64,7 +64,7 @@ export const CONFIG = {
           'Depois de quatro meses de conversas e alguns imprevistos, nosso primeiro encontro finalmente aconteceu em uma festa junina! Giovanna tentou arrastar Renato para a quadrilha, sem sucesso. Mas conseguimos nossa primeira dança, com direito a uma pequena aula improvisada. A noite foi tão especial que, assim que Renato chegou em casa, já estava mandando mensagem para marcar o próximo encontro.',
         text_en:
           "After four months of talking and a few setbacks, our first date finally happened at a festa junina, Brazil's June festival! Giovanna tried to drag Renato into the quadrilha, the traditional square dance, with no luck. But we did get our first dance, complete with a little improvised lesson. The night was so special that, as soon as Renato got home, he was already texting to set up the next date.",
-        photo: 'couple2.jpg',
+        photo: 'festa-junina.jpg',
       },
       {
         year: '2021',
@@ -74,7 +74,7 @@ export const CONFIG = {
           'Depois de apenas um ano juntos, tomamos coragem para dar dois grandes passos: morar juntos e mudar de país! De malas prontas e corações cheios de sonhos, partimos para Milão, que se tornou nosso lar e ponto de partida para aventuras, descobertas e amizades incríveis. Anos depois, seguimos para Luxemburgo, onde continuamos construindo nossa vida e descobrindo que lar é onde estamos juntos.',
         text_en:
           'After just one year together, we found the courage to take two big steps: moving in together and moving abroad! Bags packed and hearts full of dreams, we left for Milan, which became our home and the starting point for adventures, discoveries and amazing friendships. Years later, we moved on to Luxembourg, where we keep building our life and learning that home is wherever we are together.',
-        photo: 'r01.jpg',
+        photo: 'milao.jpg',
       },
       {
         year: '2025',
