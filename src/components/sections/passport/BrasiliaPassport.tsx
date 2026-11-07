@@ -822,15 +822,15 @@ export function BrasiliaPassport({
                   noteBeside ? 'items-start' : 'items-end'
                 } ${cur === count - 1 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
                 style={
-                  // The arrow's tip sits just off the page corner.
+                  // The arrow's tip stops a little short of the page corner.
                   noteBeside
                     ? {
-                        left: pageRight - g.fontSize * 0.1,
-                        bottom: g.book.h - pageBottom - g.fontSize * 0.1,
+                        left: pageRight + g.fontSize * 0.55,
+                        bottom: g.book.h - pageBottom + g.fontSize * 0.55,
                       }
                     : {
-                        right: g.book.w - pageRight - g.fontSize * 0.1,
-                        top: pageBottom - g.fontSize * 0.1,
+                        right: g.book.w - pageRight - g.fontSize * 0.6,
+                        top: pageBottom + g.fontSize * 0.6,
                       }
                 }
               >
@@ -974,7 +974,7 @@ function NoteWords({ text, side }: { text: string; side: 'left' | 'right' }) {
       }`}
     >
       <span className={out}>{first}</span>
-      <span className={`${out} ${side === 'right' ? 'ml-[1.1em]' : 'mr-[1.1em]'}`}>
+      <span className={`${out} ${side === 'right' ? 'ml-[0.8em]' : 'mr-[1.1em]'}`}>
         {rest.join(' ')}
       </span>
     </span>
