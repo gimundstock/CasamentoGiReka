@@ -285,8 +285,8 @@ export function HeroSaveDateCouple() {
       caption: (
         <div>
           <div className="font-sans text-3xl leading-none tabular-nums md:text-6xl">{m.year}</div>
-          <div className="font-display mt-2 text-xl md:mt-3 md:text-3xl">{title}</div>
-          <div className="font-serif mt-2 text-sm leading-snug opacity-90 md:mt-4 md:text-lg md:leading-relaxed">
+          <div className="font-display mt-2 pb-1 text-xl md:mt-3 md:pb-2 md:text-3xl">{title}</div>
+          <div className="font-serif mt-2 text-sm leading-snug whitespace-pre-line opacity-90 md:mt-4 md:text-justify md:[hyphens:auto] md:text-lg md:leading-relaxed">
             {text}
           </div>
         </div>

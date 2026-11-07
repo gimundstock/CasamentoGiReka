@@ -52,6 +52,7 @@ export function OrbitingStory({
 
   const [index, setIndex] = useState(0)
   const [itemWidth, setItemWidth] = useState(358)
+  const [textWidth, setTextWidth] = useState(358)
   const imageRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLDivElement>(null)
 
@@ -83,8 +84,11 @@ export function OrbitingStory({
       // screen is wide enough, else as far out as fits. Vertically: past
       // the screen edge by the tallest slot, so the swap is never seen.
       const w = Math.min(358, W * 0.36)
+      const tw = captionWidth(W)
       const flowerRadius = 0.312 * Math.min(W, H)
       const rx = Math.min(flowerRadius + w * 0.35, W / 2 - w / 2 - 12)
+      // The caption, wider on desktop, keeps the same overlap with the flower.
+      const trx = Math.min(flowerRadius + tw * 0.35, W / 2 - tw / 2 - 12)
       const tallest = Math.max(
         imageRef.current?.offsetHeight ?? w * 1.5,
         textRef.current?.offsetHeight ?? w
@@ -97,7 +101,7 @@ export function OrbitingStory({
       imageX.set(rx * Math.cos(a))
       imageY.set(ry * Math.sin(a))
       imageRotate.set(8 * Math.sin(a))
-      textX.set(rx * Math.cos(b))
+      textX.set(trx * Math.cos(b))
       textY.set(ry * Math.sin(b))
       textRotate.set(8 * Math.sin(b))
     },
@@ -109,6 +113,7 @@ export function OrbitingStory({
   useEffect(() => {
     function onResize() {
       setItemWidth(Math.min(358, window.innerWidth * 0.36))
+      setTextWidth(captionWidth(window.innerWidth))
       update(scrollProgress.get())
     }
     onResize()
@@ -148,7 +153,7 @@ export function OrbitingStory({
         <div
           ref={textRef}
           className="text-title -translate-x-1/2 -translate-y-1/2 rounded-[3px] bg-peach-light/90 p-4 text-center shadow-[0_18px_40px_-14px_rgba(0,0,0,0.35)] backdrop-blur-sm md:p-6"
-          style={{ width: itemWidth }}
+          style={{ width: textWidth }}
         >
           {item.caption}
         </div>
@@ -161,4 +166,10 @@ export function OrbitingStory({
       </div>
     </motion.div>
   )
+}
+
+/** The caption card's width: as wide as the photo, a little wider on desktop
+ * so a longer text reads in fewer lines. */
+function captionWidth(W: number) {
+  return W >= 1024 ? Math.min(440, W * 0.31) : Math.min(358, W * 0.36)
 }
