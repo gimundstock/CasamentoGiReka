@@ -6,7 +6,7 @@ import { Flower, Petal } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
 import { RevealOnScroll } from '../motion/RevealOnScroll'
 import { useReducedMotion } from '../motion/useReducedMotion'
-import { GiftsTitle } from '../gifts/GiftsTitle'
+import { GIFTS_TITLE_TOP, GiftsTitle } from '../gifts/GiftsTitle'
 import { DeskFlowers } from './passport/DeskFlowers'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
@@ -1029,12 +1029,19 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
   )
 }
 
+// Scroll (in screens) over which the title rises from the middle of the
+// desk to the top, before the page goes on.
+const RISE_VH = 0.6
+// From the risen title's middle to the top of the gifts.
+const TITLE_TO_GIFTS = 84
+
 /**
  * The gift list on the desk the RSVP leaves behind. Its first screen — the
  * desk's wildflowers and the list's title in the middle — lies over the
  * RSVP's last one and shows only once it reaches the top, where it is the
- * same picture the RSVP ends on. From there it all scrolls like any page,
- * the gifts starting just under the title.
+ * same picture the RSVP ends on. It then stays a moment while the title
+ * rises to the top, the gifts coming up under it; from there the list
+ * scrolls like a page, over the desk's wildflowers, which stay put.
  */
 function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -1044,6 +1051,12 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
   })
   const opacity = useTransform(arrival, (v) => (v >= 0.999 ? 1 : 0))
   const [w, h] = [window.innerWidth, window.innerHeight]
+  // Linear, so the gifts (moving with the scroll) never catch the title up.
+  const { scrollYProgress: rising } = useScroll({
+    target: ref,
+    offset: ['start start', `start -${RISE_VH * 100}vh`],
+  })
+  const titleY = useTransform(rising, (v) => (GIFTS_TITLE_TOP - h / 2) * v)
   // The desk's wildflowers, where the RSVP left them (not on a phone, where
   // the passport and the invitation are held in the hand).
   const deskGeo = useMemo(
@@ -1057,13 +1070,26 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
       className="bg-peach bg-paper relative"
       style={{ marginTop: '-100vh', zIndex: 42, opacity }}
     >
-      <div className="relative h-[100svh] overflow-hidden">
-        {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
-        <GiftsTitle />
+      {/* The wildflowers stay on the screen the whole length of the list. */}
+      {deskGeo && (
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="sticky top-0 h-[100svh]">
+            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
+          </div>
+        </div>
+      )}
+      {/* The title, held on the screen while it rises. */}
+      <div className="relative" style={{ height: `${(1 + RISE_VH) * 100}svh` }}>
+        <div className="sticky top-0 h-[100svh] overflow-hidden">
+          <GiftsTitle y={titleY} />
+        </div>
       </div>
-      {/* The gifts start under the title, over the opening screen's
-          lower half. */}
-      <div className="relative" style={{ marginTop: 'calc(-50svh + 128px)' }}>
+      {/* The gifts: they come up under the rising title and, once it has
+          risen, start just below it. */}
+      <div
+        className="relative"
+        style={{ marginTop: `calc(${GIFTS_TITLE_TOP + TITLE_TO_GIFTS}px - 100svh)` }}
+      >
         {children}
       </div>
     </motion.div>
