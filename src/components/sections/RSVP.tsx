@@ -30,6 +30,9 @@ import { GiftsTitle } from '../gifts/GiftsTitle'
 
 const base = import.meta.env.BASE_URL
 
+/** The scroll (vh) of the envelope-to-reply scene; the hand-over follows. */
+export const RSVP_SCENE_VH = 480
+
 /*
  * Scroll timeline (progress through the pinned track):
  *   0.00–0.06  the closed envelope, centred, moves down to make room for the flap
@@ -319,8 +322,8 @@ export function RSVP({ guest }: Props) {
       ref={trackRef}
       className="relative bg-peach bg-paper"
       style={{
-        // 480vh for the scene, then one more screen for the hand-over.
-        height: reduced ? '100svh' : '580vh',
+        // The scene, then one more screen for the hand-over.
+        height: reduced ? '100svh' : `${RSVP_SCENE_VH + 100}vh`,
         marginTop: desk ? '-100vh' : undefined,
         zIndex: desk ? 41 : undefined,
         opacity: sectionOpacity,
@@ -331,7 +334,7 @@ export function RSVP({ guest }: Props) {
         ref={timelineRef}
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0"
-        style={{ height: reduced ? '100svh' : '480vh' }}
+        style={{ height: reduced ? '100svh' : `${RSVP_SCENE_VH}vh` }}
       />
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}

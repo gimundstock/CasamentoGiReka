@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { QRCode } from 'react-qrcode-logo'
 import { Flower, Petal } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
-import { RevealOnScroll } from '../motion/RevealOnScroll'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { GIFTS_TITLE_TOP, GiftsTitle } from '../gifts/GiftsTitle'
 import { DeskFlowers } from './passport/DeskFlowers'
+import { RSVP_SCENE_VH } from './RSVP'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
 import { purchaseGift, submitCard } from '../../api/sheets'
@@ -170,9 +170,9 @@ export function GiftShop({ guest }: Props) {
           ) : (
             <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-16 lg:gap-y-14">
               {gifts.map((gift, i) => (
-                <RevealOnScroll key={gift.giftId} delay={(i % 4) * 0.05}>
+                <div key={gift.giftId}>
                   <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
-                </RevealOnScroll>
+                </div>
               ))}
             </div>
           )}
@@ -1073,7 +1073,15 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
     <motion.div
       ref={ref}
       className="bg-peach bg-paper relative"
-      style={{ marginTop: '-100vh', zIndex: 42, opacity }}
+      style={{
+        marginTop: '-100vh',
+        zIndex: 42,
+        opacity,
+        // The paper's grain lines up with the RSVP's, whose section starts
+        // RSVP_SCENE_VH above this one: no shift in the paper at the
+        // hand-over.
+        backgroundPosition: `0 -${RSVP_SCENE_VH}vh`,
+      }}
     >
       {/* The wildflowers stay on the screen the whole length of the list. */}
       {deskGeo && (
