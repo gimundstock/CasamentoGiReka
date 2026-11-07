@@ -164,13 +164,13 @@ export function GiftShop({ guest }: Props) {
       ) : null}
 
       <GiftsDesk opening={!reduced}>
-        <div className="mx-auto max-w-5xl px-6 pb-32 md:pb-48">
+        <div className="mx-auto max-w-4xl px-4 pb-32 sm:px-6 md:pb-48">
           {loading ? (
             <div className="text-title py-16 text-center font-serif">…</div>
           ) : (
-            <div className="grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-8">
               {gifts.map((gift, i) => (
-                <RevealOnScroll key={gift.giftId} delay={(i % 3) * 0.05}>
+                <RevealOnScroll key={gift.giftId} delay={(i % 4) * 0.05}>
                   <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
                 </RevealOnScroll>
               ))}
@@ -292,7 +292,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
       onBlur={() => setTurned(false)}
       aria-disabled={isSoldOut}
       aria-label={name}
-      className={`group mx-auto block w-full max-w-[16rem] text-left [perspective:1200px] ${
+      className={`group mx-auto block w-full max-w-[14rem] text-left [perspective:1200px] ${
         isSoldOut ? 'cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
@@ -317,7 +317,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
         >
           {/* Front: the picture, and the name under it. */}
           <motion.div
-            className={`${face} flex flex-col bg-white p-2.5 pb-0 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] ${
+            className={`${face} flex flex-col bg-white p-1.5 pb-0 sm:p-2.5 sm:pb-0 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] ${
               isSoldOut ? 'opacity-60' : ''
             }`}
             style={{ visibility: frontShown }}
@@ -347,9 +347,11 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                 and the price under them: centred in the strip under the
                 picture. */}
             <div className="flex flex-1 flex-col items-center justify-center px-2 py-1 text-center">
-              <h3 className="font-sans text-lg text-title leading-snug line-clamp-2">{name}</h3>
+              <h3 className="font-sans text-[0.8rem] text-title leading-snug line-clamp-2 sm:text-base">
+                {name}
+              </h3>
               {!isSoldOut && (
-                <p className="font-sans text-amber-deep mt-0.5 text-sm tabular-nums">
+                <p className="font-sans text-amber-deep mt-0.5 text-[0.75rem] tabular-nums sm:text-sm">
                   {gift.total > 1 && <span className="text-title/70">{t('gifts.fromPrice')} </span>}
                   R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
                 </p>
@@ -359,24 +361,24 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
 
           {/* Back: what it is and what it costs. */}
           <motion.div
-            className={`${face} bg-[#FDFBF6] bg-paper flex flex-col p-6 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] [transform:rotateY(180deg)]`}
+            className={`${face} bg-[#FDFBF6] bg-paper flex flex-col p-3 sm:p-5 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] [transform:rotateY(180deg)]`}
             style={{ visibility: backShown }}
           >
-            <p className="font-sans text-lg text-title leading-snug">{name}</p>
-            <div className="mt-3 h-px w-10 bg-amber/40" />
+            <p className="font-sans text-sm text-title leading-snug sm:text-lg">{name}</p>
+            <div className="mt-2 h-px w-10 bg-amber/40 sm:mt-3" />
             {description && (
-              <p className="font-serif text-[0.95rem] text-title mt-4 leading-relaxed line-clamp-[8]">
+              <p className="font-serif text-[0.8rem] text-title mt-2 leading-snug line-clamp-[6] sm:mt-3 sm:text-[0.9rem] sm:leading-relaxed sm:line-clamp-[7]">
                 {description}
               </p>
             )}
-            <div className="mt-auto pt-4">
+            <div className="mt-auto pt-2 sm:pt-4">
               {isSoldOut ? (
                 <p className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
                   {t('gifts.soldOutStamp')}
                 </p>
               ) : (
                 <>
-                  <p className="font-sans tabular-nums text-xl text-amber-deep">
+                  <p className="font-sans tabular-nums text-base text-amber-deep sm:text-xl">
                     {gift.total > 1 && (
                       <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mr-2">
                         {t('gifts.fromPrice')}
@@ -392,7 +394,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                       })}
                     </p>
                   )}
-                  <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep mt-4">
+                  <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep mt-2 sm:mt-4">
                     {t(hover ? 'gifts.backHintClick' : 'gifts.backHintTap')}
                   </p>
                 </>
