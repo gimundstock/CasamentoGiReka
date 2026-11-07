@@ -156,6 +156,8 @@
     "soldOutStamp": "esgotado",
     "price": "Valor",
     "fromPrice": "A partir de",
+    "backHintClick": "Clique para presentear",
+    "backHintTap": "Toque de novo para presentear",
     "stepKicker": "Presente escolhido",
     "successKicker": "Recebido com carinho",
     "summary": "Resumo",

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { QRCode } from 'react-qrcode-logo'
 import { Flower, Petal } from '../botanicals'
@@ -239,76 +240,156 @@ interface GiftCardProps {
 
 function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
   const [imageFailed, setImageFailed] = useState(!gift.imageUrl)
+  // No hover on touch screens: the first tap turns the polaroid over, the
+  // next one (on its back) opens the gift.
+  const [hover] = useState(() => window.matchMedia('(hover: hover)').matches)
+  const [turned, setTurned] = useState(false)
+  // Turned over as the invitation is (RSVP): like a card in the hand, not a
+  // sign on a pivot — the turn eases in and out, and on the way the card
+  // lifts a little, grows, leans back and swings a few degrees before
+  // settling flat again. Here over time, not with the scroll.
+  const turn = useMotionValue(0)
+  useEffect(() => {
+    const a = animate(turn, turned ? 1 : 0, { duration: 0.8, ease: [0.37, 0, 0.63, 1] })
+    return () => a.stop()
+  }, [turned, turn])
+  const rotateY = useTransform(turn, (t) => t * 180)
+  const arc = useTransform(turn, (t) => Math.sin(t * Math.PI))
+  const lift = useTransform(arc, (a) => -a * 12)
+  const grow = useTransform(arc, (a) => 1 + a * 0.04)
+  const lean = useTransform(arc, (a) => a * 10)
+  const swing = useTransform(turn, (t) => Math.sin(t * Math.PI) * -5 * (1 - t * 0.6))
+  // Which face shows is chosen by the angle, not left to backface-visibility
+  // (WebKit draws turned-away faces).
+  const frontShown = useTransform(rotateY, (r) => (r < 90 ? 'visible' : 'hidden'))
+  const backShown = useTransform(rotateY, (r) => (r < 90 ? 'hidden' : 'visible'))
   const isSoldOut = gift.available === 0
   const isPartial = gift.total > 1 && gift.available < gift.total && !isSoldOut
   const name = lang === 'pt' ? gift.name_pt : gift.name_en
   const description = lang === 'pt' ? gift.description_pt : gift.description_en
   const lowestPrice = Math.min(...gift.cotas.filter((c) => !c.purchased).map((c) => c.price))
 
+  const onClick = () => {
+    if (!hover && !turned) return setTurned(true)
+    if (!isSoldOut) onOpen()
+  }
+  const face = 'absolute inset-0 rounded-[3px] [backface-visibility:hidden]'
+
   return (
     <button
       type="button"
-      onClick={() => !isSoldOut && onOpen()}
-      disabled={isSoldOut}
-      className={`group mx-auto block w-full max-w-[16rem] text-left ${
-        isSoldOut ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+      onClick={onClick}
+      // Turned over by hover or keyboard focus (mouse), or by the first tap
+      // (touch).
+      onMouseEnter={() => hover && setTurned(true)}
+      onMouseLeave={() => hover && setTurned(false)}
+      onFocus={(e) => hover && e.currentTarget.matches(':focus-visible') && setTurned(true)}
+      onBlur={() => setTurned(false)}
+      aria-disabled={isSoldOut}
+      aria-label={name}
+      className={`group mx-auto block w-full max-w-[16rem] text-left [perspective:1200px] ${
+        isSoldOut ? 'cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
-      {/* Polaroid frame, same as the story photos: white border, thicker
-          bottom edge, soft shadow. Tilts a little, straightens on hover. */}
+      {/* Polaroid, same as the story photos: white border, thicker bottom
+          edge with the gift's name written on it, soft shadow. Tilts a
+          little, straightens on hover — and turns over to its back. */}
       <div
-        className={`mb-6 rounded-[3px] bg-white p-2.5 pb-10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] transition-transform duration-500 group-hover:rotate-0 ${
+        className={`transition-transform duration-500 group-hover:rotate-0 ${
           index % 2 === 0 ? '-rotate-[1.5deg]' : 'rotate-[1.5deg]'
-        }`}
+        } ${turned ? 'rotate-0' : ''}`}
       >
-        <div className="relative aspect-[4/5] overflow-hidden rounded-[1px]">
-          {imageFailed ? (
-            <GiftPlaceholder seed={index} />
-          ) : (
-            <img
-              src={gift.imageUrl}
-              alt={name}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-              onError={() => setImageFailed(true)}
-            />
-          )}
-          {isSoldOut && (
-            <div className="absolute inset-0 flex items-center justify-center bg-peach/70">
-              <span className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
-                {t('gifts.soldOutStamp')}
-              </span>
+        <motion.div
+          className="relative aspect-[4/5.9] [transform-style:preserve-3d]"
+          style={{
+            transformPerspective: 1600,
+            y: lift,
+            scale: grow,
+            rotateX: lean,
+            rotateY,
+            rotateZ: swing,
+          }}
+        >
+          {/* Front: the picture, and the name under it. */}
+          <motion.div
+            className={`${face} flex flex-col bg-white p-2.5 pb-0 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] ${
+              isSoldOut ? 'opacity-60' : ''
+            }`}
+            style={{ visibility: frontShown }}
+          >
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[1px]">
+              {imageFailed ? (
+                <GiftPlaceholder seed={index} />
+              ) : (
+                <img
+                  src={gift.imageUrl}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                  onError={() => setImageFailed(true)}
+                />
+              )}
+              {isSoldOut && (
+                <div className="absolute inset-0 flex items-center justify-center bg-peach/70">
+                  <span className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
+                    {t('gifts.soldOutStamp')}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+            {/* Gift names in Jost, as the guests' names on the invitation:
+                centred in the strip under the picture. */}
+            <div className="flex flex-1 items-center justify-center px-2 py-1">
+              <h3 className="font-sans text-lg text-title leading-snug text-center line-clamp-2">
+                {name}
+              </h3>
+            </div>
+          </motion.div>
 
-      <h3 className="font-display text-xl lowercase text-title leading-snug">{name}</h3>
-      {description && (
-        <p className="font-serif text-sm text-title mt-2 leading-relaxed line-clamp-2">
-          {description}
-        </p>
-      )}
-
-      <div className="mt-4 flex items-baseline justify-between gap-3">
-        <p className="font-sans tabular-nums text-lg text-amber-deep">
-          {gift.total > 1 && (
-            <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mr-2">
-              {t('gifts.fromPrice')}
-            </span>
-          )}
-          R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
-        </p>
-
-        {!isSoldOut && isPartial && (
-          <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title">
-            {t('gifts.partiallyAvailable', {
-              available: gift.available,
-              total: gift.total,
-            })}
-          </span>
-        )}
+          {/* Back: what it is and what it costs. */}
+          <motion.div
+            className={`${face} bg-[#FDFBF6] bg-paper flex flex-col p-6 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] [transform:rotateY(180deg)]`}
+            style={{ visibility: backShown }}
+          >
+            <p className="font-sans text-lg text-title leading-snug">{name}</p>
+            <div className="mt-3 h-px w-10 bg-amber/40" />
+            {description && (
+              <p className="font-serif text-[0.95rem] text-title mt-4 leading-relaxed line-clamp-[8]">
+                {description}
+              </p>
+            )}
+            <div className="mt-auto pt-4">
+              {isSoldOut ? (
+                <p className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
+                  {t('gifts.soldOutStamp')}
+                </p>
+              ) : (
+                <>
+                  <p className="font-sans tabular-nums text-xl text-amber-deep">
+                    {gift.total > 1 && (
+                      <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mr-2">
+                        {t('gifts.fromPrice')}
+                      </span>
+                    )}
+                    R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
+                  </p>
+                  {isPartial && (
+                    <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mt-1">
+                      {t('gifts.partiallyAvailable', {
+                        available: gift.available,
+                        total: gift.total,
+                      })}
+                    </p>
+                  )}
+                  <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep mt-4">
+                    {t(hover ? 'gifts.backHintClick' : 'gifts.backHintTap')}
+                  </p>
+                </>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
     </button>
   )
@@ -374,13 +455,7 @@ function GiftModal(props: ModalProps) {
               <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-amber-deep mb-1">
                 {step === 'success' ? t('gifts.successKicker') : t('gifts.stepKicker')}
               </p>
-              <h3
-                className={`text-title ${
-                  step === 'card' ? 'font-sans text-xl' : 'font-display text-2xl lowercase'
-                }`}
-              >
-                {giftName}
-              </h3>
+              <h3 className="font-sans text-xl text-title leading-snug">{giftName}</h3>
               {step !== 'success' && (
                 <p className="font-serif text-sm text-title mt-1">
                   {lang === 'pt' ? gift.description_pt : gift.description_en}
@@ -795,7 +870,7 @@ function GiftModal(props: ModalProps) {
                 <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-2">
                   {t('gifts.summary')}
                 </p>
-                <p className="font-display text-xl lowercase text-title">{giftName}</p>
+                <p className="font-sans text-lg text-title">{giftName}</p>
                 {selectedCotas.map((c) => (
                   <div key={c.cotaId} className="flex justify-between mt-1.5">
                     <span className="font-serif text-sm text-title">

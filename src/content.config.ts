@@ -30,7 +30,7 @@ export const CONFIG = {
   // ── Wedding Day ──────────────────────────────────────────
   wedding: {
     date: '2027-06-05', // ISO format YYYY-MM-DD
-    time: '17h30',
+    time: '15h30',
     venue: 'Clube do Congresso',
     address: 'SHIN QI 16 Área Especial, Brasília - DF, 71530-200',
     mapsUrl:
@@ -47,28 +47,54 @@ export const CONFIG = {
   story: {
     milestones: [
       {
-        year: '2019',
-        title_pt: 'Primeiro encontro',
-        title_en: 'First meeting',
-        text_pt: 'Texto sobre como se conheceram...',
-        text_en: 'Text about how they met...',
-        photo: 'couple.jpg',
+        year: '2016',
+        title_pt: 'Primeira vista',
+        title_en: 'First sight',
+        text_pt:
+          'Nossa história começou em 2016, na Universidade de Brasília. Entre as cansativas aulas de Design e Computação, nossos caminhos se cruzavam no Centro Acadêmico de Desenho Industrial, onde cada um se reunia com seus amigos. Entre encontros casuais, olhares trocados e uma boa dose de falta de iniciativa, foi só em 2019 que um match no Tinder deu o empurrãozinho que faltava para nossa história começar.',
+        text_en:
+          'Our story began in 2016, at the University of Brasília. Between long, tiring Design and Computer Science classes, our paths kept crossing at the Industrial Design student lounge, where each of us met up with our friends. After chance encounters, exchanged glances and a good dose of shyness on both sides, it took until 2019 for a Tinder match to give us the nudge we needed for our story to begin.',
+        photo: 'couple3.jpg',
       },
       {
-        year: '2022',
+        year: '2019',
+        title_pt: 'Primeiro encontro',
+        title_en: 'First date',
+        text_pt:
+          'Depois de quatro meses de conversas e alguns imprevistos, nosso primeiro encontro finalmente aconteceu em uma festa junina! Giovanna tentou arrastar Renato para a quadrilha, sem sucesso. Mas conseguimos nossa primeira dança, com direito a uma pequena aula improvisada. A noite foi tão especial que, assim que Renato chegou em casa, já estava mandando mensagem para marcar o próximo encontro.',
+        text_en:
+          "After four months of talking and a few setbacks, our first date finally happened at a festa junina, Brazil's June festival! Giovanna tried to drag Renato into the quadrilha, the traditional square dance, with no luck. But we did get our first dance, complete with a little improvised lesson. The night was so special that, as soon as Renato got home, he was already texting to set up the next date.",
+        photo: 'festa-junina.jpg',
+      },
+      {
+        year: '2021',
+        title_pt: 'Vida a dois',
+        title_en: 'Life together',
+        text_pt:
+          'Depois de apenas um ano juntos, tomamos coragem para dar dois grandes passos: morar juntos e mudar de país! De malas prontas e corações cheios de sonhos, partimos para Milão, que se tornou nosso lar e ponto de partida para aventuras, descobertas e amizades incríveis. Anos depois, seguimos para Luxemburgo, onde continuamos construindo nossa vida e descobrindo que lar é onde estamos juntos.',
+        text_en:
+          'After just one year together, we found the courage to take two big steps: moving in together and moving abroad! Bags packed and hearts full of dreams, we left for Milan, which became our home and the starting point for adventures, discoveries and amazing friendships. Years later, we moved on to Luxembourg, where we keep building our life and learning that home is wherever we are together.',
+        photo: 'milao.jpg',
+      },
+      {
+        year: '2025',
         title_pt: 'O pedido',
         title_en: 'The proposal',
-        text_pt: 'Texto sobre o pedido de casamento...',
-        text_en: 'Text about the proposal...',
-        photo: 'couple2.jpg',
+        text_pt:
+          'Renato preparou o pedido durante uma viagem romântica a Maiorca, em um piquenique boho no alto de uma colina, com vista para o mar ao pôr do sol. Fingiu tirar uma foto de Giovanna olhando para o horizonte, enquanto escondia a aliança na própria mão. Quando ela se virou para conferir a foto, ele já estava de joelhos. Giovanna já desconfiava... mas isso não tornou o momento menos mágico. E, claro, ela disse sim!',
+        text_en:
+          "Renato planned the proposal during a romantic trip to Mallorca: a boho picnic on a hilltop, overlooking the sea at sunset. He pretended to take a photo of Giovanna gazing at the horizon while hiding the ring in his own hand. When she turned around to check the photo, he was already on one knee. Giovanna had her suspicions… but that didn't make the moment any less magical. And, of course, she said yes!",
+        photo: 'proposta.jpg',
       },
       {
         year: '2027',
         title_pt: 'A celebração',
         title_en: 'The celebration',
-        text_pt: 'E agora chegou a hora de celebrar com todos vocês!',
-        text_en: "And now it's time to celebrate with all of you!",
-        photo: 'couple3.jpg',
+        text_pt:
+          'Depois de tantos encontros, aventuras e sonhos compartilhados, chegou a hora de celebrar um novo capítulo da nossa história! Estamos preparando cada detalhe com muito amor e carinho, sonhando com uma celebração acolhedora, cheia de alegria e afeto. Mais do que celebrar nossa união, queremos compartilhar esse momento com as famílias e os amigos que fazem parte da nossa história. Afinal, o amor é ainda mais bonito quando celebrado juntos.',
+        text_en:
+          "After so many encounters, adventures and shared dreams, it's time to celebrate a new chapter of our story! We are preparing every detail with love and care, dreaming of a warm celebration full of joy and affection. More than celebrating our union, we want to share this moment with the families and friends who are part of our story. After all, love is even more beautiful when celebrated together.",
+        photo: 'couple.jpg',
       },
     ],
   },
@@ -632,24 +658,6 @@ export const CONFIG = {
   // Multi-share gift: multiple items — guests can buy one or more shares.
   gifts: [
     {
-      giftId: 'gift_001',
-      name_pt: 'Jogo de Jantar',
-      name_en: 'Dinnerware Set',
-      description_pt:
-        'Jogo de jantar completo para 12 pessoas — para a gente finalmente parar de comer em pratos que não combinam.',
-      description_en:
-        'A complete dinnerware set for 12 — so we can finally stop eating off plates that do not match.',
-      imageUrl: '/gifts/jantar.jpg',
-      cotas: [
-        {
-          cotaId: 'cota_001_a',
-          label_pt: 'Jogo de Jantar Completo',
-          label_en: 'Full Dinnerware Set',
-          price: 450,
-        },
-      ],
-    },
-    {
       giftId: 'gift_002',
       name_pt: 'Lua de Mel',
       name_en: 'Honeymoon',
@@ -657,7 +665,7 @@ export const CONFIG = {
         'Contribua para a nossa lua de mel! Prometemos mandar fotos e só reclamar de sol demais.',
       description_en:
         'Chip in for our honeymoon! We promise to send photos and to complain only about too much sun.',
-      imageUrl: '/gifts/honeymoon.jpg',
+      imageUrl: '/gifts/honeymoon.webp',
       cotas: [
         {
           cotaId: 'cota_002_a',
@@ -717,7 +725,7 @@ export const CONFIG = {
         'Fritadeira elétrica sem óleo, 5L. Tudo fica crocante, inclusive as nossas esperanças de cozinhar.',
       description_en:
         'Oil-free electric air fryer, 5L. Everything comes out crispy, including our hopes of learning to cook.',
-      imageUrl: '/gifts/airfryer.jpg',
+      imageUrl: '/gifts/airfryer.webp',
       cotas: [
         { cotaId: 'cota_003_a', label_pt: 'Air Fryer 5L', label_en: 'Air Fryer 5L', price: 380 },
       ],
@@ -730,7 +738,7 @@ export const CONFIG = {
         'Jogo de cama king 300 fios, 4 peças. O Renato jura que a cama king ainda é pequena.',
       description_en:
         'King size bed linen, 300 thread count, 4 pieces. Renato swears even a king bed is too small.',
-      imageUrl: '/gifts/cama.jpg',
+      imageUrl: '/gifts/cama.webp',
       cotas: [
         {
           cotaId: 'cota_004_a',
@@ -741,30 +749,13 @@ export const CONFIG = {
       ],
     },
     {
-      giftId: 'gift_005',
-      name_pt: 'Reforma do Lar',
-      name_en: 'Home Renovation',
-      description_pt:
-        'Ajude a tornar nosso lar ainda mais especial — e a pagar o pedreiro que prometeu terminar “semana que vem”.',
-      description_en:
-        'Help make our home even more special — and pay the builder who promised to finish “next week”.',
-      imageUrl: '/gifts/reforma.jpg',
-      cotas: [
-        { cotaId: 'cota_005_a', label_pt: 'Cota R$ 100', label_en: 'R$ 100 Share', price: 100 },
-        { cotaId: 'cota_005_b', label_pt: 'Cota R$ 100', label_en: 'R$ 100 Share', price: 100 },
-        { cotaId: 'cota_005_c', label_pt: 'Cota R$ 100', label_en: 'R$ 100 Share', price: 100 },
-        { cotaId: 'cota_005_d', label_pt: 'Cota R$ 100', label_en: 'R$ 100 Share', price: 100 },
-        { cotaId: 'cota_005_e', label_pt: 'Cota R$ 100', label_en: 'R$ 100 Share', price: 100 },
-      ],
-    },
-    {
       giftId: 'gift_006',
       name_pt: 'Jogo de Toalhas',
       name_en: 'Towel Set',
       description_pt: 'Toalhas macias e felpudas, para a gente sair do banho parecendo uma nuvem.',
       description_en:
         'Soft, fluffy bath towels, so we step out of the shower feeling like a cloud.',
-      imageUrl: '/gifts/toalhas.jpg',
+      imageUrl: '/gifts/toalhas.webp',
       cotas: [
         {
           cotaId: 'cota_006_a',
@@ -781,7 +772,7 @@ export const CONFIG = {
       description_pt:
         'Tapetes para deixar o lar aconchegante e esconder aquela mancha que a gente não sabe de onde veio.',
       description_en: 'Rugs to make our home cozy and to hide that stain we cannot explain.',
-      imageUrl: '/gifts/tapetes.jpg',
+      imageUrl: '/gifts/tapetes.webp',
       cotas: [
         {
           cotaId: 'cota_007_a',
@@ -798,7 +789,7 @@ export const CONFIG = {
       description_pt:
         'Ajude a gente a pedalar por Brasília numa bike elétrica — ladeira, só se for para baixo!',
       description_en: 'Help us ride around Brasília on an electric bike — uphill is optional!',
-      imageUrl: '/gifts/bike.jpg',
+      imageUrl: '/gifts/bike.webp',
       cotas: [
         {
           cotaId: 'cota_008_01',
@@ -990,7 +981,7 @@ export const CONFIG = {
         'Suporte e banquinho para o nosso piano, para a gente tocar sem dor nas costas (e sem desafinar a paciência dos vizinhos).',
       description_en:
         'A stand and bench for our piano, so we can play without back pain (and without testing the neighbours’ patience).',
-      imageUrl: '/gifts/piano.jpg',
+      imageUrl: '/gifts/piano.webp',
       cotas: [
         {
           cotaId: 'cota_009_a',
@@ -1007,7 +998,7 @@ export const CONFIG = {
       description_pt:
         'Um banco de madeira para a nossa casa, onde todo mundo vai deixar a mochila e a bolsa.',
       description_en: 'A wooden bench for our home, where everyone will drop their bag and jacket.',
-      imageUrl: '/gifts/banco.jpg',
+      imageUrl: '/gifts/banco.webp',
       cotas: [
         {
           cotaId: 'cota_010_a',
@@ -1025,7 +1016,7 @@ export const CONFIG = {
         'Estante de madeira para os nossos livros e lembranças — e para disfarçar a bagunça atrás.',
       description_en:
         'A wooden bookshelf for our books and keepsakes — and to hide the mess behind them.',
-      imageUrl: '/gifts/estante.jpg',
+      imageUrl: '/gifts/estante.webp',
       cotas: [
         {
           cotaId: 'cota_011_a',
@@ -1043,7 +1034,7 @@ export const CONFIG = {
         'Tapete para o escritório, para a cadeira com rodinhas deslizar sem arranhar o piso.',
       description_en:
         'A rug for the office, so the rolling chair glides without scratching the floor.',
-      imageUrl: '/gifts/tapete-escritorio.jpg',
+      imageUrl: '/gifts/tapete-escritorio.webp',
       cotas: [
         {
           cotaId: 'cota_012_a',
@@ -1060,7 +1051,7 @@ export const CONFIG = {
       description_pt:
         'Tapete para receber as visitas no hall — as sapatilhas ficam do lado de fora, combinado?',
       description_en: 'A rug to welcome guests in the hall — shoes stay outside, deal?',
-      imageUrl: '/gifts/tapete-hall.jpg',
+      imageUrl: '/gifts/tapete-hall.webp',
       cotas: [
         {
           cotaId: 'cota_013_a',
@@ -1078,7 +1069,7 @@ export const CONFIG = {
         'Espelho para o hall: o último olhar antes de sair de casa e o primeiro “nossa, tô bem?”.',
       description_en:
         'A mirror for the hall: the last look before leaving and the first “do I look okay?”.',
-      imageUrl: '/gifts/espelho-hall.jpg',
+      imageUrl: '/gifts/espelho-hall.webp',
       cotas: [
         {
           cotaId: 'cota_014_a',
@@ -1096,7 +1087,7 @@ export const CONFIG = {
         'Um jantar a dois para celebrar o começo da nossa vida juntos, sem ninguém olhando o celular (prometido).',
       description_en:
         'A dinner for two to celebrate the start of our life together, with nobody on their phone (promised).',
-      imageUrl: '/gifts/jantar-romantico.jpg',
+      imageUrl: '/gifts/jantar-romantico.webp',
       cotas: [
         {
           cotaId: 'cota_015_a',
@@ -1114,7 +1105,7 @@ export const CONFIG = {
         'Uma massagem relaxante para o casal se recuperar depois de tanta festa (e de montar móvel).',
       description_en:
         'A relaxing massage for the couple to recover after so much partying (and assembling furniture).',
-      imageUrl: '',
+      imageUrl: '/gifts/massagens.webp',
       cotas: [
         {
           cotaId: 'cota_016_a',
@@ -1144,7 +1135,7 @@ export const CONFIG = {
         'Uma noite de hotel para começar o casamento em grande estilo — ninguém vai estar acordado para ver, mas vai ser lindo.',
       description_en:
         'A hotel night to start the marriage in style — nobody will be awake to see it, but it will be lovely.',
-      imageUrl: '',
+      imageUrl: '/gifts/hotel.webp',
       cotas: [
         {
           cotaId: 'cota_017_a',
@@ -1168,7 +1159,7 @@ export const CONFIG = {
         'Para voltar da lua de mel com poltrona que deita e champanhe. Sonhar não custa nada!',
       description_en:
         'To fly home from the honeymoon with a lie-flat seat and champagne. Dreaming is free!',
-      imageUrl: '',
+      imageUrl: '/gifts/primeira-classe.webp',
       cotas: [
         {
           cotaId: 'cota_018_a',
@@ -1216,7 +1207,7 @@ export const CONFIG = {
         'Uma cadeira confortável para o Renato trabalhar sem dor nas costas — e sem desculpa para levantar.',
       description_en:
         'A comfortable chair so Renato can work without a sore back — and without an excuse to get up.',
-      imageUrl: '',
+      imageUrl: '/gifts/cadeira-escritorio.webp',
       cotas: [
         {
           cotaId: 'cota_019_a',
@@ -1246,7 +1237,7 @@ export const CONFIG = {
         'Uma faca japonesa afiadíssima para cozinhar com precisão. O Renato promete não demonstrar o fio com o dedo.',
       description_en:
         'A razor-sharp Japanese knife for cooking with precision. Renato promises not to test the edge with his finger.',
-      imageUrl: '',
+      imageUrl: '/gifts/faca-japonesa.webp',
       cotas: [
         {
           cotaId: 'cota_020_a',
@@ -1264,7 +1255,7 @@ export const CONFIG = {
         'Para os domingos de churrasco com família e amigos. A Gi coordena a carne, o Renato coordena o fogo (e a fumaça).',
       description_en:
         'For Sunday barbecues with family and friends. Gi manages the meat, Renato manages the fire (and the smoke).',
-      imageUrl: '',
+      imageUrl: '/gifts/churrasqueira.webp',
       cotas: [
         {
           cotaId: 'cota_021_a',
@@ -1294,7 +1285,7 @@ export const CONFIG = {
         'A batedeira dos sonhos para bolos, massas e muitas receitas novas — e para a gente fingir que é confeiteiro.',
       description_en:
         'The dream stand mixer for cakes, doughs and lots of new recipes — and for pretending we are pastry chefs.',
-      imageUrl: '',
+      imageUrl: '/gifts/batedeira.webp',
       cotas: [
         {
           cotaId: 'cota_022_a',
@@ -1341,7 +1332,7 @@ export const CONFIG = {
       description_pt:
         'Uma panela para a vida inteira, daquelas que a gente deixa de herança (e tem briga por ela).',
       description_en: 'A pot for life, the kind you leave as an inheritance (and fight over).',
-      imageUrl: '',
+      imageUrl: '/gifts/panela-ferro.webp',
       cotas: [
         {
           cotaId: 'cota_023_a',
@@ -1377,7 +1368,7 @@ export const CONFIG = {
         'Uma mini Le Creuset para repor a que quebrou. A gente não vai falar quem foi, mas ele sabe.',
       description_en:
         'A mini Le Creuset to replace the one that broke. We will not say who did it, but he knows.',
-      imageUrl: '',
+      imageUrl: '/gifts/mini-panela.webp',
       cotas: [
         {
           cotaId: 'cota_024_a',
@@ -1395,7 +1386,7 @@ export const CONFIG = {
         'Panelas sem cabo, mini frigideira e uma tampa grande de panela: a cozinha agradece, o armário também.',
       description_en:
         'Detachable-handle pans, a mini skillet and a big pot lid: the kitchen is grateful, and so is the cupboard.',
-      imageUrl: '',
+      imageUrl: '/gifts/panelas.webp',
       cotas: [
         {
           cotaId: 'cota_025_a',
@@ -1413,7 +1404,7 @@ export const CONFIG = {
         'Potes de vidro para organizar a cozinha e esconder as sobras (e os brigadeiros).',
       description_en:
         'Glass containers to organise the kitchen and hide the leftovers (and the brigadeiros).',
-      imageUrl: '',
+      imageUrl: '/gifts/potes.webp',
       cotas: [
         {
           cotaId: 'cota_026_a',
@@ -1431,7 +1422,7 @@ export const CONFIG = {
         'Porque ninguém gosta de lavar janela. O robô vai fazer isso e a gente só fica olhando, orgulhoso.',
       description_en:
         'Because nobody likes washing windows. The robot will do it while we watch, proudly.',
-      imageUrl: '',
+      imageUrl: '/gifts/robo-janela.webp',
       cotas: [
         {
           cotaId: 'cota_027_a',
@@ -1455,7 +1446,7 @@ export const CONFIG = {
         'Para as noites de pizza caseira, no melhor estilo napolitano. A massa pode não sair redonda, mas vai sair gostosa.',
       description_en:
         'For homemade pizza nights, Neapolitan style. The dough may not come out round, but it will come out tasty.',
-      imageUrl: '',
+      imageUrl: '/gifts/forno-pizza.webp',
       cotas: [
         {
           cotaId: 'cota_028_a',
@@ -1503,7 +1494,7 @@ export const CONFIG = {
         'Um ano de cafezinhos para o Renato, que não vive sem o dele. Sem cápsula, ele vira outra pessoa.',
       description_en:
         'A year of coffee for Renato, who cannot live without his. Without a capsule he turns into someone else.',
-      imageUrl: '',
+      imageUrl: '/gifts/capsulas.webp',
       cotas: [
         {
           cotaId: 'cota_029_a',
@@ -1586,7 +1577,7 @@ export const CONFIG = {
       description_pt:
         'Para a despensa da Giovanna nunca ficar sem tapioca. É uma emergência nacional.',
       description_en: 'So Giovanna’s pantry never runs out of tapioca. It is a national emergency.',
-      imageUrl: '',
+      imageUrl: '/gifts/tapioca.webp',
       cotas: [
         {
           cotaId: 'cota_030_a',
@@ -1634,7 +1625,7 @@ export const CONFIG = {
         'Um fundo para o próximo jogo ou console que o Renato vai querer comprar. Ele diz que é o último. Não é.',
       description_en:
         'A fund for the next game or console Renato is going to want to buy. He says it is the last one. It is not.',
-      imageUrl: '',
+      imageUrl: '/gifts/jogo.webp',
       cotas: [
         {
           cotaId: 'cota_031_a',
@@ -1694,7 +1685,7 @@ export const CONFIG = {
         'Ração, veterinário e tudo o que for preciso para o futuro membro da família — que, claro, vai mandar em casa.',
       description_en:
         'Food, vet visits and everything the future family member will need — who will, of course, run the house.',
-      imageUrl: '',
+      imageUrl: '/gifts/cachorro.webp',
       cotas: [
         {
           cotaId: 'cota_032_a',
@@ -1766,7 +1757,7 @@ export const CONFIG = {
         'Um fundo para o próximo utensílio de café que o Renato vai querer: prensa, moedor, cafeteira… a lista não acaba.',
       description_en:
         'A fund for the next coffee gadget Renato is going to want: press, grinder, brewer… the list never ends.',
-      imageUrl: '',
+      imageUrl: '/gifts/utensilios-cafe.webp',
       cotas: [
         {
           cotaId: 'cota_033_a',
@@ -1826,7 +1817,7 @@ export const CONFIG = {
         'Para a Giovanna matar a saudade e ir visitar a Jojo e a Olivia — com direito a abraço e muita conversa.',
       description_en:
         'So Giovanna can cure the homesickness and go visit Jojo and Olivia — hugs and long chats included.',
-      imageUrl: '',
+      imageUrl: '/gifts/visita.webp',
       cotas: [
         {
           cotaId: 'cota_034_a',
@@ -1886,7 +1877,7 @@ export const CONFIG = {
         'Para a gente conseguir fazer feijão na gringa — porque a saudade de casa tem gosto de feijão no caldo.',
       description_en:
         'So we can make proper Brazilian beans abroad — because homesickness tastes like bean broth.',
-      imageUrl: '',
+      imageUrl: '/gifts/panela-pressao.webp',
       cotas: [
         {
           cotaId: 'cota_035_a',

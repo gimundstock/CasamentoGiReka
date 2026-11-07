@@ -156,6 +156,8 @@
     "soldOutStamp": "sold out",
     "price": "Price",
     "fromPrice": "From",
+    "backHintClick": "Click to give it",
+    "backHintTap": "Tap again to give it",
     "stepKicker": "Selected gift",
     "successKicker": "Received with love",
     "summary": "Summary",
