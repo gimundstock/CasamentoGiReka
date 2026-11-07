@@ -19,16 +19,15 @@ import { ScrollHint } from '../ui/ScrollHint'
 /** A polaroid's height over its width (picture 4:5 plus the strip under it). */
 export const CARD_ASPECT = 6.3 / 4
 
-// The section's own scroll, as fractions of it. It pins with the title
-// already in the middle of the desk (the RSVP drew it there as its reply
-// card left); the title rises to the top (RISE) and the list comes in
-// under it (the polaroids dealt from LIST_AT); a short stay, then the page
-// goes on.
-const RISE = [0.04, 0.42]
-const LIST_AT = 0.36
-// Section height, and the scroll it pins for (the height but one screen).
-const HEIGHT_VH = 180
-const PINNED_VH = HEIGHT_VH - 100
+// The section's own scroll, in screens. It pins with the title already in
+// the middle of the desk (the RSVP drew it there as its reply card left);
+// over RISE_VH the title rises to the top and the first page comes in
+// under it; then every PAGE_VH of scroll brings the next page of gifts; a
+// short stay on the last one, then the page goes on.
+const RISE_VH = 0.7
+const LIST_VH = 0.55
+const PAGE_VH = 0.8
+const TAIL_VH = 0.4
 
 interface Chapter {
   id: string
@@ -85,17 +84,17 @@ function grid(w: number, h: number) {
   const rows = 2
   const gapX = w >= 1024 ? 36 : 14
   const gapY = phone ? 18 : 28
-  // The chapter tabs stand in a column left of the polaroids: names on a
-  // wide screen, a narrow strip of upright labels (as the passport's) on a
-  // phone.
+  // The chapter tabs stand in a column a little left of the polaroids
+  // (which stay centred on the screen): names on a wide screen, a narrow
+  // strip of upright labels (as the passport's) on a phone.
   const tabsW = phone ? 30 : 200
   // Room left for the grid: under the nav, the label and the title; over
   // the hint at the foot.
   const top = NAV_HEIGHT + (phone ? 112 : 128)
   const bottom = phone ? 56 : 66
   const byHeight = (h - top - bottom - gapY * (rows - 1)) / rows / CARD_ASPECT
-  // Room for the tabs and, at the sides, the arrows.
-  const byWidth = (Math.min(w - tabsW - (phone ? 100 : 180), 1000) - gapX * (cols - 1)) / cols
+  // The polaroids are centred, so the tabs' room is kept on both sides.
+  const byWidth = (Math.min(w - 2 * tabsW - (phone ? 28 : 160), 1000) - gapX * (cols - 1)) / cols
   const cardW = Math.max(100, Math.min(byHeight, byWidth, 240))
   return { cols, rows, gapX, gapY, cardW, top, bottom, phone, tabsW }
 }
@@ -175,9 +174,8 @@ export function GiftsTitle({
  * The gift list on the invitation's desk. It lies over the end of the RSVP
  * section and takes the screen as it pins — the same paper, the same
  * wildflowers, the reply card just gone — so there is no seam. The scroll
- * only brings the list onto the desk; from there the guest browses it by
- * hand: the chapter tabs in a column at the left, the arrows beside the
- * polaroids, a swipe. The polaroids always come in rising.
+ * then turns the pages of gifts, the polaroids always coming in rising; the
+ * chapter tabs at the left show where the list is and jump to a chapter.
  */
 export function GiftChapters({ gifts, renderCard }: Props) {
   const { t } = useTranslation()
@@ -193,10 +191,7 @@ export function GiftChapters({ gifts, renderCard }: Props) {
   )
 
   const sectionRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress: p } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end end'],
-  })
+  const heightVh = 1 + RISE_VH + pages.length * PAGE_VH + TAIL_VH
   // Unseen until it pins (the RSVP shows meanwhile), as the RSVP over the
   // passport's stage.
   const { scrollYProgress: arrival } = useScroll({
@@ -206,51 +201,79 @@ export function GiftChapters({ gifts, renderCard }: Props) {
   const sectionOpacity = useTransform(arrival, (v) => (v >= 0.999 ? 1 : 0))
   const sectionEvents = useTransform(arrival, (v) => (v >= 0.999 ? 'auto' : 'none'))
 
+  // How far the section has scrolled under its pin, in screens.
+  const { scrollY } = useScroll()
+  const into = useTransform(scrollY, () => {
+    const el = sectionRef.current
+    return el ? -el.getBoundingClientRect().top / window.innerHeight : 0
+  })
+
   const L = giftsTitleLayout(w, h)
-  const rise = useTransform(p, (v) => easeInOut(ramp(v, RISE)))
+  const rise = useTransform(into, (v) => easeInOut(clamp01(v / RISE_VH)))
   const titleY = useTransform(rise, (r) => L.midY + (L.topY - L.midY) * r)
   const titleScale = useTransform(rise, (r) => 1 + (L.endScale - 1) * r)
-  const tabsOpacity = useTransform(p, (v) => ramp(v, [RISE[1] - 0.1, RISE[1]]))
+  const tabsOpacity = useTransform(into, (v) => ramp(v, [RISE_VH - 0.2, RISE_VH]))
 
   const [shown, setShown] = useState(false)
-  useMotionValueEvent(p, 'change', (v) => setShown(v >= LIST_AT))
-
   const [at, setAt] = useState(0)
+  useMotionValueEvent(into, 'change', (v) => {
+    setShown(v >= LIST_VH)
+    const page = Math.floor((v - RISE_VH) / PAGE_VH)
+    setAt(Math.max(0, Math.min(pages.length - 1, page)))
+  })
   const page = pages[Math.min(at, pages.length - 1)]
-  const go = (to: number) => {
-    if (to < 0 || to >= pages.length || to === at) return
-    setAt(to)
+  /** Scrolls to a chapter's first page. */
+  const goChapter = (ci: number) => {
+    const el = sectionRef.current
+    const to = pages.findIndex((pg) => pg.chapter === ci)
+    if (!el || to < 0) return
+    const top = el.getBoundingClientRect().top + window.scrollY
+    window.scrollTo({
+      top: top + (RISE_VH + (to + 0.3) * PAGE_VH) * window.innerHeight,
+      behavior: 'smooth',
+    })
   }
-  const goChapter = (ci: number) => go(pages.findIndex((pg) => pg.chapter === ci))
+  // The polaroids' block, centred on the screen; the tabs stand just left
+  // of its widest page, so they keep their place as the pages change.
+  const widest = Math.max(
+    1,
+    ...pages.map((pg) => Math.min(cols, Math.ceil(pg.gifts.length / rows)))
+  )
+  const blockW = widest * (cardW + gapX) - gapX
 
   return (
     <motion.div
       ref={sectionRef}
       className="relative"
-      style={{ height: `${HEIGHT_VH}vh`, opacity: sectionOpacity, pointerEvents: sectionEvents }}
+      style={{
+        height: `${heightVh * 100}vh`,
+        opacity: sectionOpacity,
+        pointerEvents: sectionEvents,
+      }}
     >
       {/* The nav's "Presentes" lands here: the list lying on the desk. */}
       <div
         id="gifts-list"
         className="absolute inset-x-0"
-        style={{ top: `${(RISE[1] + 0.04) * PINNED_VH}vh` }}
+        style={{ top: `${(RISE_VH + 0.1) * 100}vh` }}
       />
       <div className="bg-peach bg-paper sticky top-0 h-[100svh] overflow-hidden">
         {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
 
         <GiftsTitle y={titleY} scale={titleScale} />
 
-        <div
-          className="absolute inset-x-0 flex items-center justify-center"
-          style={{ top, bottom }}
-        >
-          {/* The chapter tabs, a column at the left of the polaroids. */}
+        <div className="absolute inset-x-0" style={{ top, bottom }}>
+          {/* The chapter tabs, a column a little left of the polaroids. */}
           <motion.div
             role="tablist"
             aria-orientation="vertical"
             aria-label={t('gifts.chapters')}
-            className="flex shrink-0 flex-col"
-            style={{ width: tabsW, opacity: tabsOpacity }}
+            className="absolute top-1/2 flex -translate-y-1/2 flex-col"
+            style={{
+              width: tabsW,
+              left: phone ? 6 : `max(16px, calc(50% - ${blockW / 2 + tabsW + 40}px))`,
+              opacity: tabsOpacity,
+            }}
           >
             {chapters.map((c, ci) => {
               const active = page?.chapter === ci
@@ -277,64 +300,49 @@ export function GiftChapters({ gifts, renderCard }: Props) {
               )
             })}
           </motion.div>
-          <Arrow
-            dir={-1}
-            hidden={!shown || at === 0}
-            onClick={() => go(at - 1)}
-            label={t('gifts.prevPage')}
-            phone={phone}
-          />
-          <AnimatePresence mode="wait">
-            {shown && page && (
-              // As few columns as fill the rows evenly (5 lie 3 + 2), the
-              // shorter row centred under the fuller one. A swipe turns the
-              // page on a touch screen.
-              <motion.div
-                key={at}
-                role="tabpanel"
-                aria-label={chapters[page.chapter].title}
-                className="flex shrink-0 flex-wrap content-center justify-center"
-                style={{
-                  width:
-                    Math.min(cols, Math.ceil(page.gifts.length / rows)) * (cardW + gapX) - gapX,
-                  columnGap: gapX,
-                  rowGap: gapY,
-                }}
-                drag={phone ? 'x' : false}
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.25}
-                onDragEnd={(_, info) => {
-                  if (info.offset.x < -50) go(at + 1)
-                  else if (info.offset.x > 50) go(at - 1)
-                }}
-              >
-                {page.gifts.map((g, i) => (
-                  <motion.div
-                    key={g.giftId}
-                    style={{ width: cardW }}
-                    variants={DEAL}
-                    initial="enter"
-                    animate="rest"
-                    exit="leave"
-                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
-                  >
-                    {renderCard(g, page.first + i, cardW)}
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <Arrow
-            dir={1}
-            hidden={!shown || at === pages.length - 1}
-            onClick={() => go(at + 1)}
-            label={t('gifts.nextPage')}
-            phone={phone}
-          />
+
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              {shown && page && (
+                // As few columns as fill the rows evenly (5 lie 3 + 2), the
+                // shorter row centred under the fuller one.
+                <motion.div
+                  key={at}
+                  role="tabpanel"
+                  aria-label={chapters[page.chapter].title}
+                  className="pointer-events-auto flex shrink-0 flex-wrap content-center justify-center"
+                  style={{
+                    width:
+                      Math.min(cols, Math.ceil(page.gifts.length / rows)) * (cardW + gapX) - gapX,
+                    columnGap: gapX,
+                    rowGap: gapY,
+                  }}
+                >
+                  {page.gifts.map((g, i) => (
+                    <motion.div
+                      key={g.giftId}
+                      style={{ width: cardW }}
+                      variants={DEAL}
+                      initial="enter"
+                      animate="rest"
+                      exit="leave"
+                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
+                    >
+                      {renderCard(g, page.first + i, cardW)}
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="absolute inset-x-0 text-center" style={{ bottom: phone ? 18 : 26 }}>
-          <ScrollHint label={shown ? t('gifts.scrollToEnd') : t('gifts.scrollToBrowse')} />
+          <ScrollHint
+            label={
+              shown && at === pages.length - 1 ? t('gifts.scrollToEnd') : t('gifts.scrollToBrowse')
+            }
+          />
         </div>
       </div>
     </motion.div>
@@ -351,44 +359,6 @@ const DEAL: Variants = {
     y: -24,
     transition: { duration: 0.22, ease: [0.4, 0, 1, 1] as const },
   },
-}
-
-/** A thin chevron beside the polaroids: the previous or next page. */
-function Arrow({
-  dir,
-  hidden,
-  onClick,
-  label,
-  phone,
-}: {
-  dir: 1 | -1
-  hidden: boolean
-  onClick: () => void
-  label: string
-  phone: boolean
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      disabled={hidden}
-      className={`text-title hover:text-amber-deep shrink-0 p-3 transition-[opacity,color] duration-300 ${
-        hidden ? 'pointer-events-none opacity-0' : 'opacity-100'
-      } ${phone ? '-mx-1' : 'mx-4'}`}
-    >
-      <svg viewBox="0 0 24 24" className={phone ? 'h-5 w-5' : 'h-7 w-7'} aria-hidden>
-        <path
-          d={dir === 1 ? 'M9 4.5l7.5 7.5L9 19.5' : 'M15 4.5L7.5 12l7.5 7.5'}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.1"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
-  )
 }
 
 /**
