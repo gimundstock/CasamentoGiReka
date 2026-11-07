@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react'
-import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { animate, motion, useMotionValue, useScroll, useTransform } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { QRCode } from 'react-qrcode-logo'
 import { Flower, Petal } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
-import { MaskReveal } from '../motion/MaskReveal'
 import { RevealOnScroll } from '../motion/RevealOnScroll'
+import { useReducedMotion } from '../motion/useReducedMotion'
+import { GIFTS_TITLE_TOP, GiftsTitle } from '../gifts/GiftsTitle'
+import { DeskFlowers } from './passport/DeskFlowers'
+import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
 import { purchaseGift, submitCard } from '../../api/sheets'
 import { CARD_THEMES, MessageCard, getCardTheme, type CardThemeId } from '../gifts/cardThemes'
@@ -39,6 +42,7 @@ export function GiftShop({ guest }: Props) {
   const lang = i18n.language as 'pt' | 'en'
   const { gifts, loading, markCotasPurchased } = useGifts()
   const [purchase, setPurchase] = useState<PurchaseState | null>(null)
+  const reduced = useReducedMotion()
 
   function openGift(gift: Gift) {
     const availableCotas = gift.cotas.filter((c) => !c.purchased)
@@ -147,32 +151,33 @@ export function GiftShop({ guest }: Props) {
   }
 
   return (
-    <section id="gifts" className="bg-peach py-32 md:py-48">
-      <div className="max-w-5xl mx-auto px-6">
-        <MaskReveal direction="up" delay={0.05}>
-          <div className="text-center mb-20 md:mb-28">
-            <p className="font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber-deep mb-6">
-              {t('nav.gifts')}
-            </p>
-            <h2 className="font-display text-2xl md:text-3xl text-title">{t('gifts.title')}</h2>
-            <p className="font-serif text-title text-lg md:text-xl mt-6 max-w-xl mx-auto leading-relaxed">
-              {t('gifts.subtitle')}
-            </p>
-          </div>
-        </MaskReveal>
+    // No background on the section itself: its opening screen lies over the
+    // RSVP's last one and must stay unseen until it reaches the top.
+    <section id="gifts" className="relative">
+      {reduced ? (
+        <div className="bg-peach bg-paper mx-auto max-w-5xl px-6 pt-32 pb-16 text-center md:pt-48">
+          <p className="font-sans text-amber-deep mb-6 text-[0.65rem] tracking-[0.4em] uppercase">
+            {t('nav.gifts')}
+          </p>
+          <h2 className="font-display text-title text-4xl md:text-5xl">{t('gifts.title')}</h2>
+        </div>
+      ) : null}
 
-        {loading ? (
-          <div className="text-center py-16 text-title font-serif">…</div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-            {gifts.map((gift, i) => (
-              <RevealOnScroll key={gift.giftId} delay={i * 0.05}>
-                <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
-              </RevealOnScroll>
-            ))}
-          </div>
-        )}
-      </div>
+      <GiftsDesk opening={!reduced}>
+        <div className="mx-auto max-w-6xl px-4 pb-32 sm:px-8 md:pb-48">
+          {loading ? (
+            <div className="text-title py-16 text-center font-serif">…</div>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-16 lg:gap-y-14">
+              {gifts.map((gift, i) => (
+                <RevealOnScroll key={gift.giftId} delay={(i % 4) * 0.05}>
+                  <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
+                </RevealOnScroll>
+              ))}
+            </div>
+          )}
+        </div>
+      </GiftsDesk>
 
       {purchase && (
         <GiftModal
@@ -287,7 +292,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
       onBlur={() => setTurned(false)}
       aria-disabled={isSoldOut}
       aria-label={name}
-      className={`group mx-auto block w-full max-w-[16rem] text-left [perspective:1200px] ${
+      className={`group mx-auto block w-full max-w-[14rem] text-left [perspective:1200px] ${
         isSoldOut ? 'cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
@@ -300,7 +305,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
         } ${turned ? 'rotate-0' : ''}`}
       >
         <motion.div
-          className="relative aspect-[4/5.9] [transform-style:preserve-3d]"
+          className="relative aspect-[4/6.3] [transform-style:preserve-3d]"
           style={{
             transformPerspective: 1600,
             y: lift,
@@ -312,7 +317,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
         >
           {/* Front: the picture, and the name under it. */}
           <motion.div
-            className={`${face} flex flex-col bg-white p-2.5 pb-0 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] ${
+            className={`${face} flex flex-col bg-white p-1.5 pb-0 sm:p-2.5 sm:pb-0 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] ${
               isSoldOut ? 'opacity-60' : ''
             }`}
             style={{ visibility: frontShown }}
@@ -338,35 +343,42 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                 </div>
               )}
             </div>
-            {/* Gift names in Jost, as the guests' names on the invitation:
-                centred in the strip under the picture. */}
-            <div className="flex flex-1 items-center justify-center px-2 py-1">
-              <h3 className="font-sans text-lg text-title leading-snug text-center line-clamp-2">
+            {/* Gift names in Jost, as the guests' names on the invitation,
+                and the price under them: centred in the strip under the
+                picture. */}
+            <div className="flex flex-1 flex-col items-center justify-center px-2 py-1 text-center">
+              <h3 className="font-sans text-[0.8rem] text-title leading-snug line-clamp-2 sm:text-base">
                 {name}
               </h3>
+              {!isSoldOut && (
+                <p className="font-sans text-amber-deep mt-0.5 text-[0.75rem] tabular-nums sm:text-sm">
+                  {gift.total > 1 && <span className="text-title/70">{t('gifts.fromPrice')} </span>}
+                  R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
+                </p>
+              )}
             </div>
           </motion.div>
 
           {/* Back: what it is and what it costs. */}
           <motion.div
-            className={`${face} bg-[#FDFBF6] bg-paper flex flex-col p-6 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] [transform:rotateY(180deg)]`}
+            className={`${face} bg-[#FDFBF6] bg-paper flex flex-col p-3 sm:p-5 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.4)] [transform:rotateY(180deg)]`}
             style={{ visibility: backShown }}
           >
-            <p className="font-sans text-lg text-title leading-snug">{name}</p>
-            <div className="mt-3 h-px w-10 bg-amber/40" />
+            <p className="font-sans text-sm text-title leading-snug sm:text-lg">{name}</p>
+            <div className="mt-2 h-px w-10 bg-amber/40 sm:mt-3" />
             {description && (
-              <p className="font-serif text-[0.95rem] text-title mt-4 leading-relaxed line-clamp-[8]">
+              <p className="font-serif text-[0.8rem] text-title mt-2 leading-snug line-clamp-[6] sm:mt-3 sm:text-[0.9rem] sm:leading-relaxed sm:line-clamp-[7]">
                 {description}
               </p>
             )}
-            <div className="mt-auto pt-4">
+            <div className="mt-auto pt-2 sm:pt-4">
               {isSoldOut ? (
                 <p className="font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title">
                   {t('gifts.soldOutStamp')}
                 </p>
               ) : (
                 <>
-                  <p className="font-sans tabular-nums text-xl text-amber-deep">
+                  <p className="font-sans tabular-nums text-base text-amber-deep sm:text-xl">
                     {gift.total > 1 && (
                       <span className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mr-2">
                         {t('gifts.fromPrice')}
@@ -382,7 +394,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                       })}
                     </p>
                   )}
-                  <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep mt-4">
+                  <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep mt-2 sm:mt-4">
                     {t(hover ? 'gifts.backHintClick' : 'gifts.backHintTap')}
                   </p>
                 </>
@@ -1016,5 +1028,85 @@ function ArchQrFrame({ children }: ArchQrFrameProps) {
         <div className="p-2 bg-white/80 rounded-xl border border-sage/30">{children}</div>
       </div>
     </div>
+  )
+}
+
+// Scroll (in screens) over which the title rises from the middle of the
+// desk to the top, before the page goes on.
+const RISE_VH = 0.6
+// From the risen title's middle to the top of the gifts.
+const TITLE_TO_GIFTS = 84
+// The title's size once it has risen into the list's header.
+const HEADER_SCALE = 0.5
+
+/**
+ * The gift list on the desk the RSVP leaves behind. Its first screen — the
+ * desk's wildflowers and the list's title in the middle — lies over the
+ * RSVP's last one and shows only once it reaches the top, where it is the
+ * same picture the RSVP ends on. It then stays a moment while the title
+ * rises to the top, the gifts coming up under it; from there the list
+ * scrolls like a page, over the desk's wildflowers, which stay put.
+ */
+function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress: arrival } = useScroll({
+    target: ref,
+    offset: ['start end', 'start start'],
+  })
+  const opacity = useTransform(arrival, (v) => (v >= 0.999 ? 1 : 0))
+  const [w, h] = [window.innerWidth, window.innerHeight]
+  // Linear, so the gifts (moving with the scroll) never catch the title up.
+  const { scrollYProgress: rising } = useScroll({
+    target: ref,
+    offset: ['start start', `start -${RISE_VH * 100}vh`],
+  })
+  const titleY = useTransform(rising, (v) => (GIFTS_TITLE_TOP - h / 2) * v)
+  const titleScale = useTransform(rising, (v) => 1 + (HEADER_SCALE - 1) * v)
+  // The desk's wildflowers, where the RSVP left them (not on a phone, where
+  // the passport and the invitation are held in the hand).
+  const deskGeo = useMemo(
+    () => (isDesk(w, h) && !isHand(w, h) ? passportGeometry(w, h) : null),
+    [w, h]
+  )
+  if (!opening) return <div className="bg-peach bg-paper">{children}</div>
+  return (
+    <motion.div
+      ref={ref}
+      className="bg-peach bg-paper relative"
+      style={{ marginTop: '-100vh', zIndex: 42, opacity }}
+    >
+      {/* The wildflowers stay on the screen the whole length of the list. */}
+      {deskGeo && (
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="sticky top-0 h-[100svh]">
+            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
+          </div>
+        </div>
+      )}
+      {/* Room for the title to rise in, then the gifts: they come up under
+          the rising title and, once it has risen, start just below it. */}
+      <div
+        aria-hidden
+        style={{ height: `calc(${RISE_VH * 100}svh + ${GIFTS_TITLE_TOP + TITLE_TO_GIFTS}px)` }}
+      />
+      <div className="relative">{children}</div>
+      {/* The title: in the middle of the desk, then risen and smaller, held
+          at the top as the list's header the whole length of the list, on
+          a band of paper the gifts pass under. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
+        <div className="sticky top-0 h-[100svh] overflow-hidden">
+          <motion.div
+            className="absolute inset-x-0 top-0"
+            style={{
+              // Opaque to a little under the title, then a short fade.
+              height: GIFTS_TITLE_TOP + 60,
+              opacity: rising,
+              background: `linear-gradient(to bottom, #FBFAF8 0, #FBFAF8 ${GIFTS_TITLE_TOP + 34}px, rgba(251, 250, 248, 0) 100%)`,
+            }}
+          />
+          <GiftsTitle y={titleY} scale={titleScale} />
+        </div>
+      </div>
+    </motion.div>
   )
 }
