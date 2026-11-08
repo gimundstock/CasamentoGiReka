@@ -1062,6 +1062,12 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
   })
   const titleY = useTransform(rising, (v) => (GIFTS_TITLE_TOP - h / 2) * v)
   const titleScale = useTransform(rising, (v) => 1 + (HEADER_SCALE - 1) * v)
+  const { scrollYProgress: ending } = useScroll({
+    target: ref,
+    offset: ['end end', 'end start'],
+  })
+  // Past the list's end they leave with it, as the page goes on.
+  const flowersY = useTransform(ending, (v) => -v * h)
   // The desk's wildflowers, where the RSVP left them (not on a phone, where
   // the passport and the invitation are held in the hand).
   const deskGeo = useMemo(
@@ -1083,16 +1089,18 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
         backgroundPosition: `0 -${RSVP_SCENE_VH}vh`,
       }}
     >
-      {/* The wildflowers stay on the screen the whole length of the list. */}
+      {/* The wildflowers stay on the screen the whole length of the list.
+          Fixed on the screen, as the RSVP's copy (see there): the two are in
+          the same place whichever shows at the hand-over. Once the list ends
+          they scroll away with it. */}
       {deskGeo && (
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          {/* A layer of its own for good: otherwise, as a polaroid (a 3D
-              layer) comes onto or leaves the screen over the flowers, the
-              browser regroups the layers and the flowers move a pixel. */}
-          <div className="sticky top-0 h-[100svh]" style={{ willChange: 'transform' }}>
-            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
-          </div>
-        </div>
+        <motion.div
+          aria-hidden
+          className="pointer-events-none fixed inset-0"
+          style={{ y: flowersY }}
+        >
+          <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
+        </motion.div>
       )}
       {/* Room for the title to rise in, then the gifts: they come up under
           the rising title and, once it has risen, start just below it. */}

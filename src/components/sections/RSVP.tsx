@@ -212,6 +212,15 @@ export function RSVP({ guest }: Props) {
   // As the card goes, the gift list's title comes onto the desk, exactly
   // where the list will draw it when it takes the screen.
   const giftsTitleOpacity = useTransform(leaving, (v) => clamp01((v - 0.3) / 0.55))
+  // The desk's flowers and that title are fixed on the screen (as the sun
+  // between Save the Date and the Big Day): the browser moves a section a
+  // frame before a scroll-driven hand-over runs, so anything carried by the
+  // section would bump by that frame. Fixed, they are in the same place
+  // whichever copy shows. Gone once this section has left the screen.
+  const { scrollYProgress: gone } = useScroll({
+    target: trackRef,
+    offset: ['end end', 'end start'],
+  })
   const settled = useMotionValue(1)
   // One smoothed progress drives the whole scene (envelope, card travel and
   // the turn), so each wheel tick glides and every part stays in step: the
@@ -243,6 +252,7 @@ export function RSVP({ guest }: Props) {
     offset: ['start end', 'start start'],
   })
   const pinned = (v: number) => !deskRef.current || v >= 0.999
+  const fixedShown = useTransform(() => (arrival.get() > 0 && gone.get() < 1 ? 1 : 0))
   const sectionOpacity = useTransform(arrival, (v) => (pinned(v) ? 1 : 0.01))
   const sectionEvents = useTransform(arrival, (v) => (pinned(v) ? 'auto' : 'none'))
   const orient = geo.wide ? 'h' : 'v'
@@ -337,7 +347,15 @@ export function RSVP({ guest }: Props) {
         style={{ height: reduced ? '100svh' : `${RSVP_SCENE_VH}vh` }}
       />
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
+        {deskGeo && (
+          <motion.div
+            aria-hidden
+            className="pointer-events-none fixed inset-0"
+            style={{ opacity: fixedShown }}
+          >
+            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
+          </motion.div>
+        )}
         <motion.p
           className="absolute inset-x-0 text-center font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber-deep"
           style={{ top: NAV_HEIGHT + 32, opacity: kickerOpacity }}
@@ -420,7 +438,15 @@ export function RSVP({ guest }: Props) {
           <ScrollHint label={t('rsvp.scrollToReply')} />
         </motion.p>
 
-        {!reduced && <GiftsTitle opacity={giftsTitleOpacity} hidden />}
+        {!reduced && (
+          <motion.div
+            aria-hidden
+            className="pointer-events-none fixed inset-0"
+            style={{ opacity: fixedShown }}
+          >
+            <GiftsTitle opacity={giftsTitleOpacity} hidden />
+          </motion.div>
+        )}
 
         {/* The invitation. At the end it rises off the desk (leaveY). */}
         <motion.div
