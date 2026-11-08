@@ -360,8 +360,9 @@ export function HeroBigDay({ holder }: { holder?: string }) {
         <div
           id="city"
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0"
-          style={{ top: `${CITY_MARK_VH}vh` }}
+          className="pointer-events-none absolute inset-x-0"
+          // To the stage's own end, not into the overlap under the RSVP.
+          style={{ top: `${CITY_MARK_VH}vh`, height: `${100 + locked - CITY_MARK_VH}vh` }}
         />
         <div
           id="passport"

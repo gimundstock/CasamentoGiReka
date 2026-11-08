@@ -254,6 +254,7 @@ export function RSVP({ guest }: Props) {
   })
   const pinned = (v: number) => !deskRef.current || v >= 0.999
   const fixedShown = useTransform(() => (arrival.get() > 0 && gone.get() < 1 ? 1 : 0))
+  const fixedEvents = useTransform(fixedShown, (o) => (o ? 'auto' : 'none'))
   const sectionOpacity = useTransform(arrival, (v) => (pinned(v) ? 1 : 0.01))
   const sectionEvents = useTransform(arrival, (v) => (pinned(v) ? 'auto' : 'none'))
   const orient = geo.wide ? 'h' : 'v'
@@ -349,7 +350,21 @@ export function RSVP({ guest }: Props) {
         className="pointer-events-none absolute inset-x-0 top-0"
         style={{ height: reduced ? '100svh' : `${RSVP_SCENE_VH}vh` }}
       />
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
+      {/* On the desk the whole screen is fixed, not sticky (as the sun,
+          e2310d3): it shows as this section reaches the top, and leaves
+          under the gift list, both from the scroll event, a frame off the
+          browser's own scrolling. Sticky, that frame caught it a pixel or
+          three from its place (its kicker, its envelope); fixed, it is in
+          place in any frame it shows. Shown only while this section is on
+          the screen. */}
+      <motion.div
+        className={
+          desk
+            ? 'fixed inset-x-0 top-0 h-[100svh] overflow-hidden'
+            : 'sticky top-0 h-[100svh] overflow-hidden'
+        }
+        style={desk ? { opacity: fixedShown, pointerEvents: fixedEvents } : undefined}
+      >
         {deskGeo && (
           <motion.div
             aria-hidden
@@ -493,7 +508,7 @@ export function RSVP({ guest }: Props) {
             </CardFace>
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
     </motion.section>
   )
 }
