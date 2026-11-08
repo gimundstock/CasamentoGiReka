@@ -16,6 +16,7 @@ import { CONFIG } from '../../content.config'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { DeskFlowers } from './passport/DeskFlowers'
+import { STAGE_OVERLAP_VH } from './HeroBigDay'
 import {
   ENV_CLOSED_Y,
   ENVELOPE,
@@ -334,7 +335,9 @@ export function RSVP({ guest }: Props) {
       style={{
         // The scene, then one more screen for the hand-over.
         height: reduced ? '100svh' : `${RSVP_SCENE_VH + 100}vh`,
-        marginTop: desk ? '-100vh' : undefined,
+        // Over the stage's last screen, and the stretch it stays pinned
+        // for under this one (see HeroBigDay).
+        marginTop: desk ? `-${100 + STAGE_OVERLAP_VH}vh` : undefined,
         zIndex: desk ? 41 : undefined,
         opacity: sectionOpacity,
         pointerEvents: sectionEvents,
