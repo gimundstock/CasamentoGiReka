@@ -27,6 +27,9 @@ import {
 } from './passport/geometry'
 import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
+/** How long (vh) the stage stays pinned under the RSVP past the hand-over. */
+export const STAGE_OVERLAP_VH = 40
+
 // The cerrado artwork: a watercolor painting (public/cerrado/paint.webp)
 // painted in around the sun as it travels, the pencil line
 // art registered onto it (lines.webp), and a sky mask (sky-mask.webp) that
@@ -329,7 +332,23 @@ export function HeroBigDay({ holder }: { holder?: string }) {
 
   return (
     <section className="relative">
-      <div ref={stageRef} className="relative" style={{ height: `${100 + locked}vh` }}>
+      {/* On the desk the stage stays pinned STAGE_OVERLAP_VH past its end,
+          under the RSVP, which by then covers it with the very same picture:
+          the browser moves an unpinning section a frame before the
+          scroll-driven hand-over runs, so had the stage let go at the
+          hand-over itself, that frame would show the envelope and its kicker
+          bump up (as the sun did, e2310d3). The timelines are measured on
+          the stage's own length (stageRef), not on this. */}
+      <div
+        className="relative"
+        style={{ height: `${100 + locked + (desk && !reduced ? STAGE_OVERLAP_VH : 0)}vh` }}
+      >
+        <div
+          ref={stageRef}
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{ height: `${100 + locked}vh` }}
+        />
         {/* What the Nav watches: the big day, then the passport (city guide),
             and where its "Brasília" link lands — the book just opened. */}
         <div
@@ -341,8 +360,9 @@ export function HeroBigDay({ holder }: { holder?: string }) {
         <div
           id="city"
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0"
-          style={{ top: `${CITY_MARK_VH}vh` }}
+          className="pointer-events-none absolute inset-x-0"
+          // To the stage's own end, not into the overlap under the RSVP.
+          style={{ top: `${CITY_MARK_VH}vh`, height: `${100 + locked - CITY_MARK_VH}vh` }}
         />
         <div
           id="passport"

@@ -113,13 +113,13 @@ export const DESK = {
    * The envelope is drawn in from the right, to where the invitation takes
    * over, pushing the shut passport off to the left.
    */
-  arrive: [444, 476] as Span,
+  arrive: [444, 490] as Span,
   /** The passport it pushes slides on a little longer, off the screen. */
-  shove: [444, 482] as Span,
+  shove: [444, 497] as Span,
   /** The kicker and the hint come with it. */
-  words: [464, 476] as Span,
+  words: [476, 490] as Span,
   /** End of the stage, in the passport's own time. */
-  end: 486,
+  end: 500,
 }
 const DESK_HOLD = DESK.hold[1] - DESK.hold[0]
 

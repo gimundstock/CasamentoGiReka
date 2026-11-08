@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { QRCode } from 'react-qrcode-logo'
 import { Flower, Petal } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
-import { RevealOnScroll } from '../motion/RevealOnScroll'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { GIFTS_TITLE_TOP, GiftsTitle } from '../gifts/GiftsTitle'
 import { DeskFlowers } from './passport/DeskFlowers'
+import { RSVP_SCENE_VH } from './RSVP'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
 import { purchaseGift, submitCard } from '../../api/sheets'
@@ -170,9 +170,9 @@ export function GiftShop({ guest }: Props) {
           ) : (
             <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-16 lg:gap-y-14">
               {gifts.map((gift, i) => (
-                <RevealOnScroll key={gift.giftId} delay={(i % 4) * 0.05}>
+                <div key={gift.giftId}>
                   <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
-                </RevealOnScroll>
+                </div>
               ))}
             </div>
           )}
@@ -1062,6 +1062,13 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
   })
   const titleY = useTransform(rising, (v) => (GIFTS_TITLE_TOP - h / 2) * v)
   const titleScale = useTransform(rising, (v) => 1 + (HEADER_SCALE - 1) * v)
+  const { scrollYProgress: ending } = useScroll({
+    target: ref,
+    offset: ['end end', 'end start'],
+  })
+  // Past the list's end the flowers and the header leave with it, as the
+  // page goes on.
+  const flowersY = useTransform(ending, (v) => -v * h)
   // The desk's wildflowers, where the RSVP left them (not on a phone, where
   // the passport and the invitation are held in the hand).
   const deskGeo = useMemo(
@@ -1073,15 +1080,28 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
     <motion.div
       ref={ref}
       className="bg-peach bg-paper relative"
-      style={{ marginTop: '-100vh', zIndex: 42, opacity }}
+      style={{
+        marginTop: '-100vh',
+        zIndex: 42,
+        opacity,
+        // The paper's grain lines up with the RSVP's, whose section starts
+        // RSVP_SCENE_VH above this one: no shift in the paper at the
+        // hand-over.
+        backgroundPosition: `0 -${RSVP_SCENE_VH}vh`,
+      }}
     >
-      {/* The wildflowers stay on the screen the whole length of the list. */}
+      {/* The wildflowers stay on the screen the whole length of the list.
+          Fixed on the screen, as the RSVP's copy (see there): the two are in
+          the same place whichever shows at the hand-over. Once the list ends
+          they scroll away with it. */}
       {deskGeo && (
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div className="sticky top-0 h-[100svh]">
-            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
-          </div>
-        </div>
+        <motion.div
+          aria-hidden
+          className="pointer-events-none fixed inset-0"
+          style={{ y: flowersY }}
+        >
+          <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
+        </motion.div>
       )}
       {/* Room for the title to rise in, then the gifts: they come up under
           the rising title and, once it has risen, start just below it. */}
@@ -1092,9 +1112,15 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
       <div className="relative">{children}</div>
       {/* The title: in the middle of the desk, then risen and smaller, held
           at the top as the list's header the whole length of the list, on
-          a band of paper the gifts pass under. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
-        <div className="sticky top-0 h-[100svh] overflow-hidden">
+          a band of paper the gifts pass under. Fixed on the screen like the
+          flowers (and the RSVP's copy), so the hand-over can't move it; it
+          leaves with the list's end. */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-20"
+        style={{ y: flowersY }}
+      >
+        <div className="relative h-[100svh] overflow-hidden">
           <motion.div
             className="absolute inset-x-0 top-0"
             style={{
@@ -1106,7 +1132,7 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
           />
           <GiftsTitle y={titleY} scale={titleScale} />
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }

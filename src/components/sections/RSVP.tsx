@@ -16,6 +16,7 @@ import { CONFIG } from '../../content.config'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { DeskFlowers } from './passport/DeskFlowers'
+import { STAGE_OVERLAP_VH } from './HeroBigDay'
 import {
   ENV_CLOSED_Y,
   ENVELOPE,
@@ -29,6 +30,9 @@ import { NUDGE_MS, ScrollHint } from '../ui/ScrollHint'
 import { GiftsTitle } from '../gifts/GiftsTitle'
 
 const base = import.meta.env.BASE_URL
+
+/** The scroll (vh) of the envelope-to-reply scene; the hand-over follows. */
+export const RSVP_SCENE_VH = 480
 
 /*
  * Scroll timeline (progress through the pinned track):
@@ -209,6 +213,15 @@ export function RSVP({ guest }: Props) {
   // As the card goes, the gift list's title comes onto the desk, exactly
   // where the list will draw it when it takes the screen.
   const giftsTitleOpacity = useTransform(leaving, (v) => clamp01((v - 0.3) / 0.55))
+  // The desk's flowers and that title are fixed on the screen (as the sun
+  // between Save the Date and the Big Day): the browser moves a section a
+  // frame before a scroll-driven hand-over runs, so anything carried by the
+  // section would bump by that frame. Fixed, they are in the same place
+  // whichever copy shows. Gone once this section has left the screen.
+  const { scrollYProgress: gone } = useScroll({
+    target: trackRef,
+    offset: ['end end', 'end start'],
+  })
   const settled = useMotionValue(1)
   // One smoothed progress drives the whole scene (envelope, card travel and
   // the turn), so each wheel tick glides and every part stays in step: the
@@ -240,6 +253,8 @@ export function RSVP({ guest }: Props) {
     offset: ['start end', 'start start'],
   })
   const pinned = (v: number) => !deskRef.current || v >= 0.999
+  const fixedShown = useTransform(() => (arrival.get() > 0 && gone.get() < 1 ? 1 : 0))
+  const fixedEvents = useTransform(fixedShown, (o) => (o ? 'auto' : 'none'))
   const sectionOpacity = useTransform(arrival, (v) => (pinned(v) ? 1 : 0.01))
   const sectionEvents = useTransform(arrival, (v) => (pinned(v) ? 'auto' : 'none'))
   const orient = geo.wide ? 'h' : 'v'
@@ -319,9 +334,11 @@ export function RSVP({ guest }: Props) {
       ref={trackRef}
       className="relative bg-peach bg-paper"
       style={{
-        // 480vh for the scene, then one more screen for the hand-over.
-        height: reduced ? '100svh' : '580vh',
-        marginTop: desk ? '-100vh' : undefined,
+        // The scene, then one more screen for the hand-over.
+        height: reduced ? '100svh' : `${RSVP_SCENE_VH + 100}vh`,
+        // Over the stage's last screen, and the stretch it stays pinned
+        // for under this one (see HeroBigDay).
+        marginTop: desk ? `-${100 + STAGE_OVERLAP_VH}vh` : undefined,
         zIndex: desk ? 41 : undefined,
         opacity: sectionOpacity,
         pointerEvents: sectionEvents,
@@ -331,10 +348,32 @@ export function RSVP({ guest }: Props) {
         ref={timelineRef}
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0"
-        style={{ height: reduced ? '100svh' : '480vh' }}
+        style={{ height: reduced ? '100svh' : `${RSVP_SCENE_VH}vh` }}
       />
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {deskGeo && <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />}
+      {/* On the desk the whole screen is fixed, not sticky (as the sun,
+          e2310d3): it shows as this section reaches the top, and leaves
+          under the gift list, both from the scroll event, a frame off the
+          browser's own scrolling. Sticky, that frame caught it a pixel or
+          three from its place (its kicker, its envelope); fixed, it is in
+          place in any frame it shows. Shown only while this section is on
+          the screen. */}
+      <motion.div
+        className={
+          desk
+            ? 'fixed inset-x-0 top-0 h-[100svh] overflow-hidden'
+            : 'sticky top-0 h-[100svh] overflow-hidden'
+        }
+        style={desk ? { opacity: fixedShown, pointerEvents: fixedEvents } : undefined}
+      >
+        {deskGeo && (
+          <motion.div
+            aria-hidden
+            className="pointer-events-none fixed inset-0"
+            style={{ opacity: fixedShown }}
+          >
+            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
+          </motion.div>
+        )}
         <motion.p
           className="absolute inset-x-0 text-center font-sans text-[0.65rem] tracking-[0.4em] uppercase text-amber-deep"
           style={{ top: NAV_HEIGHT + 32, opacity: kickerOpacity }}
@@ -417,7 +456,15 @@ export function RSVP({ guest }: Props) {
           <ScrollHint label={t('rsvp.scrollToReply')} />
         </motion.p>
 
-        {!reduced && <GiftsTitle opacity={giftsTitleOpacity} hidden />}
+        {!reduced && (
+          <motion.div
+            aria-hidden
+            className="pointer-events-none fixed inset-0"
+            style={{ opacity: fixedShown }}
+          >
+            <GiftsTitle opacity={giftsTitleOpacity} hidden />
+          </motion.div>
+        )}
 
         {/* The invitation. At the end it rises off the desk (leaveY). */}
         <motion.div
@@ -461,7 +508,7 @@ export function RSVP({ guest }: Props) {
             </CardFace>
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
     </motion.section>
   )
 }
