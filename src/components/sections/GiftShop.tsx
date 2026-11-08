@@ -1066,7 +1066,8 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
     target: ref,
     offset: ['end end', 'end start'],
   })
-  // Past the list's end they leave with it, as the page goes on.
+  // Past the list's end the flowers and the header leave with it, as the
+  // page goes on.
   const flowersY = useTransform(ending, (v) => -v * h)
   // The desk's wildflowers, where the RSVP left them (not on a phone, where
   // the passport and the invitation are held in the hand).
@@ -1111,9 +1112,15 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
       <div className="relative">{children}</div>
       {/* The title: in the middle of the desk, then risen and smaller, held
           at the top as the list's header the whole length of the list, on
-          a band of paper the gifts pass under. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-20">
-        <div className="sticky top-0 h-[100svh] overflow-hidden">
+          a band of paper the gifts pass under. Fixed on the screen like the
+          flowers (and the RSVP's copy), so the hand-over can't move it; it
+          leaves with the list's end. */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-20"
+        style={{ y: flowersY }}
+      >
+        <div className="relative h-[100svh] overflow-hidden">
           <motion.div
             className="absolute inset-x-0 top-0"
             style={{
@@ -1125,7 +1132,7 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
           />
           <GiftsTitle y={titleY} scale={titleScale} />
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
