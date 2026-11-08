@@ -433,12 +433,11 @@ export function BrasiliaPassport({
           carrier.style.visibility = seg(v, DESK.shove) >= 1 ? 'hidden' : 'inherit'
         }
       }
-      // The envelope fades in where it lies, with the cover (one thing, the
-      // two of them); it slides out as the passport is picked up, and is
-      // drawn back in at the end, to the invitation's own place — on top of
-      // the passport, which it pushes away.
-      // (In step with the whole cover: board, bleed and title, done together.)
-      const coverIn = ease(seg(v, [PHASE.coverGrow[0], PHASE.title[1]]))
+      // The envelope fades in where it lies as the passport is carried to
+      // the desk (one thing, the two of them); it slides out as the passport
+      // is picked up, and is drawn back in at the end, to the invitation's
+      // own place — on top of the passport, which it pushes away.
+      const coverIn = ease(seg(at, DESK.layIn))
       const envEl = envRef.current
       if (envEl && layout) {
         const { envelope: E, closed: F, offRight } = layout

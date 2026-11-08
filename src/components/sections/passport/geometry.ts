@@ -47,8 +47,12 @@ export const PHASE = {
   maskIn: [95, 165] as Span,
   /** The painting shrinks and drifts to the cover's art slot. */
   shrink: [125, 188] as Span,
-  /** The watercolor cathedral is painted in, once the blot is small. */
-  cathedral: [180, 192] as Span,
+  /**
+   * The watercolor cathedral is painted in while the blot closes in on the
+   * centre of the cover's framing (on the desk too, before the passport is
+   * carried to its place).
+   */
+  cathedral: [135, 182] as Span,
   /** The cover fades in behind the vignette, at its full size. */
   coverGrow: [185, 230] as Span,
   /** On the cover, the blot bleeds out into the rise shape. */
@@ -80,12 +84,13 @@ export const PASSPORT_ANCHOR_VH = BIG_DAY_VH + (PHASE.title[1] + PHASE.open[0]) 
 
 export const DESK = {
   /**
-   * The passport is carried to its place on the desk while the blot is
-   * still bigger than the screen: the painting itself stays put (see
-   * vignetteAt), so the blot closes in on the passport's place, and the
-   * cover forms there.
+   * The passport is carried to its place on the desk once the blot has
+   * closed in, at the centre of the screen, on the cover's framing of the
+   * painting (and the cathedral is in): the cover forms on the way.
    */
-  back: [102, 150] as Span,
+  back: [190, 248] as Span,
+  /** The envelope and the wildflowers come in as it is carried there. */
+  layIn: [205, 258] as Span,
   /** Picked up: the passport comes to the centre, the envelope leaves. */
   pickUp: [300, 350] as Span,
   /** The passport's timeline stands still across this, at its start. */
