@@ -65,17 +65,28 @@ const SPIN_DEG = 1080
 // first photo starting to rise was removed. Every other phase keeps its
 // old length in vh. All the 0–1 values below stay on the OLD timeline;
 // `scrollYProgress` (see the component) maps the real scroll onto it.
+// The story milestones then play slower than the old timeline: STORY_VH of
+// real scroll for their orbit (CASCADE_AT → SPIN_END), about a screen per
+// milestone, so each card moves at about the page's own pace.
 const OLD_SCROLL_VH = 800
 const CUT_VH = 45
-const SCROLL_VH = OLD_SCROLL_VH - CUT_VH
 const HEADING_AT = 0.48
 // The first photo used to start rising at 0.62, when the flower had turned
 // ~516°. It now starts when the flower has turned 45° less.
 const CASCADE_AT = 0.62 - (45 / SPIN_DEG) * (SPIN_END - GROW_END)
-// Real-scroll fractions where the shortened stretch begins and ends.
-const REAL_GAP_START = (HEADING_AT * OLD_SCROLL_VH) / SCROLL_VH
-const REAL_GAP_END =
-  REAL_GAP_START + ((CASCADE_AT - HEADING_AT) * OLD_SCROLL_VH - CUT_VH) / SCROLL_VH
+const STORY_VH = 500
+const STORY_EXTRA_VH = STORY_VH - (SPIN_END - CASCADE_AT) * OLD_SCROLL_VH
+const SCROLL_VH = OLD_SCROLL_VH - CUT_VH + STORY_EXTRA_VH
+// The real scroll (vh into the stage) at each breakpoint, and the old
+// timeline's progress there; in between, linear.
+const REAL_VH = [
+  0,
+  HEADING_AT * OLD_SCROLL_VH,
+  CASCADE_AT * OLD_SCROLL_VH - CUT_VH,
+  CASCADE_AT * OLD_SCROLL_VH - CUT_VH + STORY_VH,
+  SCROLL_VH,
+]
+const OLD_AT = [0, HEADING_AT, CASCADE_AT, SPIN_END, 1]
 
 const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
 const DAISY_BLUR_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero_blur.webp`
@@ -166,15 +177,17 @@ export function HeroSaveDateCouple() {
     offset: ['start start', 'end end'],
   })
   // Old-timeline progress (see OLD_SCROLL_VH): identical to the real scroll
-  // up to the story heading and again from the first photo on, with the
-  // stretch in between played faster.
+  // up to the story heading, faster to the first photo, slower through the
+  // story milestones, then as before.
   const scrollYProgress = useTransform(realProgress, (s: number) => {
-    if (s <= REAL_GAP_START) return (s * SCROLL_VH) / OLD_SCROLL_VH
-    if (s <= REAL_GAP_END) {
-      const t = (s - REAL_GAP_START) / (REAL_GAP_END - REAL_GAP_START)
-      return HEADING_AT + t * (CASCADE_AT - HEADING_AT)
+    const vh = s * SCROLL_VH
+    for (let i = 1; i < REAL_VH.length; i++) {
+      if (vh <= REAL_VH[i] || i === REAL_VH.length - 1) {
+        const t = (vh - REAL_VH[i - 1]) / (REAL_VH[i] - REAL_VH[i - 1])
+        return OLD_AT[i - 1] + Math.min(1, Math.max(0, t)) * (OLD_AT[i] - OLD_AT[i - 1])
+      }
     }
-    return CASCADE_AT + ((s - REAL_GAP_END) * SCROLL_VH) / OLD_SCROLL_VH
+    return 1
   })
 
   // Daisy. Opacity is pinned to 0 from scroll start until the grow

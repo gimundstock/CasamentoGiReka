@@ -17,6 +17,13 @@ import { ENV_CLOSED_Y, envelopeSize, NAV_HEIGHT as ENV_NAV_H } from '../Envelope
 // (0 = the info panel has been fully shown for a moment).
 
 export const BIG_DAY_VH = 300
+/**
+ * Where the passport's timeline starts, in vh of the stage: a little before
+ * the big day's own end, while its info panel is still settling — the
+ * panel then stays a moment and leaves, without a stretch of scroll where
+ * nothing moves.
+ */
+export const PASSPORT_START_VH = BIG_DAY_VH - 30
 export const PASSPORT_VH = 410
 
 type Span = readonly [number, number]
@@ -70,7 +77,7 @@ export const PHASE = {
  * Where the Nav "Brasília" link lands: the closed passport, its cover
  * complete, before it opens.
  */
-export const PASSPORT_ANCHOR_VH = BIG_DAY_VH + (PHASE.title[1] + PHASE.open[0]) / 2
+export const PASSPORT_ANCHOR_VH = PASSPORT_START_VH + (PHASE.title[1] + PHASE.open[0]) / 2
 
 // ── The desk (wide screens) ──────────────────────────────────────────────
 //
@@ -96,9 +103,9 @@ export const DESK = {
   /** The envelope and the wildflowers come in as it is carried there. */
   layIn: [185, 245] as Span,
   /** Picked up: the passport comes to the centre, the envelope leaves. */
-  pickUp: [300, 350] as Span,
+  pickUp: [300, 328] as Span,
   /** The passport's timeline stands still across this, at its start. */
-  hold: [262, 352] as Span,
+  hold: [262, 330] as Span,
   // In the passport's own time (after the hold):
   /** Read: the book closes on the page it is open at. */
   close: [410, 445] as Span,
@@ -106,13 +113,13 @@ export const DESK = {
    * The envelope is drawn in from the right, to where the invitation takes
    * over, pushing the shut passport off to the left.
    */
-  arrive: [444, 500] as Span,
+  arrive: [444, 476] as Span,
   /** The passport it pushes slides on a little longer, off the screen. */
-  shove: [444, 508] as Span,
+  shove: [444, 482] as Span,
   /** The kicker and the hint come with it. */
-  words: [485, 500] as Span,
+  words: [464, 476] as Span,
   /** End of the stage, in the passport's own time. */
-  end: 510,
+  end: 486,
 }
 const DESK_HOLD = DESK.hold[1] - DESK.hold[0]
 
@@ -137,7 +144,7 @@ export function passportVh(desk: boolean) {
 
 /** Where the Nav "Brasília" link lands: on the desk, both lying there. */
 export function passportAnchorVh(desk: boolean) {
-  return desk ? BIG_DAY_VH + (DESK.hold[0] + DESK.pickUp[0]) / 2 : PASSPORT_ANCHOR_VH
+  return desk ? PASSPORT_START_VH + (DESK.hold[0] + DESK.pickUp[0]) / 2 : PASSPORT_ANCHOR_VH
 }
 
 /**

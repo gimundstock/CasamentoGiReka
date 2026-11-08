@@ -15,6 +15,7 @@ import { CerradoPaint } from './CerradoPaint'
 import { BrasiliaPassport } from './passport/BrasiliaPassport'
 import {
   BIG_DAY_VH,
+  PASSPORT_START_VH,
   isDesk,
   passportAnchorVh,
   passportVh,
@@ -92,11 +93,11 @@ const PAINT_END = 0.82
 
 // The stage scrolls (is pinned) for the big day, then for the passport
 // (longer on a wide screen, where it shares a desk with the invitation).
-const lockedVh = (desk: boolean) => BIG_DAY_VH + passportVh(desk)
+const lockedVh = (desk: boolean) => PASSPORT_START_VH + passportVh(desk)
 const deskNow = () => isDesk(window.innerWidth, window.innerHeight)
 // Nav highlight: "The Wedding" until the passport starts taking shape, then
 // "Brasília". The band the Nav watches sits 30–45 % down the screen.
-const CITY_MARK_VH = BIG_DAY_VH + PHASE.infoOut[1] + 30
+const CITY_MARK_VH = PASSPORT_START_VH + PHASE.infoOut[1] + 30
 
 /** Viewport size as the stage sees it (vw as CSS's 100vw, vh as its height). */
 function useStageGeometry(ref: RefObject<HTMLDivElement | null>) {
@@ -173,7 +174,10 @@ export function HeroBigDay({ holder }: { holder?: string }) {
   const scrollYProgress = useTransform(stageProgress, (v: number) =>
     Math.min(1, (v * lockedRef.current) / BIG_DAY_VH)
   )
-  const passVh = useTransform(stageProgress, (v: number) => v * lockedRef.current - BIG_DAY_VH)
+  const passVh = useTransform(
+    stageProgress,
+    (v: number) => v * lockedRef.current - PASSPORT_START_VH
+  )
   const reduced = useReducedMotion()
 
   // Sun, phase 1: it arrives from HeroSaveDateCouple as the zoomed-in
