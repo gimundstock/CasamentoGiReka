@@ -9,7 +9,8 @@ export interface Guest {
   displayName?: string
   language: 'pt' | 'en'
   attendees: string[]
-  hasPhoto: boolean
+  /** The guest's own photos (from their Drive folder), shown first in the carousel. */
+  photos?: string[]
   /** Part of the wedding party: the site also shows the padrinhos' manual. */
   padrinho?: boolean
   /** Set by the backend: the guest already has a row in the RSVPs tab. */

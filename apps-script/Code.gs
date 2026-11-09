@@ -6,6 +6,8 @@
  * CONFIGURATION — no private values live in this file. Set them once in the
  * Apps Script editor under Project Settings → Script properties:
  *   SHEET_ID       the Google Sheets document ID
+ *   GUEST_PHOTOS_FOLDER_ID  optional: the Drive folder holding one subfolder per
+ *                  guest, named by guestId, with that guest's photos
  *   COUPLE_EMAILS  comma-separated addresses that receive RSVP and gift copies
  *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
  *   PAYPAL_CLIENT_ID, PAYPAL_SECRET
@@ -22,11 +24,13 @@
  * only stores state — guests, RSVPs, and the purchase log. Availability is
  * derived from which cotaIds appear in the Orders tab.
  *
- * Guests columns: guestId | groupName | language | attendees | hasPhoto | displayName | padrinho
+ * Guests columns: guestId | groupName | language | attendees | displayName | padrinho
  *   groupName    the name on the invitation, also what guests type to log in
  *   displayName  optional: how the site greets them ("Mãe e Pai"); blank → groupName
  *   padrinho     TRUE for the wedding party: they also get the padrinhos' manual
  * Columns are read by header name, so their order in the sheet doesn't matter.
+ * A guest's photos aren't in the sheet: they're whatever images sit in their
+ * Drive subfolder (see GUEST_PHOTOS_FOLDER_ID), in file-name order.
  * RSVPs columns:  timestamp | guestId | groupName | attendeesJson | songRequest | message
  * Orders columns: timestamp | guestId | groupName | guestEmail | giftId | giftName | selectedCotas | totalPrice | cardMessage | paymentMethod | currency | amountPaid | paymentRef
  *   totalPrice is always in BRL (the catalog price). paymentMethod is 'pix' or
@@ -199,6 +203,36 @@ function isTrue(value) {
   return value === true || String(value).trim().toLowerCase() === 'true';
 }
 
+/**
+ * The images in this guest's Drive subfolder, in file-name order, as URLs a
+ * page can show. Drive serves them only if the folder is shared "anyone with
+ * the link". Any trouble (no property, no subfolder, Drive down) means no
+ * photos, never a failed login.
+ */
+function guestPhotoUrls(guestId) {
+  var rootId = PropertiesService.getScriptProperties().getProperty('GUEST_PHOTOS_FOLDER_ID');
+  if (!rootId || !guestId) return [];
+  try {
+    var folders = DriveApp.getFolderById(rootId).getFoldersByName(String(guestId));
+    if (!folders.hasNext()) return [];
+    var files = folders.next().getFiles();
+    var images = [];
+    while (files.hasNext()) {
+      var f = files.next();
+      if (String(f.getMimeType()).indexOf('image/') === 0) {
+        images.push({ name: f.getName(), id: f.getId() });
+      }
+    }
+    images.sort(function(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
+    return images.map(function(img) {
+      return 'https://lh3.googleusercontent.com/d/' + img.id + '=w1600';
+    });
+  } catch (e) {
+    console.error('guestPhotoUrls(' + guestId + '): ' + e);
+    return [];
+  }
+}
+
 function formatGuest(row) {
   var rsvp = latestRsvpAttendees(row.guestId);
   var displayName = String(row.displayName == null ? '' : row.displayName).trim();
@@ -208,7 +242,7 @@ function formatGuest(row) {
     displayName: displayName || String(row.groupName),
     language: row.language || 'pt',
     attendees: String(row.attendees).split(',').map(function(s) { return s.trim(); }).filter(Boolean),
-    hasPhoto: isTrue(row.hasPhoto),
+    photos: guestPhotoUrls(row.guestId),
     padrinho: isTrue(row.padrinho),
     rsvpSubmitted: rsvp !== null,
     rsvpAttendees: rsvp || [],

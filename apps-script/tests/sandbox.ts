@@ -28,8 +28,16 @@ export interface SandboxOptions {
   orders?: Row[]
   /** Script Properties; defaults to a test sheet ID and two couple emails. */
   properties?: Record<string, string>
+  /** Drive folders by ID, each mapping subfolder names to their files. */
+  drive?: Record<string, Record<string, DriveFile[]>>
   /** Answers UrlFetchApp.fetch; defaults to a 404 for every URL. */
   fetch?: (url: string, opts: FetchOptions) => { code: number; body: unknown }
+}
+
+export interface DriveFile {
+  id: string
+  name: string
+  mimeType: string
 }
 
 export interface FetchOptions {
@@ -63,7 +71,9 @@ export interface Guest {
   groupName: string
   language: string
   attendees: string[]
-  hasPhoto: boolean
+  displayName: string
+  padrinho: boolean
+  photos: string[]
   rsvpSubmitted: boolean
   rsvpAttendees: { name: string; attending: boolean }[]
 }
@@ -103,7 +113,7 @@ export interface Sandbox {
   fetched: Array<{ url: string; opts: FetchOptions }>
 }
 
-const defaultGuests: Row[] = [['guestId', 'groupName', 'language', 'attendees', 'hasPhoto']]
+const defaultGuests: Row[] = [['guestId', 'groupName', 'language', 'attendees']]
 const defaultRsvps: Row[] = [
   ['timestamp', 'guestId', 'groupName', 'attendeesJson', 'songRequest', 'message'],
 ]
@@ -138,7 +148,37 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
     COUPLE_EMAILS: 'a@example.com, b@example.com',
   }
 
+  const iterate = <T,>(items: T[]) => {
+    let i = 0
+    return { hasNext: () => i < items.length, next: () => items[i++] }
+  }
+  const drive = opts.drive ?? {}
   const ctx = {
+    DriveApp: {
+      getFolderById: (id: string) => {
+        const folder = drive[id]
+        if (!folder) throw new Error('No item with the given ID could be found')
+        return {
+          getFoldersByName: (name: string) =>
+            iterate(
+              name in folder
+                ? [
+                    {
+                      getFiles: () =>
+                        iterate(
+                          folder[name].map((f) => ({
+                            getId: () => f.id,
+                            getName: () => f.name,
+                            getMimeType: () => f.mimeType,
+                          })),
+                        ),
+                    },
+                  ]
+                : [],
+            ),
+        }
+      },
+    },
     SpreadsheetApp: {
       openById: () => ({
         getSheetByName: (name: keyof typeof sheets) => sheets[name],

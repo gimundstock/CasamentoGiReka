@@ -9,6 +9,7 @@
 |---|---|
 | `SHEET_ID`, `COUPLE_EMAILS` | Apps Script editor → **Project Settings → Script properties** |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET`, `PAYPAL_ENV` | Same place. Only for PayPal gifts; `PAYPAL_ENV=live` for real payments, unset = sandbox |
+| `GUEST_PHOTOS_FOLDER_ID` | Same place. Optional: the Drive folder of guest photos (below) |
 | `scriptId` | `.clasp.json` (gitignored; template in `.clasp.json.example`) |
 | clasp login | `~/.clasprc.json` in your home folder (never in the repo) |
 | Web App URL | `.env.local` → `VITE_APPSCRIPT_URL`, and the GitHub Actions secret |
@@ -32,6 +33,21 @@ Until then, PayPal purchases fail and PIX keeps working.
 
 Add four headers to the Orders tab, after `cardMessage`: `paymentMethod`,
 `currency`, `amountPaid`, `paymentRef`.
+
+### Guest photos (Google Drive)
+
+Guest photos stay out of this public repo. In Drive, one main folder holds a
+subfolder per guest, named exactly by their `guestId` (`r27`), with any number
+of photos (any image type, any file names; shown in file-name order).
+
+1. Share the main folder as **Anyone with the link → Viewer**, so the site can
+   show the photos (the links are long random IDs, not listed anywhere).
+2. Put the folder's ID (the part after `/folders/` in its URL) in the
+   `GUEST_PHOTOS_FOLDER_ID` Script Property.
+3. After the first push with this, run any function once in the editor and
+   accept the Drive permission, then `backend:deploy`.
+
+Adding or removing photos later needs no commit and no deploy.
 
 ## One-time setup
 

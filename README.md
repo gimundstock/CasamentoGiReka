@@ -55,7 +55,7 @@ See column headers in `CLAUDE.md` or `apps-script/Code.gs` for the exact sheet s
 
 ## Guest photos
 
-Place photos at `public/photos/{guestId}.jpg`. If `hasPhoto = true` in the Guests sheet, the welcome hero shows that photo instead of the default couple photo (`public/photos/couple.jpg`).
+Guest photos live in Google Drive, not in this (public) repo: in the Drive folder set as the `GUEST_PHOTOS_FOLDER_ID` Script Property, make one subfolder per guest named by their `guestId` and drop their photos in. Share the main folder as "anyone with the link". They open the welcome carousel, in file-name order. `public/photos/` holds only the couple's photos.
 
 ## Invitation QR codes
 
