@@ -54,6 +54,9 @@ export interface PurchaseSubmission {
   totalPrice: number
   guestEmail: string
   cardMessage: string
+  paymentMethod?: 'pix' | 'paypal'
+  /** The PayPal order the guest approved; the Apps Script captures it. */
+  paypalOrderId?: string
 }
 
 export interface CardSubmission {

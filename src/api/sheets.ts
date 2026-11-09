@@ -67,8 +67,10 @@ async function fetchSoldCotaIds(): Promise<string[]> {
   }
 }
 
-export async function purchaseGift(data: PurchaseSubmission): Promise<{ success: boolean }> {
-  return post<{ success: boolean }>({
+export async function purchaseGift(
+  data: PurchaseSubmission
+): Promise<{ success: boolean; error?: string }> {
+  return post<{ success: boolean; error?: string }>({
     action: 'purchaseGift',
     guestId: data.guestId,
     giftId: data.giftId,
@@ -78,6 +80,8 @@ export async function purchaseGift(data: PurchaseSubmission): Promise<{ success:
     totalPrice: data.totalPrice,
     guestEmail: data.guestEmail,
     cardMessage: data.cardMessage,
+    paymentMethod: data.paymentMethod ?? 'pix',
+    paypalOrderId: data.paypalOrderId ?? '',
   })
 }
 

@@ -28,6 +28,15 @@ export interface SandboxOptions {
   orders?: Row[]
   /** Script Properties; defaults to a test sheet ID and two couple emails. */
   properties?: Record<string, string>
+  /** Answers UrlFetchApp.fetch; defaults to a 404 for every URL. */
+  fetch?: (url: string, opts: FetchOptions) => { code: number; body: unknown }
+}
+
+export interface FetchOptions {
+  method?: string
+  headers?: Record<string, string>
+  payload?: unknown
+  contentType?: string
 }
 
 export interface AppsScriptGlobals {
@@ -36,6 +45,14 @@ export interface AppsScriptGlobals {
   handleGetGuest: (params: { id?: string; name?: string }) => Guest | null
   handleGetSoldCotas: () => { sold: string[] }
   handlePurchaseGift: (body: PurchaseBody) => { success: boolean; error?: string }
+  capturePaypalOrder: (orderId: string) => {
+    ok: boolean
+    error?: string
+    captureId?: string
+    amount?: number
+    currency?: string
+    payerEmail?: string
+  }
   handleSubmitRSVP: (body: RSVPBody) => { success: boolean }
   handleSubmitCard: (body: CardBody) => { success: boolean }
   collectSoldCotaIds: () => Record<string, boolean>
@@ -68,6 +85,8 @@ export interface PurchaseBody {
   totalPrice: number
   guestEmail: string
   cardMessage: string
+  paymentMethod?: 'pix' | 'paypal'
+  paypalOrderId?: string
 }
 
 export interface RSVPBody {
@@ -81,6 +100,7 @@ export interface Sandbox {
   app: AppsScriptGlobals
   sheets: Record<'Guests' | 'RSVPs' | 'Orders' | 'Cards', FakeSheet>
   sentMail: Array<{ to: string; bcc?: string; subject: string; body: string }>
+  fetched: Array<{ url: string; opts: FetchOptions }>
 }
 
 const defaultGuests: Row[] = [['guestId', 'groupName', 'language', 'attendees', 'hasPhoto']]
@@ -111,6 +131,8 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
     ]),
   }
   const sentMail: Sandbox['sentMail'] = []
+  const fetched: Sandbox['fetched'] = []
+  const answer = opts.fetch ?? (() => ({ code: 404, body: {} }))
   const properties = opts.properties ?? {
     SHEET_ID: 'test-sheet-id',
     COUPLE_EMAILS: 'a@example.com, b@example.com',
@@ -144,11 +166,24 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
         releaseLock: () => {},
       }),
     },
+    UrlFetchApp: {
+      fetch: (url: string, fetchOpts: FetchOptions) => {
+        fetched.push({ url, opts: fetchOpts })
+        const { code, body } = answer(url, fetchOpts)
+        return {
+          getResponseCode: () => code,
+          getContentText: () => (typeof body === 'string' ? body : JSON.stringify(body)),
+        }
+      },
+    },
+    Utilities: {
+      base64Encode: (s: string) => Buffer.from(s).toString('base64'),
+    },
     console,
   } as Record<string, unknown>
 
   createContext(ctx)
   runInContext(source, ctx)
 
-  return { app: ctx as unknown as AppsScriptGlobals, sheets, sentMail }
+  return { app: ctx as unknown as AppsScriptGlobals, sheets, sentMail, fetched }
 }

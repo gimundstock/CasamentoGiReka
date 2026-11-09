@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_APPSCRIPT_URL?: string
+  readonly VITE_PAYPAL_CLIENT_ID?: string
 }
 
 interface ImportMeta {
