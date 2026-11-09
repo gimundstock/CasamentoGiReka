@@ -13,7 +13,6 @@ const DEMO_GUEST: Guest = {
   groupName: 'Família Demo',
   language: 'pt',
   attendees: ['João Demo', 'Maria Demo', 'Pedro Demo'],
-  hasPhoto: false,
 }
 
 export type GuestState =

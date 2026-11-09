@@ -31,7 +31,7 @@ describe('handleGetGuest', () => {
     const guest = app.handleGetGuest({ id: 'r01' })
     expect(guest).toMatchObject({ guestId: 'r01', groupName: 'Ana e Bruno', language: 'pt' })
     expect(guest?.attendees).toEqual(['Bruno Souza', 'Ana Souza'])
-    expect(guest?.hasPhoto).toBe(true)
+    expect(guest?.photos).toEqual([])
   })
 
   it('displayName falls back to groupName; padrinho defaults to false', () => {
@@ -70,6 +70,35 @@ describe('handleGetGuest', () => {
     const { app } = createSandbox({ guests })
     expect(app.handleGetGuest({ name: 'Mãe e Pai' })).toBeNull()
     expect(app.handleGetGuest({ name: 'helaine e ivanio' })?.guestId).toBe('p01')
+  })
+
+  it("photos: the images in the guest's Drive subfolder, by file name", () => {
+    const { app } = createSandbox({
+      guests: baseGuests,
+      properties: { SHEET_ID: 's', COUPLE_EMAILS: 'a@x.com', GUEST_PHOTOS_FOLDER_ID: 'root' },
+      drive: {
+        root: {
+          r01: [
+            { id: 'idB', name: 'b-praia.jpg', mimeType: 'image/jpeg' },
+            { id: 'idN', name: 'notas.txt', mimeType: 'text/plain' },
+            { id: 'idA', name: 'a-festa.heic', mimeType: 'image/heif' },
+          ],
+        },
+      },
+    })
+    expect(app.handleGetGuest({ id: 'r01' })?.photos).toEqual([
+      'https://lh3.googleusercontent.com/d/idA=w1600',
+      'https://lh3.googleusercontent.com/d/idB=w1600',
+    ])
+    expect(app.handleGetGuest({ id: 'r02' })?.photos).toEqual([])
+  })
+
+  it('photos: a wrong folder ID never breaks the login', () => {
+    const { app } = createSandbox({
+      guests: baseGuests,
+      properties: { SHEET_ID: 's', COUPLE_EMAILS: 'a@x.com', GUEST_PHOTOS_FOLDER_ID: 'gone' },
+    })
+    expect(app.handleGetGuest({ id: 'r01' })).toMatchObject({ guestId: 'r01', photos: [] })
   })
 
   it('returns null for unknown id', () => {

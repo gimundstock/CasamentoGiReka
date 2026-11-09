@@ -17,13 +17,11 @@ export function Hero1Welcome({ guest, onReset }: Props) {
   const base = import.meta.env.BASE_URL
   const altText = `${CONFIG.couple.bride} & ${CONFIG.couple.groom}`
 
-  // A foto do convidado, quando existe, abre o carrossel — era ela que
-  // aparecia sozinha aqui antes, e a personalização não pode se perder.
+  // As fotos do convidado (da pasta dele no Drive) abrem o carrossel — era a
+  // dele que aparecia sozinha aqui antes, e a personalização não pode se perder.
   // Os marcos da história trazem legenda; as demais entram sem texto.
   const photos: CarouselPhoto[] = [
-    ...(guest.hasPhoto
-      ? [{ src: `${base}photos/${guest.guestId}.jpg`, alt: guestName(guest) }]
-      : []),
+    ...(guest.photos ?? []).map((src) => ({ src, alt: guestName(guest) })),
     ...CONFIG.story.milestones.map((m) => ({
       src: `${base}photos/${m.photo}`,
       alt: altText,

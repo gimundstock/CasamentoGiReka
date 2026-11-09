@@ -22,7 +22,7 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 - **No credit card / no cloud costs**: Firebase rejected in favor of Google Sheets + Apps Script (100% free, no account needed beyond Google).
 
 ## Google Sheets tabs
-1. **Guests** — guestId, groupName, language, attendees (comma-sep), hasPhoto, displayName (optional, how the site greets them; blank → groupName), padrinho (boolean, shows the padrinhos' manual)
+1. **Guests** — guestId, groupName, language, attendees (comma-sep), displayName (optional, how the site greets them; blank → groupName), padrinho (boolean, shows the padrinhos' manual)
 2. **RSVPs** — timestamp, guestId, groupName, attendeesJson, menuChoicesJson, songRequest, message
 3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice (always BRL), cardMessage, paymentMethod (pix/paypal), currency, amountPaid, paymentRef (PayPal capture ID)
 4. **Cards** — timestamp, guestId, groupName, giftName, theme, from, message (the card a guest writes after buying a gift)
@@ -124,4 +124,4 @@ Outdoor celebration, wildflowers, delicate and natural. Use SVG wildflower illus
 - RSVP deadline
 
 ## Guest photos
-Place per-guest photos in `public/photos/{guestId}.jpg`. If `hasPhoto=true` in the Guests sheet, the welcome hero shows that photo. Otherwise shows the default couple photo.
+Guest photos are NOT in the repo (it's public). They live in Google Drive: a folder whose ID is the `GUEST_PHOTOS_FOLDER_ID` Script Property, shared "anyone with the link", with one subfolder per guest named by `guestId`. `getGuest` lists that subfolder and returns `photos` (image URLs, file-name order); they open the welcome carousel. Adding or removing photos needs no commit or deploy. `public/photos/` is only for the couple's own photos.
