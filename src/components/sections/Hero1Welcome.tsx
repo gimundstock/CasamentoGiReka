@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { Guest } from '../../types'
-import { guestName } from '../../utils/guest'
+import { guestName, guestPhotoSources } from '../../utils/guest'
 import { CONFIG } from '../../content.config'
 import { PhotoCarousel, type CarouselPhoto } from '../ui/PhotoCarousel'
 
@@ -17,12 +17,13 @@ export function Hero1Welcome({ guest, onReset }: Props) {
   const altText = `${CONFIG.couple.bride} & ${CONFIG.couple.groom}`
 
   // A celebração (o último capítulo da história) abre sempre o carrossel;
-  // depois vêm só as fotos do convidado, da pasta dele no Drive. Sem fotos,
+  // depois vêm só as fotos do convidado: a cópia que o deploy fez da pasta
+  // dele no Drive, ou o próprio Drive para uma foto mais nova. Sem fotos,
   // fica só a celebração. Nenhuma foto do hero leva legenda.
   const celebration = CONFIG.story.milestones[CONFIG.story.milestones.length - 1]
   const photos: CarouselPhoto[] = [
     ...(celebration ? [{ src: `${base}photos/${celebration.photo}`, alt: altText }] : []),
-    ...(guest.photos ?? []).map((src) => ({ src, alt: guestName(guest) })),
+    ...guestPhotoSources(guest, base).map((p) => ({ ...p, alt: guestName(guest) })),
   ]
 
   return (

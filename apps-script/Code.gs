@@ -8,6 +8,9 @@
  *   SHEET_ID       the Google Sheets document ID
  *   GUEST_PHOTOS_FOLDER_ID  optional: the Drive folder holding one subfolder per
  *                  guest, named by guestId, with that guest's photos
+ *   PHOTO_SYNC_TOKEN  a long random string, also a GitHub Actions secret: the
+ *                  deploy uses it to list every guest photo and copy them
+ *                  into the site (action=photoManifest)
  *   COUPLE_EMAILS  comma-separated addresses that receive RSVP and gift copies
  *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
  *   PAYPAL_CLIENT_ID, PAYPAL_SECRET
@@ -74,6 +77,7 @@ function doGet(e) {
     var action = e.parameter.action;
     if (action === 'getGuest') return jsonResponse(handleGetGuest(e.parameter));
     if (action === 'getSoldCotas') return jsonResponse(handleGetSoldCotas());
+    if (action === 'photoManifest') return jsonResponse(handlePhotoManifest(e.parameter));
     return jsonResponse({ error: 'Unknown action' });
   } catch (err) {
     return jsonResponse({ error: String(err) });
@@ -203,34 +207,64 @@ function isTrue(value) {
   return value === true || String(value).trim().toLowerCase() === 'true';
 }
 
+/** The images in a Drive folder, in file-name order, as { name, id }. */
+function imagesIn(folder) {
+  var files = folder.getFiles();
+  var images = [];
+  while (files.hasNext()) {
+    var f = files.next();
+    if (String(f.getMimeType()).indexOf('image/') === 0) {
+      images.push({ name: f.getName(), id: f.getId() });
+    }
+  }
+  images.sort(function(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
+  return images;
+}
+
+function guestPhotosRoot() {
+  var rootId = PropertiesService.getScriptProperties().getProperty('GUEST_PHOTOS_FOLDER_ID');
+  return rootId ? DriveApp.getFolderById(rootId) : null;
+}
+
 /**
- * The images in this guest's Drive subfolder, in file-name order, as URLs a
- * page can show. Drive serves them only if the folder is shared "anyone with
- * the link". Any trouble (no property, no subfolder, Drive down) means no
- * photos, never a failed login.
+ * The images in this guest's Drive subfolder, in file-name order, as Drive
+ * URLs. The site shows the copy the deploy made of each one (see
+ * handlePhotoManifest) and falls back to this URL for photos added since.
+ * Drive serves them only if the folder is shared "anyone with the link".
+ * Any trouble (no property, no subfolder, Drive down) means no photos, never
+ * a failed login.
  */
 function guestPhotoUrls(guestId) {
-  var rootId = PropertiesService.getScriptProperties().getProperty('GUEST_PHOTOS_FOLDER_ID');
-  if (!rootId || !guestId) return [];
+  if (!guestId) return [];
   try {
-    var folders = DriveApp.getFolderById(rootId).getFoldersByName(String(guestId));
+    var root = guestPhotosRoot();
+    if (!root) return [];
+    var folders = root.getFoldersByName(String(guestId));
     if (!folders.hasNext()) return [];
-    var files = folders.next().getFiles();
-    var images = [];
-    while (files.hasNext()) {
-      var f = files.next();
-      if (String(f.getMimeType()).indexOf('image/') === 0) {
-        images.push({ name: f.getName(), id: f.getId() });
-      }
-    }
-    images.sort(function(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
-    return images.map(function(img) {
+    return imagesIn(folders.next()).map(function(img) {
       return 'https://lh3.googleusercontent.com/d/' + img.id + '=w1600';
     });
   } catch (e) {
     console.error('guestPhotoUrls(' + guestId + '): ' + e);
     return [];
   }
+}
+
+/**
+ * Every guest photo's Drive file ID, for the deploy to copy them into the
+ * site. It lists all guests' photos at once, so it needs PHOTO_SYNC_TOKEN.
+ */
+function handlePhotoManifest(params) {
+  var token = requiredProperty('PHOTO_SYNC_TOKEN');
+  if (!params || params.token !== token) return { error: 'Forbidden' };
+  var root = guestPhotosRoot();
+  if (!root) return { ids: [] };
+  var ids = [];
+  var folders = root.getFolders();
+  while (folders.hasNext()) {
+    imagesIn(folders.next()).forEach(function(img) { ids.push(img.id); });
+  }
+  return { ids: ids };
 }
 
 function formatGuest(row) {

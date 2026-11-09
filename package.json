@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "release": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build",
     "generate-qr": "tsx scripts/generate-qr-codes.ts",
+    "photos:sync": "node --env-file=.env.local scripts/sync-guest-photos.mjs public/guest-photos",
     "backend:pull": "scripts/backend.sh pull",
     "backend:push": "scripts/backend.sh push",
     "backend:deploy": "scripts/backend.sh deploy"
