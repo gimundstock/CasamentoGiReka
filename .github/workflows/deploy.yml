@@ -33,6 +33,7 @@ jobs:
         run: npm run release
         env:
           VITE_APPSCRIPT_URL: ${{ secrets.VITE_APPSCRIPT_URL }}
+          VITE_PAYPAL_CLIENT_ID: ${{ secrets.VITE_PAYPAL_CLIENT_ID }}
 
       - uses: actions/configure-pages@v5
 

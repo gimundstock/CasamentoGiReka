@@ -8,6 +8,7 @@
 | What | Where it lives |
 |---|---|
 | `SHEET_ID`, `COUPLE_EMAILS` | Apps Script editor → **Project Settings → Script properties** |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET`, `PAYPAL_ENV` | Same place. Only for PayPal gifts; `PAYPAL_ENV=live` for real payments, unset = sandbox |
 | `scriptId` | `.clasp.json` (gitignored; template in `.clasp.json.example`) |
 | clasp login | `~/.clasprc.json` in your home folder (never in the repo) |
 | Web App URL | `.env.local` → `VITE_APPSCRIPT_URL`, and the GitHub Actions secret |
@@ -16,6 +17,21 @@
 `COUPLE_EMAILS` is comma-separated and must mirror `CONFIG.coupleEmails` in
 `src/content.config.ts`. A missing property makes every request return
 `{ "error": "Missing Script Property: …" }`.
+
+### PayPal
+
+The browser only lets the guest *approve* a PayPal order; `Code.gs` captures it
+(`capturePaypalOrder`) after checking the cotas are still free, so a cota sold
+in the meantime never charges anyone, and an order ID that PayPal didn't
+complete never reaches the Orders tab. The Secret is used only here.
+
+Calling PayPal needs the "connect to an external service" permission: after
+the first push with PayPal, run any function once in the editor (e.g.
+`handleGetSoldCotas`) and accept the new permission, then `backend:deploy`.
+Until then, PayPal purchases fail and PIX keeps working.
+
+Add four headers to the Orders tab, after `cardMessage`: `paymentMethod`,
+`currency`, `amountPaid`, `paymentRef`.
 
 ## One-time setup
 
