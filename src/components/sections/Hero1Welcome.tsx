@@ -17,20 +17,21 @@ export function Hero1Welcome({ guest, onReset }: Props) {
   const base = import.meta.env.BASE_URL
   const altText = `${CONFIG.couple.bride} & ${CONFIG.couple.groom}`
 
-  // As fotos do convidado (da pasta dele no Drive) abrem o carrossel — era a
-  // dele que aparecia sozinha aqui antes, e a personalização não pode se perder.
-  // Os marcos da história trazem legenda; as demais entram sem texto.
+  // A celebração (o último capítulo da história) abre sempre o carrossel;
+  // depois vêm só as fotos do convidado, da pasta dele no Drive. Sem fotos,
+  // fica só a celebração.
+  const celebration = CONFIG.story.milestones[CONFIG.story.milestones.length - 1]
   const photos: CarouselPhoto[] = [
+    ...(celebration
+      ? [
+          {
+            src: `${base}photos/${celebration.photo}`,
+            alt: altText,
+            caption: lang === 'pt' ? celebration.title_pt : celebration.title_en,
+          },
+        ]
+      : []),
     ...(guest.photos ?? []).map((src) => ({ src, alt: guestName(guest) })),
-    ...CONFIG.story.milestones.map((m) => ({
-      src: `${base}photos/${m.photo}`,
-      alt: altText,
-      caption: lang === 'pt' ? m.title_pt : m.title_en,
-    })),
-    // Extras sem legenda, só se a história ainda não os usa.
-    ...['couple2.jpg', 'r01.jpg', 'r02.jpg']
-      .filter((f) => !CONFIG.story.milestones.some((m) => m.photo === f))
-      .map((f) => ({ src: `${base}photos/${f}`, alt: altText })),
   ]
 
   return (
