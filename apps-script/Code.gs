@@ -258,7 +258,7 @@ function handlePurchaseGift(body) {
 }
 
 function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalPrice, cardMessage) {
-  var guestName = guest ? guest.displayName : to;
+  var guestName = guest ? guest.groupName : to;
   var subject = '🌸 Confirmação do presente — ' + giftName;
 
   var cotaList = cotaLabels.map(function(l) { return '• ' + l; }).join('\n');
