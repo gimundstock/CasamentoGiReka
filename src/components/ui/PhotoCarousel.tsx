@@ -19,6 +19,14 @@ interface Props {
 const DEPTH = 2
 
 /**
+ * Esperas, em ms, antes de pedir de novo uma foto que falhou. O Drive, de
+ * onde vêm as fotos dos convidados, responde 429 quando recebe pedidos demais
+ * de uma vez; esperar e tentar de novo costuma bastar. Esgotadas as
+ * tentativas, a foto sai da pilha.
+ */
+const RETRY_DELAYS = [3000, 8000, 20000]
+
+/**
  * Pilha de polaroides. A foto ativa fica à frente e reta; as vizinhas espiam
  * atrás, deslocadas para os lados, inclinadas e menores — um baralho de fotos
  * espalhado sobre a mesa.
@@ -50,6 +58,27 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
   const markBroken = useCallback((src: string) => {
     setBroken((prev) => new Set(prev).add(src))
   }, [])
+
+  // Quantas vezes cada foto já foi pedida de novo. Entra na chave do <img>,
+  // então mudar o número remonta a imagem e faz um pedido novo.
+  const [retries, setRetries] = useState<Record<string, number>>({})
+  const retryTimers = useRef<number[]>([])
+  useEffect(() => () => retryTimers.current.forEach((t) => window.clearTimeout(t)), [])
+
+  const onPhotoError = useCallback(
+    (src: string, attempt: number) => {
+      if (attempt >= RETRY_DELAYS.length) {
+        markBroken(src)
+        return
+      }
+      const t = window.setTimeout(
+        () => setRetries((prev) => ({ ...prev, [src]: attempt + 1 })),
+        RETRY_DELAYS[attempt]
+      )
+      retryTimers.current.push(t)
+    },
+    [markBroken]
+  )
 
   const safeIndex = count > 0 ? mod(pos, count) : 0
 
@@ -184,10 +213,14 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
                 transition={{ default: mola, opacity: fade }}
               >
                 <img
-                  src={photo.src}
+                  key={retries[photo.src] ?? 0}
+                  // Só as fotos à vista são baixadas: pedir todas de uma vez é
+                  // o que faz o Drive responder 429. As demais chegam conforme
+                  // a pilha anda até elas.
+                  src={atras <= DEPTH ? photo.src : undefined}
                   alt=""
                   className="aspect-[4/5] w-full rounded-[1px] object-cover"
-                  onError={() => markBroken(photo.src)}
+                  onError={() => onPhotoError(photo.src, retries[photo.src] ?? 0)}
                   // As fotos dos convidados vêm do Drive, que recusa a imagem
                   // quando o pedido traz o Referer de outro site.
                   referrerPolicy="no-referrer"
