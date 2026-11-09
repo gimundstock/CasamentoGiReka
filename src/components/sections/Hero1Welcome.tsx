@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { Guest } from '../../types'
+import { guestName } from '../../utils/guest'
 import { CONFIG } from '../../content.config'
 import { PhotoCarousel, type CarouselPhoto } from '../ui/PhotoCarousel'
 
@@ -21,7 +22,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
   // Os marcos da história trazem legenda; as demais entram sem texto.
   const photos: CarouselPhoto[] = [
     ...(guest.hasPhoto
-      ? [{ src: `${base}photos/${guest.guestId}.jpg`, alt: guest.groupName }]
+      ? [{ src: `${base}photos/${guest.guestId}.jpg`, alt: guestName(guest) }]
       : []),
     ...CONFIG.story.milestones.map((m) => ({
       src: `${base}photos/${m.photo}`,
@@ -82,7 +83,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
           {/* O nome do grupo varia de tamanho, então o título escalona com a
               tela e quebra por palavra em vez de estourar a largura. */}
           <h1 className="font-display text-title relative z-10 text-4xl leading-[1.25] break-words sm:text-5xl md:text-6xl">
-            {t('welcome.greeting', { name: guest.groupName })}
+            {t('welcome.greeting', { name: guestName(guest) })}
           </h1>
 
           <p className="font-sans text-title relative z-10 mt-10 text-sm tracking-[0.25em] text-balance uppercase lg:mt-24">
