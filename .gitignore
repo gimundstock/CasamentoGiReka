@@ -3,6 +3,8 @@ dist/
 .DS_Store
 *.local
 qr-codes/
+# guest photos copied from Drive by `npm run photos:sync` (never in git)
+public/guest-photos/
 
 # clasp: the project's scriptId and any credentials stay local
 .clasp.json

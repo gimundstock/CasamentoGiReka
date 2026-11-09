@@ -50,6 +50,7 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
 | `npm run release` | Full quality gate: typecheck + lint + format:check + build |
 | `npm run build` | Production build to `dist/` |
 | `npm run generate-qr` | Generate per-guest invitation QR PNGs (requires `qrcode` package) |
+| `npm run photos:sync` | Copy guest photos from Drive into `public/guest-photos/` (gitignored) for local dev |
 | `npm run backend:pull` | Diff the live Apps Script project against `apps-script/` (never writes to the repo) |
 | `npm run backend:push` | Push `apps-script/Code.gs` + manifest to the Apps Script project with clasp |
 | `npm run backend:deploy` | Push and publish a new version on the existing Web App deployment (same URL) |
@@ -124,4 +125,4 @@ Outdoor celebration, wildflowers, delicate and natural. Use SVG wildflower illus
 - RSVP deadline
 
 ## Guest photos
-Guest photos are NOT in the repo (it's public). They live in Google Drive: a folder whose ID is the `GUEST_PHOTOS_FOLDER_ID` Script Property, shared "anyone with the link", with one subfolder per guest named by `guestId`. `getGuest` lists that subfolder and returns `photos` (image URLs, file-name order); they open the welcome carousel. Adding or removing photos needs no commit or deploy. `public/photos/` is only for the couple's own photos.
+Guest photos are NOT in the repo (it's public). They live in Google Drive: a folder whose ID is the `GUEST_PHOTOS_FOLDER_ID` Script Property, shared "anyone with the link", with one subfolder per guest named by `guestId`. `getGuest` lists that subfolder and returns `photos` (Drive image URLs, file-name order); they open the welcome carousel. The deploy (`scripts/sync-guest-photos.mjs`, daily + on merge) copies every photo into `dist/guest-photos/<driveFileId>.jpg` via `?action=photoManifest&token=` (`PHOTO_SYNC_TOKEN`, Script Property + GitHub secret); the site shows that copy and falls back to Drive for newer photos. Drive alone rate-limits (429). `public/photos/` is only for the couple's own photos.

@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Daily, so guest photos added to Drive get copied into the site
+  # (06:00 in Brasília). Until then the site shows new ones from Drive.
+  schedule:
+    - cron: '0 9 * * *'
 
 permissions:
   contents: read
@@ -34,6 +38,12 @@ jobs:
         env:
           VITE_APPSCRIPT_URL: ${{ secrets.VITE_APPSCRIPT_URL }}
           VITE_PAYPAL_CLIENT_ID: ${{ secrets.VITE_PAYPAL_CLIENT_ID }}
+
+      - name: Copy guest photos from Drive
+        run: node scripts/sync-guest-photos.mjs dist/guest-photos
+        env:
+          VITE_APPSCRIPT_URL: ${{ secrets.VITE_APPSCRIPT_URL }}
+          PHOTO_SYNC_TOKEN: ${{ secrets.PHOTO_SYNC_TOKEN }}
 
       - uses: actions/configure-pages@v5
 

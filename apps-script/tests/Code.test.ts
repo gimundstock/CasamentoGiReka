@@ -93,6 +93,35 @@ describe('handleGetGuest', () => {
     expect(app.handleGetGuest({ id: 'r02' })?.photos).toEqual([])
   })
 
+  it('photoManifest: every guest photo ID, only with the token', () => {
+    const { app } = createSandbox({
+      guests: baseGuests,
+      properties: {
+        SHEET_ID: 's',
+        COUPLE_EMAILS: 'a@x.com',
+        GUEST_PHOTOS_FOLDER_ID: 'root',
+        PHOTO_SYNC_TOKEN: 'segredo',
+      },
+      drive: {
+        root: {
+          r01: [
+            { id: 'idB', name: 'b.jpg', mimeType: 'image/jpeg' },
+            { id: 'idN', name: 'n.txt', mimeType: 'text/plain' },
+          ],
+          r02: [{ id: 'idC', name: 'c.png', mimeType: 'image/png' }],
+        },
+      },
+    })
+    expect(app.handlePhotoManifest({ token: 'segredo' })).toEqual({ ids: ['idB', 'idC'] })
+    expect(app.handlePhotoManifest({ token: 'errado' })).toEqual({ error: 'Forbidden' })
+    expect(app.handlePhotoManifest({})).toEqual({ error: 'Forbidden' })
+  })
+
+  it('photoManifest: refuses everyone while PHOTO_SYNC_TOKEN is unset', () => {
+    const { app } = createSandbox({ guests: baseGuests })
+    expect(() => app.handlePhotoManifest({ token: '' })).toThrow(/PHOTO_SYNC_TOKEN/)
+  })
+
   it('photos: a wrong folder ID never breaks the login', () => {
     const { app } = createSandbox({
       guests: baseGuests,

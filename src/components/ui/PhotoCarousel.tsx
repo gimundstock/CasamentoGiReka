@@ -7,6 +7,8 @@ export interface CarouselPhoto {
   alt: string
   /** Legenda manuscrita na tarja branca de baixo. */
   caption?: string
+  /** Se src falhar, tenta este (a foto direto do Drive, se a cópia não existe). */
+  fallbackSrc?: string
 }
 
 interface Props {
@@ -65,8 +67,16 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
   const retryTimers = useRef<number[]>([])
   useEffect(() => () => retryTimers.current.forEach((t) => window.clearTimeout(t)), [])
 
+  // Fotos que já trocaram src pelo fallbackSrc.
+  const [fellBack, setFellBack] = useState<Set<string>>(new Set())
+
   const onPhotoError = useCallback(
-    (src: string, attempt: number) => {
+    (photo: CarouselPhoto, attempt: number) => {
+      const src = photo.src
+      if (photo.fallbackSrc && !fellBack.has(src)) {
+        setFellBack((prev) => new Set(prev).add(src))
+        return
+      }
       if (attempt >= RETRY_DELAYS.length) {
         markBroken(src)
         return
@@ -77,7 +87,7 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
       )
       retryTimers.current.push(t)
     },
-    [markBroken]
+    [markBroken, fellBack]
   )
 
   const safeIndex = count > 0 ? mod(pos, count) : 0
@@ -213,14 +223,20 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
                 transition={{ default: mola, opacity: fade }}
               >
                 <img
-                  key={retries[photo.src] ?? 0}
+                  key={`${fellBack.has(photo.src)}#${retries[photo.src] ?? 0}`}
                   // Só as fotos à vista são baixadas: pedir todas de uma vez é
                   // o que faz o Drive responder 429. As demais chegam conforme
                   // a pilha anda até elas.
-                  src={atras <= DEPTH ? photo.src : undefined}
+                  src={
+                    atras > DEPTH
+                      ? undefined
+                      : fellBack.has(photo.src)
+                        ? photo.fallbackSrc
+                        : photo.src
+                  }
                   alt=""
                   className="aspect-[4/5] w-full rounded-[1px] object-cover"
-                  onError={() => onPhotoError(photo.src, retries[photo.src] ?? 0)}
+                  onError={() => onPhotoError(photo, retries[photo.src] ?? 0)}
                   // As fotos dos convidados vêm do Drive, que recusa a imagem
                   // quando o pedido traz o Referer de outro site.
                   referrerPolicy="no-referrer"

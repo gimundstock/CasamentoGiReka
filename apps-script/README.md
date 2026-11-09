@@ -10,6 +10,7 @@
 | `SHEET_ID`, `COUPLE_EMAILS` | Apps Script editor → **Project Settings → Script properties** |
 | `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET`, `PAYPAL_ENV` | Same place. Only for PayPal gifts; `PAYPAL_ENV=live` for real payments, unset = sandbox |
 | `GUEST_PHOTOS_FOLDER_ID` | Same place. Optional: the Drive folder of guest photos (below) |
+| `PHOTO_SYNC_TOKEN` | Same place, **and** the GitHub Actions secret of the same name (below) |
 | `scriptId` | `.clasp.json` (gitignored; template in `.clasp.json.example`) |
 | clasp login | `~/.clasprc.json` in your home folder (never in the repo) |
 | Web App URL | `.env.local` → `VITE_APPSCRIPT_URL`, and the GitHub Actions secret |
@@ -47,7 +48,16 @@ of photos (any image type, any file names; shown in file-name order).
 3. After the first push with this, run any function once in the editor and
    accept the Drive permission, then `backend:deploy`.
 
-Adding or removing photos later needs no commit and no deploy.
+The deploy copies every photo into the site (`guest-photos/<driveFileId>.jpg`,
+never in git), so guests' pages don't load from Drive, which rate-limits
+images (429). It runs on every merge to `main` and daily at 06:00 Brasília;
+a photo added in between shows from Drive until then. To copy right away:
+GitHub → Actions → *Deploy to GitHub Pages* → *Run workflow*.
+
+The copy lists the photos through `?action=photoManifest&token=…`. Set the
+same long random string as the `PHOTO_SYNC_TOKEN` Script Property and GitHub
+secret; without it the deploy skips the copy (with a warning) and the site
+shows every photo from Drive.
 
 ## One-time setup
 

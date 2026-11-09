@@ -52,6 +52,7 @@ export interface AppsScriptGlobals {
   doPost: (e: { postData: { contents: string } }) => { getContent: () => string }
   handleGetGuest: (params: { id?: string; name?: string }) => Guest | null
   handleGetSoldCotas: () => { sold: string[] }
+  handlePhotoManifest: (params: { token?: string }) => { ids?: string[]; error?: string }
   handlePurchaseGift: (body: PurchaseBody) => { success: boolean; error?: string }
   capturePaypalOrder: (orderId: string) => {
     ok: boolean
@@ -158,24 +159,20 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
       getFolderById: (id: string) => {
         const folder = drive[id]
         if (!folder) throw new Error('No item with the given ID could be found')
-        return {
-          getFoldersByName: (name: string) =>
+        const subfolder = (name: string) => ({
+          getFiles: () =>
             iterate(
-              name in folder
-                ? [
-                    {
-                      getFiles: () =>
-                        iterate(
-                          folder[name].map((f) => ({
-                            getId: () => f.id,
-                            getName: () => f.name,
-                            getMimeType: () => f.mimeType,
-                          })),
-                        ),
-                    },
-                  ]
-                : [],
+              folder[name].map((f) => ({
+                getId: () => f.id,
+                getName: () => f.name,
+                getMimeType: () => f.mimeType,
+              })),
             ),
+        })
+        return {
+          getFolders: () => iterate(Object.keys(folder).map(subfolder)),
+          getFoldersByName: (name: string) =>
+            iterate(name in folder ? [subfolder(name)] : []),
         }
       },
     },
