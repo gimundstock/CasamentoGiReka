@@ -8,6 +8,11 @@
  *   SHEET_ID       the Google Sheets document ID
  *   COUPLE_EMAILS  comma-separated addresses that receive RSVP and gift copies
  *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
+ *   PAYPAL_CLIENT_ID, PAYPAL_SECRET
+ *                  the PayPal REST app's credentials (developer.paypal.com),
+ *                  needed only for PayPal gifts. The Secret lives here only.
+ *   PAYPAL_ENV     'live' for real payments; anything else (or unset) uses
+ *                  the PayPal sandbox
  *
  * GOOGLE SHEETS SETUP:
  * Create a spreadsheet with 4 tabs named exactly:
@@ -23,7 +28,10 @@
  *   padrinho     TRUE for the wedding party: they also get the padrinhos' manual
  * Columns are read by header name, so their order in the sheet doesn't matter.
  * RSVPs columns:  timestamp | guestId | groupName | attendeesJson | songRequest | message
- * Orders columns: timestamp | guestId | groupName | guestEmail | giftId | giftName | selectedCotas | totalPrice | cardMessage
+ * Orders columns: timestamp | guestId | groupName | guestEmail | giftId | giftName | selectedCotas | totalPrice | cardMessage | paymentMethod | currency | amountPaid | paymentRef
+ *   totalPrice is always in BRL (the catalog price). paymentMethod is 'pix' or
+ *   'paypal'; for PayPal, currency/amountPaid are what PayPal actually
+ *   captured and paymentRef is the PayPal capture ID.
  * Cards columns:  timestamp | guestId | groupName | giftName | theme | from | message
  */
 
@@ -225,11 +233,28 @@ function handlePurchaseGift(body) {
     var guestEmail = body.guestEmail;
     var cardMessage = body.cardMessage || '';
 
+    var paymentMethod = body.paymentMethod === 'paypal' ? 'paypal' : 'pix';
+
     var sold = collectSoldCotaIds();
     for (var i = 0; i < selectedCotaIds.length; i++) {
       if (sold[selectedCotaIds[i]]) {
         return { success: false, error: 'Cota ' + selectedCotaIds[i] + ' já foi comprada.' };
       }
+    }
+
+    // PIX is paid outside the site; the guest's word is the record. A PayPal
+    // order is only approved by the guest at this point: we capture it here,
+    // after the cotas are known to be free, so a sold-out cota never charges.
+    var currency = 'BRL';
+    var amountPaid = totalPrice;
+    var paymentRef = '';
+    if (paymentMethod === 'paypal') {
+      var capture = capturePaypalOrder(body.paypalOrderId);
+      if (!capture.ok) return { success: false, error: capture.error };
+      currency = capture.currency;
+      amountPaid = capture.amount;
+      paymentRef = capture.captureId;
+      if (!guestEmail) guestEmail = capture.payerEmail;
     }
 
     var now = new Date().toISOString();
@@ -245,10 +270,14 @@ function handlePurchaseGift(body) {
       JSON.stringify(selectedCotaIds),
       totalPrice,
       cardMessage,
+      paymentMethod,
+      currency,
+      amountPaid,
+      paymentRef,
     ]);
 
     if (guestEmail) {
-      sendPurchaseEmail(guestEmail, guestRow, giftName, selectedCotaLabels, totalPrice, cardMessage);
+      sendPurchaseEmail(guestEmail, guestRow, giftName, selectedCotaLabels, formatMoney(amountPaid, currency), cardMessage);
     }
 
     return { success: true };
@@ -257,7 +286,67 @@ function handlePurchaseGift(body) {
   }
 }
 
-function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalPrice, cardMessage) {
+function formatMoney(amount, currency) {
+  var symbol = currency === 'BRL' ? 'R$' : currency === 'EUR' ? '€' : currency;
+  return symbol + ' ' + Number(amount).toFixed(2);
+}
+
+function paypalBaseUrl() {
+  var env = PropertiesService.getScriptProperties().getProperty('PAYPAL_ENV');
+  return env === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+}
+
+/**
+ * Captures a PayPal order the guest approved in the browser. Returns
+ * { ok, captureId, amount, currency, payerEmail } or { ok: false, error }.
+ */
+function capturePaypalOrder(orderId) {
+  if (!orderId || !/^[A-Za-z0-9-]+$/.test(String(orderId))) {
+    return { ok: false, error: 'Pedido PayPal inválido.' };
+  }
+  var base = paypalBaseUrl();
+  var auth = Utilities.base64Encode(
+    requiredProperty('PAYPAL_CLIENT_ID') + ':' + requiredProperty('PAYPAL_SECRET')
+  );
+  var tokenRes = UrlFetchApp.fetch(base + '/v1/oauth2/token', {
+    method: 'post',
+    headers: { Authorization: 'Basic ' + auth },
+    payload: { grant_type: 'client_credentials' },
+    muteHttpExceptions: true,
+  });
+  if (tokenRes.getResponseCode() !== 200) {
+    return { ok: false, error: 'PayPal indisponível. Tente novamente.' };
+  }
+  var token = JSON.parse(tokenRes.getContentText()).access_token;
+
+  var res = UrlFetchApp.fetch(base + '/v2/checkout/orders/' + orderId + '/capture', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + token },
+    payload: '{}',
+    muteHttpExceptions: true,
+  });
+  var order = {};
+  try {
+    order = JSON.parse(res.getContentText());
+  } catch (e) {
+    // fall through to the status check
+  }
+  var unit = order.purchase_units && order.purchase_units[0];
+  var cap = unit && unit.payments && unit.payments.captures && unit.payments.captures[0];
+  if (res.getResponseCode() >= 300 || order.status !== 'COMPLETED' || !cap) {
+    return { ok: false, error: 'O pagamento PayPal não foi concluído.' };
+  }
+  return {
+    ok: true,
+    captureId: cap.id,
+    amount: Number(cap.amount.value),
+    currency: cap.amount.currency_code,
+    payerEmail: (order.payer && order.payer.email_address) || '',
+  };
+}
+
+function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMessage) {
   var guestName = guest ? guest.groupName : to;
   var subject = '🌸 Confirmação do presente — ' + giftName;
 
@@ -270,7 +359,7 @@ function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalPrice, cardMess
     '',
     '🎁 Presente: ' + giftName,
     cotaList,
-    'Total: R$ ' + Number(totalPrice).toFixed(2),
+    'Total: ' + totalLabel,
     '',
     cardMessage ? '💌 Seu cartão:\n"' + cardMessage + '"' : '',
     '',

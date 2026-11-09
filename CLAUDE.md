@@ -17,13 +17,14 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 - **No server**: All persistence via Google Sheets + Apps Script. The frontend calls the Apps Script URL directly.
 - **Guest personalization**: URL param `?g=GUESTID` auto-loads guest profile. Fallback: name entry screen, exact match on the group name or one guest's full name (case, accents, "&"/"e"/"and" and name order ignored; no partial matches).
 - **PIX payments**: Client-side QR generation from the PIX EMV spec. One PIX key for all gifts, per-cota amounts.
+- **PayPal (guests abroad)**: the couple's EU PayPal account, charged in EUR at the fixed `CONFIG.paypal.eurPerBrl` rate, each cota rounded to whole euros (`src/utils/paypal.ts`). The browser only approves the order; `Code.gs` captures it after checking the cotas are free, so the PayPal Secret never reaches the frontend. Hidden when `VITE_PAYPAL_CLIENT_ID` is empty.
 - **Gift model**: Gift catalog (gifts + cotas + prices) lives in `src/content.config.ts` and is baked into the bundle. The Sheet only stores state. Cota availability is derived from the Orders tab — a cotaId appearing in any Orders row marks that cota as sold. A guest can buy multiple cotas at once.
 - **No credit card / no cloud costs**: Firebase rejected in favor of Google Sheets + Apps Script (100% free, no account needed beyond Google).
 
 ## Google Sheets tabs
 1. **Guests** — guestId, groupName, language, attendees (comma-sep), hasPhoto, displayName (optional, how the site greets them; blank → groupName), padrinho (boolean, shows the padrinhos' manual)
 2. **RSVPs** — timestamp, guestId, groupName, attendeesJson, menuChoicesJson, songRequest, message
-3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice, cardMessage
+3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice (always BRL), cardMessage, paymentMethod (pix/paypal), currency, amountPaid, paymentRef (PayPal capture ID)
 4. **Cards** — timestamp, guestId, groupName, giftName, theme, from, message (the card a guest writes after buying a gift)
 
 The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Availability is derived from which cotaIds appear in the `selectedCotas` column of the Orders tab.
@@ -31,7 +32,7 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
 ## Apps Script endpoints
 - `GET ?action=getGuest&id=X` or `?action=getGuest&name=X` (exact normalized match, see `nameKey` in Code.gs)
 - `GET ?action=getSoldCotas` — returns `{ sold: string[] }` of cotaIds present in Orders
-- `POST {action:'purchaseGift', guestId, giftId, giftName, selectedCotaIds, selectedCotaLabels, totalPrice, guestEmail, cardMessage}`
+- `POST {action:'purchaseGift', guestId, giftId, giftName, selectedCotaIds, selectedCotaLabels, totalPrice, guestEmail, cardMessage, paymentMethod?, paypalOrderId?}` — with `paymentMethod:'paypal'` it captures `paypalOrderId` via the PayPal API (Script Properties `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET`, `PAYPAL_ENV`)
 - `POST {action:'submitCard', guestId, giftName, theme, from, message}`
 - `POST {action:'submitRSVP', guestId, attendeesJson, menuChoicesJson, songRequest, message}`
 
@@ -64,6 +65,7 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
   - **Local dev**: copy `.env.example` → `.env.local` (gitignored) and fill it in.
   - **Prod**: set as a GitHub Actions repository secret with the same name.
   - If missing, `CONFIG.appScriptUrl` falls back to a placeholder and `getGifts()` serves `CONFIG.gifts` directly (useful for offline UI preview).
+- `VITE_PAYPAL_CLIENT_ID` — the PayPal REST app's Client ID (public). Sandbox ID locally, Live ID as a GitHub Actions secret. `sb` works as a throwaway sandbox ID for UI previews. Empty → PayPal hidden.
 
 ## Git workflow
 

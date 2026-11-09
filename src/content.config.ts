@@ -27,6 +27,19 @@ export const CONFIG = {
   // See .env.example for the template.
   appScriptUrl: import.meta.env.VITE_APPSCRIPT_URL ?? 'PLACEHOLDER_APPS_SCRIPT_URL',
 
+  // ── PayPal (guests paying from abroad) ──────────────────
+  // The couple's EU PayPal account charges in euros. The Client ID is public
+  // and injected from VITE_PAYPAL_CLIENT_ID (.env.local / GitHub secret); the
+  // Secret lives only in the Apps Script's Script Properties. Without a
+  // Client ID the PayPal option is hidden and only PIX is offered.
+  paypal: {
+    clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID ?? '',
+    currency: 'EUR',
+    // Euros per real, fixed so prices don't move day to day. Each cota's
+    // BRL price × this rate, rounded to whole euros, is what PayPal charges.
+    eurPerBrl: 0.16,
+  },
+
   // ── Wedding Day ──────────────────────────────────────────
   wedding: {
     date: '2027-06-05', // ISO format YYYY-MM-DD
