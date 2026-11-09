@@ -11,26 +11,17 @@ interface Props {
 }
 
 export function Hero1Welcome({ guest, onReset }: Props) {
-  const { t, i18n } = useTranslation()
-  const lang = i18n.language
+  const { t } = useTranslation()
 
   const base = import.meta.env.BASE_URL
   const altText = `${CONFIG.couple.bride} & ${CONFIG.couple.groom}`
 
   // A celebração (o último capítulo da história) abre sempre o carrossel;
   // depois vêm só as fotos do convidado, da pasta dele no Drive. Sem fotos,
-  // fica só a celebração.
+  // fica só a celebração. Nenhuma foto do hero leva legenda.
   const celebration = CONFIG.story.milestones[CONFIG.story.milestones.length - 1]
   const photos: CarouselPhoto[] = [
-    ...(celebration
-      ? [
-          {
-            src: `${base}photos/${celebration.photo}`,
-            alt: altText,
-            caption: lang === 'pt' ? celebration.title_pt : celebration.title_en,
-          },
-        ]
-      : []),
+    ...(celebration ? [{ src: `${base}photos/${celebration.photo}`, alt: altText }] : []),
     ...(guest.photos ?? []).map((src) => ({ src, alt: guestName(guest) })),
   ]
 
