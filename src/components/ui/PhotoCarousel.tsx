@@ -188,6 +188,9 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
                   alt=""
                   className="aspect-[4/5] w-full rounded-[1px] object-cover"
                   onError={() => markBroken(photo.src)}
+                  // As fotos dos convidados vêm do Drive, que recusa a imagem
+                  // quando o pedido traz o Referer de outro site.
+                  referrerPolicy="no-referrer"
                   draggable={false}
                 />
                 {photo.caption && (
