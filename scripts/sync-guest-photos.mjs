@@ -31,7 +31,10 @@ async function main() {
     return
   }
 
-  const url = `${appUrl}?action=photoManifest&token=${encodeURIComponent(token)}`
+  // t= makes every call a new URL: Google briefly caches Web App answers per
+  // URL, and right after a backend deploy that can be the old code's answer.
+  const url =
+    `${appUrl}?action=photoManifest&token=${encodeURIComponent(token)}` + `&t=${Date.now()}`
   const manifest = await (await fetch(url, { redirect: 'follow' })).json()
   if (!Array.isArray(manifest.ids)) {
     warn(`the backend answered ${JSON.stringify(manifest).slice(0, 200)}`)
