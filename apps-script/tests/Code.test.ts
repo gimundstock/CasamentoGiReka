@@ -34,6 +34,44 @@ describe('handleGetGuest', () => {
     expect(guest?.hasPhoto).toBe(true)
   })
 
+  it('displayName falls back to groupName; padrinho defaults to false', () => {
+    const { app } = createSandbox({ guests: baseGuests })
+    expect(app.handleGetGuest({ id: 'r01' })).toMatchObject({
+      displayName: 'Ana e Bruno',
+      padrinho: false,
+    })
+  })
+
+  it('reads displayName and padrinho when the columns are there', () => {
+    const guests = [
+      [...GUESTS_HEADER, 'displayName', 'padrinho'],
+      ['p01', 'Helaine e Ivanio', 'pt', 'Helaine Silva, Ivanio Silva', false, 'Mãe e Pai', true],
+      ['p02', 'Eva e Felipe', 'pt', 'Eva Melo, Felipe Melo', false, '  ', 'TRUE'],
+      ['p03', 'Gil', 'pt', 'Gil Prado', false, 'Tio Gil', 'false'],
+    ]
+    const { app } = createSandbox({ guests })
+    expect(app.handleGetGuest({ id: 'p01' })).toMatchObject({
+      groupName: 'Helaine e Ivanio',
+      displayName: 'Mãe e Pai',
+      padrinho: true,
+    })
+    expect(app.handleGetGuest({ id: 'p02' })).toMatchObject({
+      displayName: 'Eva e Felipe',
+      padrinho: true,
+    })
+    expect(app.handleGetGuest({ id: 'p03' })?.padrinho).toBe(false)
+  })
+
+  it('logging in by name ignores displayName', () => {
+    const guests = [
+      [...GUESTS_HEADER, 'displayName', 'padrinho'],
+      ['p01', 'Helaine e Ivanio', 'pt', 'Helaine Silva, Ivanio Silva', false, 'Mãe e Pai', true],
+    ]
+    const { app } = createSandbox({ guests })
+    expect(app.handleGetGuest({ name: 'Mãe e Pai' })).toBeNull()
+    expect(app.handleGetGuest({ name: 'helaine e ivanio' })?.guestId).toBe('p01')
+  })
+
   it('returns null for unknown id', () => {
     const { app } = createSandbox({ guests: baseGuests })
     expect(app.handleGetGuest({ id: 'nope' })).toBeNull()

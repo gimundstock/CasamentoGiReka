@@ -1,9 +1,17 @@
 export interface Guest {
   guestId: string
+  /** The name on the invitation; guests log in with it. */
   groupName: string
+  /**
+   * How the site addresses them ("Mãe e Pai"). The backend falls back to
+   * groupName; older cached guests may lack it, so read it via guestName().
+   */
+  displayName?: string
   language: 'pt' | 'en'
   attendees: string[]
   hasPhoto: boolean
+  /** Part of the wedding party: the site also shows the padrinhos' manual. */
+  padrinho?: boolean
   /** Set by the backend: the guest already has a row in the RSVPs tab. */
   rsvpSubmitted?: boolean
   /** Set by the backend: who is and isn't coming, from their latest reply. */

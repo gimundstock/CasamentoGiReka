@@ -22,7 +22,7 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 - **No credit card / no cloud costs**: Firebase rejected in favor of Google Sheets + Apps Script (100% free, no account needed beyond Google).
 
 ## Google Sheets tabs
-1. **Guests** — guestId, groupName, language, attendees (comma-sep), hasPhoto
+1. **Guests** — guestId, groupName, language, attendees (comma-sep), hasPhoto, displayName (optional, how the site greets them; blank → groupName), padrinho (boolean, shows the padrinhos' manual)
 2. **RSVPs** — timestamp, guestId, groupName, attendeesJson, menuChoicesJson, songRequest, message
 3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice (always BRL), cardMessage, paymentMethod (pix/paypal), currency, amountPaid, paymentRef (PayPal capture ID)
 4. **Cards** — timestamp, guestId, groupName, giftName, theme, from, message (the card a guest writes after buying a gift)
