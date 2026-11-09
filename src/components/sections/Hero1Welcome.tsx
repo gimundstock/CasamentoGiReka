@@ -79,8 +79,11 @@ export function Hero1Welcome({ guest, onReset }: Props) {
           />
           */}
           {/* O nome do grupo varia de tamanho, então o título escalona com a
-              tela e quebra por palavra em vez de estourar a largura. */}
-          <h1 className="font-display text-title relative z-10 text-4xl leading-[1.25] break-words sm:text-5xl md:text-6xl">
+              tela e quebra por palavra em vez de estourar a largura. As
+              maiúsculas da Amsterdam sobem e descem muito além da linha: cada
+              tamanho leva a própria entrelinha (1.8), senão o text-5xl/6xl
+              volta a 1 e uma linha cai em cima da outra. */}
+          <h1 className="font-display text-title relative z-10 text-4xl/[1.8] break-words sm:text-5xl/[1.8] md:text-6xl/[1.8]">
             {t('welcome.greeting', { name: guestName(guest) })}
           </h1>
 
