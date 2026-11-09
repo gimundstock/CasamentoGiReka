@@ -15,6 +15,7 @@ import { CARD_THEMES, MessageCard, getCardTheme, type CardThemeId } from '../gif
 import { buildPixPayload } from '../../utils/pix'
 import type { Cota, Gift } from '../../types'
 import type { Guest } from '../../types'
+import { guestName } from '../../utils/guest'
 import { CONFIG } from '../../content.config'
 
 interface Props {
@@ -57,7 +58,7 @@ export function GiftShop({ guest }: Props) {
       step,
       cardMessage: '',
       cardTheme: 'cerrado',
-      cardFrom: guest.groupName,
+      cardFrom: guestName(guest),
       cardSent: false,
       email: '',
       submitting: false,

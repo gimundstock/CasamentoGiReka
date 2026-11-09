@@ -8,6 +8,7 @@ import { HeroBigDay } from './components/sections/HeroBigDay'
 import { RSVP } from './components/sections/RSVP'
 import { GiftShop } from './components/sections/GiftShop'
 import { useGuest } from './hooks/useGuest'
+import { guestName } from './utils/guest'
 import { CONFIG } from './content.config'
 
 function Footer() {
@@ -58,7 +59,7 @@ export default function App() {
       <main>
         <Hero1Welcome guest={guest} onReset={reset} />
         <HeroSaveDateCouple />
-        <HeroBigDay holder={guest.groupName} />
+        <HeroBigDay holder={guestName(guest)} />
         <RSVP guest={guest} />
         <GiftShop guest={guest} />
       </main>

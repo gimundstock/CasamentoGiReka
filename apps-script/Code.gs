@@ -17,7 +17,11 @@
  * only stores state — guests, RSVPs, and the purchase log. Availability is
  * derived from which cotaIds appear in the Orders tab.
  *
- * Guests columns: guestId | groupName | language | attendees | hasPhoto
+ * Guests columns: guestId | groupName | language | attendees | hasPhoto | displayName | padrinho
+ *   groupName    the name on the invitation, also what guests type to log in
+ *   displayName  optional: how the site greets them ("Mãe e Pai"); blank → groupName
+ *   padrinho     TRUE for the wedding party: they also get the padrinhos' manual
+ * Columns are read by header name, so their order in the sheet doesn't matter.
  * RSVPs columns:  timestamp | guestId | groupName | attendeesJson | songRequest | message
  * Orders columns: timestamp | guestId | groupName | guestEmail | giftId | giftName | selectedCotas | totalPrice | cardMessage
  * Cards columns:  timestamp | guestId | groupName | giftName | theme | from | message
@@ -182,14 +186,22 @@ function latestRsvpAttendees(guestId) {
   }
 }
 
+/** A checkbox or TRUE/true typed into a cell. */
+function isTrue(value) {
+  return value === true || String(value).trim().toLowerCase() === 'true';
+}
+
 function formatGuest(row) {
   var rsvp = latestRsvpAttendees(row.guestId);
+  var displayName = String(row.displayName == null ? '' : row.displayName).trim();
   return {
     guestId: row.guestId,
     groupName: row.groupName,
+    displayName: displayName || String(row.groupName),
     language: row.language || 'pt',
     attendees: String(row.attendees).split(',').map(function(s) { return s.trim(); }).filter(Boolean),
-    hasPhoto: row.hasPhoto === true || row.hasPhoto === 'true' || row.hasPhoto === 'TRUE',
+    hasPhoto: isTrue(row.hasPhoto),
+    padrinho: isTrue(row.padrinho),
     rsvpSubmitted: rsvp !== null,
     rsvpAttendees: rsvp || [],
   };
