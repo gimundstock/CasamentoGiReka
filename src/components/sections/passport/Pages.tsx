@@ -436,16 +436,21 @@ function HolderPage({ holder }: { holder?: string }) {
         className="pointer-events-none absolute top-0 right-0 w-[44%] opacity-90 select-none"
       />
       <div className="flex flex-1 flex-col items-center justify-center pb-[1.5em]">
-        <p className="font-sans text-forest -mr-[0.42em] text-[max(0.62em,10px)] tracking-[0.42em] uppercase">
+        <p className="font-sans text-forest -mr-[0.42em] text-[max(0.62em,10px)] tracking-[0.42em] text-balance uppercase">
           {t('city.passport.holder')}
         </p>
+        {/* The script's capitals rise well above its line and its loops
+            hang below it: room either side, or the "A" of a name runs into
+            the line above and its loop into the words below — and, on a
+            name in two lines (phones), into each other (leading 2.2: more than
+            welcome's greeting). */}
         <p
-          className="font-script text-honey mt-[0.55em] text-[2.6em] leading-[1.4]"
+          className="font-script text-honey mt-[0.85em] text-[2.6em] leading-[2.2]"
           style={{ textShadow: EMBOSS_SHADOW }}
         >
           <ScriptText>{holder || t('city.passport.holderFallback')}</ScriptText>
         </p>
-        <p className="font-serif text-forest-deep/90 mt-[1.4em] max-w-[18em] text-[1.15em] leading-[1.45] italic">
+        <p className="font-serif text-forest-deep/90 mt-[1.2em] max-w-[18em] text-[1.15em] leading-[1.45] italic">
           {t('city.passport.insideText')}
         </p>
       </div>
