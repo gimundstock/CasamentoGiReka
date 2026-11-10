@@ -17,7 +17,8 @@ const sections = [
   { observe: 'wedding', anchor: 'big-day', key: 'wedding' },
   { observe: 'city', anchor: 'passport', key: 'city' },
   { observe: 'rsvp', anchor: 'rsvp', key: 'rsvp' },
-  { observe: 'gifts', anchor: 'gifts', key: 'gifts' },
+  // The list once its title has risen (GiftShop); 'gifts' itself without motion.
+  { observe: 'gifts', anchor: 'gifts-list', key: 'gifts' },
 ] as const
 type ObserveId = (typeof sections)[number]['observe']
 
@@ -65,8 +66,8 @@ export function Nav() {
     }
   }, [])
 
-  function scrollTo(id: string) {
-    const el = document.getElementById(id)
+  function scrollTo(id: string, fallback: string) {
+    const el = document.getElementById(id) ?? document.getElementById(fallback)
     if (!el) return
     // Custom smooth scroll: native `scrollTo({ behavior: 'smooth' })` gives
     // no control over the curve and makes long jumps (top → big-day anchor
@@ -101,7 +102,7 @@ export function Nav() {
             return (
               <button
                 key={s.observe}
-                onClick={() => scrollTo(s.anchor)}
+                onClick={() => scrollTo(s.anchor, s.observe)}
                 className={`font-sans text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
                   isActive ? 'text-title' : 'text-title/60 hover:text-title'
                 }`}
@@ -148,7 +149,7 @@ export function Nav() {
               return (
                 <button
                   key={s.observe}
-                  onClick={() => scrollTo(s.anchor)}
+                  onClick={() => scrollTo(s.anchor, s.observe)}
                   className={`font-sans py-3 text-left text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
                     isActive ? 'text-title' : 'text-title/60 hover:text-title'
                   }`}
