@@ -389,8 +389,14 @@ export function BrasiliaPassport({
         leavesEl.style.clipPath = clip
         leavesEl.style.setProperty('-webkit-clip-path', clip)
       }
-      chrome.style.opacity = String(seg(v, [PHASE.open[1] - 25, PHASE.open[1]]) * (1 - closing))
-      if (tabsRef.current) tabsRef.current.style.opacity = chrome.style.opacity
+      const chromeIn = seg(v, [PHASE.open[1] - 25, PHASE.open[1]])
+      if (tabsRef.current) tabsRef.current.style.opacity = String(chromeIn * (1 - closing))
+      // "Scroll to go on" stays under the book shut again on the desk (where
+      // the snap leaves it), going only as the envelope comes for it; kept
+      // centred under it as it shuts (the book moves by closedShift).
+      const onward = layout ? 1 - seg(v, [DESK.arrive[0], DESK.arrive[0] + 15]) : 1
+      chrome.style.opacity = String(chromeIn * onward)
+      chrome.style.transform = `translate3d(${(-g.closedShift * (1 - o)).toFixed(1)}px, 0, 0)`
       // The corner note only once the book lies fully open; it then fades
       // in on its own (CSS transition), not with the scroll.
       if (cornerRef.current) showNote(cornerRef.current, v >= PHASE.open[1] && closing === 0)
