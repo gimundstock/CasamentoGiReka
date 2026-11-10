@@ -16,7 +16,6 @@
     "error": "Error fetching invitation. Please try again."
   },
   "welcome": {
-    "scrollHint": "Scroll to begin",
     "greeting": "Hello, {{name}}!",
     "invitation": "You are invited to celebrate with us",
     "lake": "Paranoá Lake",
