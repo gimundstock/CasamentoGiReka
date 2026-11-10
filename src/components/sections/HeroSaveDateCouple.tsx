@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useScroll,
+  useTransform,
+} from 'framer-motion'
 import { CONFIG } from '../../content.config'
 import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
@@ -122,6 +129,12 @@ function daisyScaleAt(v: number): number {
 }
 
 const DISSOLVE_START = 0.96
+
+// "Save the Date" gathers over the first TITLE_END of the scroll — or on its
+// own, TITLE_DELAY_S after the stage arrives, over TITLE_PLAY_S.
+const TITLE_END = 0.1
+const TITLE_DELAY_S = 0.6
+const TITLE_PLAY_S = 2.6
 
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
@@ -249,6 +262,25 @@ export function HeroSaveDateCouple() {
     return 1
   })
 
+  // "Save the Date" gathers on its own once the stage has arrived, in time
+  // as the flowers fall: a guest who stops there and waits sees it come
+  // together instead of an empty page (it had gathered only with the
+  // scroll). Scrolling on, it follows whichever is further along; the date
+  // and the countdown still wait for the scroll, which invites it.
+  const titlePlayed = useMotionValue(0)
+  const { scrollYProgress: arrival } = useScroll({
+    target: stageRef,
+    offset: ['start end', 'start start'],
+  })
+  useMotionValueEvent(arrival, 'change', (a) => {
+    if (a < 0.98 || titlePlayed.get() > 0) return
+    titlePlayed.set(0.0001)
+    animate(titlePlayed, 1, { delay: TITLE_DELAY_S, duration: TITLE_PLAY_S, ease: 'linear' })
+  })
+  const titleProgress = useTransform([scrollYProgress, titlePlayed], ([v, p]: number[]) =>
+    Math.max(v, p * TITLE_END)
+  )
+
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
   // reliability reason as the daisy opacity above.
   const saveDateOpacity = useTransform(scrollYProgress, (v: number) => {
@@ -333,9 +365,9 @@ export function HeroSaveDateCouple() {
               <FlipLetters
                 text="Save the Date"
                 spaceClassNames={['', '-ml-[0.3em]']}
-                scrollProgress={scrollYProgress}
+                scrollProgress={titleProgress}
                 scrollStart={0}
-                scrollEnd={0.1}
+                scrollEnd={TITLE_END}
                 staggerRatio={0.95}
                 scaleFrom={0.15}
                 fadeIn={0.45}
