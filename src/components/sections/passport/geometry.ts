@@ -372,6 +372,9 @@ export function snapTarget(at: number, dir: 1 | -1, desk: boolean): number | nul
       aim: (PHASE.open[1] + openEnd) / 2,
     },
   ]
+  // On the desk, read: the book shut again, before the envelope comes for it
+  // (a glide never carries it from open straight on to the envelope).
+  if (desk) rests.push({ from: DESK.close[1], to: DESK.close[1], aim: DESK.close[1] })
   // Last: the envelope drawn in (desk), or the stage letting go, the site
   // going on below (the book open on it still).
   const end = desk ? DESK.end : PASSPORT_VH

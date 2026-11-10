@@ -41,10 +41,17 @@ describe.each([false, true])('snapTarget (desk: %s)', (desk) => {
 })
 
 describe('snapTarget on the desk', () => {
-  it('a book left closing goes back open, or on to the envelope', () => {
+  it('a book left closing goes back open, or on to shut — never to the envelope', () => {
     const open = openMid(true) + HOLD
+    const shutAgain = DESK.close[1] + HOLD
     expect(snapTarget(DESK.close[0] + 20 + HOLD, -1, true)).toBe(open)
-    expect(snapTarget(DESK.close[0] + 40 + HOLD, 1, true)).toBe(DESK.end + HOLD)
+    expect(snapTarget(DESK.close[0] + 20 + HOLD, 1, true)).toBe(shutAgain)
+    expect(snapTarget(shutAgain, 1, true)).toBeNull()
+  })
+
+  it('a push left part-way goes on to the envelope, or back to the shut book', () => {
+    expect(snapTarget(DESK.arrive[0] + 20 + HOLD, 1, true)).toBe(DESK.end + HOLD)
+    expect(snapTarget(DESK.arrive[0] + 20 + HOLD, -1, true)).toBe(DESK.close[1] + HOLD)
   })
 
   it('ignores the hold, where the passport lies on the desk', () => {
