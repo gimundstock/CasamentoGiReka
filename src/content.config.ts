@@ -235,9 +235,9 @@ export const CONFIG = {
         cuisine_pt: 'Bar de vinhos',
         cuisine_en: 'Wine bar',
         description_pt:
-          'Bar de vinhos descontraído na Asa Norte, com carta premiada — recebeu o Best of Award of Excellence da Wine Spectator em 2025. A cozinha gira em torno do porco (daí o "swine"): embutidos artesanais, linguiças e queijos para dividir, com opções vegetarianas. Abre à noite, de terça a sábado.',
+          'O bar do irmão do Renato! Bar de vinhos descontraído na Asa Norte, com carta premiada — recebeu o Best of Award of Excellence da Wine Spectator em 2025. A cozinha gira em torno do porco (daí o "swine"): embutidos artesanais, linguiças e queijos para dividir, com opções vegetarianas. Abre à noite, de terça a sábado.',
         description_en:
-          'A relaxed wine bar in Asa Norte with an award-winning list — it received Wine Spectator\'s Best of Award of Excellence in 2025. The kitchen is built around pork (hence the "swine"): house-made charcuterie, sausages and cheeses to share, with vegetarian options. Open in the evenings, Tuesday to Saturday.',
+          "Renato's brother's bar! A relaxed wine bar in Asa Norte with an award-winning list — it received Wine Spectator's Best of Award of Excellence in 2025. The kitchen is built around pork (hence the \"swine\"): house-made charcuterie, sausages and cheeses to share, with vegetarian options. Open in the evenings, Tuesday to Saturday.",
         priceRange: '',
         priceRange_en: '',
         address: '314 Norte (CLN 314, Bloco B, Loja 21) — Brasília, DF',
