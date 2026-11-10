@@ -7,6 +7,7 @@ import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
 import { NAV_HEIGHT } from './Envelope'
 import { OrbitingStory } from '../motion/OrbitingStory'
+import { ScrollHint } from '../ui/ScrollHint'
 import { SUN_BIG_SCALE, SUN_BIG_VMIN, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 // Colunas da grade da contagem: números (e rótulos) nas ímpares, dois-pontos
@@ -257,6 +258,11 @@ export function HeroSaveDateCouple() {
     return 0
   })
 
+  // "Scroll to begin": at the very top only the falling flowers show (the
+  // words gather with the scroll), and guests waited for something to
+  // happen. Gone with the first bit of scroll.
+  const startHintOpacity = useTransform(scrollYProgress, (v: number) => Math.max(0, 1 - v / 0.03))
+
   // Couple heading: invisible through save-date, fades in 0.48 → 0.54,
   // stays at 1 throughout the cascade, fades back out 0.92 → 1.0.
   const coupleHeadingOpacity = useTransform(scrollYProgress, (v: number) => {
@@ -407,6 +413,20 @@ export function HeroSaveDateCouple() {
                 </div>
               </div>
             </div>
+          </motion.div>
+
+          <motion.div
+            className="pointer-events-none absolute inset-x-0 bottom-[max(2.5rem,8vh)] z-20 text-center"
+            style={{ opacity: startHintOpacity }}
+          >
+            {/* In once the first flowers have fallen, so they come first. */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.6, duration: 1.2, ease: 'easeOut' }}
+            >
+              <ScrollHint label={t('welcome.scrollHint')} />
+            </motion.div>
           </motion.div>
 
           {/* ── z-10  Daisy — single persistent element ── */}

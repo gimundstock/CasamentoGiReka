@@ -16,6 +16,7 @@
     "error": "Erro ao buscar convite. Tente novamente."
   },
   "welcome": {
+    "scrollHint": "Role para começar",
     "greeting": "Olá, {{name}}!",
     "invitation": "Você está convidado(a) para celebrar conosco",
     "lake": "Lago Paranoá",
