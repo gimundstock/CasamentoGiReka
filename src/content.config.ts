@@ -507,7 +507,7 @@ export const CONFIG = {
         cuisine_pt: 'Pizzaria — pizza por fatia desde 1960',
         cuisine_en: 'Pizzeria — pizza by the slice since 1960',
         description_pt:
-          'A Spontini brasiliense! Fundada em 1960, a Dom Bosco é a mais antiga pizzaria de Brasília e um ponto turístico. O cardápio tem um único sabor: pizza de muçarela, vendida por fatia e acompanhada do tradicional mate gelado.',
+          'Fundada em 1960, a Dom Bosco é a mais antiga pizzaria de Brasília e um ponto turístico. O cardápio tem um único sabor: pizza de muçarela, vendida por fatia e acompanhada do tradicional mate gelado.',
         description_en:
           "Brasília's own Spontini! Founded in 1960, Dom Bosco is the city's oldest pizzeria and a sight in itself. Its menu has one flavour: mozzarella pizza by the slice, served with the traditional iced mate tea.",
         priceRange: 'R$ 10–20/pessoa',
