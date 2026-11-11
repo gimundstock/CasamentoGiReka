@@ -188,9 +188,9 @@ export const CONFIG = {
         name: 'Airbnb',
         distance: '',
         description_pt:
-          'Também há muitos apartamentos e flats para alugar pelo Airbnb. Boas regiões para procurar: o Setor Hoteleiro Norte e o Setor de Clubes Sul, à beira do lago.',
+          'Também há muitos apartamentos e flats para alugar pelo Airbnb. Para ficar mais perto da festa, procurem no Lago Norte ou na Asa Norte.',
         description_en:
-          'There are also plenty of apartments and flats to rent on Airbnb. Good areas to look in: the Setor Hoteleiro Norte (North Hotel Sector) and the Setor de Clubes Sul, by the lake.',
+          'There are also plenty of apartments and flats to rent on Airbnb. To stay closer to the party, look in Lago Norte or Asa Norte.',
         priceRange: '',
         priceRange_en: '',
         url: 'https://www.airbnb.com.br/s/Bras%C3%ADlia--DF/homes',
