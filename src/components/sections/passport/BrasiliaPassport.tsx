@@ -511,7 +511,7 @@ export function BrasiliaPassport({
         // "Scroll to go on" goes with the passport.
         chrome.style.opacity = String(chromeIn * onward * (1 - seg(c, [0, 15])))
       }
-      manualRef.current?.update(c, v)
+      manualRef.current?.update(c, v, at)
       return o >= 1
     },
     [g, reduced, spread, desk, layout, manual, chapter]

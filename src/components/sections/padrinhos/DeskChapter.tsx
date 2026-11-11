@@ -8,15 +8,18 @@ import type { ManualOnDesk } from './geometry'
 
 export interface DeskChapterHandle {
   /**
-   * At `c` (vh into the chapter, see manualTime) and the passport's own
-   * time `v`, which runs on again after it (the envelope's push).
+   * At `c` (vh into the chapter, see manualTime), the passport's own time
+   * `v`, which runs on again after it (the envelope's push), and the
+   * stage's `at` (the desk, before it).
    */
-  update(c: number, v: number): void
+  update(c: number, v: number, at: number): void
 }
 
 /**
- * The padrinhos' manual on the desk (CHAPTER): drawn in from the right
- * once the passport has shut again, pushing it off; it unfolds left and
+ * The padrinhos' manual on the desk: lying shut with the passport and the
+ * envelope, and carried off to the right with the envelope as the
+ * passport is picked up. Then its chapter (CHAPTER): drawn back in from
+ * the right once the passport has shut again, pushing it off; it unfolds left and
  * right with the scroll, lies open (on a phone, looked along a panel at a
  * time), folds shut, and the envelope pushes it off as it pushed the
  * passport. With a kicker above it, and a hint under it.
@@ -41,9 +44,30 @@ export function DeskChapter({
   const hintTop = h + 18
 
   useImperativeHandle(handle, () => ({
-    update(c: number, v: number) {
+    update(c: number, v: number, at: number) {
       const mover = moverRef.current
       if (!mover) return
+      if (c <= 0) {
+        // Lying on the desk: laid down just after the envelope, and carried
+        // off to the right with it as the passport is picked up.
+        const L = spot.lying
+        const away = ease(seg(at, DESK.pickUp))
+        const laid = ease(seg(at, [DESK.layIn[0] + 20, DESK.layIn[1] + 15]))
+        mover.style.visibility = laid > 0 && away < 1 ? 'inherit' : 'hidden'
+        mover.style.opacity = String(laid)
+        // Over the envelope, under the passport.
+        mover.style.zIndex = '1'
+        const x = L.x - g.vw / 2 + (spot.offRight + g.vw / 2 - L.x) * away
+        const dy = L.y - y + (1 - laid) * 14
+        mover.style.transform = `translate3d(${x.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${(L.rot + 8 * away).toFixed(3)}deg) scale(${(L.h / h).toFixed(5)})`
+        foldRef.current?.set(0)
+        if (panRef.current) panRef.current.style.transform = 'none'
+        for (const el of [kickerRef.current, openHintRef.current, onHintRef.current]) {
+          if (el) el.style.visibility = 'hidden'
+        }
+        return
+      }
+      mover.style.opacity = '1'
       const after = c >= CHAPTER.len
       // Pushed off by the envelope, after the chapter (as the passport was).
       const push = after ? seg(v, DESK.arrive) : 0
