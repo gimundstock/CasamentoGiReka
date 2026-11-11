@@ -59,7 +59,7 @@ export default function App() {
       <main>
         <Hero1Welcome guest={guest} onReset={reset} />
         <HeroSaveDateCouple />
-        <HeroBigDay holder={guestName(guest)} />
+        <HeroBigDay holder={guestName(guest)} padrinho={guest.padrinho} />
         <RSVP guest={guest} />
         <GiftShop guest={guest} />
       </main>

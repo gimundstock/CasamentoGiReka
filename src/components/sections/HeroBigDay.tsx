@@ -162,7 +162,7 @@ function useStageGeometry(ref: RefObject<HTMLDivElement | null>) {
  * subscription bug for opacity in framer-motion 12 here.
  */
 /** `holder`: the guest the passport is made out to (their display name). */
-export function HeroBigDay({ holder }: { holder?: string }) {
+export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: boolean }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
 
@@ -617,7 +617,13 @@ export function HeroBigDay({ holder }: { holder?: string }) {
           </motion.div>
 
           {/* ── z-40  The city guide, as a passport. ── */}
-          <BrasiliaPassport progress={passVh} g={geo} reduced={reduced} holder={holder} />
+          <BrasiliaPassport
+            progress={passVh}
+            g={geo}
+            reduced={reduced}
+            holder={holder}
+            padrinho={padrinho}
+          />
         </div>
       </div>
     </section>

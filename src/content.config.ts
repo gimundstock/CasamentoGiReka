@@ -119,6 +119,67 @@ export const CONFIG = {
     { id: 'vegano', pt: 'Vegano', en: 'Vegan' },
   ],
 
+  // ── Padrinhos' manual ─────────────────────────────────────
+  // A gatefold card for the guests marked `padrinho` in the Sheet: it lies
+  // on the desk with the passport and the invitation, and opens left and
+  // right into three panels. DRAFT copy below: replace it, then set
+  // `published: true` (until then the card only shows in `npm run dev`).
+  padrinhos: {
+    published: false,
+    panels: [
+      // Left flap (narrow): a word for them.
+      {
+        kicker_pt: 'Para vocês',
+        kicker_en: 'For you',
+        title_pt: 'Obrigado',
+        title_en: 'Thank you',
+        intro_pt:
+          'Vocês estiveram ao nosso lado em tantos momentos que não conseguimos imaginar este dia sem vocês. Aqui está tudo o que precisam saber.',
+        intro_en:
+          'You have been by our side through so much that we cannot picture this day without you. Here is everything you need to know.',
+        items: [] as PadrinhosItem[],
+        palette: [] as string[],
+      },
+      // Centre (wide): the day. (An empty kicker shows the wedding date.)
+      {
+        kicker_pt: '',
+        kicker_en: '',
+        title_pt: 'O grande dia',
+        title_en: 'The big day',
+        intro_pt: 'Os horários dos padrinhos, para chegarmos juntos a cada momento.',
+        intro_en: 'The wedding party’s times, so we reach every moment together.',
+        items: [
+          {
+            label_pt: 'a definir',
+            label_en: 'tbc',
+            text_pt: 'Chegada dos padrinhos',
+            text_en: 'Wedding party arrives',
+          },
+          {
+            label_pt: 'a definir',
+            label_en: 'tbc',
+            text_pt: 'Fotos com os noivos',
+            text_en: 'Photos with the couple',
+          },
+          { label_pt: '15h30', label_en: '3:30pm', text_pt: 'Cerimônia', text_en: 'Ceremony' },
+          { label_pt: 'a definir', label_en: 'tbc', text_pt: 'Festa', text_en: 'Party' },
+        ] as PadrinhosItem[],
+        palette: [] as string[],
+      },
+      // Right flap (narrow): what to wear.
+      {
+        kicker_pt: 'Traje',
+        kicker_en: 'What to wear',
+        title_pt: 'Cores',
+        title_en: 'Colours',
+        intro_pt: 'Passeio completo, nos tons do nosso jardim.',
+        intro_en: 'Cocktail attire, in the colours of our garden.',
+        items: [] as PadrinhosItem[],
+        palette: ['#ADB897', '#F5D1B2', '#DC9A32', '#B9A8B5'],
+      },
+    ],
+  },
+
   // ── Brasília City Guide ───────────────────────────────────
   cityGuide: {
     // distance: by car to the venue (Clube do Congresso, at the far end of
@@ -1920,6 +1981,14 @@ export const CONFIG = {
   ],
 }
 
+/** One line of a padrinhos' manual panel: a time or a term, and what it is. */
+export interface PadrinhosItem {
+  label_pt: string
+  label_en: string
+  text_pt: string
+  text_en: string
+}
+export type PadrinhosPanel = (typeof CONFIG.padrinhos.panels)[number]
 export type MenuOption = (typeof CONFIG.menuOptions)[number]
 export type GiftConfig = (typeof CONFIG.gifts)[number]
 export type CotaConfig = (typeof CONFIG.gifts)[number]['cotas'][number]

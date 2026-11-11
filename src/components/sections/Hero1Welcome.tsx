@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import type { Guest } from '../../types'
 import { guestName, guestPhotoSources } from '../../utils/guest'
 import { CONFIG } from '../../content.config'
+import { WelcomeManual } from './padrinhos/WelcomeManual'
 import { PhotoCarousel, type CarouselPhoto } from '../ui/PhotoCarousel'
 
 interface Props {
@@ -92,6 +93,8 @@ export function Hero1Welcome({ guest, onReset }: Props) {
           >
             {t('welcome.notYou')}
           </button>
+          {/* Padrinhos without the desk scene: their manual, here. */}
+          <WelcomeManual padrinho={guest.padrinho} />
         </div>
       </div>
 

@@ -34,6 +34,10 @@ import { PassportCover } from './PassportCover'
 import { DeskFlowers } from './DeskFlowers'
 import { NAV_HEIGHT, ShutEnvelope, useClockDelay } from '../Envelope'
 import { NUDGE_MS, ScrollHint } from '../../ui/ScrollHint'
+import { DeskManual } from '../padrinhos/DeskManual'
+import { PadrinhosManual } from '../padrinhos/PadrinhosManual'
+import { manualOnDesk } from '../padrinhos/geometry'
+import { manualPublished } from '../padrinhos/available'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
   BackBoard,
@@ -89,12 +93,15 @@ export function BrasiliaPassport({
   g,
   reduced,
   holder,
+  padrinho,
 }: {
   progress: MotionValue<number>
   g: PassportGeometry | null
   reduced: boolean
   /** Whose passport it is (the guest's group name), if known. */
   holder?: string
+  /** Part of the wedding party: their manual lies on the desk too. */
+  padrinho?: boolean
 }) {
   const { t, i18n } = useTranslation()
   const lang: Lang = i18n.language === 'en' ? 'en' : 'pt'
@@ -226,6 +233,13 @@ export function BrasiliaPassport({
   const flowersRef = useRef<HTMLDivElement>(null)
   const desk = !!g?.desk && !reduced
   const layout = useMemo(() => (g && desk ? deskLayout(g) : null), [g, desk])
+  // The padrinhos' manual, a third thing on the desk (padrinhos only).
+  const manual = useMemo(
+    () => (g && layout && padrinho && manualPublished() ? manualOnDesk(g, layout) : null),
+    [g, layout, padrinho]
+  )
+  const manualRef = useRef<HTMLButtonElement>(null)
+  const [manualOpen, setManualOpen] = useState(false)
   const nudgeDelay = useClockDelay(NUDGE_MS)
 
   const update = useCallback(
@@ -480,10 +494,24 @@ export function BrasiliaPassport({
         // The wildflowers lying round the two: in with them, and there to
         // stay (the invitation lays the same ones out, where these are).
         show(flowersRef.current, coverIn)
+        // The padrinhos' manual: laid down just after the envelope, and
+        // carried off to the right with it as the passport is picked up.
+        const man = manualRef.current
+        if (man && manual) {
+          const away = ease(seg(at, DESK.pickUp))
+          const laid = ease(seg(at, [DESK.layIn[0] + 20, DESK.layIn[1] + 15]))
+          const shown = push <= 0 && laid > 0 && away < 1
+          man.style.visibility = shown ? 'inherit' : 'hidden'
+          man.style.opacity = String(laid)
+          man.style.pointerEvents = shown && laid > 0.6 && away < 0.3 ? 'auto' : 'none'
+          const dx = (manual.offX - manual.x) * away
+          const dy = (1 - laid) * 14
+          man.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${(manual.rot + 8 * away).toFixed(3)}deg)`
+        }
       }
       return o >= 1
     },
-    [g, reduced, spread, desk, layout]
+    [g, reduced, spread, desk, layout, manual]
   )
   // Scrolled back up (or on, past the book): it closes on the page it was
   // open at, and opens again on it.
@@ -666,6 +694,14 @@ export function BrasiliaPassport({
               <ScrollHint label={t('rsvp.envelopeHint')} delay={nudgeDelay} />
             </div>
           </div>
+        </>
+      )}
+
+      {/* The padrinhos' manual, lying shut on the desk (opened in a dialog). */}
+      {manual && (
+        <>
+          <DeskManual spot={manual} divRef={manualRef} onOpen={() => setManualOpen(true)} />
+          <PadrinhosManual open={manualOpen} onClose={() => setManualOpen(false)} />
         </>
       )}
 
