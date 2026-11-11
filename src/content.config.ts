@@ -646,18 +646,18 @@ export const CONFIG = {
       {
         name: 'Quadra Modelo (308 Sul)',
         description_pt:
-          'A superquadra-modelo do plano de Lúcio Costa, com blocos residenciais baixos entre árvores, comércio local e a Igrejinha. Dá uma boa ideia de como é morar no Plano Piloto — vale uma caminhada.',
+          'A superquadra-modelo do plano de Lúcio Costa, com blocos residenciais baixos entre árvores, comércio local e a Igrejinha.',
         description_en:
-          "The model superquadra of Lúcio Costa's plan, with low residential blocks among trees, local shops and the little church. It gives a good sense of what living in the Plano Piloto is like — worth a walk.",
+          "The model superquadra of Lúcio Costa's plan, with low residential blocks among trees, local shops and the little church.",
         address: 'SQS 308 — Asa Sul, Brasília, DF',
         url: '',
       },
       {
         name: 'UnB — Campus Darcy Ribeiro',
         description_pt:
-          'A Universidade de Brasília, criada em 1962, com o campus Darcy Ribeiro na Asa Norte: o Minhocão, o Instituto Central de Ciências e o lago. Um campus lindo, aberto e cheio de árvores, ótimo para passear. Foi lá que a Giovanna e o Renato se conheceram.',
+          'A Universidade de Brasília, criada em 1962, com o campus Darcy Ribeiro na Asa Norte. Um campus lindo, aberto e cheio de árvores, ótimo para passear. Foi lá que a Giovanna e o Renato se conheceram.',
         description_en:
-          'The University of Brasília, founded in 1962, with the Darcy Ribeiro campus in the Asa Norte: the long Minhocão building, the Central Institute of Sciences and the lake. A beautiful, open campus full of trees, lovely for a stroll. It is where Giovanna and Renato met.',
+          'The University of Brasília, founded in 1962, with the Darcy Ribeiro campus in the Asa Norte. A beautiful, open campus full of trees, lovely for a stroll. It is where Giovanna and Renato met.',
         address: 'Campus Darcy Ribeiro — Asa Norte, Brasília, DF',
         url: '',
       },
