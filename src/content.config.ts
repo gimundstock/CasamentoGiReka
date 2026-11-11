@@ -178,26 +178,15 @@ export const CONFIG = {
         address: 'Setor de Hotéis e Turismo Norte — Asa Norte, Brasília, DF',
       },
       {
-        name: 'Flat à Beira do Lago — Setor de Clubes Sul (Airbnb)',
+        name: 'Airbnb',
         description_pt:
-          'Apartamento inteiro de 51 m² com varanda e vista para o Lago Paranoá, para até 3 pessoas: um quarto, sofá-cama na sala e um banheiro. O prédio tem piscina, sauna, academia e jacuzzi. Nota 4,78 em mais de 580 avaliações no Airbnb. A cerca de 10 minutos da Esplanada dos Ministérios.',
+          'Também há muitos apartamentos e flats para alugar pelo Airbnb. Boas regiões para procurar: o Setor Hoteleiro Norte e o Setor de Clubes Sul, à beira do lago.',
         description_en:
-          'An entire 51 m² apartment with a balcony and views over Lake Paranoá, sleeping up to 3: one bedroom, a sofa bed in the living room and one bathroom. The building has a pool, sauna, gym and jacuzzi. Rated 4.78 across 580+ reviews on Airbnb. About 10 minutes from the Esplanada dos Ministérios.',
+          'There are also plenty of apartments and flats to rent on Airbnb. Good areas to look in: the Setor Hoteleiro Norte (North Hotel Sector) and the Setor de Clubes Sul, by the lake.',
         priceRange: '',
         priceRange_en: '',
-        url: 'https://www.airbnb.com.br/rooms/17530522',
-        address: 'Setor de Clubes Sul — Brasília, DF',
-      },
-      {
-        name: 'Life Resort — Vista do Lago (Airbnb)',
-        description_pt:
-          'Flat inteiro para 2 pessoas no Setor Hoteleiro Norte, com varanda de frente para o lago, cozinha, Wi-Fi e uma vaga de garagem coberta gratuita. O resort tem piscina aquecida, restaurantes e mercadinho. Favorito dos hóspedes no Airbnb, nota 4,82 em mais de 460 avaliações.',
-        description_en:
-          'An entire flat for 2 in the North Hotel Sector, with a lakefront balcony, kitchen, Wi-Fi and one free covered parking space. The resort has a heated pool, restaurants and a convenience store. A guest favourite on Airbnb, rated 4.82 across 460+ reviews.',
-        priceRange: '',
-        priceRange_en: '',
-        url: 'https://www.airbnb.com.br/rooms/9612462',
-        address: 'Setor Hoteleiro Norte — Brasília, DF',
+        url: 'https://www.airbnb.com.br/s/Bras%C3%ADlia--DF/homes',
+        address: '',
       },
     ],
     transport: [
