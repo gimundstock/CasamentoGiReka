@@ -225,6 +225,15 @@ export const CONFIG = {
           'Brasília is built for cars, with wide avenues and plenty of free parking. If you plan to explore nearby destinations (Pirenópolis, Chapada dos Veadeiros), renting is worth it — Localiza, Movida, and Unidas have counters at the airport.',
         icon: '🚙',
       },
+      {
+        type_pt: 'Dicas',
+        type_en: 'Tips',
+        description_pt:
+          'O transporte público de Brasília não funciona tão bem, e não recomendamos. Andar a pé pode ser complicado, dependendo do local: as distâncias são grandes. E o táxi costuma sair mais caro que o Uber.',
+        description_en:
+          'Public transport in Brasília does not work very well, and we do not recommend it. Walking can be tricky depending on where you are: distances are long. And taxis usually cost more than Uber.',
+        icon: '💡',
+      },
     ],
     restaurants: [
       {
