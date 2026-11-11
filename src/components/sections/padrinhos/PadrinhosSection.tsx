@@ -1,26 +1,25 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMotionValueEvent, useScroll } from 'framer-motion'
 import { useReducedMotion } from '../../motion/useReducedMotion'
 import { ScrollHint } from '../../ui/ScrollHint'
-import { ease, isDesk, seg } from '../passport/geometry'
+import { ease, isDesk, passportGeometry, seg } from '../passport/geometry'
 import { manualChapter, manualSection } from './available'
-import { Gatefold, type GatefoldHandle } from './Gatefold'
+import { ManualCard, type ManualCardHandle } from './ManualCard'
 import { manualSize } from './geometry'
 import { useRestSnap, type Rest } from './useRestSnap'
 
 /**
  * The section's timeline, vh scrolled since its top reached the screen's.
- * The manual lies shut as it comes, unfolds, and lies open; on a phone,
- * where it is wider than the screen open, it is looked along a panel at a
- * time (the left one as it unfolds). Then the page goes on, the manual open.
+ * The manual lies shut as it comes, opens, and lies open; on a phone,
+ * where it is wider than the screen open, it is looked at a page at a
+ * time (the left one as it opens). Then the page goes on, the manual open.
  */
 const T = {
   unfold: [30, 90] as const,
-  toMiddle: [110, 138] as const,
-  toRight: [160, 188] as const,
-  /** Pinned this long: open (desk), or at the right panel (phone). */
-  end: { desk: 170, hand: 210 },
+  toRight: [120, 150] as const,
+  /** Pinned this long: open (desk), or at the right page (phone). */
+  end: { desk: 170, hand: 175 },
 }
 const point = (v: number): Rest => ({ from: v, to: v, aim: v })
 
@@ -39,9 +38,10 @@ function useScreen() {
 }
 
 /**
- * The padrinhos' manual as a section of its own (`padrinhos.mode: 'secao'`,
- * or where there is no desk scene for it): pinned while the scroll unfolds
- * it, on the invitation's paper. Padrinhos only.
+ * The padrinhos' manual as a section of its own, after the gift list,
+ * where there is no desk scene for it (a tablet, a phone on its side,
+ * reduced motion): pinned while the scroll opens it, on the invitation's
+ * paper. Padrinhos only.
  */
 export function PadrinhosSection({ padrinho }: { padrinho?: boolean }) {
   const { w: vw, h: vh } = useScreen()
@@ -54,10 +54,10 @@ export function PadrinhosSection({ padrinho }: { padrinho?: boolean }) {
 function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean }) {
   const { t } = useTranslation()
   const trackRef = useRef<HTMLElement>(null)
-  const foldRef = useRef<GatefoldHandle>(null)
+  const foldRef = useRef<ManualCardHandle>(null)
   const panRef = useRef<HTMLDivElement>(null)
   const openHintRef = useRef<HTMLDivElement>(null)
-  const size = manualSize(vw, vh)
+  const size = manualSize(useMemo(() => passportGeometry(vw, vh), [vw, vh]))
   const { w, h, pan } = size
   const phone = pan > 0
   const end = phone ? T.end.hand : T.end.desk
@@ -68,7 +68,7 @@ function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean
     const opened = reduced ? 1 : ease(seg(s, T.unfold))
     foldRef.current?.set(opened)
     if (panRef.current && phone && !reduced) {
-      const at = opened - ease(seg(s, T.toMiddle)) - ease(seg(s, T.toRight))
+      const at = opened - 2 * ease(seg(s, T.toRight))
       panRef.current.style.transform = `translate3d(${(pan * at).toFixed(2)}px, 0, 0)`
     }
     const hint = openHintRef.current
@@ -78,12 +78,7 @@ function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean
   useLayoutEffect(() => update(scrollYProgress.get()))
 
   const rests: Rest[] = phone
-    ? [
-        point(0),
-        point((T.unfold[1] + T.toMiddle[0]) / 2),
-        point((T.toMiddle[1] + T.toRight[0]) / 2),
-        point(end),
-      ]
+    ? [point(0), point((T.unfold[1] + T.toRight[0]) / 2), point(end)]
     : [point(0), point(end)]
   useRestSnap(trackRef, rests, !reduced)
 
@@ -91,7 +86,7 @@ function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean
   // by hand).
   const card = (
     <div ref={panRef} style={{ width: 2 * w }}>
-      <Gatefold w={w} h={h} handle={foldRef} />
+      <ManualCard w={w} h={h} radius={size.radius} handle={foldRef} />
     </div>
   )
   return (

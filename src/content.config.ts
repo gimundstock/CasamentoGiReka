@@ -120,16 +120,15 @@ export const CONFIG = {
   ],
 
   // ── Padrinhos' manual ─────────────────────────────────────
-  // A gatefold card for the guests marked `padrinho` in the Sheet, opening
-  // left and right into three panels as the guest scrolls. DRAFT copy
-  // below: replace it, then set `published: true` (until then the card only
-  // shows in `npm run dev`).
+  // A card for the guests marked `padrinho` in the Sheet: it lies on the
+  // desk behind the passport, and opens like it (the cover turning left)
+  // onto two pages as the guest scrolls. DRAFT copy below: replace it, then
+  // set `published: true` (until then it only shows in `npm run dev`).
+  // `palette`: colour swatches (e.g. for what to wear), shown under a page.
   padrinhos: {
     published: false,
-    /** 'mesa': in the passport's desk scene; 'secao': a section of its own, after the gift list. */
-    mode: 'mesa' as 'mesa' | 'secao',
-    panels: [
-      // Left flap (narrow): a word for them.
+    pages: [
+      // Left page (the inside of the cover): a word for them.
       {
         kicker_pt: 'Para vocês',
         kicker_en: 'For you',
@@ -142,7 +141,7 @@ export const CONFIG = {
         items: [] as PadrinhosItem[],
         palette: [] as string[],
       },
-      // Centre (wide): the day. (An empty kicker shows the wedding date.)
+      // Right page: the day. (An empty kicker shows the wedding date.)
       {
         kicker_pt: '',
         kicker_en: '',
@@ -167,17 +166,6 @@ export const CONFIG = {
           { label_pt: 'a definir', label_en: 'tbc', text_pt: 'Festa', text_en: 'Party' },
         ] as PadrinhosItem[],
         palette: [] as string[],
-      },
-      // Right flap (narrow): what to wear.
-      {
-        kicker_pt: 'Traje',
-        kicker_en: 'What to wear',
-        title_pt: 'Cores',
-        title_en: 'Colours',
-        intro_pt: 'Passeio completo, nos tons do nosso jardim.',
-        intro_en: 'Cocktail attire, in the colours of our garden.',
-        items: [] as PadrinhosItem[],
-        palette: ['#ADB897', '#F5D1B2', '#DC9A32', '#B9A8B5'],
       },
     ],
   },
@@ -1990,7 +1978,7 @@ export interface PadrinhosItem {
   text_pt: string
   text_en: string
 }
-export type PadrinhosPanel = (typeof CONFIG.padrinhos.panels)[number]
+export type PadrinhosPage = (typeof CONFIG.padrinhos.pages)[number]
 export type MenuOption = (typeof CONFIG.menuOptions)[number]
 export type GiftConfig = (typeof CONFIG.gifts)[number]
 export type CotaConfig = (typeof CONFIG.gifts)[number]['cotas'][number]

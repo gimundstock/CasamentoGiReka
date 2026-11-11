@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ScrollHint } from '../../ui/ScrollHint'
 import { NAV_HEIGHT } from '../Envelope'
 import { CHAPTER, DESK, ease, pushedAt, seg, type PassportGeometry } from '../passport/geometry'
-import { Gatefold, type GatefoldHandle } from './Gatefold'
+import { ManualCard, type ManualCardHandle } from './ManualCard'
 import type { ManualOnDesk } from './geometry'
 
 export interface DeskChapterHandle {
@@ -16,12 +16,12 @@ export interface DeskChapterHandle {
 }
 
 /**
- * The padrinhos' manual on the desk: lying shut with the passport and the
- * envelope, and carried off to the right with the envelope as the
- * passport is picked up. Then its chapter (CHAPTER): drawn back in from
- * the right once the passport has shut again, pushing it off; it unfolds left and
- * right with the scroll, lies open (on a phone, looked along a panel at a
- * time), folds shut, and the envelope pushes it off as it pushed the
+ * The padrinhos' manual on the desk: lying shut behind the passport, and
+ * carried off to the right with the envelope as the passport is picked
+ * up. Then its chapter (CHAPTER): drawn back in from the right once the
+ * passport has shut again, pushing it off, to the passport's own place;
+ * it opens as the passport does, lies open (on a phone, looked at a page
+ * at a time), shuts, and the envelope pushes it off as it pushed the
  * passport. With a kicker above it, and a hint under it.
  */
 export function DeskChapter({
@@ -39,7 +39,7 @@ export function DeskChapter({
   const kickerRef = useRef<HTMLDivElement>(null)
   const openHintRef = useRef<HTMLDivElement>(null)
   const onHintRef = useRef<HTMLDivElement>(null)
-  const foldRef = useRef<GatefoldHandle>(null)
+  const foldRef = useRef<ManualCardHandle>(null)
   const { w, h, y, pan } = spot
   const hintTop = h + 18
 
@@ -59,7 +59,7 @@ export function DeskChapter({
         mover.style.zIndex = '1'
         const x = L.x - g.vw / 2 + (spot.offRight + g.vw / 2 - L.x) * away
         const dy = L.y - y + (1 - laid) * 14
-        mover.style.transform = `translate3d(${x.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${(L.rot + 8 * away).toFixed(3)}deg) scale(${(L.h / h).toFixed(5)})`
+        mover.style.transform = `translate3d(${x.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${(L.rot + 8 * away).toFixed(3)}deg) scale(${L.s.toFixed(5)})`
         foldRef.current?.set(0)
         if (panRef.current) panRef.current.style.transform = 'none'
         for (const el of [kickerRef.current, openHintRef.current, onHintRef.current]) {
@@ -93,10 +93,10 @@ export function DeskChapter({
       const opened = ease(seg(c, CHAPTER.unfold))
       const folded = ease(seg(c, CHAPTER.fold))
       foldRef.current?.set(opened * (1 - folded))
-      // A phone: the left panel comes on as it unfolds, then the middle,
-      // the right, and back to the middle as it folds.
+      // A phone: the left page comes on as it opens, then the right, and
+      // back to the middle as it shuts.
       if (panRef.current && pan) {
-        const at = opened - ease(seg(c, CHAPTER.toMiddle)) - ease(seg(c, CHAPTER.toRight)) + folded
+        const at = opened - 2 * ease(seg(c, CHAPTER.toRight)) + folded
         panRef.current.style.transform = `translate3d(${(pan * at).toFixed(2)}px, 0, 0)`
       }
 
@@ -119,14 +119,17 @@ export function DeskChapter({
 
   return (
     <>
-      <div
-        ref={kickerRef}
-        aria-hidden
-        className="font-sans text-amber-deep absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
-        style={{ top: NAV_HEIGHT + 32, opacity: 0, visibility: 'hidden' }}
-      >
-        {t('padrinhos.kicker')}
-      </div>
+      {/* (Where there is room for it above the manual: a phone.) */}
+      {y - h / 2 - NAV_HEIGHT >= 56 && (
+        <div
+          ref={kickerRef}
+          aria-hidden
+          className="font-sans text-amber-deep absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
+          style={{ top: NAV_HEIGHT + 32, opacity: 0, visibility: 'hidden' }}
+        >
+          {t('padrinhos.kicker')}
+        </div>
+      )}
       <div
         ref={moverRef}
         role="region"
@@ -142,7 +145,7 @@ export function DeskChapter({
         }}
       >
         <div ref={panRef}>
-          <Gatefold w={w} h={h} handle={foldRef} />
+          <ManualCard w={w} h={h} radius={spot.radius} handle={foldRef} />
         </div>
         {g.vh - (y + h / 2) >= 40 && (
           <>

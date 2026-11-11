@@ -128,8 +128,7 @@ const DESK_HOLD = DESK.hold[1] - DESK.hold[0]
  * the stage's scroll once the passport has shut again (`at`, in the
  * passport's own time), before the envelope comes. The manual is drawn in
  * from the right, pushing the shut passport off as the envelope does; it
- * unfolds left and right into its three panels, lies open to be read, and
- * folds shut again; then it is the manual the envelope pushes off. Spans
+ * opens as the passport does, lies open to be read, and shuts again; then it is the manual the envelope pushes off. Spans
  * in vh from the chapter's start; the passport's time stands still across
  * it (see manualTime).
  */
@@ -142,9 +141,8 @@ export const CHAPTER = {
   shut: 62,
   unfold: [72, 130] as Span,
   // A phone: open, the manual is wider than the screen, so it is looked
-  // along, a panel at a time — the left one as it unfolds, then these.
-  toMiddle: [150, 178] as Span,
-  toRight: [190, 218] as Span,
+  // at a page at a time — the left one as it opens, then the right.
+  toRight: [160, 190] as Span,
   fold: [238, 276] as Span,
   len: 282,
 }
@@ -431,7 +429,7 @@ export function snapTarget(
   // (a glide never carries it from open straight on to the envelope).
   if (desk) rests.push({ from: DESK.close[1], to: DESK.close[1], aim: DESK.close[1] })
   // The padrinhos' manual: lying shut at the centre, then open (on a
-  // phone, at each of its panels).
+  // phone, at each of its pages).
   if (desk && chapter) {
     const at = (c: number) => CHAPTER.at + c
     const point = (c: number) => ({ from: at(c), to: at(c), aim: at(c) })
@@ -444,11 +442,7 @@ export function snapTarget(
         aim: at((open + fold) / 2),
       })
     } else {
-      rests.push(
-        point((open + CHAPTER.toMiddle[0]) / 2),
-        point((CHAPTER.toMiddle[1] + CHAPTER.toRight[0]) / 2),
-        point((CHAPTER.toRight[1] + fold) / 2)
-      )
+      rests.push(point((open + CHAPTER.toRight[0]) / 2), point((CHAPTER.toRight[1] + fold) / 2))
     }
   }
   // Last: the envelope drawn in (desk), or the stage letting go, the site
