@@ -520,18 +520,18 @@ export const CONFIG = {
       {
         name: 'Catedral Metropolitana',
         description_pt:
-          'Projetada por Oscar Niemeyer e inaugurada em 1970, a catedral tem 16 colunas curvas formando uma coroa ascendente. Destaques para o teto de vitrais coloridos de Marianne Peretti e os três anjos suspensos de Alfredo Ceschiatti. Entrada gratuita.',
+          'Projetada por Oscar Niemeyer e inaugurada em 1970, a catedral tem 16 colunas curvas formando uma coroa ascendente. Destaques para o teto de vitrais coloridos de Marianne Peretti e os três anjos suspensos de Alfredo Ceschiatti.',
         description_en:
-          "Designed by Oscar Niemeyer and inaugurated in 1970, the cathedral's 16 curved columns form an upward-sweeping crown. Highlights include Marianne Peretti's stained-glass ceiling and the three suspended angels by Alfredo Ceschiatti. Free entry.",
+          "Designed by Oscar Niemeyer and inaugurated in 1970, the cathedral's 16 curved columns form an upward-sweeping crown. Highlights include Marianne Peretti's stained-glass ceiling and the three suspended angels by Alfredo Ceschiatti.",
         address: 'Esplanada dos Ministérios, Lote 12 — Brasília, DF',
         url: '',
       },
       {
         name: 'Congresso Nacional',
         description_pt:
-          'Sede do poder legislativo, com a cúpula côncava da Câmara, a cúpula convexa do Senado e as torres gêmeas — ícone de Niemeyer e Lúcio Costa. Visitas guiadas gratuitas aos finais de semana (agendamento pelo site do Congresso).',
+          'Sede do poder legislativo, com a cúpula côncava da Câmara, a cúpula convexa do Senado e as torres gêmeas — ícone de Niemeyer e Lúcio Costa.',
         description_en:
-          "Brazil's legislative seat, with the concave House dome, the convex Senate dome, and the twin towers — a Niemeyer & Lúcio Costa icon. Free guided tours on weekends (book via the Congresso website).",
+          "Brazil's legislative seat, with the concave House dome, the convex Senate dome, and the twin towers — a Niemeyer & Lúcio Costa icon.",
         address: 'Praça dos Três Poderes — Brasília, DF',
         url: '',
       },
@@ -556,9 +556,9 @@ export const CONFIG = {
       {
         name: 'Memorial JK',
         description_pt:
-          'Mausoléu e museu dedicados a Juscelino Kubitschek, fundador de Brasília. A estátua de JK emoldurada pela nicha curva é um dos cartões-postais da cidade; o museu reúne objetos pessoais, carros e documentos do presidente.',
+          'Mausoléu e museu dedicados a Juscelino Kubitschek, fundador de Brasília. A estátua de JK emoldurada pela nicha curva é um dos cartões-postais da cidade.',
         description_en:
-          "Mausoleum and museum honoring Juscelino Kubitschek, Brasília's founder. The statue of JK framed by a curved niche is one of the city's signature images; the museum holds personal belongings, cars, and documents.",
+          "Mausoleum and museum honoring Juscelino Kubitschek, Brasília's founder. The statue of JK framed by a curved niche is one of the city's signature images.",
         address: 'Eixo Monumental Oeste — Brasília, DF',
         url: '',
       },
@@ -574,27 +574,27 @@ export const CONFIG = {
       {
         name: 'Chapada Imperial',
         description_pt:
-          'Refúgio de natureza em Padre Bernardo (GO), a cerca de uma hora de Brasília: cachoeiras, piscinas naturais e trilhas entre o cerrado e a mata. Um bate-volta fácil para quem quer respirar fora da cidade.',
+          'Refúgio de natureza em Padre Bernardo (GO), a cerca de uma hora de Brasília: cachoeiras, piscinas naturais e trilhas entre o cerrado e a mata.',
         description_en:
-          'A nature retreat in Padre Bernardo (GO), about an hour from Brasília: waterfalls, natural pools and trails through the cerrado and forest. An easy day trip for anyone who wants a break from the city.',
+          'A nature retreat in Padre Bernardo (GO), about an hour from Brasília: waterfalls, natural pools and trails through the cerrado and forest.',
         address: 'Padre Bernardo, GO',
         url: '',
       },
       {
         name: 'Chapada dos Veadeiros',
         description_pt:
-          'Um dos destinos mais emblemáticos do cerrado, em Alto Paraíso de Goiás, a cerca de 3h30 de Brasília. Parque Nacional com cachoeiras, cânions, o Vale da Lua e trilhas de tirar o fôlego. Vale pelo menos uma noite na região.',
+          'Um dos destinos mais emblemáticos do cerrado, em Alto Paraíso de Goiás, a cerca de 3h30 de Brasília. Parque Nacional com cachoeiras, cânions, o Vale da Lua e trilhas de tirar o fôlego.',
         description_en:
-          "One of the cerrado's most iconic destinations, in Alto Paraíso de Goiás, about 3.5 hours from Brasília. A national park of waterfalls, canyons, the Vale da Lua and breathtaking trails. Worth at least one night in the area.",
+          "One of the cerrado's most iconic destinations, in Alto Paraíso de Goiás, about 3.5 hours from Brasília. A national park of waterfalls, canyons, the Vale da Lua and breathtaking trails.",
         address: 'Alto Paraíso de Goiás, GO',
         url: '',
       },
       {
         name: 'Pirenópolis',
         description_pt:
-          'Cidade histórica de ruas de pedra e casarios coloridos, a cerca de 2h30 de Brasília. Centro histórico encantador, boa gastronomia e cachoeiras e rios nos arredores — ótimo para um fim de semana.',
+          'Cidade histórica de ruas de pedra e casarios coloridos, a cerca de 2h30 de Brasília. Centro histórico encantador, boa gastronomia e cachoeiras e rios nos arredores.',
         description_en:
-          'A historic town of cobbled streets and colourful colonial houses, about 2.5 hours from Brasília. A charming old centre, good food, and waterfalls and rivers nearby — great for a weekend.',
+          'A historic town of cobbled streets and colourful colonial houses, about 2.5 hours from Brasília. A charming old centre, good food, and waterfalls and rivers nearby.',
         address: 'Pirenópolis, GO',
         url: '',
       },
@@ -610,9 +610,9 @@ export const CONFIG = {
       {
         name: 'CCBB Brasília',
         description_pt:
-          'Centro Cultural Banco do Brasil, com exposições, teatro, cinema e música em um prédio modernista de frente para o Lago Paranoá. Vale conferir a programação antes da visita.',
+          'Centro Cultural Banco do Brasil, com exposições, teatro, cinema e música em um prédio modernista de frente para o Lago Paranoá.',
         description_en:
-          'The Banco do Brasil Cultural Centre, with exhibitions, theatre, cinema and music in a modernist building facing Lake Paranoá. Worth checking the programme before you visit.',
+          'The Banco do Brasil Cultural Centre, with exhibitions, theatre, cinema and music in a modernist building facing Lake Paranoá.',
         address: 'SCES Trecho 2, Lote 22 — Brasília, DF',
         url: '',
       },
@@ -628,9 +628,9 @@ export const CONFIG = {
       {
         name: 'Festa Junina',
         description_pt:
-          'Em junho, as festas juninas animam as igrejas da cidade, com quadrilha, comidas típicas, fogueira e muita música. Nossa data cai bem nessa época, então elas devem estar acontecendo — e, mais perto do casamento, atualizamos aqui com o calendário. Foi numa festa junina que aconteceu o primeiro encontro do Renato e da Giovanna.',
+          'Em junho, as festas juninas animam as igrejas da cidade, com quadrilha, comidas típicas, fogueira e muita música. Nossa data cai bem nessa época, então elas devem estar acontecendo. Foi numa festa junina que aconteceu o primeiro encontro do Renato e da Giovanna.',
         description_en:
-          "In June, festas juninas liven up the city's churches, with square dancing, traditional food, bonfires and lots of music. Our date falls in that season, so they should be on — and closer to the wedding we will update this with the calendar. A festa junina is where Renato and Giovanna had their first date.",
+          "In June, festas juninas liven up the city's churches, with square dancing, traditional food, bonfires and lots of music. Our date falls in that season, so they should be on. A festa junina is where Renato and Giovanna had their first date.",
         address: 'Igrejas de Brasília, DF',
         url: '',
       },
