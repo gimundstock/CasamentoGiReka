@@ -1,7 +1,7 @@
 import { CONFIG } from '../../../content.config'
 
 /** The chapters, in book order (the tabs follow it). */
-export const SECTIONS = ['tourism', 'restaurants', 'transport', 'hotels'] as const
+export const SECTIONS = ['tourism', 'hotels', 'transport', 'restaurants'] as const
 export type SectionKey = (typeof SECTIONS)[number]
 
 /** One recommendation, whatever its kind. */
