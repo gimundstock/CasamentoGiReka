@@ -121,9 +121,12 @@ export const CONFIG = {
 
   // ── Brasília City Guide ───────────────────────────────────
   cityGuide: {
+    // distance: by car to the venue (Clube do Congresso, at the far end of
+    // the Lago Norte peninsula), a weekend evening without traffic (OSRM).
     hotels: [
       {
         name: 'B Hotel Brasília',
+        distance: '18 km · ~20 min',
         description_pt:
           'Boutique 5 estrelas no Setor Hoteleiro Norte, com rooftop panorâmico, piscina aquecida e decoração contemporânea. A poucos minutos a pé da Esplanada dos Ministérios.',
         description_en:
@@ -135,6 +138,7 @@ export const CONFIG = {
       },
       {
         name: 'Kubitschek Plaza Hotel',
+        distance: '18 km · ~20 min',
         description_pt:
           'Clássico renovado no Setor Hoteleiro Norte, com apartamentos espaçosos, piscina coberta e restaurante no topo. Ótima base para explorar o Eixo Monumental.',
         description_en:
@@ -146,6 +150,7 @@ export const CONFIG = {
       },
       {
         name: 'Meliá Brasil 21',
+        distance: '19 km · ~22 min',
         description_pt:
           'Hotel internacional dentro do complexo Brasil 21, no Setor Hoteleiro Sul, com shopping, restaurantes, academia e spa no próprio prédio. Próximo ao Parque da Cidade.',
         description_en:
@@ -157,6 +162,7 @@ export const CONFIG = {
       },
       {
         name: 'Ibis Styles Brasília Aeroporto',
+        distance: '30 km · ~30 min',
         description_pt:
           'Opção econômica ao lado do Aeroporto Internacional (BSB), com café da manhã incluso e shuttle para o terminal. Ideal para chegadas tarde ou voos cedo.',
         description_en:
@@ -168,6 +174,7 @@ export const CONFIG = {
       },
       {
         name: 'Brasília Palace Hotel',
+        distance: '21 km · ~25 min',
         description_pt:
           'O primeiro hotel de Brasília, projetado por Oscar Niemeyer e inaugurado em 1958, à beira do Lago Paranoá. Totalmente restaurado, une arquitetura modernista histórica a um serviço cinco estrelas.',
         description_en:
@@ -179,6 +186,7 @@ export const CONFIG = {
       },
       {
         name: 'Airbnb',
+        distance: '',
         description_pt:
           'Também há muitos apartamentos e flats para alugar pelo Airbnb. Boas regiões para procurar: o Setor Hoteleiro Norte e o Setor de Clubes Sul, à beira do lago.',
         description_en:

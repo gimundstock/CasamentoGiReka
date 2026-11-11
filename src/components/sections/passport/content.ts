@@ -7,7 +7,7 @@ export type SectionKey = (typeof SECTIONS)[number]
 /** One recommendation, whatever its kind. */
 export interface GuideEntry {
   title: string
-  /** Small line under the title (cuisine). */
+  /** Small line under the title (cuisine; a hotel's distance to the venue). */
   meta?: string
   description: string
   address?: string
@@ -48,6 +48,10 @@ export function sectionEntries(key: SectionKey, lang: Lang): GuideEntry[] {
     case 'hotels':
       return g.hotels.map((h) => ({
         title: h.name,
+        // How far from the party: the one fact a guest picks a hotel by.
+        meta: h.distance
+          ? `${h.distance} ${pt ? 'do' : 'from'} ${CONFIG.wedding.venue}`
+          : undefined,
         description: pt ? h.description_pt : h.description_en,
         address: h.address,
         price: pt ? h.priceRange : h.priceRange_en,
