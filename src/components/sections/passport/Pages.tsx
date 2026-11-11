@@ -343,8 +343,30 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
   const { t } = useTranslation()
   return (
     <article className="border-t pt-[0.75em] pb-[0.8em]" style={{ borderColor: `${GOLD}55` }}>
+      {/* The name itself is the link (map, Airbnb…), with an arrow: a line
+          of its own for it cost the room for a second place on a phone's
+          page. */}
       <h4 className="font-sans text-forest-deep text-[0.95em] leading-tight tracking-[0.03em]">
-        {entry.title}
+        {entry.href ? (
+          <a
+            href={entry.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hit-area underline-offset-[0.25em] hover:underline"
+            style={{ textDecorationColor: GOLD }}
+          >
+            {entry.title}
+            <span aria-hidden className="text-amber-deep ml-[0.35em] text-[0.85em]">
+              ↗
+            </span>
+            <span className="sr-only">
+              {' — '}
+              {t(`city.passport.${entry.linkKey ?? 'more'}`)}
+            </span>
+          </a>
+        ) : (
+          entry.title
+        )}
       </h4>
       {entry.meta && (
         <p className="font-sans text-amber-deep mt-[0.4em] text-[max(0.6em,10px)] tracking-[0.24em] uppercase">
@@ -359,17 +381,6 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
           <span>{entry.address}</span>
           {entry.price && <span className="text-amber-deep tabular-nums">{entry.price}</span>}
         </div>
-      )}
-      {entry.href && (
-        <a
-          href={entry.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hit-area font-sans text-forest-deep mt-[0.5em] inline-block border-b pb-[0.1em] text-[max(0.58em,10px)] tracking-[0.3em] uppercase"
-          style={{ borderColor: GOLD }}
-        >
-          {t(`city.passport.${entry.linkKey ?? 'more'}`)}
-        </a>
       )}
     </article>
   )
