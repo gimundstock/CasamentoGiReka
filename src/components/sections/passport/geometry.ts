@@ -124,6 +124,46 @@ export const DESK = {
 const DESK_HOLD = DESK.hold[1] - DESK.hold[0]
 
 /**
+ * The padrinhos' manual, on the desk (padrinhos only): a chapter put into
+ * the stage's scroll once the passport has shut again (`at`, in the
+ * passport's own time), before the envelope comes. The manual is drawn in
+ * from the right, pushing the shut passport off as the envelope does; it
+ * unfolds left and right into its three panels, lies open to be read, and
+ * folds shut again; then it is the manual the envelope pushes off. Spans
+ * in vh from the chapter's start; the passport's time stands still across
+ * it (see manualTime).
+ */
+export const CHAPTER = {
+  at: DESK.close[1],
+  /** Drawn in to the centre (as DESK.arrive), the passport pushed off (as DESK.shove). */
+  arrive: [0, 46] as Span,
+  shove: [0, 53] as Span,
+  /** Lying shut at the centre. */
+  shut: 62,
+  unfold: [72, 130] as Span,
+  // A phone: open, the manual is wider than the screen, so it is looked
+  // along, a panel at a time — the left one as it unfolds, then these.
+  toMiddle: [150, 178] as Span,
+  toRight: [190, 218] as Span,
+  fold: [238, 276] as Span,
+  len: 282,
+}
+
+/** What the manual's chapter does to the scroll: `on`, 'desk' or 'hand' (a phone). */
+export type Chapter = false | 'desk' | 'hand'
+
+/**
+ * The passport's own time `v` at `u` (its time without the chapter, as
+ * passportTime gives it), and the chapter's (`c`, vh from its start;
+ * negative before it). Without the chapter, `v` is `u`.
+ */
+export function manualTime(u: number, chapter: Chapter) {
+  if (!chapter) return { v: u, c: -1 }
+  const c = u - CHAPTER.at
+  return { v: c <= 0 ? u : c < CHAPTER.len ? CHAPTER.at : u - CHAPTER.len, c }
+}
+
+/**
  * The desk scene: wide enough for the passport and the envelope side by
  * side — or a phone held upright, where the two stand fanned like two cards
  * held in the hand (isHand). Tablets in between keep the passport alone.
@@ -138,8 +178,8 @@ export function isHand(vw: number, vh: number) {
 }
 
 /** vh of scroll the passport takes after the big day. */
-export function passportVh(desk: boolean) {
-  return desk ? DESK.end + DESK_HOLD : PASSPORT_VH
+export function passportVh(desk: boolean, chapter: Chapter = false) {
+  return desk ? DESK.end + DESK_HOLD + (chapter ? CHAPTER.len : 0) : PASSPORT_VH
 }
 
 /** Where the Nav "Brasília" link lands: on the desk, both lying there. */
@@ -182,7 +222,7 @@ function layDesk(g: PassportGeometry) {
     /** Off the right edge, at any of its sizes and tilts. */
     offRight,
     /** The push at the end (see pushPath). */
-    ...pushPath(g, env.ew, offRight),
+    ...pushPath(g, env.ew, offRight, {}),
   }
   if (isHand(g.vw, g.vh)) {
     // Two cards held in the hand, fanned about a point below them: the
@@ -282,8 +322,17 @@ const PUSH_STEPS = 240
  * friction, until it is off the screen — the most friction that still
  * gets it there, so it never looks thrown.
  */
-function pushPath(g: PassportGeometry, ew: number, offRight: number) {
-  const half = g.coverBox.w / 2
+export function pushPath(
+  g: PassportGeometry,
+  ew: number,
+  offRight: number,
+  /**
+   * What is pushed, if not the passport: its width and height (px), and
+   * `fixed` to draw the pusher in from exactly `offRight`.
+   */
+  { w = g.coverBox.w, h = g.coverBox.h, fixed = false }: { w?: number; h?: number; fixed?: boolean }
+) {
+  const half = w / 2
   const lip = ew * 0.04
   // The envelope's share of the shove (it has arrived when the passport
   // still has a little way to slide).
@@ -291,7 +340,7 @@ function pushPath(g: PassportGeometry, ew: number, offRight: number) {
   let from = offRight
   const edge = (t: number) => from * (1 - ease(Math.min(1, t / share))) - ew / 2 + lip
   // Off the screen with room for its turn.
-  const out = -g.vw / 2 - g.coverBox.h * 0.25
+  const out = -g.vw / 2 - h * 0.25
   const run = (friction: number) => {
     const xs = [0]
     let r = half
@@ -311,7 +360,7 @@ function pushPath(g: PassportGeometry, ew: number, offRight: number) {
   }
   const exits = (xs: number[]) => xs[PUSH_STEPS] + half <= out
   // A small envelope on a big screen: drawn in from further off, faster.
-  while (!exits(run(0)) && from < 4 * g.vw) from *= 1.1
+  while (!fixed && !exits(run(0)) && from < 4 * g.vw) from *= 1.1
   let lo = 0
   let hi = 20 * g.vw
   for (let i = 0; i < 30; i++) {
@@ -358,7 +407,13 @@ const SNAP_EDGE = 12
  * BrasiliaPassport), having come to rest at `at` while moving `dir`
  * (1 down, -1 up); null to leave it where it is.
  */
-export function snapTarget(at: number, dir: 1 | -1, desk: boolean): number | null {
+export function snapTarget(
+  at: number,
+  dir: 1 | -1,
+  desk: boolean,
+  chapter: Chapter = false
+): number | null {
+  // (In the passport's time with the manual's chapter in it, if it is.)
   const v = passportTime(at, desk)
   // Back to the stage's own scroll: the desk's hold lies before all of this.
   const raw = (t: number) => (desk ? t + DESK_HOLD : t)
@@ -375,9 +430,30 @@ export function snapTarget(at: number, dir: 1 | -1, desk: boolean): number | nul
   // On the desk, read: the book shut again, before the envelope comes for it
   // (a glide never carries it from open straight on to the envelope).
   if (desk) rests.push({ from: DESK.close[1], to: DESK.close[1], aim: DESK.close[1] })
+  // The padrinhos' manual: lying shut at the centre, then open (on a
+  // phone, at each of its panels).
+  if (desk && chapter) {
+    const at = (c: number) => CHAPTER.at + c
+    const point = (c: number) => ({ from: at(c), to: at(c), aim: at(c) })
+    const [open, fold] = [CHAPTER.unfold[1], CHAPTER.fold[0]]
+    rests.push(point(CHAPTER.shut))
+    if (chapter === 'desk') {
+      rests.push({
+        from: at(open + SNAP_EDGE),
+        to: at(fold - SNAP_EDGE),
+        aim: at((open + fold) / 2),
+      })
+    } else {
+      rests.push(
+        point((open + CHAPTER.toMiddle[0]) / 2),
+        point((CHAPTER.toMiddle[1] + CHAPTER.toRight[0]) / 2),
+        point((CHAPTER.toRight[1] + fold) / 2)
+      )
+    }
+  }
   // Last: the envelope drawn in (desk), or the stage letting go, the site
   // going on below (the book open on it still).
-  const end = desk ? DESK.end : PASSPORT_VH
+  const end = (desk ? DESK.end : PASSPORT_VH) + (desk && chapter ? CHAPTER.len : 0)
   rests.push({ from: end, to: end, aim: end })
   for (let i = 0; i < rests.length - 1; i++) {
     const a = rests[i]

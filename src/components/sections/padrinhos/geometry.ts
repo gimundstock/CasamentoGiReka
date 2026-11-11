@@ -1,4 +1,5 @@
-import type { DeskLayout, PassportGeometry } from '../passport/geometry'
+import { NAV_HEIGHT } from '../Envelope'
+import { pushPath, type DeskLayout, type PassportGeometry } from '../passport/geometry'
 
 /**
  * The manual shut: width / height. It opens to twice its width — two flaps,
@@ -7,59 +8,43 @@ import type { DeskLayout, PassportGeometry } from '../passport/geometry'
  */
 export const MANUAL_ASPECT = 0.56
 
-/** Where the shut manual lies on the desk: its centre on screen, size and tilt. */
-export interface ManualSpot {
-  x: number
-  y: number
-  w: number
-  h: number
-  rot: number
-  /** Its centre's x once carried off to the right (as the envelope is). */
-  offX: number
-  /** Held in the hand (a phone upright), not lying on a desk. */
-  hand: boolean
-}
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
+/** Kept clear above the manual (its kicker) and below it (a hint). */
+const ROOM = 130
+/** Kept clear at the screen's edge, a side panel looked at on a phone. */
+const EDGE = 16
 
 /**
- * The third thing on the desk, beside the passport and the invitation. On a
- * wide screen it lies over the envelope's lower left, just clear of the
- * passport; on a phone, at the foot of the two cards fanned in the hand.
+ * The manual's size at the centre of a `vw` × `vh` screen: as large as fits
+ * with its kicker and hint, and open wide enough to read on a wide screen.
+ * `pan` (px) moves the open manual so a side panel is on the screen, where
+ * it is wider than the screen (0 where it fits).
  */
-export function manualOnDesk(g: PassportGeometry, d: DeskLayout): ManualSpot {
-  const P = d.passport
-  const pw = P.s * g.coverBox.w
-  const ph = P.s * g.coverBox.h
-  if (d.hand) {
-    // Below the fan, its top tucked a little under the two cards' feet.
-    const fanFoot = P.y + ph * 0.55
-    const h = clamp(g.vh - fanFoot - 14 + ph * 0.16, ph * 0.42, ph * 0.6)
-    const w = h * MANUAL_ASPECT
-    return {
-      x: g.vw / 2 + w * 0.42,
-      y: Math.min(fanFoot - ph * 0.16 + h / 2, g.vh - 14 - h / 2),
-      w,
-      h,
-      rot: 6,
-      offX: g.vw + w,
-      hand: true,
-    }
-  }
-  const E = d.envelope
-  const eh = d.env.eh * E.s
-  const envFoot = g.vh / 2 + E.y + eh / 2
-  const h = ph * 0.62
+export function manualSize(vw: number, vh: number) {
+  const h = Math.min(760, vh - NAV_HEIGHT - ROOM, (vw * 0.84) / MANUAL_ASPECT)
   const w = h * MANUAL_ASPECT
-  // Room under it for its note.
-  const y = Math.min(envFoot - h * 0.4, g.vh - h / 2 - Math.max(56, h * 0.17))
+  const pan = 2 * w + 2 * EDGE > vw ? w - vw / 2 + EDGE : 0
+  return { w, h, pan, y: NAV_HEIGHT + (vh - NAV_HEIGHT) / 2 }
+}
+export type ManualSize = ReturnType<typeof manualSize>
+
+/**
+ * The manual's chapter on the desk (CHAPTER): its size and centre, where it
+ * is drawn in from, and the two pushes — the passport off by the manual,
+ * then the manual off by the envelope (as pushPath).
+ */
+export function manualOnDesk(g: PassportGeometry, d: DeskLayout) {
+  const size = manualSize(g.vw, g.vh)
+  const offRight = g.vw / 2 + size.w * 0.6 + 80
+  const inbound = pushPath(g, size.w, offRight, {})
+  const outbound = pushPath(g, d.env.ew, d.pushFrom, { w: size.w, h: size.h, fixed: true })
   return {
-    x: P.x + pw / 2 + w * 0.62,
-    y,
-    w,
-    h,
-    rot: -6,
-    offX: g.vw + w,
-    hand: false,
+    ...size,
+    /** Where it is drawn in from: its centre, px right of the screen's. */
+    from: inbound.pushFrom,
+    /** The passport's x offset as the manual pushes it (pushedAt). */
+    passportPushed: inbound.pushed,
+    /** Its own x offset as the envelope pushes it. */
+    pushed: outbound.pushed,
   }
 }
+export type ManualOnDesk = ReturnType<typeof manualOnDesk>

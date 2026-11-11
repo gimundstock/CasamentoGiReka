@@ -15,10 +15,12 @@ import { buildBook, pageSection, sectionEntries, SECTIONS, type Chunks } from '.
 import type { PageSpec, SectionKey } from './content'
 import {
   carryAt,
+  CHAPTER,
   DESK,
   deskLayout,
   NO_CARRY,
   liftAt,
+  manualTime,
   passportTime,
   pushedAt,
   vignetteAt,
@@ -27,6 +29,7 @@ import {
   seg,
   swapOpacities,
   TAB_OUT,
+  type Chapter,
   type PassportGeometry,
   type Rect,
 } from './geometry'
@@ -34,10 +37,8 @@ import { PassportCover } from './PassportCover'
 import { DeskFlowers } from './DeskFlowers'
 import { NAV_HEIGHT, ShutEnvelope, useClockDelay } from '../Envelope'
 import { NUDGE_MS, ScrollHint } from '../../ui/ScrollHint'
-import { DeskManual } from '../padrinhos/DeskManual'
-import { PadrinhosManual } from '../padrinhos/PadrinhosManual'
+import { DeskChapter, type DeskChapterHandle } from '../padrinhos/DeskChapter'
 import { manualOnDesk } from '../padrinhos/geometry'
-import { manualPublished } from '../padrinhos/available'
 import { FlipBook, type FlipBookHandle } from './FlipBook'
 import {
   BackBoard,
@@ -93,15 +94,15 @@ export function BrasiliaPassport({
   g,
   reduced,
   holder,
-  padrinho,
+  chapter = false,
 }: {
   progress: MotionValue<number>
   g: PassportGeometry | null
   reduced: boolean
   /** Whose passport it is (the guest's group name), if known. */
   holder?: string
-  /** Part of the wedding party: their manual lies on the desk too. */
-  padrinho?: boolean
+  /** A padrinho's: their manual comes after it, on the desk (CHAPTER). */
+  chapter?: Chapter
 }) {
   const { t, i18n } = useTranslation()
   const lang: Lang = i18n.language === 'en' ? 'en' : 'pt'
@@ -233,13 +234,12 @@ export function BrasiliaPassport({
   const flowersRef = useRef<HTMLDivElement>(null)
   const desk = !!g?.desk && !reduced
   const layout = useMemo(() => (g && desk ? deskLayout(g) : null), [g, desk])
-  // The padrinhos' manual, a third thing on the desk (padrinhos only).
+  // The padrinhos' manual, after the passport on the desk (padrinhos only).
   const manual = useMemo(
-    () => (g && layout && padrinho && manualPublished() ? manualOnDesk(g, layout) : null),
-    [g, layout, padrinho]
+    () => (g && layout && chapter ? manualOnDesk(g, layout) : null),
+    [g, layout, chapter]
   )
-  const manualRef = useRef<HTMLButtonElement>(null)
-  const [manualOpen, setManualOpen] = useState(false)
+  const manualRef = useRef<DeskChapterHandle>(null)
   const nudgeDelay = useClockDelay(NUDGE_MS)
 
   const update = useCallback(
@@ -253,8 +253,9 @@ export function BrasiliaPassport({
       const chrome = chromeRef.current
       const haze = hazeRef.current
       if (!g || !root || !bookEl || !cover || !board || !title || !base || !chrome || !haze) return
-      // The passport's own time: still while it lies on the desk.
-      const v = passportTime(at, desk)
+      // The passport's own time: still while it lies on the desk, and while
+      // the padrinhos' manual is read (`c`, its chapter's time).
+      const { v, c } = manualTime(passportTime(at, desk), manual ? chapter : false)
       // The desk: how far the passport lies on it (0 → 1 → 0), and what
       // carries it there.
       const lying = layout ? ease(seg(at, DESK.back)) - ease(seg(at, DESK.pickUp)) : 0
@@ -494,24 +495,26 @@ export function BrasiliaPassport({
         // The wildflowers lying round the two: in with them, and there to
         // stay (the invitation lays the same ones out, where these are).
         show(flowersRef.current, coverIn)
-        // The padrinhos' manual: laid down just after the envelope, and
-        // carried off to the right with it as the passport is picked up.
-        const man = manualRef.current
-        if (man && manual) {
-          const away = ease(seg(at, DESK.pickUp))
-          const laid = ease(seg(at, [DESK.layIn[0] + 20, DESK.layIn[1] + 15]))
-          const shown = push <= 0 && laid > 0 && away < 1
-          man.style.visibility = shown ? 'inherit' : 'hidden'
-          man.style.opacity = String(laid)
-          man.style.pointerEvents = shown && laid > 0.6 && away < 0.3 ? 'auto' : 'none'
-          const dx = (manual.offX - manual.x) * away
-          const dy = (1 - laid) * 14
-          man.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${(manual.rot + 8 * away).toFixed(3)}deg)`
-        }
       }
+      // The padrinhos' manual (CHAPTER): it is drawn in pushing the shut
+      // passport off, and is what the envelope pushes off after it.
+      if (manual && c > 0) {
+        const within = c < CHAPTER.len
+        if (carrier) {
+          const shove = pushedAt(manual.passportPushed, seg(c, CHAPTER.shove))
+          const away = Math.min(1, -shove / (g.vw / 2))
+          carrier.style.transform = `translate3d(${shove.toFixed(2)}px, ${(g.vh * 0.03 * away).toFixed(2)}px, 0) rotate(${(-9 * away).toFixed(3)}deg)`
+          carrier.style.visibility = within && seg(c, CHAPTER.shove) < 1 ? 'inherit' : 'hidden'
+        }
+        // (The envelope waits off the screen till then.)
+        if (envEl && within) envEl.style.visibility = 'hidden'
+        // "Scroll to go on" goes with the passport.
+        chrome.style.opacity = String(chromeIn * onward * (1 - seg(c, [0, 15])))
+      }
+      manualRef.current?.update(c, v)
       return o >= 1
     },
-    [g, reduced, spread, desk, layout, manual]
+    [g, reduced, spread, desk, layout, manual, chapter]
   )
   // Scrolled back up (or on, past the book): it closes on the page it was
   // open at, and opens again on it.
@@ -697,13 +700,8 @@ export function BrasiliaPassport({
         </>
       )}
 
-      {/* The padrinhos' manual, lying shut on the desk (opened in a dialog). */}
-      {manual && (
-        <>
-          <DeskManual spot={manual} divRef={manualRef} onOpen={() => setManualOpen(true)} />
-          <PadrinhosManual open={manualOpen} onClose={() => setManualOpen(false)} />
-        </>
-      )}
+      {/* The padrinhos' manual, after the passport (see CHAPTER). */}
+      {manual && <DeskChapter g={g} spot={manual} handle={manualRef} />}
 
       {/* What carries the book across the desk (see DESK): turned about the
           shut cover's centre. */}

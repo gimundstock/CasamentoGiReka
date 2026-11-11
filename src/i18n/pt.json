@@ -195,11 +195,7 @@
   "padrinhos": {
     "label": "Manual dos padrinhos",
     "cover": "Manual dos padrinhos",
-    "open": "Abrir o manual dos padrinhos",
-    "close": "Fechar",
-    "note": "para os padrinhos",
-    "prev": "Ver o painel da esquerda",
-    "next": "Ver o painel da direita",
-    "welcome": "Ver o manual dos padrinhos"
+    "kicker": "Para os padrinhos",
+    "hintOpen": "Role para abrir o manual"
   }
 }

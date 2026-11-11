@@ -195,11 +195,7 @@
   "padrinhos": {
     "label": "Wedding party guide",
     "cover": "Wedding party guide",
-    "open": "Open the wedding party guide",
-    "close": "Close",
-    "note": "for the wedding party",
-    "prev": "Show the left panel",
-    "next": "Show the right panel",
-    "welcome": "See the wedding party guide"
+    "kicker": "For the wedding party",
+    "hintOpen": "Scroll to open the guide"
   }
 }

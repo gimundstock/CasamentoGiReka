@@ -120,12 +120,14 @@ export const CONFIG = {
   ],
 
   // ── Padrinhos' manual ─────────────────────────────────────
-  // A gatefold card for the guests marked `padrinho` in the Sheet: it lies
-  // on the desk with the passport and the invitation, and opens left and
-  // right into three panels. DRAFT copy below: replace it, then set
-  // `published: true` (until then the card only shows in `npm run dev`).
+  // A gatefold card for the guests marked `padrinho` in the Sheet, opening
+  // left and right into three panels as the guest scrolls. DRAFT copy
+  // below: replace it, then set `published: true` (until then the card only
+  // shows in `npm run dev`).
   padrinhos: {
     published: false,
+    /** 'mesa': in the passport's desk scene; 'secao': a section of its own, after the gift list. */
+    mode: 'mesa' as 'mesa' | 'secao',
     panels: [
       // Left flap (narrow): a word for them.
       {

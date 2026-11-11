@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react'
 import { CONFIG } from '../../../content.config'
-import { useReducedMotion } from '../../motion/useReducedMotion'
-import { isDesk } from '../passport/geometry'
+import { isHand, type Chapter } from '../passport/geometry'
 
 /**
  * Whether the manual is out: once the couple publish it, or always in
@@ -10,17 +8,34 @@ import { isDesk } from '../passport/geometry'
 export const manualPublished = () => CONFIG.padrinhos.published || import.meta.env.DEV
 
 /**
- * Whether the passport's desk scene is shown (wide screens, phones upright,
- * motion allowed), where the manual lies on the desk. Elsewhere it is
- * offered on the welcome screen instead.
+ * Where the manual is shown: 'mesa', a chapter of the passport's desk
+ * scene; 'secao', a section of its own after the gift list. While the two
+ * are compared, `?manual=mesa` or `?manual=secao` in the URL picks one.
  */
-export function useDeskScene() {
-  const reduced = useReducedMotion()
-  const [desk, setDesk] = useState(() => isDesk(window.innerWidth, window.innerHeight))
-  useEffect(() => {
-    const onResize = () => setDesk(isDesk(window.innerWidth, window.innerHeight))
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-  return desk && !reduced
+export type ManualMode = 'mesa' | 'secao'
+export function manualMode(): ManualMode {
+  const q = new URLSearchParams(window.location.search).get('manual')
+  return q === 'mesa' || q === 'secao' ? q : CONFIG.padrinhos.mode
+}
+
+/** The manual's chapter on the desk, if it has one there (see CHAPTER). */
+export function manualChapter(
+  padrinho: boolean | undefined,
+  desk: boolean,
+  reduced: boolean,
+  vw: number,
+  vh: number
+): Chapter {
+  if (!padrinho || !manualPublished() || manualMode() !== 'mesa' || !desk || reduced) return false
+  return isHand(vw, vh) ? 'hand' : 'desk'
+}
+
+/**
+ * Whether the manual has a section of its own: always in 'secao'; in
+ * 'mesa', where there is no desk scene (a tablet, a phone on its side,
+ * reduced motion).
+ */
+export function manualSection(padrinho: boolean | undefined, chapter: Chapter) {
+  if (!padrinho || !manualPublished()) return false
+  return manualMode() === 'secao' || !chapter
 }

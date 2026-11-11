@@ -7,6 +7,7 @@ import { HeroSaveDateCouple } from './components/sections/HeroSaveDateCouple'
 import { HeroBigDay } from './components/sections/HeroBigDay'
 import { RSVP } from './components/sections/RSVP'
 import { GiftShop } from './components/sections/GiftShop'
+import { PadrinhosSection } from './components/sections/padrinhos/PadrinhosSection'
 import { useGuest } from './hooks/useGuest'
 import { guestName } from './utils/guest'
 import { CONFIG } from './content.config'
@@ -62,6 +63,7 @@ export default function App() {
         <HeroBigDay holder={guestName(guest)} padrinho={guest.padrinho} />
         <RSVP guest={guest} />
         <GiftShop guest={guest} />
+        <PadrinhosSection padrinho={guest.padrinho} />
       </main>
       <Footer />
     </>
