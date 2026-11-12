@@ -128,17 +128,17 @@ export const CONFIG = {
   // only shows in `npm run dev`).
   padrinhos: {
     published: false,
-    /** The left page: a letter to them (two paragraphs). DRAFT. */
+    /** The left page: a letter to them (two paragraphs). */
     letter: {
       title_pt: 'Queridos padrinhos',
       title_en: 'Dear wedding party',
       paragraphs_pt: [
-        'Rascunho do primeiro parágrafo: um agradecimento por estarem ao nosso lado em tantos momentos, e por aceitarem estar conosco também neste.',
-        'Rascunho do segundo parágrafo: as informações para o grande dia, como o horário de chegada dos padrinhos, as fotos antes da cerimônia e o que mais precisarem saber.',
+        'Cada um de vocês foi escolhido a dedo, com muito carinho, por ocupar um lugar especial em nossas vidas. Seja por fazer parte da nossa história como casal ou por estar presente em nossas trajetórias individuais, vocês compartilharam alegrias, nos apoiaram nos momentos difíceis e nos mostraram que sempre podemos contar com vocês. É por tudo isso que fazemos questão de tê-los ao nosso lado em um dos capítulos mais importantes da nossa história.',
+        'A missão de vocês como nossos padrinhos é, acima de tudo, continuar sendo quem sempre foram para nós: pessoas queridas com quem queremos compartilhar a vida inteira. E, no grande dia, queremos vocês bem pertinho, celebrando cada emoção, ajudando a eternizar esse momento e, é claro, assumindo a importantíssima responsabilidade de fazer dessa festa uma celebração inesquecível!',
       ],
       paragraphs_en: [
-        'Draft of the first paragraph: thanking you for being by our side through so much, and for being with us for this too.',
-        'Draft of the second paragraph: what you need for the big day, such as when the wedding party arrives, the photos before the ceremony and anything else.',
+        'Each of you was hand-picked, with great affection, for the special place you hold in our lives. Whether you are part of our story as a couple or have been there along our own paths, you have shared our joys, stood by us through the hard times and shown us that we can always count on you. That is why we want you by our side for one of the most important chapters of our story.',
+        'Your mission as our wedding party is, above all, to keep being who you have always been to us: dear people we want to share our whole lives with. And on the big day, we want you close by, celebrating every emotion, helping to make the moment last forever and, of course, taking on the all-important responsibility of making this party unforgettable!',
       ],
     },
     /**
