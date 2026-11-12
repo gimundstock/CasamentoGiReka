@@ -29,9 +29,10 @@ const COVER_ART = `${BASE}padrinhos/cover.webp`
 export function Cover({ w }: { w: number; h: number }) {
   const { t } = useTranslation()
   const names = useContext(PadrinhoNames)
-  // Two lines: "Alice" / "& Laura" (a padrinho or two; more, the last on
-  // the second line).
-  const lines = names.length < 2 ? names : [names.slice(0, -1).join(', '), names[names.length - 1]]
+  // A cascade, each line set in further: "Iza" / "&" / "Anton" (a padrinho
+  // or two; more, all but the last on the first line).
+  const lines =
+    names.length < 2 ? names : [names.slice(0, -1).join(', '), '&', names[names.length - 1]]
   return (
     <div
       className="absolute inset-0 overflow-hidden"
@@ -46,16 +47,13 @@ export function Cover({ w }: { w: number; h: number }) {
           the names in script. */}
       {lines.length > 0 && (
         <p className="absolute top-[13%] right-[18%] left-[18%] text-left">
-          <span className="font-sans text-forest-deep block text-[0.8em] tracking-[0.25em] uppercase">
+          <span className="font-sans text-forest-deep block text-[0.68em] tracking-[0.25em] uppercase">
             {t('padrinhos.for')}
           </span>
           {/* The welcome screen's colour for names. */}
-          <span className="font-script text-title mt-[0.6em] block text-[1.85em] leading-[1.9]">
+          <span className="font-script text-title mt-[0.5em] block text-[1.5em] leading-[1.35]">
             {lines.map((line, i) => (
-              // The second line set in a little: the two staggered.
-              <span key={line} className={`block ${i > 0 ? 'pl-[1.2em]' : ''}`}>
-                {/* (Room after the "&": the script's capitals swash in from the left.) */}
-                {i > 0 && <span className="mr-[0.35em]">&amp;</span>}
+              <span key={i} className="block" style={{ paddingLeft: `${(i * 1.1).toFixed(1)}em` }}>
                 <ScriptText>{line}</ScriptText>
               </span>
             ))}
