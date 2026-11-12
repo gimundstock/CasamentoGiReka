@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
+import { ceremonyStart, weddingDay } from '../../utils/weddingDate'
 import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
@@ -178,7 +179,7 @@ const TITLE_SPAN = [-0.06, 0.04] as const
 export function HeroSaveDateCouple() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
-  const countdown = useCountdown(CONFIG.wedding.date)
+  const countdown = useCountdown(ceremonyStart())
 
   const stageRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress: realProgress } = useScroll({
@@ -289,7 +290,7 @@ export function HeroSaveDateCouple() {
     return 0
   })
 
-  const weddingDate = new Date(CONFIG.wedding.date)
+  const weddingDate = weddingDay()
   const dateLine = weddingDate
     .toLocaleDateString(i18n.language === 'pt' ? 'pt-BR' : 'en-GB', {
       day: '2-digit',

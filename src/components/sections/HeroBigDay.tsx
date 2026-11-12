@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
+import { weddingDay } from '../../utils/weddingDate'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { CerradoPaint } from './CerradoPaint'
 import { usePassportSnap } from './passport/usePassportSnap'
@@ -319,7 +320,7 @@ export function HeroBigDay({ holder }: { holder?: string }) {
     pv >= PHASE.infoOut[1] ? 'hidden' : 'visible'
   )
 
-  const weddingDate = new Date(CONFIG.wedding.date)
+  const weddingDate = weddingDay()
   const dateStr = weddingDate.toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-GB', {
     year: 'numeric',
     month: 'long',
