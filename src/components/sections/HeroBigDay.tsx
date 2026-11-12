@@ -335,12 +335,7 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
     pv >= PHASE.infoOut[1] ? 'hidden' : 'visible'
   )
 
-  const weddingDate = new Date(CONFIG.wedding.date)
-  const dateStr = weddingDate.toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-GB', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  const dateStr = lang === 'pt' ? CONFIG.wedding.dateText_pt : CONFIG.wedding.dateText_en
   const dressCode = lang === 'pt' ? CONFIG.wedding.dresscode_pt : CONFIG.wedding.dresscode_en
   // Split "Category — details" so the descriptor wraps to its own line.
   const [dressCodeHead, ...dressCodeRest] = dressCode.split(' — ')

@@ -42,7 +42,14 @@ export const CONFIG = {
 
   // ── Wedding Day ──────────────────────────────────────────
   wedding: {
-    date: '2027-06-05', // ISO format YYYY-MM-DD
+    date: '2027-06-05', // ISO format YYYY-MM-DD (the countdown, the year)
+    // The date as printed, as written: it is the day in Brasília, wherever
+    // the guest is reading (never worked out from `date` by the browser).
+    dateText_pt: '5 de junho de 2027',
+    dateText_en: '5 June 2027',
+    /** Save the Date's line. */
+    dateShort_pt: '05 DE JUN DE 2027',
+    dateShort_en: '05 JUN 2027',
     time: '15h30',
     venue: 'Clube do Congresso',
     address: 'SHIN QI 16 Área Especial, Brasília - DF, 71530-200',
@@ -51,6 +58,8 @@ export const CONFIG = {
     dresscode_pt: 'Passeio completo',
     dresscode_en: 'Cocktail attire',
     rsvpDeadline: '2027-02-28', // ISO format YYYY-MM-DD
+    rsvpDeadlineText_pt: '28 de fevereiro',
+    rsvpDeadlineText_en: '28 February',
   },
 
   // ── Couple Story ─────────────────────────────────────────

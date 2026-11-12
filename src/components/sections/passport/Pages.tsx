@@ -442,7 +442,7 @@ function OpenerPage({ section, folio }: { section: SectionKey; folio: number }) 
  */
 function HolderPage({ holder }: { holder?: string }) {
   const { t } = useTranslation()
-  const year = new Date(CONFIG.wedding.date).getFullYear()
+  const year = CONFIG.wedding.date.slice(0, 4)
   return (
     <div className="relative flex h-full flex-col items-center px-[13%] pt-[3.2em] pb-[2.6em] text-center">
       {/* A spray of ipê growing in from the outer top corner. */}
