@@ -74,8 +74,8 @@ describe('snapTarget with the padrinhos’ manual', () => {
     expect(snapTarget(c(CHAPTER.len) + 20, 1, true, 'desk')).toBe(DESK.end + HOLD + CHAPTER.len)
     expect(passportVh(true, 'desk')).toBe(passportVh(true) + CHAPTER.len)
   })
-  it('on a phone too, finishes opening it onto its page', () => {
-    const open = c((CHAPTER.unfold[1] + CHAPTER.fold[0]) / 2)
-    expect(snapTarget(c(CHAPTER.unfold[0] + 20), 1, true, 'hand')).toBe(open)
+  it('on a phone, stops at each page', () => {
+    const right = c((CHAPTER.toRight[1] + CHAPTER.fold[0]) / 2)
+    expect(snapTarget(c(CHAPTER.toRight[0] + 15), 1, true, 'hand')).toBe(right)
   })
 })

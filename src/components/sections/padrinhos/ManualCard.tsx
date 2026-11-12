@@ -86,6 +86,7 @@ export function ManualCard({
     },
   }))
 
+  const [left, right] = CONFIG.padrinhos.pages
   const r = `${radius.toFixed(1)}px`
   const outerLeft = `${r} 0 0 ${r}`
   const outerRight = `0 ${r} ${r} 0`
@@ -139,7 +140,7 @@ export function ManualCard({
             false,
             outerRight,
             'right',
-            <PageFace page={CONFIG.padrinhos.page} lang={lang} h={h} flowers />,
+            <PageFace page={right} lang={lang} h={h} flowers />,
             false
           )}
           {face('back', true, outerLeft, 'right', <CoverArt />, true)}
@@ -157,7 +158,14 @@ export function ManualCard({
             zIndex: 2,
           }}
         >
-          {face('inside', false, outerLeft, 'left', <CoverArt mirrored />, true)}
+          {face(
+            'inside',
+            false,
+            outerLeft,
+            'left',
+            <PageFace page={left} lang={lang} h={h} flowers mirrored />,
+            true
+          )}
           {face('cover', true, outerRight, 'left', <Cover w={w} h={h} />, false)}
         </div>
       </div>

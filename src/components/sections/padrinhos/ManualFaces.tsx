@@ -97,17 +97,22 @@ export function Cover({ w }: { w: number; h: number }) {
   )
 }
 
-/** One of the two pages inside, `h` px tall; `flowers` at its foot. */
+/**
+ * One of the two pages inside, `h` px tall; `flowers` at its foot
+ * (`mirrored` on the left page, so the two pages mirror each other).
+ */
 export function PageFace({
   page,
   lang,
   h,
   flowers = false,
+  mirrored = false,
 }: {
   page: PadrinhosPage
   lang: Lang
   h: number
   flowers?: boolean
+  mirrored?: boolean
 }) {
   const pt = lang === 'pt'
   const kicker = (pt ? page.kicker_pt : page.kicker_en) || weddingDate(lang)
@@ -184,7 +189,7 @@ export function PageFace({
         // The cover's wildflowers again, lower, at the page's foot.
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%] opacity-90"
+          className={`pointer-events-none absolute inset-x-0 bottom-0 h-[22%] opacity-90 ${mirrored ? '-scale-x-100' : ''}`}
           style={{ background: `url(${BORDER}) center bottom / 160% auto no-repeat` }}
         />
       )}
