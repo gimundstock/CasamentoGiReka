@@ -28,6 +28,9 @@ import {
 } from './Envelope'
 import { NUDGE_MS, ScrollHint } from '../ui/ScrollHint'
 import { GiftsTitle } from '../gifts/GiftsTitle'
+import { ManualArriving } from './padrinhos/ManualArriving'
+import { manualPushesCard } from './padrinhos/geometry'
+import { pushedAt } from './passport/geometry'
 
 const base = import.meta.env.BASE_URL
 
@@ -71,8 +74,10 @@ type Lang = 'pt' | 'en'
 interface Props {
   guest: Guest
   /**
-   * What comes on the desk as the reply card leaves: the gift list's title
-   * (the default), or nothing — the padrinhos' manual comes there first.
+   * How the reply card leaves the desk: rising off it, the gift list's
+   * title coming in its place (the default); or, `false`, pushed off to
+   * the left by the padrinhos' manual, drawn in from the right (whose
+   * section comes next).
    */
   giftsNext?: boolean
 }
@@ -210,11 +215,12 @@ export function RSVP({ guest, giftsNext = true }: Props) {
     target: timelineRef,
     offset: ['end end', 'end start'],
   })
-  const leaveY = useTransform(
-    leaving,
-    (v) => -easeInOut(clamp01(v / 0.7)) * window.innerHeight * 0.8
+  const leaveY = useTransform(leaving, (v) =>
+    giftsNext ? -easeInOut(clamp01(v / 0.7)) * window.innerHeight * 0.8 : 0
   )
-  const leaveOpacity = useTransform(leaving, (v) => 1 - clamp01((v - 0.15) / 0.45))
+  const leaveOpacity = useTransform(leaving, (v) =>
+    giftsNext ? 1 - clamp01((v - 0.15) / 0.45) : 1
+  )
   // As the card goes, the gift list's title comes onto the desk, exactly
   // where the list will draw it when it takes the screen.
   const giftsTitleOpacity = useTransform(leaving, (v) => clamp01((v - 0.3) / 0.55))
@@ -236,6 +242,16 @@ export function RSVP({ guest, giftsNext = true }: Props) {
 
   const { w, h } = useStageSize()
   const geo = measure(w, h)
+  // A padrinho's: the manual comes for the reply card, pushing it off.
+  const manualPush = useMemo(
+    () => (giftsNext || reduced ? null : manualPushesCard(w, h, geo.cw, geo.ch)),
+    [giftsNext, reduced, w, h, geo.cw, geo.ch]
+  )
+  const pushX = useTransform(leaving, (v) => (manualPush ? pushedAt(manualPush.pushed, v) : 0))
+  // Pushed, it turns a little as it goes (as the passport does).
+  const pushAway = useTransform(pushX, (x) => Math.min(1, -x / (w / 2)))
+  const pushY = useTransform(pushAway, (a) => h * 0.03 * a)
+  const pushTurn = useTransform(pushAway, (a) => -9 * a)
   const nudgeDelay = useClockDelay(NUDGE_MS)
   // On a wide screen the envelope has already arrived, on the passport's
   // stage (HeroBigDay, the desk): this section lies over that stage's last
@@ -301,7 +317,7 @@ export function RSVP({ guest, giftsNext = true }: Props) {
     [0, T.envDown, T.flapOpen, T.cardOut, T.settled],
     (g) => [g.cardInClosedY, g.cardInY, g.cardInY, g.cardOutY, g.cardFinalY]
   )
-  const cardTravel = useTransform(() => cardY.get() + leaveY.get())
+  const cardTravel = useTransform(() => cardY.get() + leaveY.get() + pushY.get())
   const cardScale = useGeometryTransform(p, geoRef, [T.cardOut, T.settled], (g) => [g.s0, 1])
   // Turned over like a card in the hand rather than a sign on a pivot: the
   // turn eases in and out, and on the way the card lifts a little, grows,
@@ -471,12 +487,17 @@ export function RSVP({ guest, giftsNext = true }: Props) {
           </motion.div>
         )}
 
-        {/* The invitation. At the end it rises off the desk (leaveY). */}
+        {manualPush && <ManualArriving push={manualPush} leaving={leaving} vw={w} />}
+
+        {/* The invitation. At the end it rises off the desk (leaveY), or
+            the padrinhos' manual pushes it off (pushX). */}
         <motion.div
           className="absolute"
           style={{
             ...box(geo.cw, geo.ch),
+            x: pushX,
             y: cardTravel,
+            rotate: pushTurn,
             opacity: leaveOpacity,
             scale: cardScale,
             zIndex: cardZ,

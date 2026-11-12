@@ -662,6 +662,10 @@ export function BrasiliaPassport({
         />
       )}
 
+      {/* The padrinhos' manual: lying behind the envelope, the last of the
+          three, and (with its chapter) opened after the passport. */}
+      {manual && <DeskChapter g={g} spot={manual} handle={manualRef} />}
+
       {/* The desk's envelope: the invitation's own, shut — the same layers,
           size and place where it ends, so the invitation (RSVP) takes over
           unseen. With its kicker above, and its hint below. Under the passport,
@@ -703,9 +707,6 @@ export function BrasiliaPassport({
           </div>
         </>
       )}
-
-      {/* The padrinhos' manual, after the passport (see CHAPTER). */}
-      {manual && <DeskChapter g={g} spot={manual} handle={manualRef} />}
 
       {/* What carries the book across the desk (see DESK): turned about the
           shut cover's centre. */}

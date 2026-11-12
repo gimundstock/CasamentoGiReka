@@ -12,21 +12,21 @@ import { manualSize } from './geometry'
 import { useRestSnap, type Rest } from './useRestSnap'
 
 /**
- * The section's timeline, vh scrolled since its top reached the screen's
- * (when the invitation has left the desk). The manual is drawn in from the
- * right, where it went with the envelope; it opens as the passport does,
- * lies open (on a phone, a page at a time), and shuts. Then, over the last
- * screen (`end` on), it rises off the desk as the reply card did, and the
- * gift list's title comes in its place (the list lies over that screen).
+ * The section's timeline, vh scrolled since its top reached the screen's.
+ * It starts with the manual shut at the centre, where it came to rest
+ * pushing the reply card off (ManualArriving, in the RSVP); it opens as the
+ * passport does, lies open (on a phone, a page at a time), and shuts.
+ * Then, over the last screen (`end` on), it rises off the desk as the reply
+ * card would have, and the gift list's title comes in its place (the list
+ * lies over that screen).
  */
 const T = {
-  arrive: [0, 50] as const,
-  shut: 60,
-  open: [70, 130] as const,
+  shut: 0,
+  open: [24, 84] as const,
   /** A phone: from the left page to the right one. */
-  toRight: [160, 190] as const,
-  close: [222, 262] as const,
-  end: 270,
+  toRight: [114, 144] as const,
+  close: [176, 216] as const,
+  end: 224,
 }
 /** The hand-over to the gift list: one screen. */
 const LEAVE = 100
@@ -48,8 +48,9 @@ function useScreen() {
 }
 
 /**
- * The padrinhos' manual, opened once the invitation has been answered,
- * between the RSVP and the gift list (padrinhos only; see
+ * The padrinhos' manual, opened once the invitation has been answered —
+ * it comes for the reply card, pushing it off — between the RSVP and the
+ * gift list (padrinhos only; see
  * useManualSection). On the same desk as the two: its first screen lies
  * over the RSVP's last one, and the gift list's over its own last one, as
  * the two lay over each other before.
@@ -73,7 +74,6 @@ export function PadrinhosSection() {
   const { w, h, y, pan } = size
   // The desk's wildflowers, where the RSVP leaves them (not on a phone).
   const deskGeo = !reduced && isDesk(vw, vh) && !isHand(vw, vh) ? g : null
-  const offRight = vw / 2 + w * 1.2 + 80
 
   // Shown once its top reaches the screen's (the RSVP's copy of the desk
   // is under it till then), until it has left the screen.
@@ -104,10 +104,8 @@ export function PadrinhosSection() {
     if (!mover) return
     // The hand-over: as the reply card left (see RSVP).
     const leaving = leavingP.get()
-    const drawn = ease(seg(s, T.arrive))
-    const x = offRight * (1 - drawn)
     const rise = -ease(clamp01(leaving / 0.7)) * vh * 0.8
-    mover.style.transform = `translate3d(${x.toFixed(2)}px, ${rise.toFixed(2)}px, 0) rotate(${(5 * (1 - drawn)).toFixed(3)}deg)`
+    mover.style.transform = `translate3d(0, ${rise.toFixed(2)}px, 0)`
     mover.style.opacity = String(1 - clamp01((leaving - 0.15) / 0.45))
     const opened = ease(seg(s, T.open))
     const closed = ease(seg(s, T.close))
@@ -120,8 +118,9 @@ export function PadrinhosSection() {
       if (el) el.style.opacity = String(o)
     }
     // The kicker comes with the manual, and goes as it rises.
-    fade(kickerRef.current, ease(seg(s, [20, T.arrive[1]])) * (1 - clamp01(leaving / 0.25)))
-    fade(openHintRef.current, ease(seg(s, [40, 56])) * (1 - seg(s, [T.open[0], T.open[0] + 12])))
+    // (In after the hand-over from the RSVP, which has neither.)
+    fade(kickerRef.current, ease(seg(s, [0, 16])) * (1 - clamp01(leaving / 0.25)))
+    fade(openHintRef.current, ease(seg(s, [0, 12])) * (1 - seg(s, [T.open[0], T.open[0] + 12])))
     fade(
       onHintRef.current,
       seg(s, [T.open[1] - 12, T.open[1]]) * (1 - seg(s, [T.close[0], T.close[0] + 12]))

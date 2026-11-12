@@ -16,7 +16,7 @@ export interface DeskChapterHandle {
 }
 
 /**
- * The padrinhos' manual on the desk: lying shut behind the passport, and
+ * The padrinhos' manual on the desk: lying shut behind the envelope, and
  * carried off to the right with the envelope as the passport is picked
  * up. Then its chapter (CHAPTER): drawn back in from the right once the
  * passport has shut again, pushing it off, to the passport's own place;
@@ -55,8 +55,8 @@ export function DeskChapter({
         const laid = ease(seg(at, [DESK.layIn[0] + 20, DESK.layIn[1] + 15]))
         mover.style.visibility = laid > 0 && away < 1 ? 'inherit' : 'hidden'
         mover.style.opacity = String(laid)
-        // Over the envelope, under the passport.
-        mover.style.zIndex = '1'
+        // The last of the three: under the envelope (drawn before it).
+        mover.style.zIndex = '0'
         const x = L.x - g.vw / 2 + (spot.offRight + g.vw / 2 - L.x) * away
         const dy = L.y - y + (1 - laid) * 14
         mover.style.transform = `translate3d(${x.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${(L.rot + 8 * away).toFixed(3)}deg) scale(${L.s.toFixed(5)})`

@@ -1,4 +1,9 @@
-import { pushPath, type DeskLayout, type PassportGeometry } from '../passport/geometry'
+import {
+  passportGeometry,
+  pushPath,
+  type DeskLayout,
+  type PassportGeometry,
+} from '../passport/geometry'
 
 /** Kept clear at the screen's edge, a page looked at on a phone. */
 const EDGE = 16
@@ -17,24 +22,24 @@ export function manualSize(g: PassportGeometry) {
 }
 
 /**
- * Where the shut manual lies on the desk at first: behind the passport, as
- * big as it is — a second thing in the pile, peeking out to its right (on
- * a phone, a third card in the hand, between the passport and the
- * envelope). Its centre on screen, scale and tilt.
+ * Where the shut manual lies on the desk at first: the last of the three,
+ * behind the envelope's right end, as big as the passport (on a phone, a
+ * third card in the hand, fanned on past the envelope). Its centre on
+ * screen, scale and tilt.
  */
 function lyingOnDesk(g: PassportGeometry, d: DeskLayout) {
   const P = d.passport
   const pw = P.s * g.coverBox.w
   const ph = P.s * g.coverBox.h
+  const E = d.envelope
+  const ex = g.vw / 2 + E.x
   if (d.hand) {
-    return {
-      x: (P.x + g.vw / 2 + d.envelope.x) / 2,
-      y: P.y - ph * 0.03,
-      s: P.s,
-      rot: 0,
-    }
+    // The fan's next card: as far past the envelope as it is past the
+    // passport, turned on further.
+    return { x: ex + (ex - P.x) * 0.38, y: P.y + ph * 0.04, s: P.s, rot: 18 }
   }
-  return { x: P.x + pw * 0.24, y: P.y - ph * 0.04, s: P.s, rot: P.rot + 7 }
+  const ew = d.env.ew * E.s
+  return { x: ex + ew / 2 - pw * 0.28, y: g.vh / 2 + E.y - ph * 0.04, s: P.s, rot: 8 }
 }
 
 /**
@@ -63,3 +68,17 @@ export function manualOnDesk(g: PassportGeometry, d: DeskLayout) {
   }
 }
 export type ManualOnDesk = ReturnType<typeof manualOnDesk>
+
+/**
+ * The manual drawn in at the end of the invitation (RSVP), pushing its
+ * reply card (`cw` × `ch`, centred) off to the left as the envelope pushes
+ * the passport (pushPath): its size and place at the centre, where it is
+ * drawn in from, and the card's x offset as it goes (pushedAt).
+ */
+export function manualPushesCard(vw: number, vh: number, cw: number, ch: number) {
+  const g = passportGeometry(vw, vh)
+  const size = manualSize(g)
+  const push = pushPath(g, size.w, vw / 2 + size.w * 0.6 + 80, { w: cw, h: ch })
+  return { size, from: push.pushFrom, pushed: push.pushed }
+}
+export type ManualPush = ReturnType<typeof manualPushesCard>
