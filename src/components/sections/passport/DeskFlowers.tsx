@@ -78,6 +78,14 @@ export function DeskFlowers({
     y0: Math.min(P.y - ph, ey - eh),
     y1: Math.max(P.y + ph, ey + eh),
   }
+  // A padrinho's desk: round their manual too (as big as the passport).
+  const M = desk.manual
+  if (M) {
+    box.x0 = Math.min(box.x0, M.x - pw)
+    box.x1 = Math.max(box.x1, M.x + pw)
+    box.y0 = Math.min(box.y0, M.y - ph)
+    box.y1 = Math.max(box.y1, M.y + ph)
+  }
   const out = (a: number, edge: number) => a + (edge - a) * 0.55
   const wide = {
     x0: out(box.x0, g.vw * 0.03),

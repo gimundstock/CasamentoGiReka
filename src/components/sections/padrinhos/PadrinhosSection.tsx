@@ -191,7 +191,7 @@ export function PadrinhosSection() {
       >
         {deskGeo && (
           <div aria-hidden className="pointer-events-none fixed inset-0">
-            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
+            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo, true)} />
           </div>
         )}
         <div

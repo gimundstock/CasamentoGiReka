@@ -192,18 +192,33 @@ export function passportAnchorVh(desk: boolean) {
  * The envelope is about twice the passport's width, and tucked under its
  * right edge.
  */
-export function deskLayout(g: PassportGeometry): DeskLayout {
-  let d = desks.get(g)
+export function deskLayout(g: PassportGeometry, three = false): DeskLayout {
+  const cache = three ? desksOfThree : desks
+  let d = cache.get(g)
   if (!d) {
-    d = layDesk(g)
-    desks.set(g, d)
+    d = layDesk(g, three)
+    cache.set(g, d)
   }
   return d
 }
 export type DeskLayout = ReturnType<typeof layDesk>
 const desks = new WeakMap<PassportGeometry, DeskLayout>()
+const desksOfThree = new WeakMap<PassportGeometry, DeskLayout>()
 
-function layDesk(g: PassportGeometry) {
+/** Where a third thing lies on the desk (the padrinhos' manual, `three`): as `passport`. */
+export interface DeskSpot {
+  x: number
+  y: number
+  s: number
+  rot: number
+}
+
+/**
+ * `three`: a padrinho's desk, with their manual on it too, as big as the
+ * passport: the envelope in the middle, under the passport's edge on its
+ * left and the manual's on its right — the three of them centred.
+ */
+function layDesk(g: PassportGeometry, three = false) {
   // (Sized as the invitation sizes it, on the screen's own height.)
   const env = envelopeSize(g.vw, g.screenH)
   const cw = g.coverBox.w
@@ -221,7 +236,10 @@ function layDesk(g: PassportGeometry) {
     offRight,
     /** The push at the end (see pushPath). */
     ...pushPath(g, env.ew, offRight, {}),
+    /** The padrinhos' manual, on a desk of three. */
+    manual: null as DeskSpot | null,
   }
+  if (three) return { ...common, ...layThree(g, env, midY) }
   if (isHand(g.vw, g.vh)) {
     // Two cards held in the hand, fanned about a point below them: the
     // passport in front, turned left; the envelope behind it, turned right,
@@ -270,6 +288,51 @@ function layDesk(g: PassportGeometry) {
       s: se,
       rot: 5,
     },
+  }
+}
+
+/** A desk of three (see layDesk): the passport, the envelope, the manual. */
+function layThree(g: PassportGeometry, env: { ew: number; eh: number }, midY: number) {
+  const cw = g.coverBox.w
+  const ch = g.coverBox.h
+  if (isHand(g.vw, g.vh)) {
+    // Three cards held in the hand: the envelope at the back, standing up
+    // above the other two (its top half showing); the passport turned left
+    // in front of it, the manual turned right.
+    const cardH = Math.min((g.vh - ENV_NAV_H) * 0.44, ((g.vw * 0.44) / cw) * ch)
+    const sp = cardH / ch
+    const se = (cardH * 0.97) / env.eh
+    const side = sp * cw * 0.52
+    // The three centred, together, between the nav and the screen's foot.
+    const rise = cardH * 0.4
+    const y = midY + rise / 2
+    return {
+      hand: true,
+      passport: { x: g.vw / 2 - side, y, s: sp, rot: -9 },
+      envelope: { x: 0, y: y - rise - g.vh / 2, s: se, rot: 2 },
+      manual: { x: g.vw / 2 + side, y: y + cardH * 0.02, s: sp, rot: 9 } as DeskSpot | null,
+    }
+  }
+  /** The envelope's width, in the passport's; how much of it lies under each. */
+  const ratio = 1.8
+  const under = 0.17
+  const fit = (g.vw * 0.9) / (cw * (2 + ratio * (1 - 2 * under)))
+  const sp = Math.min(0.7, fit, (g.vh * 0.62) / ch)
+  const pw = sp * cw
+  const ew = ratio * pw
+  const se = ew / env.ew
+  const groupW = 2 * pw + ew * (1 - 2 * under)
+  const x0 = (g.vw - groupW) / 2
+  return {
+    hand: false,
+    passport: { x: x0 + pw / 2, y: midY - g.vh * 0.012, s: sp, rot: -5 },
+    envelope: {
+      x: x0 + pw - under * ew + ew / 2 - g.vw / 2,
+      y: midY + g.vh * 0.035 - g.vh / 2,
+      s: se,
+      rot: 2,
+    },
+    manual: { x: x0 + groupW - pw / 2, y: midY - g.vh * 0.004, s: sp, rot: 5 } as DeskSpot | null,
   }
 }
 
@@ -791,19 +854,21 @@ export function vignetteBox(g: PassportGeometry): Rect {
   if (!g.desk) return box
   // Carried to the desk (smaller, turned), the frame must still reach the
   // screen's edges: as far as the screen is, in the carried layout.
-  const c = carryAt(deskLayout(g), 1)
+  // (On a desk of two or of three: framed for either.)
   let [x0, y0, x1, y1] = [box.x, box.y, box.x + box.w, box.y + box.h]
-  for (const [sx, sy] of [
-    [0, 0],
-    [g.vw, 0],
-    [0, g.vh],
-    [g.vw, g.vh],
-  ]) {
-    const p = uncarry(c, { x: sx, y: sy })
-    x0 = Math.min(x0, p.x - g.cover.x - 8)
-    y0 = Math.min(y0, p.y - g.cover.y - l - 8)
-    x1 = Math.max(x1, p.x - g.cover.x + 8)
-    y1 = Math.max(y1, p.y - g.cover.y + l + 8)
+  for (const c of [carryAt(deskLayout(g), 1), carryAt(deskLayout(g, true), 1)]) {
+    for (const [sx, sy] of [
+      [0, 0],
+      [g.vw, 0],
+      [0, g.vh],
+      [g.vw, g.vh],
+    ]) {
+      const p = uncarry(c, { x: sx, y: sy })
+      x0 = Math.min(x0, p.x - g.cover.x - 8)
+      y0 = Math.min(y0, p.y - g.cover.y - l - 8)
+      x1 = Math.max(x1, p.x - g.cover.x + 8)
+      y1 = Math.max(y1, p.y - g.cover.y + l + 8)
+    }
   }
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }
 }

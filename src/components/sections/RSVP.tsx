@@ -30,6 +30,7 @@ import { NUDGE_MS, ScrollHint } from '../ui/ScrollHint'
 import { GiftsTitle } from '../gifts/GiftsTitle'
 import { ManualArriving } from './padrinhos/ManualArriving'
 import { manualPushesCard } from './padrinhos/geometry'
+import { manualPublished } from './padrinhos/available'
 import { pushedAt } from './passport/geometry'
 
 const base = import.meta.env.BASE_URL
@@ -242,6 +243,8 @@ export function RSVP({ guest, giftsNext = true }: Props) {
 
   const { w, h } = useStageSize()
   const geo = measure(w, h)
+  // A padrinho's desk has their manual on it too (see layDesk).
+  const manualOnDesk = !!guest.padrinho && manualPublished()
   // A padrinho's: the manual comes for the reply card, pushing it off.
   const manualPush = useMemo(
     () => (giftsNext || reduced ? null : manualPushesCard(w, h, geo.cw, geo.ch)),
@@ -392,7 +395,7 @@ export function RSVP({ guest, giftsNext = true }: Props) {
             className="pointer-events-none fixed inset-0"
             style={{ opacity: fixedShown }}
           >
-            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
+            <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo, manualOnDesk)} />
           </motion.div>
         )}
         <motion.p

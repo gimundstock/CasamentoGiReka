@@ -8,6 +8,7 @@ import { useReducedMotion } from '../motion/useReducedMotion'
 import { GIFTS_TITLE_TOP, GiftsTitle } from '../gifts/GiftsTitle'
 import { DeskFlowers } from './passport/DeskFlowers'
 import { RSVP_SCENE_VH } from './RSVP'
+import { manualPublished } from './padrinhos/available'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
 import { purchaseGift, submitCard } from '../../api/sheets'
@@ -193,7 +194,7 @@ export function GiftShop({ guest }: Props) {
         </div>
       ) : null}
 
-      <GiftsDesk opening={!reduced}>
+      <GiftsDesk opening={!reduced} three={!!guest.padrinho && manualPublished()}>
         <div className="mx-auto max-w-6xl px-4 pb-32 sm:px-8 md:pb-48">
           {loading ? (
             <div className="text-title py-16 text-center font-serif">…</div>
@@ -1217,7 +1218,16 @@ const HEADER_SCALE = 0.5
  * rises to the top, the gifts coming up under it; from there the list
  * scrolls like a page, over the desk's wildflowers, which stay put.
  */
-function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNode }) {
+function GiftsDesk({
+  opening,
+  three,
+  children,
+}: {
+  opening: boolean
+  /** A padrinho's desk, with their manual on it too (see layDesk). */
+  three: boolean
+  children: ReactNode
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress: arrival } = useScroll({
     target: ref,
@@ -1270,7 +1280,7 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
           className="pointer-events-none fixed inset-0"
           style={{ y: flowersY }}
         >
-          <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
+          <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo, three)} />
         </motion.div>
       )}
       {/* Where the Nav's "Gifts" link lands: the title risen to the top, the

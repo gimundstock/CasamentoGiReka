@@ -236,7 +236,11 @@ export function BrasiliaPassport({
   const envPaperRef = useRef<HTMLDivElement>(null)
   const flowersRef = useRef<HTMLDivElement>(null)
   const desk = !!g?.desk && !reduced
-  const layout = useMemo(() => (g && desk ? deskLayout(g) : null), [g, desk])
+  // (A padrinho's desk has three things on it: see layDesk.)
+  const layout = useMemo(
+    () => (g && desk ? deskLayout(g, manualLies) : null),
+    [g, desk, manualLies]
+  )
   // The padrinhos' manual, lying behind the passport on the desk, and
   // opened there after it if it has its chapter (padrinhos only).
   const manual = useMemo(
