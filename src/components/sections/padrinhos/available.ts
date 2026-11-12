@@ -1,5 +1,9 @@
+import { createContext } from 'react'
 import { CONFIG } from '../../../content.config'
 import { isHand, type Chapter } from '../passport/geometry'
+
+/** Who the manual is made out to (the guest's padrinhos, by name), for its cover. */
+export const PadrinhoNames = createContext<string[]>([])
 
 /**
  * Whether the manual is out: once the couple publish it, or always in

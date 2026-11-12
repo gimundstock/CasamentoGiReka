@@ -27,10 +27,12 @@
  * only stores state — guests, RSVPs, and the purchase log. Availability is
  * derived from which cotaIds appear in the Orders tab.
  *
- * Guests columns: guestId | groupName | language | attendees | displayName | padrinho
+ * Guests columns: guestId | groupName | language | attendees | displayName | padrinhos
  *   groupName    the name on the invitation, also what guests type to log in
  *   displayName  optional: how the site greets them ("Mãe e Pai"); blank → groupName
- *   padrinho     TRUE for the wedding party: they also get the padrinhos' manual
+ *   padrinhos    the invitation's padrinhos, by name ("Alice, Laura"): they also
+ *                get the padrinhos' manual, made out to them. TRUE: all of the
+ *                invitation's attendees. (The header may also be `padrinho`.)
  * Columns are read by header name, so their order in the sheet doesn't matter.
  * A guest's photos aren't in the sheet: they're whatever images sit in their
  * Drive subfolder (see GUEST_PHOTOS_FOLDER_ID), in file-name order.
@@ -202,6 +204,28 @@ function latestRsvpAttendees(guestId) {
   }
 }
 
+/**
+ * The invitation's padrinhos, by name, from the `padrinhos` (or `padrinho`)
+ * cell: a comma-separated list; TRUE (a checkbox) for all its attendees;
+ * blank or FALSE for none.
+ */
+function padrinhoNames(row) {
+  var cell = row.padrinhos != null ? row.padrinhos : row.padrinho;
+  if (cell == null || cell === false) return [];
+  if (isTrue(cell)) return splitNames(row.attendees);
+  var text = String(cell).trim();
+  if (!text || text.toLowerCase() === 'false') return [];
+  return splitNames(text);
+}
+
+/** A comma-separated list of names, trimmed, blanks dropped. */
+function splitNames(value) {
+  return String(value == null ? '' : value)
+    .split(',')
+    .map(function(s) { return s.trim(); })
+    .filter(Boolean);
+}
+
 /** A checkbox or TRUE/true typed into a cell. */
 function isTrue(value) {
   return value === true || String(value).trim().toLowerCase() === 'true';
@@ -277,7 +301,8 @@ function formatGuest(row) {
     language: row.language || 'pt',
     attendees: String(row.attendees).split(',').map(function(s) { return s.trim(); }).filter(Boolean),
     photos: guestPhotoUrls(row.guestId),
-    padrinho: isTrue(row.padrinho),
+    padrinhos: padrinhoNames(row),
+    padrinho: padrinhoNames(row).length > 0,
     rsvpSubmitted: rsvp !== null,
     rsvpAttendees: rsvp || [],
   };

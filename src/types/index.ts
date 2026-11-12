@@ -13,6 +13,8 @@ export interface Guest {
   photos?: string[]
   /** Part of the wedding party: the site also shows the padrinhos' manual. */
   padrinho?: boolean
+  /** The invitation's padrinhos, by name: the manual is made out to them. */
+  padrinhos?: string[]
   /** Set by the backend: the guest already has a row in the RSVPs tab. */
   rsvpSubmitted?: boolean
   /** Set by the backend: who is and isn't coming, from their latest reply. */

@@ -1,8 +1,9 @@
-import type { CSSProperties } from 'react'
+import { useContext, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG, type PadrinhosPage } from '../../../content.config'
 import { EMBOSS_SHADOW } from '../../ui/emboss'
 import { GOLD, ScriptText } from '../passport/Pages'
+import { PadrinhoNames } from './available'
 
 const BASE = import.meta.env.BASE_URL
 /** The site's wildflower border (2000 × 477), at a page's foot. */
@@ -26,7 +27,10 @@ const COVER_ART = `${BASE}padrinhos/cover.webp`
  * passport on the desk.
  */
 export function Cover({ w }: { w: number; h: number }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const names = useContext(PadrinhoNames)
+  // "Alice e Laura" / "Alice, Laura and Rui".
+  const to = listOf(names, i18n.language === 'en' ? 'and' : 'e')
   return (
     <div
       className="absolute inset-0 overflow-hidden"
@@ -37,10 +41,18 @@ export function Cover({ w }: { w: number; h: number }) {
         fontSize: w / 22,
       }}
     >
-      {/* Read from the foot up, as a spine is. */}
-      <div className="absolute top-[6%] right-[4.5%] bottom-[25%] flex w-[1.4em] flex-col items-center justify-start">
+      {/* Read from the foot up, as a spine is: who it is for beside it. */}
+      <div className="absolute top-[6%] right-[4.5%] flex items-start gap-[0.55em]">
+        {to && (
+          <span
+            className="font-garamond text-forest-deep/85 text-[1.05em] leading-none whitespace-nowrap italic"
+            style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+          >
+            {t('padrinhos.for', { names: to })}
+          </span>
+        )}
         <span
-          className="font-sans text-honey text-[0.92em] leading-none font-semibold tracking-[0.3em] whitespace-nowrap uppercase"
+          className="font-sans text-honey w-[1.4em] text-[0.92em] leading-none font-semibold tracking-[0.3em] whitespace-nowrap uppercase"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
           {t('padrinhos.cover')}
@@ -154,4 +166,10 @@ function weddingDate(lang: Lang) {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(Date.UTC(y, m - 1, d)))
+}
+
+/** Names as a list: "Alice", "Alice e Laura", "Alice, Laura e Rui". */
+function listOf(names: string[], and: string) {
+  if (names.length < 2) return names.join('')
+  return `${names.slice(0, -1).join(', ')} ${and} ${names[names.length - 1]}`
 }
