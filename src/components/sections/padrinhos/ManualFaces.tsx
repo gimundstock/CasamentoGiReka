@@ -21,7 +21,7 @@ const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.18)'
 
 /**
  * The manual's cover, `w` × `h` (px): the couple's names at its top left,
- * the title in script running up its right edge — so it reads even where
+ * the title in spaced capitals running up its right edge — so it reads even where
  * only that edge shows, the manual lying under the passport on the desk —
  * and wildflowers growing up from its foot.
  */
@@ -43,18 +43,17 @@ export function Cover({ w, h }: { w: number; h: number }) {
         <span>{CONFIG.couple.bride}</span>
         <span>&amp; {CONFIG.couple.groom}</span>
       </span>
-      {/* Read from the foot up, as a spine is. */}
+      {/* Read from the foot up, as a spine is: in Jost, spaced capitals. */}
       <span
-        className="font-script text-honey absolute top-[9%] right-[6%] text-[1.75em] leading-[1.3] whitespace-nowrap"
+        className="font-sans text-honey absolute top-[9%] right-[7%] text-[1.05em] leading-none tracking-[0.28em] whitespace-nowrap uppercase"
         style={{
           writingMode: 'vertical-rl',
           transform: 'rotate(180deg)',
           height: '68%',
           textAlign: 'end',
-          textShadow: EMBOSS_SHADOW,
         }}
       >
-        <ScriptText>{t('padrinhos.cover')}</ScriptText>
+        {t('padrinhos.cover')}
       </span>
     </div>
   )
