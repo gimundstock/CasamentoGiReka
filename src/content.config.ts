@@ -147,6 +147,8 @@ export const CONFIG = {
      * amarelo-ocre, rosa-coral, framboesa, lilas, verde-oliva,
      * azul-acinzentado, bege). DRAFT text.
      */
+    attireTitle_pt: 'Traje',
+    attireTitle_en: 'Attire',
     attire: [
       {
         title_pt: 'Madrinhas',

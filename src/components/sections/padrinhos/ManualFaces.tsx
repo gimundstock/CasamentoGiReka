@@ -161,12 +161,19 @@ export function LetterPage({ lang, h }: { lang: Lang; h: number }) {
  */
 export function AttirePage({ lang, h }: { lang: Lang; h: number }) {
   const pt = lang === 'pt'
+  const { padrinhos } = CONFIG
   return (
     <PagePaper h={h}>
-      {CONFIG.padrinhos.attire.map((group, i) => (
-        <section key={i} className={i > 0 ? 'mt-[2.2em]' : ''}>
-          <PageTitle size="1.6em">{pt ? group.title_pt : group.title_en}</PageTitle>
-          <p className="font-serif text-forest-deep/90 mx-auto mt-[1.1em] max-w-[24em] text-[1.12em] leading-[1.45] text-pretty">
+      <PageTitle size="1.95em">
+        {pt ? padrinhos.attireTitle_pt : padrinhos.attireTitle_en}
+      </PageTitle>
+      {padrinhos.attire.map((group, i) => (
+        <section key={i} className="mt-[2em]">
+          {/* Who it is for, in Jost: the section's own small heading. */}
+          <h4 className="font-sans text-forest-deep text-[0.78em] tracking-[0.3em] uppercase">
+            {pt ? group.title_pt : group.title_en}
+          </h4>
+          <p className="font-serif text-forest-deep/90 mx-auto mt-[0.6em] max-w-[24em] text-[1.12em] leading-[1.45] text-pretty">
             {pt ? group.text_pt : group.text_en}
           </p>
           {group.palette.length > 0 && (
