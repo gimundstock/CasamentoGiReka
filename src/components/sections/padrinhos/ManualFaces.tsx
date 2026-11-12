@@ -145,8 +145,8 @@ export function LetterPage({ lang, h }: { lang: Lang; h: number }) {
   const pt = lang === 'pt'
   return (
     <PagePaper h={h} mirrored>
-      <PageTitle size="2.9em">{pt ? letter.title_pt : letter.title_en}</PageTitle>
-      <div className="font-serif text-forest-deep/90 mx-auto mt-[1.1em] max-w-[24em] space-y-[0.8em] text-left text-[1.15em] leading-[1.5] text-pretty">
+      <PageTitle size="1.95em">{pt ? letter.title_pt : letter.title_en}</PageTitle>
+      <div className="font-serif text-forest-deep/90 mx-auto mt-[0.8em] max-w-[24em] space-y-[0.8em] text-left text-[1.15em] leading-[1.5] text-pretty">
         {(pt ? letter.paragraphs_pt : letter.paragraphs_en).map((text, i) => (
           <p key={i}>{text}</p>
         ))}
@@ -165,8 +165,8 @@ export function AttirePage({ lang, h }: { lang: Lang; h: number }) {
     <PagePaper h={h}>
       {CONFIG.padrinhos.attire.map((group, i) => (
         <section key={i} className={i > 0 ? 'mt-[2.2em]' : ''}>
-          <PageTitle size="2.4em">{pt ? group.title_pt : group.title_en}</PageTitle>
-          <p className="font-serif text-forest-deep/90 mx-auto mt-[1.75em] max-w-[24em] text-[1.12em] leading-[1.45] text-pretty">
+          <PageTitle size="1.6em">{pt ? group.title_pt : group.title_en}</PageTitle>
+          <p className="font-serif text-forest-deep/90 mx-auto mt-[1.1em] max-w-[24em] text-[1.12em] leading-[1.45] text-pretty">
             {pt ? group.text_pt : group.text_en}
           </p>
           {group.palette.length > 0 && (
