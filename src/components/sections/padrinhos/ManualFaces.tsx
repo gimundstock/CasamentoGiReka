@@ -97,7 +97,11 @@ export function Cover({ w }: { w: number; h: number }) {
   )
 }
 
-/** A page inside, `h` px tall: the ivory paper, the site's wildflowers at its foot (`mirrored` on the left page, so the two mirror each other). */
+/**
+ * A page inside, `h` px tall: the ivory paper, the site's wildflowers at
+ * its foot (`mirrored` on the left page, so the two mirror each other),
+ * its content centred in the paper above them.
+ */
 function PagePaper({
   h,
   mirrored = false,
@@ -109,7 +113,7 @@ function PagePaper({
 }) {
   return (
     <div
-      className="absolute inset-0 flex flex-col overflow-hidden px-[10%] pt-[12%] text-center"
+      className="absolute inset-0 flex flex-col justify-center overflow-hidden px-[10%] pt-[6%] pb-[27%] text-center"
       style={{
         background: CARD_PAPER,
         boxShadow: EDGE,
