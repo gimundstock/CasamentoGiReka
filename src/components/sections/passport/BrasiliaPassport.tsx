@@ -465,11 +465,16 @@ export function BrasiliaPassport({
         const { envelope: E, closed: F, offRight } = layout
         const go = ease(seg(at, DESK.pickUp))
         let x: number, y: number, rot: number, sc: number
+        // A phone: it comes in as tall as what it pushes (the shut book or
+        // the manual at the centre), and shrinks to the invitation's own
+        // size as the scroll comes to the end of the stage.
+        const grown = layout.hand ? Math.max(1, g.coverBox.h / layout.env.eh) : 1
+        const shrink = ease(seg(v, [DESK.arrive[1] - 8, DESK.end]))
         if (push > 0) {
           x = envX
           y = F.y
           rot = 5 * (1 - drawn)
-          sc = 1
+          sc = grown + (1 - grown) * shrink
         } else {
           x = E.x + (offRight - E.x) * go
           y = E.y
@@ -483,7 +488,7 @@ export function BrasiliaPassport({
         envEl.style.opacity = push > 0 ? '1' : String(Math.max(0.01, coverIn))
         envEl.style.zIndex = push > 0 ? '2' : '0'
         envEl.style.transform =
-          push >= 1
+          push >= 1 && sc === 1
             ? `translateY(${F.y}px)`
             : `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(5)})`
         const words = ease(seg(v, DESK.words))
