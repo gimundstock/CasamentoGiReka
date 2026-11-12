@@ -7,6 +7,9 @@ import { Cover, PageFace } from './ManualFaces'
 const SHEET_SHADOW =
   '0 26px 50px -26px rgba(60, 40, 15, 0.55), 0 4px 10px -6px rgba(60, 40, 15, 0.3)'
 
+/** The open cover's (the left page's): no close shadow at the spine. */
+const SPREAD_SHADOW = '0 26px 50px -26px rgba(60, 40, 15, 0.5)'
+
 export interface ManualCardHandle {
   /** Opened `turn` of the way: 0 shut → 1 lying open. */
   set(turn: number): void
@@ -116,7 +119,9 @@ export function ManualCard({
               visibility: 'hidden',
               transform: 'rotateY(180deg)',
               borderRadius: `${r} 0 0 ${r}`,
-              boxShadow: SHEET_SHADOW,
+              // Only its long, soft shadow on the table: the close one would
+              // fall across the spine onto the right page.
+              boxShadow: SPREAD_SHADOW,
             }}
           >
             <PageFace page={left} lang={lang} h={h} />

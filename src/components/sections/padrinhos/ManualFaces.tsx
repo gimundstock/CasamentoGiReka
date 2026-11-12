@@ -17,7 +17,7 @@ type Lang = 'pt' | 'en'
 export const CARD_PAPER = `url(${BASE}padrinhos/ivory-paper.webp) center / cover`
 
 /** A sheet's edge: a hairline of shade, as the paper's thickness catches the light. */
-const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.18)'
+const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.1)'
 
 /**
  * The manual's cover, `w` × `h` (px): the couple's names at its top left,
