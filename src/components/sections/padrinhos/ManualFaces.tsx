@@ -29,8 +29,9 @@ const COVER_ART = `${BASE}padrinhos/cover.webp`
 export function Cover({ w }: { w: number; h: number }) {
   const { t } = useTranslation()
   const names = useContext(PadrinhoNames)
-  // "Alice & Laura", "Alice, Laura & Rui" (as the couple's own names are set).
-  const to = listOf(names)
+  // Two lines: "Alice" / "& Laura" (a padrinho or two; more, the last on
+  // the second line).
+  const lines = names.length < 2 ? names : [names.slice(0, -1).join(', '), names[names.length - 1]]
   return (
     <div
       className="absolute inset-0 overflow-hidden"
@@ -41,15 +42,23 @@ export function Cover({ w }: { w: number; h: number }) {
         fontSize: w / 22,
       }}
     >
-      {/* Who it is for, across its top: "para" in Jost over the names in script. */}
-      {to && (
-        <p className="absolute top-[13%] right-[15%] left-[14%] flex flex-col items-center text-center">
-          <span className="font-sans text-forest-deep text-[0.8em] tracking-[0.25em] uppercase">
+      {/* Who it is for, across its top, from the left: "para" in Jost over
+          the names in script. */}
+      {lines.length > 0 && (
+        <p className="absolute top-[13%] right-[18%] left-[18%] text-left">
+          <span className="font-sans text-forest-deep block text-[0.8em] tracking-[0.25em] uppercase">
             {t('padrinhos.for')}
           </span>
           {/* The welcome screen's colour for names. */}
-          <span className="font-script text-title mt-[0.5em] text-[1.85em] leading-[1.45] text-balance">
-            <ScriptText>{to}</ScriptText>
+          <span className="font-script text-title mt-[0.6em] block text-[1.85em] leading-[1.9]">
+            {lines.map((line, i) => (
+              // The second line set in a little: the two staggered.
+              <span key={line} className={`block ${i > 0 ? 'pl-[1.2em]' : ''}`}>
+                {/* (Room after the "&": the script's capitals swash in from the left.) */}
+                {i > 0 && <span className="mr-[0.35em]">&amp;</span>}
+                <ScriptText>{line}</ScriptText>
+              </span>
+            ))}
           </span>
         </p>
       )}
@@ -168,10 +177,4 @@ function weddingDate(lang: Lang) {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(Date.UTC(y, m - 1, d)))
-}
-
-/** Names as a list: "Alice", "Alice & Laura", "Alice, Laura & Rui". */
-function listOf(names: string[]) {
-  if (names.length < 2) return names.join('')
-  return `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`
 }
