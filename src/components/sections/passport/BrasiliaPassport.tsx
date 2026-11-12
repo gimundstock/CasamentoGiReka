@@ -1081,6 +1081,8 @@ function PagePeek({ right, bottom, size }: { right: number; bottom: number; size
         width: size,
         height: size,
         borderBottomRightRadius: 'var(--page-rr, 0px)',
+        // Lying flat between peeks (and without the animation at all).
+        transform: 'scale(0)',
         background:
           'linear-gradient(135deg, #FBF5E8 0%, #EADBBE 48.5%, rgba(110, 78, 30, 0.25) 50%, #EFE3CB 51%, #F3E9D5 100%)',
         filter: 'drop-shadow(-2px -2px 3px rgba(110, 78, 30, 0.22))',
