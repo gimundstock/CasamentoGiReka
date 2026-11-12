@@ -29,9 +29,9 @@ const COVER_ART = `${BASE}padrinhos/cover.webp`
 export function Cover({ w }: { w: number; h: number }) {
   const { t } = useTranslation()
   const names = useContext(PadrinhoNames)
-  // Two lines: "para Iza &" / "Anton", set in (a padrinho or two; more,
-  // all but the last on the first line).
-  const first = names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} &`
+  // "Iza" / "& Anton", the second set in (a padrinho or two; more, all but
+  // the last on the first line).
+  const first = names.length < 2 ? names.join('') : names.slice(0, -1).join(', ')
   const second = names.length < 2 ? '' : names[names.length - 1]
   return (
     <div
@@ -43,21 +43,21 @@ export function Cover({ w }: { w: number; h: number }) {
         fontSize: w / 22,
       }}
     >
-      {/* Who it is for, across its top: "para" in Jost, then the names in
+      {/* Who it is for, across its top: "para" in Jost over the names in
           script, the second set in under the first. */}
       {first && (
-        <p className="absolute top-[19%] right-[12%] left-[24%] text-left">
-          <span className="flex items-baseline gap-[0.45em]">
-            <span className="font-sans text-forest-deep text-[0.68em] tracking-[0.25em] uppercase">
-              {t('padrinhos.for')}
-            </span>
-            {/* The welcome screen's colour for names. */}
-            <span className="font-script text-title text-[1.5em] leading-[1.35]">
-              <ScriptText>{first}</ScriptText>
-            </span>
+        <p className="absolute top-[19%] right-[12%] left-[26%] text-left">
+          <span className="font-sans text-forest-deep block text-[0.68em] tracking-[0.25em] uppercase">
+            {t('padrinhos.for')}
+          </span>
+          {/* The welcome screen's colour for names. */}
+          <span className="font-script text-title mt-[0.5em] block text-[1.5em] leading-[1.35]">
+            <ScriptText>{first}</ScriptText>
           </span>
           {second && (
-            <span className="font-script text-title mt-[0.65em] block pl-[2.3em] text-[1.5em] leading-[1.35]">
+            <span className="font-script text-title mt-[0.55em] block pl-[1.3em] text-[1.5em] leading-[1.35]">
+              {/* (Room after the "&": the script's capitals swash in from the left.) */}
+              <span className="mr-[0.35em]">&amp;</span>
               <ScriptText>{second}</ScriptText>
             </span>
           )}
