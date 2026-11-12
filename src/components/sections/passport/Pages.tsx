@@ -346,28 +346,35 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
       {/* The name itself is the link (map, Airbnb…), with an arrow: a line
           of its own for it cost the room for a second place on a phone's
           page. */}
-      <h4 className="font-sans text-forest-deep text-[0.95em] leading-tight tracking-[0.03em]">
-        {entry.href ? (
-          <a
-            href={entry.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hit-area underline-offset-[0.25em] hover:underline"
-            style={{ textDecorationColor: GOLD }}
-          >
-            {entry.title}
-            <span aria-hidden className="text-amber-deep ml-[0.35em] text-[0.85em]">
-              ↗
-            </span>
-            <span className="sr-only">
-              {' — '}
-              {t(`city.passport.${entry.linkKey ?? 'more'}`)}
-            </span>
-          </a>
-        ) : (
-          entry.title
+      <div className="flex flex-wrap items-baseline justify-between gap-x-[0.8em] gap-y-[0.2em]">
+        <h4 className="font-sans text-forest-deep text-[0.95em] leading-tight tracking-[0.03em]">
+          {entry.href ? (
+            <a
+              href={entry.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hit-area underline-offset-[0.25em] hover:underline"
+              style={{ textDecorationColor: GOLD }}
+            >
+              {entry.title}
+              <span aria-hidden className="text-amber-deep ml-[0.35em] text-[0.85em]">
+                ↗
+              </span>
+              <span className="sr-only">
+                {' — '}
+                {t(`city.passport.${entry.linkKey ?? 'more'}`)}
+              </span>
+            </a>
+          ) : (
+            entry.title
+          )}
+        </h4>
+        {entry.aside && (
+          <span className="font-sans text-amber-deep text-[max(0.56em,9px)] tracking-[0.18em] whitespace-nowrap uppercase">
+            {entry.aside}
+          </span>
         )}
-      </h4>
+      </div>
       {entry.meta && (
         <p className="font-sans text-amber-deep mt-[0.4em] text-[max(0.6em,10px)] tracking-[0.24em] uppercase">
           {entry.meta}
