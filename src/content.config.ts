@@ -145,7 +145,7 @@ export const CONFIG = {
      * The right page: what to wear, for each, with the colours to choose
      * from: painted dabs, by name, from public/padrinhos/paleta (terracota,
      * amarelo-ocre, rosa-coral, framboesa, lilas, verde-oliva,
-     * azul-acinzentado, bege). DRAFT text.
+     * azul-acinzentado, bege, cinza).
      */
     attireTitle_pt: 'Traje',
     attireTitle_en: 'Attire',
@@ -154,17 +154,19 @@ export const CONFIG = {
         title_pt: 'Madrinhas',
         title_en: 'Bridesmaids',
         text_pt:
-          'Rascunho: vestido longo, em tecido leve, em um dos tons abaixo, que são as cores do nosso jardim.',
+          'Queremos um casamento bem colorido e descontraído, por isso escolhemos essa paleta com muito carinho. Fique à vontade para escolher a cor que mais combina com você!',
         text_en:
-          'Draft: a long dress, in a light fabric, in one of the colours below, the colours of our garden.',
-        palette: ['terracota', 'amarelo-ocre', 'rosa-coral', 'framboesa', 'lilas'],
+          'We want a colourful, relaxed wedding, so we chose this palette with great care. Feel free to pick the colour that suits you best!',
+        palette: ['terracota', 'amarelo-ocre', 'rosa-coral', 'framboesa', 'lilas', 'verde-oliva'],
       },
       {
         title_pt: 'Padrinhos',
         title_en: 'Groomsmen',
-        text_pt: 'Rascunho: terno em um dos tons abaixo, com camisa clara; gravata opcional.',
-        text_en: 'Draft: a suit in one of the colours below, with a light shirt; tie optional.',
-        palette: ['verde-oliva', 'azul-acinzentado', 'bege'],
+        text_pt:
+          'Para harmonizar com as cores das madrinhas e com o traje do noivo, escolhemos tons mais neutros. Você pode usar um terno cinza ou azul, com uma gravata bege no mesmo tom do terno do noivo.',
+        text_en:
+          'To go with the bridesmaids’ colours and the groom’s suit, we chose more neutral tones. You can wear a grey or blue suit, with a beige tie in the same tone as the groom’s suit.',
+        palette: ['cinza', 'azul-acinzentado', 'bege'],
       },
     ],
   },
