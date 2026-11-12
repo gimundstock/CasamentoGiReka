@@ -166,9 +166,9 @@ export const CONFIG = {
         title_pt: 'Padrinhos',
         title_en: 'Groomsmen',
         text_pt:
-          'Para harmonizar com as cores das madrinhas e com o traje do noivo, escolhemos tons mais neutros.',
+          'Para harmonizar com as cores das madrinhas e com o traje do noivo, escolhemos tons mais neutros. Para acompanhar o noivo, nossa sugestão é usar uma gravata tradicional e um paletó de abotoamento simples, sem colete.',
         text_en:
-          'To go with the bridesmaids’ colours and the groom’s suit, we chose more neutral tones.',
+          'To go with the bridesmaids’ colours and the groom’s suit, we chose more neutral tones. To match the groom, we suggest a classic tie and a single-breasted jacket, without a waistcoat.',
         palette: [] as string[],
         /** Piece by piece, each with its colours (dabs, as `palette`). */
         items: [
@@ -187,10 +187,9 @@ export const CONFIG = {
             palette: ['bege'],
           },
         ] as PadrinhosAttireItem[],
-        /** A line under it all (what not to wear). */
-        note_pt:
-          'Pedimos só que não usem gravata-borboleta, colete nem paletó jaquetão (com duas fileiras de botões).',
-        note_en: 'We only ask: no bow ties, no waistcoats and no double-breasted jackets.',
+        /** A line under it all, if any. */
+        note_pt: '',
+        note_en: '',
       },
     ],
   },
