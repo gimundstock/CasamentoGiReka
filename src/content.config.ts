@@ -158,15 +158,33 @@ export const CONFIG = {
         text_en:
           'We want a colourful, relaxed wedding, so we chose this palette with great care. Feel free to pick the colour that suits you best!',
         palette: ['terracota', 'amarelo-ocre', 'rosa-coral', 'framboesa', 'lilas', 'verde-oliva'],
+        items: [] as PadrinhosAttireItem[],
       },
       {
         title_pt: 'Padrinhos',
         title_en: 'Groomsmen',
         text_pt:
-          'Para harmonizar com as cores das madrinhas e com o traje do noivo, escolhemos tons mais neutros. Você pode usar um terno cinza ou azul, com uma gravata bege no mesmo tom do terno do noivo.',
+          'Para harmonizar com as cores das madrinhas e com o traje do noivo, escolhemos tons mais neutros.',
         text_en:
-          'To go with the bridesmaids’ colours and the groom’s suit, we chose more neutral tones. You can wear a grey or blue suit, with a beige tie in the same tone as the groom’s suit.',
-        palette: ['cinza', 'azul-acinzentado', 'bege'],
+          'To go with the bridesmaids’ colours and the groom’s suit, we chose more neutral tones.',
+        palette: [] as string[],
+        /** Piece by piece, each with its colours (dabs, as `palette`). */
+        items: [
+          {
+            label_pt: 'Terno',
+            label_en: 'Suit',
+            text_pt: 'cinza ou azul',
+            text_en: 'grey or blue',
+            palette: ['cinza', 'azul-acinzentado'],
+          },
+          {
+            label_pt: 'Gravata',
+            label_en: 'Tie',
+            text_pt: 'bege, no tom do terno do noivo',
+            text_en: 'beige, the tone of the groom’s suit',
+            palette: ['bege'],
+          },
+        ] as PadrinhosAttireItem[],
       },
     ],
   },
@@ -1970,6 +1988,14 @@ export const CONFIG = {
       ],
     },
   ],
+}
+/** One piece of a padrinho's attire: what it is, its colour, and the colour's dabs. */
+export interface PadrinhosAttireItem {
+  label_pt: string
+  label_en: string
+  text_pt: string
+  text_en: string
+  palette: string[]
 }
 export type MenuOption = (typeof CONFIG.menuOptions)[number]
 export type GiftConfig = (typeof CONFIG.gifts)[number]

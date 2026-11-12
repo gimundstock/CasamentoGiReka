@@ -179,14 +179,30 @@ export function AttirePage({ lang, h }: { lang: Lang; h: number }) {
           {group.palette.length > 0 && (
             <ul className="mt-[1em] flex flex-wrap justify-center gap-[0.7em]">
               {group.palette.map((name) => (
-                // A watercolour dab, painted (public/padrinhos/paleta).
                 <li key={name} aria-hidden className="h-[2.6em] w-[2.6em]">
-                  <img
-                    src={`${BASE}padrinhos/paleta/${name}.webp`}
-                    alt=""
-                    draggable={false}
-                    className="h-full w-full select-none"
-                  />
+                  <Dab name={name} />
+                </li>
+              ))}
+            </ul>
+          )}
+          {group.items.length > 0 && (
+            // Piece by piece: what it is, its colour, and the colour's dabs.
+            <ul className="mx-auto mt-[1em] w-fit space-y-[0.7em] text-left">
+              {group.items.map((item, j) => (
+                <li key={j} className="flex items-center gap-[0.8em]">
+                  <span className="flex w-[4.35em] shrink-0 justify-end gap-[0.35em]">
+                    {item.palette.map((name) => (
+                      <span key={name} aria-hidden className="block h-[2em] w-[2em]">
+                        <Dab name={name} />
+                      </span>
+                    ))}
+                  </span>
+                  <span className="font-serif text-forest-deep/90 text-[1.12em] leading-snug">
+                    <span className="font-sans text-forest-deep mr-[0.5em] text-[0.7em] tracking-[0.25em] uppercase">
+                      {pt ? item.label_pt : item.label_en}
+                    </span>
+                    {pt ? item.text_pt : item.text_en}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -194,5 +210,17 @@ export function AttirePage({ lang, h }: { lang: Lang; h: number }) {
         </section>
       ))}
     </PagePaper>
+  )
+}
+
+/** A watercolour dab, painted (public/padrinhos/paleta), by name. */
+function Dab({ name }: { name: string }) {
+  return (
+    <img
+      src={`${BASE}padrinhos/paleta/${name}.webp`}
+      alt=""
+      draggable={false}
+      className="h-full w-full select-none"
+    />
   )
 }
