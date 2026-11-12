@@ -1,4 +1,4 @@
-import { useContext, useId, type ReactNode } from 'react'
+import { useContext, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../../content.config'
 import { EMBOSS_SHADOW } from '../../ui/emboss'
@@ -171,9 +171,15 @@ export function AttirePage({ lang, h }: { lang: Lang; h: number }) {
           </p>
           {group.palette.length > 0 && (
             <ul className="mt-[1em] flex flex-wrap justify-center gap-[0.7em]">
-              {group.palette.map((c, j) => (
-                <li key={c} aria-hidden className="h-[2.6em] w-[2.6em]">
-                  <WatercolourDab colour={c} seed={i * 7 + j + 1} />
+              {group.palette.map((name) => (
+                // A watercolour dab, painted (public/padrinhos/paleta).
+                <li key={name} aria-hidden className="h-[2.6em] w-[2.6em]">
+                  <img
+                    src={`${BASE}padrinhos/paleta/${name}.webp`}
+                    alt=""
+                    draggable={false}
+                    className="h-full w-full select-none"
+                  />
                 </li>
               ))}
             </ul>
@@ -181,59 +187,5 @@ export function AttirePage({ lang, h }: { lang: Lang; h: number }) {
         </section>
       ))}
     </PagePaper>
-  )
-}
-
-/** `hex` darkened by `k` (0–1), as pigment pooled at a wash's edge. */
-function darken(hex: string, k: number) {
-  const n = parseInt(hex.slice(1), 16)
-  const ch = (v: number) =>
-    Math.round(v * (1 - k))
-      .toString(16)
-      .padStart(2, '0')
-  return `#${ch(n >> 16)}${ch((n >> 8) & 255)}${ch(n & 255)}`
-}
-
-/**
- * A dab of watercolour, not a flat disc: its edge a little wobbly (wet
- * paint spreading on paper; `seed` makes each one different), its middle
- * paler and the pigment pooled darker at its rim, laid on the paper so the
- * paper's grain shows through it (multiply).
- */
-function WatercolourDab({ colour, seed }: { colour: string; seed: number }) {
-  const id = useId().replace(/:/g, '')
-  const rim = darken(colour, 0.22)
-  return (
-    <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible mix-blend-multiply">
-      <defs>
-        <filter id={`wc-${id}`} x="-25%" y="-25%" width="150%" height="150%">
-          {/* The wobbly edge. */}
-          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" seed={seed} />
-          <feDisplacementMap
-            in="SourceGraphic"
-            scale="10"
-            xChannelSelector="R"
-            yChannelSelector="G"
-            result="wash"
-          />
-          {/* Pigment settling unevenly: a faint blotchy mottle within it. */}
-          <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed={seed + 11} />
-          <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -0.55 0.3" />
-          <feGaussianBlur stdDeviation="2.2" />
-          <feComposite in2="wash" operator="in" result="mottle" />
-          <feMerge>
-            <feMergeNode in="wash" />
-            <feMergeNode in="mottle" />
-          </feMerge>
-        </filter>
-        <radialGradient id={`wg-${id}`} cx="45%" cy="42%" r="58%">
-          <stop offset="0%" stopColor={colour} stopOpacity="0.78" />
-          <stop offset="68%" stopColor={colour} stopOpacity="0.95" />
-          <stop offset="90%" stopColor={rim} stopOpacity="0.95" />
-          <stop offset="100%" stopColor={rim} stopOpacity="1" />
-        </radialGradient>
-      </defs>
-      <circle cx="50" cy="50" r="40" fill={`url(#wg-${id})`} filter={`url(#wc-${id})`} />
-    </svg>
   )
 }

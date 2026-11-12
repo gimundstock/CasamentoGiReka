@@ -143,7 +143,9 @@ export const CONFIG = {
     },
     /**
      * The right page: what to wear, for each, with the colours to choose
-     * from (hex). DRAFT.
+     * from: painted dabs, by name, from public/padrinhos/paleta (terracota,
+     * amarelo-ocre, rosa-coral, framboesa, lilas, verde-oliva,
+     * azul-acinzentado, bege). DRAFT text.
      */
     attire: [
       {
@@ -153,15 +155,14 @@ export const CONFIG = {
           'Rascunho: vestido longo, em tecido leve, em um dos tons abaixo, que são as cores do nosso jardim.',
         text_en:
           'Draft: a long dress, in a light fabric, in one of the colours below, the colours of our garden.',
-        // From the couple's moodboard: terracotta, marigold, coral, raspberry, lilac.
-        palette: ['#BF5335', '#E8A84D', '#DE8A78', '#B93953', '#CFB1BE'],
+        palette: ['terracota', 'amarelo-ocre', 'rosa-coral', 'framboesa', 'lilas'],
       },
       {
         title_pt: 'Padrinhos',
         title_en: 'Groomsmen',
         text_pt: 'Rascunho: terno em um dos tons abaixo, com camisa clara; gravata opcional.',
         text_en: 'Draft: a suit in one of the colours below, with a light shirt; tie optional.',
-        palette: ['#4E784F', '#8C9A86', '#B89B72', '#6B5A4B'],
+        palette: ['verde-oliva', 'azul-acinzentado', 'bege'],
       },
     ],
   },
