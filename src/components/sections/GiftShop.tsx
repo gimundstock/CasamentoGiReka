@@ -1273,6 +1273,14 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
           <DeskFlowers g={deskGeo} desk={deskLayout(deskGeo)} />
         </motion.div>
       )}
+      {/* Where the Nav's "Gifts" link lands: the title risen to the top, the
+          gifts below it (`rising` done, a hair past so it is surely done). */}
+      <div
+        id="gifts-list"
+        aria-hidden
+        className="pointer-events-none absolute h-px w-px"
+        style={{ top: `calc(${RISE_VH * 100}vh + 2px)` }}
+      />
       {/* Room for the title to rise in, then the gifts: they come up under
           the rising title and, once it has risen, start just below it. */}
       <div

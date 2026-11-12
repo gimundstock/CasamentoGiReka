@@ -121,9 +121,12 @@ export const CONFIG = {
 
   // ── Brasília City Guide ───────────────────────────────────
   cityGuide: {
+    // distance: by car to the venue (Clube do Congresso, at the far end of
+    // the Lago Norte peninsula), a weekend evening without traffic (OSRM).
     hotels: [
       {
         name: 'B Hotel Brasília',
+        distance: '18 km · ~20 min',
         description_pt:
           'Boutique 5 estrelas no Setor Hoteleiro Norte, com rooftop panorâmico, piscina aquecida e decoração contemporânea. A poucos minutos a pé da Esplanada dos Ministérios.',
         description_en:
@@ -135,6 +138,7 @@ export const CONFIG = {
       },
       {
         name: 'Kubitschek Plaza Hotel',
+        distance: '18 km · ~20 min',
         description_pt:
           'Clássico renovado no Setor Hoteleiro Norte, com apartamentos espaçosos, piscina coberta e restaurante no topo. Ótima base para explorar o Eixo Monumental.',
         description_en:
@@ -146,6 +150,7 @@ export const CONFIG = {
       },
       {
         name: 'Meliá Brasil 21',
+        distance: '19 km · ~22 min',
         description_pt:
           'Hotel internacional dentro do complexo Brasil 21, no Setor Hoteleiro Sul, com shopping, restaurantes, academia e spa no próprio prédio. Próximo ao Parque da Cidade.',
         description_en:
@@ -157,6 +162,7 @@ export const CONFIG = {
       },
       {
         name: 'Ibis Styles Brasília Aeroporto',
+        distance: '30 km · ~30 min',
         description_pt:
           'Opção econômica ao lado do Aeroporto Internacional (BSB), com café da manhã incluso e shuttle para o terminal. Ideal para chegadas tarde ou voos cedo.',
         description_en:
@@ -168,6 +174,7 @@ export const CONFIG = {
       },
       {
         name: 'Brasília Palace Hotel',
+        distance: '21 km · ~25 min',
         description_pt:
           'O primeiro hotel de Brasília, projetado por Oscar Niemeyer e inaugurado em 1958, à beira do Lago Paranoá. Totalmente restaurado, une arquitetura modernista histórica a um serviço cinco estrelas.',
         description_en:
@@ -178,26 +185,16 @@ export const CONFIG = {
         address: 'Setor de Hotéis e Turismo Norte — Asa Norte, Brasília, DF',
       },
       {
-        name: 'Flat à Beira do Lago — Setor de Clubes Sul (Airbnb)',
+        name: 'Airbnb',
+        distance: '',
         description_pt:
-          'Apartamento inteiro de 51 m² com varanda e vista para o Lago Paranoá, para até 3 pessoas: um quarto, sofá-cama na sala e um banheiro. O prédio tem piscina, sauna, academia e jacuzzi. Nota 4,78 em mais de 580 avaliações no Airbnb. A cerca de 10 minutos da Esplanada dos Ministérios.',
+          'Também há muitos apartamentos e flats para alugar pelo Airbnb. Para ficar mais perto da festa, procurem no Lago Norte ou na Asa Norte.',
         description_en:
-          'An entire 51 m² apartment with a balcony and views over Lake Paranoá, sleeping up to 3: one bedroom, a sofa bed in the living room and one bathroom. The building has a pool, sauna, gym and jacuzzi. Rated 4.78 across 580+ reviews on Airbnb. About 10 minutes from the Esplanada dos Ministérios.',
+          'There are also plenty of apartments and flats to rent on Airbnb. To stay closer to the party, look in Lago Norte or Asa Norte.',
         priceRange: '',
         priceRange_en: '',
-        url: 'https://www.airbnb.com.br/rooms/17530522',
-        address: 'Setor de Clubes Sul — Brasília, DF',
-      },
-      {
-        name: 'Life Resort — Vista do Lago (Airbnb)',
-        description_pt:
-          'Flat inteiro para 2 pessoas no Setor Hoteleiro Norte, com varanda de frente para o lago, cozinha, Wi-Fi e uma vaga de garagem coberta gratuita. O resort tem piscina aquecida, restaurantes e mercadinho. Favorito dos hóspedes no Airbnb, nota 4,82 em mais de 460 avaliações.',
-        description_en:
-          'An entire flat for 2 in the North Hotel Sector, with a lakefront balcony, kitchen, Wi-Fi and one free covered parking space. The resort has a heated pool, restaurants and a convenience store. A guest favourite on Airbnb, rated 4.82 across 460+ reviews.',
-        priceRange: '',
-        priceRange_en: '',
-        url: 'https://www.airbnb.com.br/rooms/9612462',
-        address: 'Setor Hoteleiro Norte — Brasília, DF',
+        url: 'https://www.airbnb.com.br/s/Bras%C3%ADlia--DF/homes',
+        address: '',
       },
     ],
     transport: [
@@ -228,224 +225,102 @@ export const CONFIG = {
           'Brasília is built for cars, with wide avenues and plenty of free parking. If you plan to explore nearby destinations (Pirenópolis, Chapada dos Veadeiros), renting is worth it — Localiza, Movida, and Unidas have counters at the airport.',
         icon: '🚙',
       },
+      {
+        type_pt: 'Dicas',
+        type_en: 'Tips',
+        description_pt:
+          'O transporte público de Brasília não funciona tão bem, e não recomendamos. Andar a pé pode ser complicado, dependendo do local: as distâncias são grandes. E o táxi costuma sair mais caro que o Uber.',
+        description_en:
+          'Public transport in Brasília does not work very well, and we do not recommend it. Walking can be tricky depending on where you are: distances are long. And taxis usually cost more than Uber.',
+        icon: '💡',
+      },
     ],
     restaurants: [
       {
-        name: 'Café e um Chêro',
-        cuisine_pt: 'Café',
-        cuisine_en: 'Café',
+        name: 'IVV Swine Bar',
+        cuisine_pt: 'Bar de vinhos',
+        cuisine_en: 'Wine bar',
         description_pt:
-          'Casa querida de Brasília, com nota 4,6 em quase 3 mil avaliações. Cardápio de café e lanche da tarde bem brasileiro: cuscuz nordestino, tapioca, pão na chapa, bolos e muito mais, com bom cafezinho. Há duas unidades, na Asa Norte (109 Norte) e na Asa Sul (107 Sul). Criada em 2017 na 109 Norte por Dona Alba e o filho João Gabriel — no Maranhão, “dar um chêro” é uma forma carinhosa de demonstrar afeto. Tem área externa coberta e ampla.',
+          'O bar do irmão do Renato! Bar de vinhos descontraído na Asa Norte, com carta premiada. A cozinha gira em torno do porco, daí o "swine".',
         description_en:
-          'A well-loved Brasília spot, rated 4.6 across nearly 3,000 reviews. A very Brazilian coffee and afternoon-snack menu: Northeastern cuscuz, tapioca, pão na chapa (griddled bread), cakes and more, with good coffee. Two branches, in Asa Norte (109 Norte) and Asa Sul (107 Sul). Opened in 2017 on 109 Norte by Dona Alba and her son João Gabriel — in Maranhão, “dar um chêro” is an affectionate way to show care. There is a spacious covered outdoor area.',
-        priceRange: 'R$ 25–50/pessoa',
-        priceRange_en: '~€4–8/person',
-        address: '109 Norte (CLN 109, Bloco C, Loja 37) e 107 Sul — Brasília, DF',
-        url: 'https://www.google.com/maps/search/?api=1&query=Caf%C3%A9+e+um+Ch%C3%AAro+Bras%C3%ADlia',
-      },
-      {
-        name: 'Ricco Burger',
-        cuisine_pt: 'Hamburguer artesanal',
-        cuisine_en: 'Artisan burgers',
-        description_pt:
-          'Hamburgueria artesanal com o lema "Simples, honesto e memorável", conhecida pelos blends grelhados na brasa, pães brioche e molhos autorais. Eleita o Melhor Hambúrguer de Brasília pela Revista Encontro em 2024.',
-        description_en:
-          'Artisan burger spot known for its flame-grilled beef blends, brioche buns, and house-made sauces. Named best burger in Brasília by Revista Encontro in 2024.',
-        priceRange: 'R$ 80–100/pessoa',
-        priceRange_en: '~€13–17/person',
-        address: 'Múltiplas unidades — Asa Sul, Asa Norte, Lago Sul e mais',
-        url: 'https://www.google.com/maps/search/?api=1&query=Ricco+Burger+Bras%C3%ADlia',
-      },
-      {
-        name: 'Dog da Igrejinha',
-        cuisine_pt: 'Cachorro-quente / lanchonete',
-        cuisine_en: 'Hot dogs / casual snack bar',
-        description_pt:
-          'Fundado em 1995, o Dog da Igrejinha é uma instituição gastronômica de Brasília, famoso pelo cachorro-quente com pasta de alho, bacon, queijo e batata palha. Um ícone cultural da cidade com diversas unidades e presença no aeroporto.',
-        description_en:
-          'Founded in 1995, Dog da Igrejinha is a Brasília gastronomic institution famed for its hot dogs with signature garlic paste, bacon, cheese, and potato sticks. A true local icon with locations across the city including the international airport.',
-        priceRange: 'R$ 20–40/pessoa',
-        priceRange_en: '~€3–7/person',
-        address: 'Unidade original: Entrequadra Sul 307/308, Asa Sul',
-        url: 'https://www.google.com/maps/search/?api=1&query=Dog+da+Igrejinha+Bras%C3%ADlia',
-      },
-      {
-        name: 'NAU Frutos do Mar',
-        cuisine_pt: 'Frutos do mar / culinária brasileira costeira',
-        cuisine_en: 'Seafood / Brazilian coastal cuisine',
-        description_pt:
-          'Eleito repetidamente o melhor restaurante de frutos do mar de Brasília (Veja Brasília 2017–2019), o NAU impressiona pela vista panorâmica do Lago Paranoá e da Ponte JK. Cardápio com camarões, moquecas, peixes e frutos do mar variados.',
-        description_en:
-          'Repeatedly named the best seafood restaurant in Brasília (Veja Brasília 2017–2019), NAU impresses with panoramic views of Lago Paranoá and the JK Bridge. The menu features shrimp, moquecas, fish, and mixed seafood dishes.',
-        priceRange: 'R$ 100–150/pessoa',
-        priceRange_en: '~€17–25/person',
-        address: 'Setor de Clubes Esportivos Sul, Trecho 2, Conj. 41 — às margens do Lago Paranoá',
-        url: 'https://www.google.com/maps/search/?api=1&query=NAU+Frutos+do+Mar+Bras%C3%ADlia',
-      },
-      {
-        name: 'Fausto & Manoel',
-        cuisine_pt: 'Bar e restaurante',
-        cuisine_en: 'Bar & restaurant',
-        description_pt:
-          'Bar tradicional de Brasília que também tem cardápio completo de restaurante: chope gelado, petiscos fartos para dividir (as asinhas com crosta de parmesão são famosas) e pratos que agradam a família toda. Há duas unidades: no Pontão do Lago Sul, com vista para o lago, e na Asa Sul. Ótimo para um happy hour ao pôr do sol, com o clima dos botecos tradicionais. As porções são fartas: uma refeição para duas pessoas costuma servir três.',
-        description_en:
-          'A traditional Brasília bar that also has a full restaurant menu: cold draught beer, generous sharing plates (the parmesan-crusted wings are well known) and dishes the whole family will like. Two branches: at the Pontão do Lago Sul, by the lake, and in Asa Sul. Ideal for a sunset happy hour, with the feel of a traditional boteco. Portions are generous: a meal for two often feeds three.',
-        priceRange: 'R$ 70–120/pessoa',
-        priceRange_en: '~€12–20/person',
-        address: 'Pontão do Lago Sul (SHIS QL 10, Lote 1/30) e Asa Sul — Brasília, DF',
-        url: 'https://www.google.com/maps/search/?api=1&query=Fausto+e+Manoel+Bras%C3%ADlia',
-      },
-      {
-        name: 'Sweet Cake',
-        cuisine_pt: 'Confeitaria',
-        cuisine_en: 'Bakery & sweets',
-        description_pt:
-          'Confeitaria tradicional de Brasília, há mais de 30 anos: bolos, tortas, doces finos, salgados e cafés. A religiosa de camarão é o prato preferido da Giovanna, e a nuvem de morango com chocolate é a sobremesa preferida do Renato. A primeira loja é no Lago Sul (QI 21), e há unidades na Asa Norte, na Asa Sul e no Noroeste. A casa também faz buffets para os maiores eventos do Distrito Federal.',
-        description_en:
-          "A Brasília bakery and sweets institution for over 30 years: cakes, tarts, fine sweets, savouries and coffee. The shrimp religiosa is Giovanna's favourite dish, and the strawberry-and-chocolate nuvem is Renato's favourite dessert. The first shop is in Lago Sul (QI 21), with branches in Asa Norte, Asa Sul and Noroeste. The house also caters buffets for some of the Federal District’s biggest events.",
-        priceRange: 'R$ 30–60/pessoa',
-        priceRange_en: '~€5–10/person',
-        address: 'Várias unidades — Lago Sul, Asa Norte, Asa Sul e Noroeste',
-        url: 'https://www.google.com/maps/search/?api=1&query=Sweet+Cake+Bras%C3%ADlia',
-      },
-      {
-        name: 'Açaí Puríssimo',
-        cuisine_pt: 'Açaí',
-        cuisine_en: 'Açaí',
-        description_pt:
-          'Rede de açaí nascida no Distrito Federal, com mais de uma dezena de lojas pela cidade. Açaí na tigela com acompanhamentos à escolha, ótimo para refrescar entre um passeio e outro. A rede tem sede no DF e uma dezena de lojas pela cidade, então sempre há uma por perto.',
-        description_en:
-          'An açaí chain born in the Federal District, with a dozen-plus shops around the city. Açaí bowls with toppings of your choice — ideal for cooling down between sights. The chain is headquartered in the DF with a dozen shops around town, so there is always one nearby.',
-        priceRange: 'R$ 20–40/pessoa',
-        priceRange_en: '~€3–7/person',
-        address: 'Várias unidades — Brasília, DF',
-        url: 'https://www.google.com/maps/search/?api=1&query=A%C3%A7a%C3%AD+Pur%C3%ADssimo+Bras%C3%ADlia',
+          'Renato\'s brother\'s bar! A relaxed wine bar in Asa Norte with an award-winning list. The kitchen is built around pork, hence the "swine".',
+        priceRange: '',
+        priceRange_en: '',
+        address: '314 Norte (CLN 314, Bloco B, Loja 21) — Brasília, DF',
+        url: 'https://www.google.com/maps/search/?api=1&query=IVV+Swinebar+Bras%C3%ADlia',
       },
       {
         name: 'Don Durica',
         cuisine_pt: 'Self-service / comida caseira',
         cuisine_en: 'Home-style buffet',
         description_pt:
-          'Restaurante self-service famoso pela variedade, com receitas inspiradas na avó do fundador e jeito de comida caseira: nhoque, carne mineira e muito mais. Às sextas e sábados tem feijoada. A unidade da Asa Norte fica na 201 Norte. Tem nota 4,4 em mais de 2 mil avaliações e também vende pratos congelados, porções de carnes e caldos para levar.',
+          'Restaurante self-service famoso pela variedade e pelo jeito de comida caseira: carnes, massas e muito mais. Às sextas e sábados tem feijoada.',
         description_en:
-          "A buffet-style restaurant famous for its variety, with recipes inspired by the founder's grandmother and a home-cooked feel: gnocchi, Minas-style beef and more. Feijoada is served on Fridays and Saturdays. The Asa Norte branch is on 201 Norte. Rated 4.4 across more than 2,000 reviews, it also sells frozen dishes, portions of meat and broths to take away.",
+          'A buffet-style restaurant famous for its variety and home-cooked feel: meats, pasta and much more. Feijoada is served on Fridays and Saturdays.',
         priceRange: 'R$ 60–90/pessoa',
         priceRange_en: '~€10–15/person',
         address: 'CLN 201 — Asa Norte, Brasília, DF',
         url: 'https://www.google.com/maps/search/?api=1&query=Don+Durica+Bras%C3%ADlia',
       },
       {
-        name: 'Pastel Mix',
-        cuisine_pt: 'Pastelaria',
-        cuisine_en: 'Pastry shop',
-        description_pt:
-          'Pastelaria criativa, com muitos sabores e opções veganas, ótima para um lanche rápido e saboroso. Uma das unidades fica na 107 Sul. Tem nota 4,2 em mais de 2 mil avaliações e muitas opções para todos os gostos.',
-        description_en:
-          'A creative pastel shop with plenty of flavours and vegan options, great for a quick, tasty snack. One branch is on 107 Sul. Rated 4.2 across more than 2,000 reviews, with plenty of options for every taste.',
-        priceRange: 'R$ 20–35/pessoa',
-        priceRange_en: '~€3–6/person',
-        address: 'CLS 107, Bloco C, Loja 30 — Asa Sul, Brasília, DF',
-        url: 'https://www.google.com/maps/search/?api=1&query=Pastel+Mix+Bras%C3%ADlia',
-      },
-      {
         name: 'Xique Xique',
         cuisine_pt: 'Comida nordestina',
         cuisine_en: 'Northeastern Brazilian',
         description_pt:
-          'Clássico nordestino de Brasília, fundado nos anos 1970 por uma família de Caicó (RN) e famoso pela carne de sol, servida com feijão de corda, paçoca, macaxeira e manteiga de garrafa — o prato inteiro serve cerca de 3 pessoas. Tem também petiscos. À noite, de quarta a sábado, há rodízio de petiscos. Unidades na Asa Sul (107 Sul) e na Asa Norte (708 Norte).',
+          'Clássico nordestino de Brasília, famoso pela carne de sol, servida com feijão de corda, paçoca, macaxeira e manteiga de garrafa — o prato inteiro serve cerca de 3 pessoas.',
         description_en:
-          'A Brasília Northeastern classic, founded in the 1970s by a family from Caicó (RN) and famous for its carne de sol, served with feijão de corda, paçoca, cassava and clarified butter — the full dish feeds about 3 people. It also serves petiscos. From Wednesday to Saturday evenings there is a petiscos rodízio. Branches in Asa Sul (107 Sul) and Asa Norte (708 Norte).',
+          'A Brasília Northeastern classic, famous for its carne de sol, served with feijão de corda, paçoca, cassava and clarified butter — the full dish feeds about 3 people.',
         priceRange: 'R$ 60–90/pessoa',
         priceRange_en: '~€10–15/person',
         address: 'SCLS 107, Bloco E, Loja 2 — Asa Sul (também na 708 Norte)',
         url: 'https://www.google.com/maps/search/?api=1&query=Xique+Xique+Bras%C3%ADlia',
       },
       {
-        name: 'Galeteria do Lago Norte',
-        cuisine_pt: 'Galeteria',
-        cuisine_en: 'Roast chicken house',
-        description_pt:
-          'Galeto assado no rodízio, no Lago Norte, ótimo para almoçar em grupo. A tradição vem da Galeteria Gaúcha, aberta desde 1987, com galeto, massas, maionese, polenta e salada.',
-        description_en:
-          'Roast chicken rodízio in Lago Norte, great for a group lunch. The tradition goes back to Galeteria Gaúcha, open since 1987, with roast chicken, pasta, mayonnaise, polenta and salad.',
-        priceRange: 'R$ 55–75/pessoa',
-        priceRange_en: '~€9–12/person',
-        address: 'Lago Norte — Brasília, DF',
-        url: 'https://www.google.com/maps/search/?api=1&query=Galeteria+Lago+Norte+Bras%C3%ADlia',
-      },
-      {
         name: 'Mangai',
         cuisine_pt: 'Comida nordestina',
         cuisine_en: 'Northeastern Brazilian',
-        description_pt:
-          'Um dos maiores self-services da cidade, com capacidade para cerca de 900 pessoas, especializado na culinária do Nordeste. Você se serve num buffet enorme e paga por quilo. Fica perto da Ponte JK.',
+        description_pt: 'Self-service especializado em culinária do Nordeste, perto da Ponte JK.',
         description_en:
-          'One of the biggest buffets in town, seating around 900 and specialising in Northeastern cuisine. You help yourself from a huge buffet and pay by weight. Close to the JK Bridge.',
+          'A buffet specialising in Northeastern Brazilian cuisine, close to the JK Bridge.',
         priceRange: 'R$ 60/kg',
         priceRange_en: '~€10/kg',
         address: 'Asa Sul, perto da Ponte JK — Brasília, DF',
         url: 'https://www.google.com/maps/search/?api=1&query=Mangai+Bras%C3%ADlia',
       },
       {
+        name: 'NAU Frutos do Mar',
+        cuisine_pt: 'Frutos do mar / culinária brasileira costeira',
+        cuisine_en: 'Seafood / Brazilian coastal cuisine',
+        description_pt:
+          'Excelente restaurante de frutos do mar, com vista panorâmica do Lago Paranoá e da Ponte JK.',
+        description_en:
+          'An excellent seafood restaurant with a panoramic view of Lake Paranoá and the JK Bridge.',
+        priceRange: 'R$ 100–150/pessoa',
+        priceRange_en: '~€17–25/person',
+        address: 'Setor de Clubes Esportivos Sul, Trecho 2, Conj. 41 — às margens do Lago Paranoá',
+        url: 'https://www.google.com/maps/search/?api=1&query=NAU+Frutos+do+Mar+Bras%C3%ADlia',
+      },
+      {
         name: 'Coco Bambu',
         cuisine_pt: 'Frutos do mar',
         cuisine_en: 'Seafood',
         description_pt:
-          'Rede cearense de frutos do mar com pratos generosos para dividir, camarões e peixes num ambiente amplo. Há unidades no Brasília Shopping, no ParkShopping e no Ícone Parque. Pode ter couvert e taxa de serviço.',
+          'Rede cearense de frutos do mar com pratos generosos para dividir, especializada em camarões e peixes. O camarão internacional é uma boa pedida.',
         description_en:
-          'A seafood chain from Ceará with generous sharing dishes, shrimp and fish in a spacious setting. Branches at Brasília Shopping, ParkShopping and Ícone Parque. A cover charge and service fee may apply.',
+          'A seafood chain from Ceará with generous dishes to share, specialising in shrimp and fish. The camarão internacional (shrimp and rice baked in a creamy sauce) is a good pick.',
         priceRange: 'R$ 140–160/pessoa',
         priceRange_en: '~€23–27/person',
         address: 'Brasília Shopping, ParkShopping e Ícone Parque — Brasília, DF',
         url: 'https://www.google.com/maps/search/?api=1&query=Coco+Bambu+Bras%C3%ADlia',
       },
       {
-        name: 'Santé',
-        cuisine_pt: 'Contemporâneo',
-        cuisine_en: 'Contemporary',
-        description_pt:
-          'Dois endereços: o Santé 13, na 413 Norte, de cozinha contemporânea num espaço agradável com jardim, e o Santé Lago, na Orla do Lago Sul, com rooftop sobre o Lago Paranoá e a Ponte JK e menu de carnes e frutos do mar.',
-        description_en:
-          'Two addresses: Santé 13, on 413 Norte, serving contemporary food in a pleasant garden setting, and Santé Lago, on the Lago Sul waterfront, with a rooftop over Lake Paranoá and the JK Bridge and a menu of meats and seafood.',
-        priceRange: 'R$ 90–150/pessoa',
-        priceRange_en: '~€15–25/person',
-        address: 'Santé 13 — Asa Norte / Santé Lago — Orla JK, Lago Sul',
-        url: 'https://www.google.com/maps/search/?api=1&query=Sant%C3%A9+Bras%C3%ADlia',
-      },
-      {
-        name: 'Libanus',
-        cuisine_pt: 'Bar libanês',
-        cuisine_en: 'Lebanese bar',
-        description_pt:
-          'Bar tradicional de Brasília, garantia de cerveja gelada, com o famoso quibe do Libanus e um salgado em formato de coração entre os petiscos mais pedidos. Tem também sabores libaneses e grelhados brasileiros.',
-        description_en:
-          'A traditional Brasília bar, sure bet for ice-cold beer, known for its Libanus kibbeh and a heart-shaped savoury among the favourite snacks. It also serves Lebanese flavours and Brazilian grills.',
-        priceRange: 'R$ 40–70/pessoa',
-        priceRange_en: '~€7–12/person',
-        address: 'CLS 206, Bloco C, Loja 36 — Asa Sul, Brasília, DF',
-        url: 'https://www.google.com/maps/search/?api=1&query=Libanus+Bras%C3%ADlia',
-      },
-      {
-        name: 'Nazô',
-        cuisine_pt: 'Japonês',
-        cuisine_en: 'Japanese',
-        description_pt:
-          'Rodízio de comida japonesa com esteira, com sushis, sashimis, pratos quentes e sobremesas, além de ramen tonkotsu. Há unidades na Asa Norte (214 Norte) e em Águas Claras.',
-        description_en:
-          'Japanese rodízio with a conveyor belt, serving sushi, sashimi, hot dishes and desserts, plus tonkotsu ramen. Branches in Asa Norte (214 Norte) and Águas Claras.',
-        priceRange: 'R$ 90–140/pessoa',
-        priceRange_en: '~€15–23/person',
-        address: 'CLN 214, Loja 01 — Asa Norte, Brasília, DF',
-        url: 'https://www.google.com/maps/search/?api=1&query=Naz%C3%B4+Japanese+Food+Bras%C3%ADlia',
-      },
-      {
         name: 'Churrascaria Pampas',
         cuisine_pt: 'Churrascaria',
         cuisine_en: 'Steakhouse',
         description_pt:
-          'Uma das churrascarias mais tradicionais de Brasília, no estacionamento do Carrefour Sul. O rodízio tem 33 variedades de carnes nobres, como picanha argentina e costela de boi premium, além de buffet de saladas e pratos quentes.',
+          'Uma das churrascarias mais tradicionais de Brasília. O rodízio tem 33 variedades de carnes nobres, como picanha argentina e costela de boi premium.',
         description_en:
-          "One of Brasília's best-known steakhouses, in the Carrefour Sul car park. The rodízio offers 33 varieties of premium meat, such as Argentine picanha and prime beef ribs, plus a salad and hot-dish buffet.",
+          "One of Brasília's best-known steakhouses. The rodízio offers 33 varieties of premium meat, such as Argentine picanha and prime beef ribs.",
         priceRange: 'R$ 60–70/pessoa',
         priceRange_en: '~€10–12/person',
         address: 'Estacionamento do Carrefour Sul — Brasília, DF',
@@ -456,13 +331,169 @@ export const CONFIG = {
         cuisine_pt: 'Churrasco gaúcho',
         cuisine_en: 'Gaúcho barbecue',
         description_pt:
-          'Costelão assado no chão, à moda gaúcha, no Centro de Tradições Gaúchas (CTG). Acontece uma vez por mês: confirme a data antes de ir, nas redes do CTG.',
+          'Costelão assado no chão, à moda gaúcha, no Centro de Tradições Gaúchas (CTG). Acontece uma vez por mês: confirme a data antes de ir.',
         description_en:
-          'Beef ribs roasted over embers on the ground, gaúcho style, at the Centro de Tradições Gaúchas (CTG). It happens once a month — check the date on the CTG social pages before you go.',
+          'Beef ribs roasted over embers on the ground, gaúcho style, at the Centro de Tradições Gaúchas (CTG). It happens once a month — check the date before you go.',
         priceRange: 'R$ 60–100/pessoa',
         priceRange_en: '~€10–17/person',
         address: 'CTG — Brasília, DF',
         url: 'https://www.google.com/maps/search/?api=1&query=CTG+Bras%C3%ADlia+DF',
+      },
+      {
+        name: 'Galeteria do Lago Norte',
+        cuisine_pt: 'Galeteria',
+        cuisine_en: 'Roast chicken house',
+        description_pt:
+          'Tradição do Sul do Brasil: rodízio de galeto assado, com massas, maionese, polenta e salada.',
+        description_en:
+          'A tradition from southern Brazil: a roast chicken rodízio, with pasta, potato mayonnaise, polenta and salad.',
+        priceRange: 'R$ 55–75/pessoa',
+        priceRange_en: '~€9–12/person',
+        address: 'Lago Norte — Brasília, DF',
+        url: 'https://www.google.com/maps/search/?api=1&query=Galeteria+Lago+Norte+Bras%C3%ADlia',
+      },
+      {
+        name: 'Nazô',
+        cuisine_pt: 'Japonês',
+        cuisine_en: 'Japanese',
+        description_pt:
+          'O rodízio de comida japonesa preferido do Renato: excelentes peixes, muita variedade de peças e sem limite de quanto comer.',
+        description_en:
+          "Renato's favourite Japanese rodízio: excellent fish, a wide variety of pieces and no limit on how much you eat.",
+        priceRange: 'R$ 90–140/pessoa',
+        priceRange_en: '~€15–23/person',
+        address: 'CLN 214, Loja 01 — Asa Norte, Brasília, DF',
+        url: 'https://www.google.com/maps/search/?api=1&query=Naz%C3%B4+Japanese+Food+Bras%C3%ADlia',
+      },
+      {
+        name: 'Valentina Pizzaria',
+        cuisine_pt: 'Pizzaria — massa fina, forno a lenha',
+        cuisine_en: 'Pizzeria — thin crust, wood-fired oven',
+        description_pt:
+          'A Valentina é eleita repetidamente a melhor pizzaria da cidade. Oferece mais de 50 sabores de pizza de massa fina no estilo paulista, assada em forno a lenha.',
+        description_en:
+          "Repeatedly voted the city's best pizzeria, Valentina serves over 50 flavours of thin-crust, São Paulo-style pizza baked in a wood-fired oven.",
+        priceRange: 'R$ 60–100/pessoa',
+        priceRange_en: '~€10–17/person',
+        address: 'Asa Norte: CLN 214 Bloco A — Asa Sul: CLS 310 Bloco A — Lago Sul',
+        url: 'https://www.google.com/maps/search/?api=1&query=Valentina+Pizzaria+Bras%C3%ADlia',
+      },
+      {
+        name: 'Fausto & Manoel',
+        cuisine_pt: 'Bar e restaurante',
+        cuisine_en: 'Bar & restaurant',
+        description_pt:
+          'Bar tradicional de Brasília que também tem cardápio completo de restaurante: chope gelado, petiscos e pratos bem servidos para dividir. Costuma ser cheio e é ótimo para um happy hour.',
+        description_en:
+          'A traditional Brasília bar that also has a full restaurant menu: cold draught beer, and generous snacks and dishes to share. It is usually packed, and great for a happy hour.',
+        priceRange: 'R$ 70–120/pessoa',
+        priceRange_en: '~€12–20/person',
+        address: 'Pontão do Lago Sul (SHIS QL 10, Lote 1/30) e Asa Sul — Brasília, DF',
+        url: 'https://www.google.com/maps/search/?api=1&query=Fausto+e+Manoel+Bras%C3%ADlia',
+      },
+      {
+        name: 'Libanus',
+        cuisine_pt: 'Bar libanês',
+        cuisine_en: 'Lebanese bar',
+        description_pt:
+          'Bar com forte tradição na culinária árabe, mas que também serve deliciosos grelhados brasileiros. Um excelente lugar para provar a parmegiana brasileira.',
+        description_en:
+          'A bar with a strong tradition in Arab cooking that also serves delicious Brazilian grills. A great place to try a Brazilian parmegiana (breaded steak under tomato sauce and melted cheese).',
+        priceRange: 'R$ 40–70/pessoa',
+        priceRange_en: '~€7–12/person',
+        address: 'CLS 206, Bloco C, Loja 36 — Asa Sul, Brasília, DF',
+        url: 'https://www.google.com/maps/search/?api=1&query=Libanus+Bras%C3%ADlia',
+      },
+      {
+        name: 'Ricco Burger',
+        cuisine_pt: 'Hamburguer artesanal',
+        cuisine_en: 'Artisan burgers',
+        description_pt:
+          'Uma das nossas hamburguerias preferidas, com excelentes blends grelhados na brasa, molho artesanal e conservas. Para os amantes de doce, o milk-shake de pudim fecha com chave de ouro.',
+        description_en:
+          'One of our favourite burger places, with excellent flame-grilled blends, house-made sauce and pickles. If you have a sweet tooth, the pudim (Brazilian flan) milkshake is the perfect finish.',
+        priceRange: 'R$ 80–100/pessoa',
+        priceRange_en: '~€13–17/person',
+        address: 'Múltiplas unidades — Asa Sul, Asa Norte, Lago Sul e mais',
+        url: 'https://www.google.com/maps/search/?api=1&query=Ricco+Burger+Bras%C3%ADlia',
+      },
+      {
+        name: 'Dog da Igrejinha',
+        cuisine_pt: 'Cachorro-quente / lanchonete',
+        cuisine_en: 'Hot dogs / casual snack bar',
+        description_pt:
+          'Uma instituição gastronômica de Brasília, com o melhor cachorro-quente da cidade. O nosso preferido é o duplo com molho (sem a pasta de atum).',
+        description_en:
+          'A Brasília institution, with the best hot dog in town. Our favourite is the double with sauce (without the tuna paste).',
+        priceRange: 'R$ 20–40/pessoa',
+        priceRange_en: '~€3–7/person',
+        address: 'Unidade original: Entrequadra Sul 307/308, Asa Sul',
+        url: 'https://www.google.com/maps/search/?api=1&query=Dog+da+Igrejinha+Bras%C3%ADlia',
+      },
+      {
+        name: 'Pastel Mix',
+        cuisine_pt: 'Pastelaria',
+        cuisine_en: 'Pastry shop',
+        description_pt:
+          'Um excelente lugar para experimentar o pastel brasileiro. Pastelaria criativa, com muitos sabores, ótima para um lanche rápido e saboroso.',
+        description_en:
+          'A great place to try a Brazilian pastel (a crisp fried pastry with a filling). A creative pastel shop with plenty of flavours, great for a quick, tasty snack.',
+        priceRange: 'R$ 20–35/pessoa',
+        priceRange_en: '~€3–6/person',
+        address: 'CLS 107, Bloco C, Loja 30 — Asa Sul, Brasília, DF',
+        url: 'https://www.google.com/maps/search/?api=1&query=Pastel+Mix+Bras%C3%ADlia',
+      },
+      {
+        name: 'Pizzaria Dom Bosco',
+        cuisine_pt: 'Pizzaria — pizza por fatia desde 1960',
+        cuisine_en: 'Pizzeria — pizza by the slice since 1960',
+        description_pt:
+          'Fundada em 1960, a Dom Bosco é a mais antiga pizzaria de Brasília e um ponto turístico. O cardápio tem um único sabor: pizza de muçarela, vendida por fatia e acompanhada do tradicional mate gelado.',
+        description_en:
+          "Brasília's own Spontini! Founded in 1960, Dom Bosco is the city's oldest pizzeria and a sight in itself. Its menu has one flavour: mozzarella pizza by the slice, served with the traditional iced mate tea.",
+        priceRange: 'R$ 10–20/pessoa',
+        priceRange_en: '~€2–3/person',
+        address: 'CLS 107 Bloco D, Loja 20, Asa Sul (unidade original)',
+        url: 'https://www.google.com/maps/search/?api=1&query=Pizzaria+Dom+Bosco+Bras%C3%ADlia',
+      },
+      {
+        name: 'Café e um Chêro',
+        cuisine_pt: 'Café',
+        cuisine_en: 'Café',
+        description_pt:
+          'Cardápio de café e lanche da tarde bem brasileiro: cuscuz nordestino, tapioca, pão na chapa, bolos e muito mais, com bom cafezinho. No Maranhão, “dar um chêro” é uma forma carinhosa de demonstrar afeto.',
+        description_en:
+          'A very Brazilian coffee and afternoon-snack menu: Northeastern cuscuz, tapioca, pão na chapa (griddled bread), cakes and much more, with good coffee. In Maranhão, “dar um chêro” is an affectionate way to show care.',
+        priceRange: 'R$ 25–50/pessoa',
+        priceRange_en: '~€4–8/person',
+        address: '109 Norte (CLN 109, Bloco C, Loja 37) e 107 Sul — Brasília, DF',
+        url: 'https://www.google.com/maps/search/?api=1&query=Caf%C3%A9+e+um+Ch%C3%AAro+Bras%C3%ADlia',
+      },
+      {
+        name: 'Casa de Biscoitos Mineiros',
+        cuisine_pt: 'Lanche mineiro',
+        cuisine_en: 'Minas-style snacks',
+        description_pt:
+          'Ótimo lugar para comer pão de queijo, tomar um cafezinho e sucos de fruta.',
+        description_en:
+          'A great spot for pão de queijo (cheese bread), a cafezinho and fresh fruit juices.',
+        priceRange: 'R$ 20–40/pessoa',
+        priceRange_en: '~€3–7/person',
+        address: 'Várias unidades — Brasília, DF',
+        url: 'https://www.google.com/maps/search/?api=1&query=Casa+de+Biscoitos+Mineiros+Bras%C3%ADlia',
+      },
+      {
+        name: 'Sweet Cake',
+        cuisine_pt: 'Confeitaria',
+        cuisine_en: 'Bakery & sweets',
+        description_pt:
+          'Confeitaria tradicional de Brasília, há mais de 30 anos: bolos, tortas, doces finos, salgados e cafés. A religiosa de camarão é o prato preferido da Giovanna, e a nuvem de morango com chocolate é a sobremesa preferida do Renato.',
+        description_en:
+          "A Brasília bakery and sweets institution for over 30 years: cakes, tarts, fine sweets, savouries and coffee. The shrimp religiosa is Giovanna's favourite dish, and the strawberry-and-chocolate nuvem is Renato's favourite dessert.",
+        priceRange: 'R$ 30–60/pessoa',
+        priceRange_en: '~€5–10/person',
+        address: 'Várias unidades — Lago Sul, Asa Norte, Asa Sul e Noroeste',
+        url: 'https://www.google.com/maps/search/?api=1&query=Sweet+Cake+Bras%C3%ADlia',
       },
       {
         name: 'Labecca',
@@ -478,61 +509,35 @@ export const CONFIG = {
         url: 'https://www.google.com/maps/search/?api=1&query=Labecca+Bras%C3%ADlia',
       },
       {
-        name: 'Casa de Biscoitos Mineiros',
-        cuisine_pt: 'Lanche mineiro',
-        cuisine_en: 'Minas-style snacks',
+        name: 'Açaí Puríssimo',
+        cuisine_pt: 'Açaí',
+        cuisine_en: 'Açaí',
         description_pt:
-          'Ótimo lugar para comer pão de queijo, tomar um cafezinho e sucos de fruta. Rede de Brasília desde 1996, com cerca de dez unidades, conhecida pelos biscoitos, bolos e salgados mineiros.',
+          'Para provar um açaí brasileiro: açaí na tigela com acompanhamentos à escolha, ótimo para refrescar entre um passeio e outro.',
         description_en:
-          'A great spot for pão de queijo (cheese bread), a cafezinho and fresh fruit juices. A Brasília chain since 1996 with about ten branches, known for Minas-style biscuits, cakes and savouries.',
+          'To try a real Brazilian açaí: açaí bowls with toppings of your choice, ideal for cooling down between sights.',
         priceRange: 'R$ 20–40/pessoa',
         priceRange_en: '~€3–7/person',
         address: 'Várias unidades — Brasília, DF',
-        url: 'https://www.google.com/maps/search/?api=1&query=Casa+de+Biscoitos+Mineiros+Bras%C3%ADlia',
-      },
-      {
-        name: 'Valentina Pizzaria',
-        cuisine_pt: 'Pizzaria — massa fina, forno a lenha',
-        cuisine_en: 'Pizzeria — thin crust, wood-fired oven',
-        description_pt:
-          'Em Brasília desde 2006, a Valentina é eleita repetidamente a melhor pizzaria da cidade. Oferece mais de 50 sabores de pizza de massa fina no estilo paulista, assada em forno a lenha, com opções vegetarianas e veganas.',
-        description_en:
-          "Open since 2006 and repeatedly voted the city's best pizzeria, Valentina serves over 50 flavors of thin-crust, Paulista-style pizza baked in a wood-fired oven, with vegetarian and vegan options.",
-        priceRange: 'R$ 60–100/pessoa',
-        priceRange_en: '~€10–17/person',
-        address: 'Asa Norte: CLN 214 Bloco A — Asa Sul: CLS 310 Bloco A — Lago Sul',
-        url: 'https://www.google.com/maps/search/?api=1&query=Valentina+Pizzaria+Bras%C3%ADlia',
-      },
-      {
-        name: 'Pizzaria Dom Bosco',
-        cuisine_pt: 'Pizzaria — pizza por fatia desde 1960',
-        cuisine_en: 'Pizzeria — pizza by the slice since 1960',
-        description_pt:
-          'Fundada em 1960, a Dom Bosco é a mais antiga pizzaria de Brasília — inaugurada no mesmo ano da cidade — e ainda ocupa o endereço original na Asa Sul. O cardápio tem um único sabor: pizza de muçarela, vendida por fatia e acompanhada do tradicional mate gelado.',
-        description_en:
-          "Founded in 1960, Dom Bosco is Brasília's oldest pizzeria, open since the city's founding year and still at its original address in Asa Sul. Its menu has one offering: mozzarella pizza by the slice served with cold maté tea — a beloved cultural institution.",
-        priceRange: 'R$ 10–20/pessoa',
-        priceRange_en: '~€2–3/person',
-        address: 'CLS 107 Bloco D, Loja 20, Asa Sul (unidade original)',
-        url: 'https://www.google.com/maps/search/?api=1&query=Pizzaria+Dom+Bosco+Bras%C3%ADlia',
+        url: 'https://www.google.com/maps/search/?api=1&query=A%C3%A7a%C3%AD+Pur%C3%ADssimo+Bras%C3%ADlia',
       },
     ],
     tourism: [
       {
         name: 'Catedral Metropolitana',
         description_pt:
-          'Projetada por Oscar Niemeyer e inaugurada em 1970, a catedral tem 16 colunas curvas formando uma coroa ascendente. Destaques para o teto de vitrais coloridos de Marianne Peretti e os três anjos suspensos de Alfredo Ceschiatti. Entrada gratuita.',
+          'Projetada por Oscar Niemeyer e inaugurada em 1970, a catedral tem 16 colunas curvas formando uma coroa ascendente. Destaques para o teto de vitrais coloridos de Marianne Peretti e os três anjos suspensos de Alfredo Ceschiatti.',
         description_en:
-          "Designed by Oscar Niemeyer and inaugurated in 1970, the cathedral's 16 curved columns form an upward-sweeping crown. Highlights include Marianne Peretti's stained-glass ceiling and the three suspended angels by Alfredo Ceschiatti. Free entry.",
+          "Designed by Oscar Niemeyer and inaugurated in 1970, the cathedral's 16 curved columns form an upward-sweeping crown. Highlights include Marianne Peretti's stained-glass ceiling and the three suspended angels by Alfredo Ceschiatti.",
         address: 'Esplanada dos Ministérios, Lote 12 — Brasília, DF',
         url: '',
       },
       {
         name: 'Congresso Nacional',
         description_pt:
-          'Sede do poder legislativo, com a cúpula côncava da Câmara, a cúpula convexa do Senado e as torres gêmeas — ícone de Niemeyer e Lúcio Costa. Visitas guiadas gratuitas aos finais de semana (agendamento pelo site do Congresso).',
+          'Sede do poder legislativo, com a cúpula côncava da Câmara, a cúpula convexa do Senado e as torres gêmeas — ícone de Niemeyer e Lúcio Costa.',
         description_en:
-          "Brazil's legislative seat, with the concave House dome, the convex Senate dome, and the twin towers — a Niemeyer & Lúcio Costa icon. Free guided tours on weekends (book via the Congresso website).",
+          "Brazil's legislative seat, with the concave House dome, the convex Senate dome, and the twin towers — a Niemeyer & Lúcio Costa icon.",
         address: 'Praça dos Três Poderes — Brasília, DF',
         url: '',
       },
@@ -546,20 +551,20 @@ export const CONFIG = {
         url: '',
       },
       {
-        name: 'Parque da Cidade Sarah Kubitschek',
+        name: 'Ponte JK',
         description_pt:
-          'Um dos maiores parques urbanos do mundo, com cerca de 420 hectares e paisagismo de Burle Marx. Pistas de corrida e ciclismo, kartódromo, lagos artificiais e muito verde no coração da cidade.',
+          'Ponte sobre o Lago Paranoá, inaugurada em 2002, com três arcos de aço que se cruzam sobre o tabuleiro — um dos cartões-postais de Brasília, ainda mais bonita iluminada à noite.',
         description_en:
-          "One of the world's largest urban parks at ~420 hectares, with landscaping by Burle Marx. Running and cycling paths, a go-kart track, artificial lakes, and lush greenery right in the middle of the city.",
-        address: 'Asa Sul — Brasília, DF',
+          "A bridge over Lake Paranoá, opened in 2002, with three steel arches crossing over the deck — one of Brasília's postcard views, even lovelier lit up at night.",
+        address: 'Lago Sul / Lago Norte — Brasília, DF',
         url: '',
       },
       {
         name: 'Memorial JK',
         description_pt:
-          'Mausoléu e museu dedicados a Juscelino Kubitschek, fundador de Brasília. A estátua de JK emoldurada pela nicha curva é um dos cartões-postais da cidade; o museu reúne objetos pessoais, carros e documentos do presidente.',
+          'Mausoléu e museu dedicados a Juscelino Kubitschek, fundador de Brasília. A estátua de JK emoldurada pela nicha curva é um dos cartões-postais da cidade.',
         description_en:
-          "Mausoleum and museum honoring Juscelino Kubitschek, Brasília's founder. The statue of JK framed by a curved niche is one of the city's signature images; the museum holds personal belongings, cars, and documents.",
+          "Mausoleum and museum honoring Juscelino Kubitschek, Brasília's founder. The statue of JK framed by a curved niche is one of the city's signature images.",
         address: 'Eixo Monumental Oeste — Brasília, DF',
         url: '',
       },
@@ -573,30 +578,21 @@ export const CONFIG = {
         url: '',
       },
       {
-        name: 'Chapada Imperial',
+        name: 'Igrejinha Nossa Senhora de Fátima',
         description_pt:
-          'Refúgio de natureza em Padre Bernardo (GO), a cerca de uma hora de Brasília: cachoeiras, piscinas naturais e trilhas entre o cerrado e a mata. Um bate-volta fácil para quem quer respirar fora da cidade.',
+          'A primeira igreja de Brasília, projetada por Niemeyer em 1958, com azulejos de Athos Bulcão e um telhado em forma de chapéu. Pequena e encantadora, é uma das paradas obrigatórias do Plano Piloto.',
         description_en:
-          'A nature retreat in Padre Bernardo (GO), about an hour from Brasília: waterfalls, natural pools and trails through the cerrado and forest. An easy day trip for anyone who wants a break from the city.',
-        address: 'Padre Bernardo, GO',
+          "Brasília's first church, designed by Niemeyer in 1958, with Athos Bulcão tiles and a distinctive hat-shaped roof. Small and charming, it is one of the must-see stops in the Plano Piloto.",
+        address: 'EQS 307/308 — Asa Sul, Brasília, DF',
         url: '',
       },
       {
-        name: 'Chapada dos Veadeiros',
+        name: 'Parque da Cidade Sarah Kubitschek',
         description_pt:
-          'Um dos destinos mais emblemáticos do cerrado, em Alto Paraíso de Goiás, a cerca de 3h30 de Brasília. Parque Nacional com cachoeiras, cânions, o Vale da Lua e trilhas de tirar o fôlego. Vale pelo menos uma noite na região.',
+          'Um dos maiores parques urbanos do mundo, com cerca de 420 hectares e paisagismo de Burle Marx. Pistas de corrida e ciclismo, kartódromo, lagos artificiais e muito verde no coração da cidade.',
         description_en:
-          "One of the cerrado's most iconic destinations, in Alto Paraíso de Goiás, about 3.5 hours from Brasília. A national park of waterfalls, canyons, the Vale da Lua and breathtaking trails. Worth at least one night in the area.",
-        address: 'Alto Paraíso de Goiás, GO',
-        url: '',
-      },
-      {
-        name: 'Pirenópolis',
-        description_pt:
-          'Cidade histórica de ruas de pedra e casarios coloridos, a cerca de 2h30 de Brasília. Centro histórico encantador, boa gastronomia e cachoeiras e rios nos arredores — ótimo para um fim de semana.',
-        description_en:
-          'A historic town of cobbled streets and colourful colonial houses, about 2.5 hours from Brasília. A charming old centre, good food, and waterfalls and rivers nearby — great for a weekend.',
-        address: 'Pirenópolis, GO',
+          "One of the world's largest urban parks at ~420 hectares, with landscaping by Burle Marx. Running and cycling paths, a go-kart track, artificial lakes, and lush greenery right in the middle of the city.",
+        address: 'Asa Sul — Brasília, DF',
         url: '',
       },
       {
@@ -611,55 +607,64 @@ export const CONFIG = {
       {
         name: 'CCBB Brasília',
         description_pt:
-          'Centro Cultural Banco do Brasil, com exposições, teatro, cinema e música em um prédio modernista de frente para o Lago Paranoá. Vale conferir a programação antes da visita.',
+          'Centro Cultural Banco do Brasil, com exposições, teatro, cinema e música em um prédio modernista de frente para o Lago Paranoá.',
         description_en:
-          'The Banco do Brasil Cultural Centre, with exhibitions, theatre, cinema and music in a modernist building facing Lake Paranoá. Worth checking the programme before you visit.',
+          'The Banco do Brasil Cultural Centre, with exhibitions, theatre, cinema and music in a modernist building facing Lake Paranoá.',
         address: 'SCES Trecho 2, Lote 22 — Brasília, DF',
-        url: '',
-      },
-      {
-        name: 'Ponte JK',
-        description_pt:
-          'Ponte sobre o Lago Paranoá, inaugurada em 2002, com três arcos de aço que se cruzam sobre o tabuleiro — um dos cartões-postais de Brasília, ainda mais bonita iluminada à noite.',
-        description_en:
-          "A bridge over Lake Paranoá, opened in 2002, with three steel arches crossing over the deck — one of Brasília's postcard views, even lovelier lit up at night.",
-        address: 'Lago Sul / Lago Norte — Brasília, DF',
-        url: '',
-      },
-      {
-        name: 'Festa Junina',
-        description_pt:
-          'Em junho, as festas juninas animam as igrejas da cidade, com quadrilha, comidas típicas, fogueira e muita música. Nossa data cai bem nessa época, então elas devem estar acontecendo — e, mais perto do casamento, atualizamos aqui com o calendário. Foi numa festa junina que aconteceu o primeiro encontro do Renato e da Giovanna.',
-        description_en:
-          "In June, festas juninas liven up the city's churches, with square dancing, traditional food, bonfires and lots of music. Our date falls in that season, so they should be on — and closer to the wedding we will update this with the calendar. A festa junina is where Renato and Giovanna had their first date.",
-        address: 'Igrejas de Brasília, DF',
-        url: '',
-      },
-      {
-        name: 'Igrejinha Nossa Senhora de Fátima',
-        description_pt:
-          'A primeira igreja de Brasília, projetada por Niemeyer em 1958, com azulejos de Athos Bulcão e um telhado em forma de chapéu. Pequena e encantadora, é uma das paradas obrigatórias do Plano Piloto.',
-        description_en:
-          "Brasília's first church, designed by Niemeyer in 1958, with Athos Bulcão tiles and a distinctive hat-shaped roof. Small and charming, it is one of the must-see stops in the Plano Piloto.",
-        address: 'EQS 307/308 — Asa Sul, Brasília, DF',
         url: '',
       },
       {
         name: 'Quadra Modelo (308 Sul)',
         description_pt:
-          'A superquadra-modelo do plano de Lúcio Costa, com blocos residenciais baixos entre árvores, comércio local e a Igrejinha. Dá uma boa ideia de como é morar no Plano Piloto — vale uma caminhada.',
+          'A superquadra-modelo do plano de Lúcio Costa, com blocos residenciais baixos entre árvores, comércio local e a Igrejinha.',
         description_en:
-          "The model superquadra of Lúcio Costa's plan, with low residential blocks among trees, local shops and the little church. It gives a good sense of what living in the Plano Piloto is like — worth a walk.",
+          "The model superquadra of Lúcio Costa's plan, with low residential blocks among trees, local shops and the little church.",
         address: 'SQS 308 — Asa Sul, Brasília, DF',
         url: '',
       },
       {
         name: 'UnB — Campus Darcy Ribeiro',
         description_pt:
-          'A Universidade de Brasília, criada em 1962, com o campus Darcy Ribeiro na Asa Norte: o Minhocão, o Instituto Central de Ciências e o lago. Um campus lindo, aberto e cheio de árvores, ótimo para passear. Foi lá que a Giovanna e o Renato se conheceram.',
+          'A Universidade de Brasília, criada em 1962, com o campus Darcy Ribeiro na Asa Norte. Um campus lindo, aberto e cheio de árvores, ótimo para passear. Foi lá que a Giovanna e o Renato se conheceram.',
         description_en:
-          'The University of Brasília, founded in 1962, with the Darcy Ribeiro campus in the Asa Norte: the long Minhocão building, the Central Institute of Sciences and the lake. A beautiful, open campus full of trees, lovely for a stroll. It is where Giovanna and Renato met.',
+          'The University of Brasília, founded in 1962, with the Darcy Ribeiro campus in the Asa Norte. A beautiful, open campus full of trees, lovely for a stroll. It is where Giovanna and Renato met.',
         address: 'Campus Darcy Ribeiro — Asa Norte, Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Festa Junina',
+        description_pt:
+          'Em junho, as festas juninas animam as igrejas da cidade, com quadrilha, comidas típicas, fogueira e muita música. Nossa data cai bem nessa época, então elas devem estar acontecendo. Foi numa festa junina que aconteceu o primeiro encontro do Renato e da Giovanna.',
+        description_en:
+          "In June, festas juninas liven up the city's churches, with square dancing, traditional food, bonfires and lots of music. Our date falls in that season, so they should be on. A festa junina is where Renato and Giovanna had their first date.",
+        address: 'Igrejas de Brasília, DF',
+        url: '',
+      },
+      {
+        name: 'Chapada Imperial',
+        description_pt:
+          'Refúgio de natureza em Padre Bernardo (GO), a cerca de uma hora de Brasília: cachoeiras, piscinas naturais e trilhas entre o cerrado e a mata.',
+        description_en:
+          'A nature retreat in Padre Bernardo (GO), about an hour from Brasília: waterfalls, natural pools and trails through the cerrado and forest.',
+        address: 'Padre Bernardo, GO',
+        url: '',
+      },
+      {
+        name: 'Pirenópolis',
+        description_pt:
+          'Cidade histórica de ruas de pedra e casarios coloridos, a cerca de 2h30 de Brasília. Centro histórico encantador, boa gastronomia e cachoeiras e rios nos arredores.',
+        description_en:
+          'A historic town of cobbled streets and colourful colonial houses, about 2.5 hours from Brasília. A charming old centre, good food, and waterfalls and rivers nearby.',
+        address: 'Pirenópolis, GO',
+        url: '',
+      },
+      {
+        name: 'Chapada dos Veadeiros',
+        description_pt:
+          'Um dos destinos mais emblemáticos do cerrado, em Alto Paraíso de Goiás, a cerca de 3h30 de Brasília. Parque Nacional com cachoeiras, cânions, o Vale da Lua e trilhas de tirar o fôlego.',
+        description_en:
+          "One of the cerrado's most iconic destinations, in Alto Paraíso de Goiás, about 3.5 hours from Brasília. A national park of waterfalls, canyons, the Vale da Lua and breathtaking trails.",
+        address: 'Alto Paraíso de Goiás, GO',
         url: '',
       },
     ],

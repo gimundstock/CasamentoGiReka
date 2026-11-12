@@ -1,14 +1,16 @@
 import { CONFIG } from '../../../content.config'
 
 /** The chapters, in book order (the tabs follow it). */
-export const SECTIONS = ['tourism', 'restaurants', 'transport', 'hotels'] as const
+export const SECTIONS = ['tourism', 'hotels', 'transport', 'restaurants'] as const
 export type SectionKey = (typeof SECTIONS)[number]
 
 /** One recommendation, whatever its kind. */
 export interface GuideEntry {
   title: string
-  /** Small line under the title (cuisine). */
+  /** Small line under the title (a restaurant's cuisine). */
   meta?: string
+  /** Small, beside the title (a hotel's distance to the wedding). */
+  aside?: string
   description: string
   address?: string
   price?: string
@@ -48,6 +50,8 @@ export function sectionEntries(key: SectionKey, lang: Lang): GuideEntry[] {
     case 'hotels':
       return g.hotels.map((h) => ({
         title: h.name,
+        // How far from the party: the one fact a guest picks a hotel by.
+        aside: h.distance ? `${h.distance} ${pt ? 'do casamento' : 'from the wedding'}` : undefined,
         description: pt ? h.description_pt : h.description_en,
         address: h.address,
         price: pt ? h.priceRange : h.priceRange_en,

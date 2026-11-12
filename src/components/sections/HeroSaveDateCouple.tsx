@@ -123,6 +123,14 @@ function daisyScaleAt(v: number): number {
 
 const DISSOLVE_START = 0.96
 
+// The stage's arrival (its top from the screen's bottom to its top), as
+// progress before 0: ~100vh, as much as 0.12 of the pinned scroll.
+const ARRIVE_SPAN = 0.12
+// "Save the Date" gathers from halfway through the arrival to a little way
+// into the pinned scroll (it was 0 → 0.1): already mostly there as the
+// stage settles.
+const TITLE_SPAN = [-0.06, 0.04] as const
+
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
  *
@@ -138,7 +146,8 @@ const DISSOLVE_START = 0.96
  * Scroll choreography (progress 0 → 1):
  *   0.00 → 0.48  wildflowers and petals fall one by one (time-based,
  *                pushed further by the scroll)
- *   0.00 → 0.10  "Save the Date" letters scatter-collect
+ *  -0.06 → 0.04  "Save the Date" letters scatter-collect (from the stage's
+ *                arrival on, see ARRIVE_SPAN)
  *   0.10 → 0.15  date line scatter-collects
  *   0.15 → 0.20  countdown digits scatter-collect
  *   0.18 → 0.22  countdown labels mask-reveal
@@ -249,6 +258,19 @@ export function HeroSaveDateCouple() {
     return 1
   })
 
+  // "Save the Date" starts gathering while the stage is still coming up the
+  // screen (it had only started once pinned, and a guest stopping there saw
+  // nothing but the falling flowers). The last ARRIVE_SPAN of progress
+  // before 0 is the stage's arrival, at about the same pace as the pinned
+  // scroll.
+  const { scrollYProgress: arrival } = useScroll({
+    target: stageRef,
+    offset: ['start end', 'start start'],
+  })
+  const titleProgress = useTransform([scrollYProgress, arrival], ([v, a]: number[]) =>
+    v > 0 ? v : (a - 1) * ARRIVE_SPAN
+  )
+
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same
   // reliability reason as the daisy opacity above.
   const saveDateOpacity = useTransform(scrollYProgress, (v: number) => {
@@ -333,9 +355,9 @@ export function HeroSaveDateCouple() {
               <FlipLetters
                 text="Save the Date"
                 spaceClassNames={['', '-ml-[0.3em]']}
-                scrollProgress={scrollYProgress}
-                scrollStart={0}
-                scrollEnd={0.1}
+                scrollProgress={titleProgress}
+                scrollStart={TITLE_SPAN[0]}
+                scrollEnd={TITLE_SPAN[1]}
                 staggerRatio={0.95}
                 scaleFrom={0.15}
                 fadeIn={0.45}

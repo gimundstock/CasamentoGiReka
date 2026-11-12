@@ -343,9 +343,38 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
   const { t } = useTranslation()
   return (
     <article className="border-t pt-[0.75em] pb-[0.8em]" style={{ borderColor: `${GOLD}55` }}>
-      <h4 className="font-sans text-forest-deep text-[0.95em] leading-tight tracking-[0.03em]">
-        {entry.title}
-      </h4>
+      {/* The name itself is the link (map, Airbnb…), with an arrow: a line
+          of its own for it cost the room for a second place on a phone's
+          page. */}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-[0.8em] gap-y-[0.2em]">
+        <h4 className="font-sans text-forest-deep text-[0.95em] leading-tight tracking-[0.03em]">
+          {entry.href ? (
+            <a
+              href={entry.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hit-area underline-offset-[0.25em] hover:underline"
+              style={{ textDecorationColor: GOLD }}
+            >
+              {entry.title}
+              <span aria-hidden className="text-amber-deep ml-[0.35em] text-[0.85em]">
+                ↗
+              </span>
+              <span className="sr-only">
+                {' — '}
+                {t(`city.passport.${entry.linkKey ?? 'more'}`)}
+              </span>
+            </a>
+          ) : (
+            entry.title
+          )}
+        </h4>
+        {entry.aside && (
+          <span className="font-sans text-amber-deep text-[max(0.56em,9px)] tracking-[0.18em] whitespace-nowrap uppercase">
+            {entry.aside}
+          </span>
+        )}
+      </div>
       {entry.meta && (
         <p className="font-sans text-amber-deep mt-[0.4em] text-[max(0.6em,10px)] tracking-[0.24em] uppercase">
           {entry.meta}
@@ -359,17 +388,6 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
           <span>{entry.address}</span>
           {entry.price && <span className="text-amber-deep tabular-nums">{entry.price}</span>}
         </div>
-      )}
-      {entry.href && (
-        <a
-          href={entry.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hit-area font-sans text-forest-deep mt-[0.5em] inline-block border-b pb-[0.1em] text-[max(0.58em,10px)] tracking-[0.3em] uppercase"
-          style={{ borderColor: GOLD }}
-        >
-          {t(`city.passport.${entry.linkKey ?? 'more'}`)}
-        </a>
       )}
     </article>
   )
@@ -436,16 +454,21 @@ function HolderPage({ holder }: { holder?: string }) {
         className="pointer-events-none absolute top-0 right-0 w-[44%] opacity-90 select-none"
       />
       <div className="flex flex-1 flex-col items-center justify-center pb-[1.5em]">
-        <p className="font-sans text-forest -mr-[0.42em] text-[max(0.62em,10px)] tracking-[0.42em] uppercase">
+        <p className="font-sans text-forest -mr-[0.42em] text-[max(0.62em,10px)] tracking-[0.42em] text-balance uppercase">
           {t('city.passport.holder')}
         </p>
+        {/* The script's capitals rise well above its line and its loops
+            hang below it: room either side, or the "A" of a name runs into
+            the line above and its loop into the words below — and, on a
+            name in two lines (phones), into each other (leading 2.2: more than
+            welcome's greeting). */}
         <p
-          className="font-script text-honey mt-[0.55em] text-[2.6em] leading-[1.4]"
+          className="font-script text-honey mt-[0.85em] text-[2.6em] leading-[2.2]"
           style={{ textShadow: EMBOSS_SHADOW }}
         >
           <ScriptText>{holder || t('city.passport.holderFallback')}</ScriptText>
         </p>
-        <p className="font-serif text-forest-deep/90 mt-[1.4em] max-w-[18em] text-[1.15em] leading-[1.45] italic">
+        <p className="font-serif text-forest-deep/90 mt-[1.2em] max-w-[18em] text-[1.15em] leading-[1.45] italic">
           {t('city.passport.insideText')}
         </p>
       </div>

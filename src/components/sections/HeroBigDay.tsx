@@ -12,6 +12,7 @@ import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-mot
 import { CONFIG } from '../../content.config'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { CerradoPaint } from './CerradoPaint'
+import { usePassportSnap } from './passport/usePassportSnap'
 import { BrasiliaPassport } from './passport/BrasiliaPassport'
 import {
   BIG_DAY_VH,
@@ -287,6 +288,9 @@ export function HeroBigDay({ holder }: { holder?: string }) {
   useLayoutEffect(() => {
     lockedRef.current = locked
   })
+  // Stopped part-way through opening or closing the book: carried on to the
+  // nearest state it can rest in (above all, lying open, readable).
+  usePassportSnap(stageRef, lockedRef, desk, !reduced)
   const compactRef = useRef<HTMLDivElement>(null)
   const compact = useCallback(
     (v: number) => {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LanguageToggle } from '../ui/LanguageToggle'
 import { CONFIG } from '../../content.config'
+import { smoothScrollToY } from '../../utils/smoothScroll'
 
 // Each nav item carries three ids:
 //   observe — the outer section element the IntersectionObserver watches
@@ -16,56 +17,10 @@ const sections = [
   { observe: 'wedding', anchor: 'big-day', key: 'wedding' },
   { observe: 'city', anchor: 'passport', key: 'city' },
   { observe: 'rsvp', anchor: 'rsvp', key: 'rsvp' },
-  { observe: 'gifts', anchor: 'gifts', key: 'gifts' },
+  // The list once its title has risen (GiftShop); 'gifts' itself without motion.
+  { observe: 'gifts', anchor: 'gifts-list', key: 'gifts' },
 ] as const
 type ObserveId = (typeof sections)[number]['observe']
-
-/** Gentle ease-in-out: starts slow, speeds up without rushing, lands slow. */
-const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
-
-/**
- * Long jumps get more time than short ones so the sections don't fly past,
- * within bounds: ~0.8s for a hop, up to 2.2s from the top to the gifts.
- */
-const scrollDuration = (distance: number) =>
-  Math.min(2200, Math.max(800, 500 + Math.sqrt(Math.abs(distance)) * 12))
-
-let cancelScroll: (() => void) | null = null
-
-// Module-level so React's purity rule doesn't flag performance.now() —
-// this function never runs during render, only in event handlers.
-function smoothScrollToY(targetY: number) {
-  cancelScroll?.()
-  const startY = window.scrollY
-  const distance = targetY - startY
-  if (Math.abs(distance) < 1) return
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    window.scrollTo({ top: targetY, behavior: 'instant' })
-    return
-  }
-  const duration = scrollDuration(distance)
-  const startTime = performance.now()
-  let frame = 0
-  // A wheel, touch or key from the guest takes over at once.
-  const stop = () => {
-    cancelAnimationFrame(frame)
-    for (const ev of ['wheel', 'touchstart', 'keydown'] as const)
-      window.removeEventListener(ev, stop)
-    cancelScroll = null
-  }
-  for (const ev of ['wheel', 'touchstart', 'keydown'] as const)
-    window.addEventListener(ev, stop, { passive: true })
-  cancelScroll = stop
-  function step(now: number) {
-    const t = Math.min((now - startTime) / duration, 1)
-    // 'instant': the page sets scroll-behavior: smooth, which would otherwise
-    // turn every step into a new native smooth scroll fighting this one.
-    window.scrollTo({ top: startY + distance * easeInOutSine(t), behavior: 'instant' })
-    if (t < 1) frame = requestAnimationFrame(step)
-    else stop()
-  }
-  frame = requestAnimationFrame(step)
-}
 
 export function Nav() {
   const { t } = useTranslation()
@@ -111,8 +66,8 @@ export function Nav() {
     }
   }, [])
 
-  function scrollTo(id: string) {
-    const el = document.getElementById(id)
+  function scrollTo(id: string, fallback: string) {
+    const el = document.getElementById(id) ?? document.getElementById(fallback)
     if (!el) return
     // Custom smooth scroll: native `scrollTo({ behavior: 'smooth' })` gives
     // no control over the curve and makes long jumps (top → big-day anchor
@@ -147,7 +102,7 @@ export function Nav() {
             return (
               <button
                 key={s.observe}
-                onClick={() => scrollTo(s.anchor)}
+                onClick={() => scrollTo(s.anchor, s.observe)}
                 className={`font-sans text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
                   isActive ? 'text-title' : 'text-title/60 hover:text-title'
                 }`}
@@ -194,7 +149,7 @@ export function Nav() {
               return (
                 <button
                   key={s.observe}
-                  onClick={() => scrollTo(s.anchor)}
+                  onClick={() => scrollTo(s.anchor, s.observe)}
                   className={`font-sans py-3 text-left text-[0.65rem] tracking-[0.35em] uppercase transition-colors ${
                     isActive ? 'text-title' : 'text-title/60 hover:text-title'
                   }`}

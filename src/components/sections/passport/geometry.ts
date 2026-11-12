@@ -24,7 +24,7 @@ export const BIG_DAY_VH = 300
  * nothing moves.
  */
 export const PASSPORT_START_VH = BIG_DAY_VH - 30
-export const PASSPORT_VH = 410
+export const PASSPORT_VH = 470
 
 type Span = readonly [number, number]
 export const PHASE = {
@@ -108,18 +108,18 @@ export const DESK = {
   hold: [262, 330] as Span,
   // In the passport's own time (after the hold):
   /** Read: the book closes on the page it is open at. */
-  close: [410, 445] as Span,
+  close: [470, 505] as Span,
   /**
    * The envelope is drawn in from the right, to where the invitation takes
    * over, pushing the shut passport off to the left.
    */
-  arrive: [444, 490] as Span,
+  arrive: [504, 550] as Span,
   /** The passport it pushes slides on a little longer, off the screen. */
-  shove: [444, 497] as Span,
+  shove: [504, 557] as Span,
   /** The kicker and the hint come with it. */
-  words: [476, 490] as Span,
+  words: [536, 550] as Span,
   /** End of the stage, in the passport's own time. */
-  end: 500,
+  end: 560,
 }
 const DESK_HOLD = DESK.hold[1] - DESK.hold[0]
 
@@ -338,6 +338,56 @@ export function pushedAt(path: number[], t: number) {
 export function passportTime(v: number, desk: boolean) {
   if (!desk || v <= DESK.hold[0]) return v
   return v < DESK.hold[1] ? DESK.hold[0] : v - DESK_HOLD
+}
+
+// ── Snap ─────────────────────────────────────────────────────────────────
+//
+// The book can only be read lying fully open, and scroll (a trackpad's
+// momentum, a flick on a phone) easily stops short of that or runs past it.
+// So when the scroll comes to rest between two of the passport's resting
+// states, it is carried on to one of them (usePassportSnap): shut, open
+// (anywhere in the readable stretch) and, on the desk, the envelope drawn in.
+
+/** How far into a gap the scroll must go to be carried on to the next state. */
+const SNAP_COMMIT = 0.2
+/** Kept clear at the readable stretch's ends: stopped there, it is centred. */
+const SNAP_EDGE = 12
+
+/**
+ * Where the scroll should settle (stage vh past the big day, as `at` in
+ * BrasiliaPassport), having come to rest at `at` while moving `dir`
+ * (1 down, -1 up); null to leave it where it is.
+ */
+export function snapTarget(at: number, dir: 1 | -1, desk: boolean): number | null {
+  const v = passportTime(at, desk)
+  // Back to the stage's own scroll: the desk's hold lies before all of this.
+  const raw = (t: number) => (desk ? t + DESK_HOLD : t)
+  const openEnd = desk ? DESK.close[0] : PASSPORT_VH
+  /** Resting states: [from, to] where the scroll may stay, and where it is taken to. */
+  const rests: { from: number; to: number; aim: number }[] = [
+    { from: PHASE.open[0] - 10, to: PHASE.open[0] - 10, aim: PHASE.open[0] - 10 },
+    {
+      from: PHASE.open[1] + SNAP_EDGE,
+      to: openEnd - SNAP_EDGE,
+      aim: (PHASE.open[1] + openEnd) / 2,
+    },
+  ]
+  // On the desk, read: the book shut again, before the envelope comes for it
+  // (a glide never carries it from open straight on to the envelope).
+  if (desk) rests.push({ from: DESK.close[1], to: DESK.close[1], aim: DESK.close[1] })
+  // Last: the envelope drawn in (desk), or the stage letting go, the site
+  // going on below (the book open on it still).
+  const end = desk ? DESK.end : PASSPORT_VH
+  rests.push({ from: end, to: end, aim: end })
+  for (let i = 0; i < rests.length - 1; i++) {
+    const a = rests[i]
+    const b = rests[i + 1]
+    if (v <= a.to || v >= b.from) continue
+    const f = (v - a.to) / (b.from - a.to)
+    const next = dir > 0 ? f > SNAP_COMMIT : f > 1 - SNAP_COMMIT
+    return raw(next ? b.aim : a.aim)
+  }
+  return null
 }
 
 /**
