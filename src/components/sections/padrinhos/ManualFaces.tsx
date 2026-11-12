@@ -40,7 +40,7 @@ export function Cover({ w }: { w: number; h: number }) {
       {/* Read from the foot up, as a spine is. */}
       <div className="absolute top-[6%] right-[4.5%] bottom-[25%] flex w-[1.4em] flex-col items-center justify-start">
         <span
-          className="font-sans text-honey text-[0.92em] leading-none font-semibold tracking-[0.3em] whitespace-nowrap uppercase"
+          className="font-sans text-forest-deep text-[0.92em] leading-none font-semibold tracking-[0.3em] whitespace-nowrap uppercase"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
           {t('padrinhos.cover')}
