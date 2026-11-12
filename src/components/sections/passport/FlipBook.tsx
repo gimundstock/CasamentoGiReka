@@ -230,10 +230,10 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
     })
     pf.on('changeState', kick)
     pfRef.current = pf
-    // Mouse: a click on a page turns it (left page back, right page on),
+    // A click or a tap on a page turns it (left half back, right half on),
     // unless it lands on a link or a button in the page.
     const onClick = (e: MouseEvent) => {
-      if (touch || pf.getState() !== 'read') return
+      if (pf.getState() !== 'read') return
       if ((e.target as HTMLElement).closest('a, button')) return
       const r = host.getBoundingClientRect()
       const back = e.clientX - r.left < r.width / 2

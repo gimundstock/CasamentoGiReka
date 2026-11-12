@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMotionValueEvent, type MotionValue } from 'framer-motion'
-import { MASK } from './assets'
+import { ASSETS, MASK } from './assets'
 import { buildBook, pageSection, sectionEntries, SECTIONS, type Chunks } from './content'
 import type { PageSpec, SectionKey } from './content'
 import {
@@ -47,6 +47,7 @@ import {
   InsideBoard,
   EntriesFrame,
   EntryItem,
+  ENTRY_PAD,
   TAB_PAPER,
   paperFor,
   PageContent,
@@ -464,11 +465,16 @@ export function BrasiliaPassport({
         const { envelope: E, closed: F, offRight } = layout
         const go = ease(seg(at, DESK.pickUp))
         let x: number, y: number, rot: number, sc: number
+        // A phone: it comes in as tall as what it pushes (the shut book or
+        // the manual at the centre), and shrinks to the invitation's own
+        // size as the scroll comes to the end of the stage.
+        const grown = layout.hand ? Math.max(1, g.coverBox.h / layout.env.eh) : 1
+        const shrink = ease(seg(v, [DESK.arrive[1] - 8, DESK.end]))
         if (push > 0) {
           x = envX
           y = F.y
           rot = 5 * (1 - drawn)
-          sc = 1
+          sc = grown + (1 - grown) * shrink
         } else {
           x = E.x + (offRight - E.x) * go
           y = E.y
@@ -482,7 +488,7 @@ export function BrasiliaPassport({
         envEl.style.opacity = push > 0 ? '1' : String(Math.max(0.01, coverIn))
         envEl.style.zIndex = push > 0 ? '2' : '0'
         envEl.style.transform =
-          push >= 1
+          push >= 1 && sc === 1
             ? `translateY(${F.y}px)`
             : `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(5)})`
         const words = ease(seg(v, DESK.words))
@@ -556,6 +562,27 @@ export function BrasiliaPassport({
         </div>
       )
     }
+    if (p.kind === 'end') {
+      // The book's end (spreads only): the inside of the back cover, cropped
+      // to the page and lined up exactly with the back board beneath — the
+      // front's inside mirrored, closing the book.
+      const r = g.coverBox
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <div
+            aria-hidden
+            className="absolute"
+            style={{
+              left: r.x - g.right.x,
+              top: r.y - g.right.y,
+              width: r.w,
+              height: r.h,
+              background: `url(${ASSETS.backInside}) center / 100% 100% no-repeat`,
+            }}
+          />
+        </div>
+      )
+    }
     const side: Side = spread && i % 2 === 0 ? 'left' : 'right'
     return (
       <Paper side={side} background={paperFor(i, p.kind === 'entries')}>
@@ -599,7 +626,8 @@ export function BrasiliaPassport({
   // Never on the page, where it would take room from the content.
   const noteW = g.fontSize * 10
   const noteBeside = spread && g.vw - (g.book.x + g.book.w) >= noteW + 16
-  const noteH = g.fontSize * 8.5
+  // (One page at a time there is no note: see PagePeek.)
+  const noteH = spread ? g.fontSize * 8.5 : 0
   const pageRight = g.right.x + g.right.w
   const noteText = t(touch ? 'city.passport.cornerTouch' : 'city.passport.cornerClick')
   const pageBottom = g.right.y + g.right.h
@@ -732,7 +760,7 @@ export function BrasiliaPassport({
           {/* Under the book, once it is open: the site goes on below. Turning
             the pages is the corner note's job (on the page itself). */}
           <div ref={chromeRef} style={{ opacity: 0 }}>
-            {below >= (noteBeside ? 40 : noteH + 56) && (
+            {below >= (noteBeside || !spread ? 40 : noteH + 56) && (
               <div
                 className="absolute inset-x-0 text-center"
                 style={{ top: g.book.h + 16 + (noteBeside ? 0 : noteH) }}
@@ -775,13 +803,7 @@ export function BrasiliaPassport({
             {/* Index tabs: tucked in between the pages (the page block and the
               pages lie over their inner end), on the book's own paper. Only
               once the book is open. */}
-            {/* Not on the last stop: the inside back cover is the end, its art
-              left clear. */}
-            <nav
-              ref={tabsRef}
-              aria-label={t('city.passport.tabsLabel')}
-              style={{ opacity: 0, visibility: spread && cur === count - 1 ? 'hidden' : undefined }}
-            >
+            <nav ref={tabsRef} aria-label={t('city.passport.tabsLabel')} style={{ opacity: 0 }}>
               {SECTIONS.map((s, i) => {
                 const active = s === activeSection
                 // The tab is on the chapter's first leaf (its opener, always a
@@ -844,7 +866,9 @@ export function BrasiliaPassport({
             </div>
             {/* "Click to turn", hand-written on the desk with an S-shaped
               arrow running to the page corner it turns from. It is also the
-              next-page button. Not on the last stop. */}
+              next-page button. Not on the last stop. One page at a time
+              (phones, tablets) there is no room for it: the page's corner
+              lifts now and then instead, and a tap on the page turns it. */}
             <div
               ref={cornerRef}
               style={{
@@ -853,38 +877,48 @@ export function BrasiliaPassport({
                 transition: 'opacity 900ms ease-out, visibility 900ms',
               }}
             >
-              <button
-                type="button"
-                onClick={() => go(cur + 1)}
-                aria-label={t('city.passport.next')}
-                className={`group text-amber-deep pointer-events-auto absolute flex flex-col transition-opacity duration-500 ${
-                  noteBeside ? 'items-start' : 'items-end'
-                } ${cur === count - 1 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
-                style={
-                  // The arrow's tip stops a little short of the page corner.
-                  noteBeside
-                    ? {
-                        left: pageRight + g.fontSize * 0.55,
-                        bottom: g.book.h - pageBottom + g.fontSize * 0.55,
-                      }
-                    : {
-                        right: g.book.w - pageRight - g.fontSize * 0.6,
-                        top: pageBottom + g.fontSize * 0.6,
-                      }
-                }
-              >
-                {noteBeside ? (
-                  <>
-                    <NoteWords text={noteText} side="right" />
-                    <CornerArrow to="down" />
-                  </>
-                ) : (
-                  <>
-                    <CornerArrow to="up" />
-                    <NoteWords text={noteText} side="left" />
-                  </>
-                )}
-              </button>
+              {spread ? (
+                <button
+                  type="button"
+                  onClick={() => go(cur + 1)}
+                  aria-label={t('city.passport.next')}
+                  className={`group text-amber-deep pointer-events-auto absolute flex flex-col transition-opacity duration-500 ${
+                    noteBeside ? 'items-start' : 'items-end'
+                  } ${cur === count - 1 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
+                  style={
+                    // The arrow's tip stops a little short of the page corner.
+                    noteBeside
+                      ? {
+                          left: pageRight + g.fontSize * 1.5,
+                          bottom: g.book.h - pageBottom + g.fontSize * 0.55,
+                        }
+                      : {
+                          right: g.book.w - pageRight - g.fontSize * 0.6,
+                          top: pageBottom + g.fontSize * 0.6,
+                        }
+                  }
+                >
+                  {noteBeside ? (
+                    <>
+                      <NoteWords text={noteText} side="right" />
+                      <CornerArrow to="down" />
+                    </>
+                  ) : (
+                    <>
+                      <CornerArrow to="up" />
+                      <NoteWords text={noteText} side="left" />
+                    </>
+                  )}
+                </button>
+              ) : (
+                cur < count - 1 && (
+                  <PagePeek
+                    right={g.book.w - pageRight}
+                    bottom={g.book.h - pageBottom}
+                    size={Math.min(g.right.w, g.right.h) * 0.13}
+                  />
+                )
+              )}
             </div>
           </div>
 
@@ -948,7 +982,7 @@ export function BrasiliaPassport({
           <div ref={itemsMeasureRef} className="absolute inset-x-0 top-0">
             {SECTIONS.map((s) =>
               sectionEntries(s, lang).map((e, i) => (
-                <div key={`${s}-${i}`} data-sec={s}>
+                <div key={`${s}-${i}`} data-sec={s} className={ENTRY_PAD}>
                   <EntryItem entry={e} />
                 </div>
               ))
@@ -1026,4 +1060,33 @@ function showNote(el: HTMLElement, on: boolean) {
   if (el.style.visibility === v) return
   el.style.opacity = on ? '1' : '0'
   el.style.visibility = v
+}
+
+/**
+ * One page at a time: the page's lower corner lifting a little now and
+ * then, as a page about to be turned — the hint that a tap (or a swipe)
+ * turns it. The corner folds over (its back, the paper, shaded at the
+ * fold) and shows the next page under it. `right`/`bottom`: the corner,
+ * from the book's own right and bottom edges (px); `size`: how far it
+ * lifts at most.
+ */
+function PagePeek({ right, bottom, size }: { right: number; bottom: number; size: number }) {
+  return (
+    <div
+      aria-hidden
+      className="animate-page-peek pointer-events-none absolute origin-bottom-right"
+      style={{
+        right,
+        bottom,
+        width: size,
+        height: size,
+        borderBottomRightRadius: 'var(--page-rr, 0px)',
+        // Lying flat between peeks (and without the animation at all).
+        transform: 'scale(0)',
+        background:
+          'linear-gradient(135deg, #FBF5E8 0%, #EADBBE 48.5%, rgba(110, 78, 30, 0.25) 50%, #EFE3CB 51%, #F3E9D5 100%)',
+        filter: 'drop-shadow(-2px -2px 3px rgba(110, 78, 30, 0.22))',
+      }}
+    />
+  )
 }

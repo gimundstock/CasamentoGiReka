@@ -9,6 +9,7 @@
 //                      of Brasília's monuments (a passport's security pattern)
 //   ipe-corner.webp    the ipê spray in the holder page's top corner
 //   buriti.webp        a buriti palm, on the first page a chapter leaves empty
+//   pequi.webp         a pequi tree, on a later one (its trunk cut flat at the base)
 //   paper.webp         the index tabs' plain paper
 //   blot-mask.webp     the watercolor blot the painting shrinks into (alpha mask)
 //
@@ -117,6 +118,8 @@ export const ASSETS = {
   ipeCorner: passport('ipe-corner.webp'),
   /** A watercolor buriti palm, for the page a chapter leaves empty. */
   buriti: passport('buriti.webp'),
+  /** A watercolor pequi tree, for a later page a chapter leaves empty. */
+  pequi: passport('pequi.webp'),
   /** The index tabs' paper. */
   tabPaper: passport('paper.webp'),
   blotMask: MASK.blot.image,

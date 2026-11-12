@@ -1,5 +1,5 @@
 import { EMBOSS_SHADOW } from '../../ui/emboss'
-import { forwardRef, type CSSProperties, type ReactNode, type Ref } from 'react'
+import { forwardRef, Fragment, type CSSProperties, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../../content.config'
 import { ASSETS, type Illustration } from './assets'
@@ -339,10 +339,42 @@ function Folio({ n }: { n: number }) {
 /** Page padding: sides in % of the page width (tighter on phones), top / bottom in em. */
 const PAD = 'px-[7.5%] pt-[2.2em] pb-[1.4em]'
 
+/**
+ * The space around a page's entries, shared out so each entry is centred
+ * between its rules: between two entries a gap with a hairline of gold in
+ * its middle; above the first (from the running head's rule) and under
+ * the last (down to an unseen rule a line above the folio) half such a
+ * gap — the same room an entry has on either side of a hairline. Each at
+ * least an entry's old padding, which is what the pages are paginated with
+ * (see ENTRY_PAD), and at most a few lines, so a short page doesn't spread
+ * out.
+ */
+function EntryGap({ edge }: { edge?: 'top' | 'bottom' }) {
+  return (
+    <div
+      aria-hidden
+      className={
+        // (Edges grow at half the rate, from nothing, as far as half.)
+        edge
+          ? `max-h-[1.5em] flex-[0.5_1_0] ${edge === 'top' ? 'min-h-[0.8em]' : 'min-h-[0.75em]'}`
+          : 'max-h-[3em] min-h-[1.55em] flex-[1_1_0]'
+      }
+      style={
+        edge
+          ? undefined
+          : { background: `linear-gradient(${GOLD}55, ${GOLD}55) center / 100% 1px no-repeat` }
+      }
+    />
+  )
+}
+
+/** An entry's padding when the pages are laid out: its gaps at their least. */
+export const ENTRY_PAD = 'pt-[0.8em] pb-[0.75em]'
+
 export function EntryItem({ entry }: { entry: GuideEntry }) {
   const { t } = useTranslation()
   return (
-    <article className="border-t pt-[0.75em] pb-[0.8em]" style={{ borderColor: `${GOLD}55` }}>
+    <article className="shrink-0">
       {/* The name itself is the link (map, Airbnb…), with an arrow: a line
           of its own for it cost the room for a second place on a phone's
           page. */}
@@ -408,7 +440,11 @@ export function EntriesFrame({
   return (
     <div className={`flex h-full flex-col ${PAD}`}>
       <RunningHead section={section} />
-      <div ref={listRef} className="relative min-h-0 flex-1 overflow-hidden">
+      {/* (Ending a line above the folio: the last entry's unseen rule.) */}
+      <div
+        ref={listRef}
+        className="relative mb-[1.3em] flex min-h-0 flex-1 flex-col overflow-hidden"
+      >
         {children}
       </div>
       <Folio n={folio ?? 0} />
@@ -484,6 +520,23 @@ function BlankPage() {
   return null
 }
 
+/** A pequi tree standing on the page, its trunk cut flat on the page's lower edge. */
+function PequiPage() {
+  return (
+    <div className="flex h-full items-end justify-center px-[6%]">
+      <img
+        src={ASSETS.pequi}
+        alt=""
+        aria-hidden
+        width={1000}
+        height={820}
+        draggable={false}
+        className="max-h-[80%] w-full object-contain object-bottom select-none"
+      />
+    </div>
+  )
+}
+
 /** A buriti palm standing on the page, nothing else. */
 function BuritiPage() {
   return (
@@ -527,9 +580,14 @@ export function PageContent({
       const entries = sectionEntries(spec.section, lang).slice(spec.from, spec.to)
       return (
         <EntriesFrame section={spec.section} folio={folio}>
+          <EntryGap edge="top" />
           {entries.map((e, i) => (
-            <EntryItem key={`${spec.from + i}`} entry={e} />
+            <Fragment key={`${spec.from + i}`}>
+              {i > 0 && <EntryGap />}
+              <EntryItem entry={e} />
+            </Fragment>
           ))}
+          <EntryGap edge="bottom" />
         </EntriesFrame>
       )
     }
@@ -537,5 +595,10 @@ export function PageContent({
       return <BlankPage />
     case 'buriti':
       return <BuritiPage />
+    case 'pequi':
+      return <PequiPage />
+    case 'end':
+      // (The leaf draws the back board itself: see BrasiliaPassport.)
+      return null
   }
 }
