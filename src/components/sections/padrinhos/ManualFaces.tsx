@@ -208,6 +208,11 @@ export function AttirePage({ lang, h }: { lang: Lang; h: number }) {
               ))}
             </ul>
           )}
+          {(pt ? group.note_pt : group.note_en) && (
+            <p className="font-serif text-forest-deep/80 mx-auto mt-[1em] max-w-[24em] text-[1em] leading-[1.4] text-pretty italic">
+              {pt ? group.note_pt : group.note_en}
+            </p>
+          )}
         </section>
       ))}
     </PagePaper>

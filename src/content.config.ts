@@ -159,6 +159,8 @@ export const CONFIG = {
           'We want a colourful, relaxed wedding, so we chose this palette with great care. Feel free to pick the colour that suits you best!',
         palette: ['terracota', 'amarelo-ocre', 'rosa-coral', 'framboesa', 'lilas', 'verde-oliva'],
         items: [] as PadrinhosAttireItem[],
+        note_pt: '',
+        note_en: '',
       },
       {
         title_pt: 'Padrinhos',
@@ -185,6 +187,10 @@ export const CONFIG = {
             palette: ['bege'],
           },
         ] as PadrinhosAttireItem[],
+        /** A line under it all (what not to wear). */
+        note_pt:
+          'Pedimos só que não usem gravata-borboleta, colete nem paletó jaquetão (com duas fileiras de botões).',
+        note_en: 'We only ask: no bow ties, no waistcoats and no double-breasted jackets.',
       },
     ],
   },
