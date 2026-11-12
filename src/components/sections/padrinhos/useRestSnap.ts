@@ -53,7 +53,7 @@ export function useRestSnap(
       if (target === null) return
       const y = top + target * vh
       const dist = Math.abs(y - window.scrollY)
-      if (dist >= 2) smoothScrollToY(y, Math.min(900, 350 + dist * 0.6))
+      if (dist >= 2) smoothScrollToY(y, Math.min(900, 350 + dist * 0.6), true)
     }
     const later = () => {
       window.clearTimeout(timer)
@@ -74,12 +74,15 @@ export function useRestSnap(
       later()
     }
     window.addEventListener('scroll', onScroll, { passive: true })
+    // A trackpad's momentum: still coming, even where the page can't move.
+    window.addEventListener('wheel', later, { passive: true })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
     window.addEventListener('touchcancel', onTouchEnd, { passive: true })
     return () => {
       window.clearTimeout(timer)
       window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('wheel', later)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchend', onTouchEnd)
       window.removeEventListener('touchcancel', onTouchEnd)

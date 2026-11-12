@@ -340,10 +340,10 @@ function Folio({ n }: { n: number }) {
 const PAD = 'px-[7.5%] pt-[2.2em] pb-[1.4em]'
 
 /**
- * The space around a page's entries, shared out evenly: the same above the
- * first (from the running head's rule), between each two (a hairline of
+ * The space around a page's entries: close under the running head's rule
+ * above the first; then shared out evenly between each two (a hairline of
  * gold in its middle) and under the last (down to an unseen rule a line
- * above the folio) — each entry centred between its rules. Each at least
+ * above the folio). Each at least
  * an entry's old padding, which is what the pages are paginated with (see
  * ENTRY_PAD), and at most a few lines, so a short page doesn't spread out.
  */
@@ -351,9 +351,12 @@ function EntryGap({ edge }: { edge?: 'top' | 'bottom' }) {
   return (
     <div
       aria-hidden
-      className={`max-h-[3em] flex-[1_1_0] ${
-        edge === 'top' ? 'min-h-[0.8em]' : edge === 'bottom' ? 'min-h-[0.75em]' : 'min-h-[1.55em]'
-      }`}
+      className={
+        // The first sits close under the running head, always.
+        edge === 'top'
+          ? 'h-[0.8em] shrink-0'
+          : `max-h-[3em] flex-[1_1_0] ${edge === 'bottom' ? 'min-h-[0.75em]' : 'min-h-[1.55em]'}`
+      }
       style={
         edge
           ? undefined
