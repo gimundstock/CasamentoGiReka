@@ -1,5 +1,5 @@
 import { EMBOSS_SHADOW } from '../../ui/emboss'
-import { forwardRef, type CSSProperties, type ReactNode, type Ref } from 'react'
+import { forwardRef, Fragment, type CSSProperties, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../../content.config'
 import { ASSETS, type Illustration } from './assets'
@@ -339,11 +339,26 @@ function Folio({ n }: { n: number }) {
 /** Page padding: sides in % of the page width (tighter on phones), top / bottom in em. */
 const PAD = 'px-[7.5%] pt-[2.2em] pb-[1.4em]'
 
+/**
+ * Between two entries: a hairline of gold, in the middle of what is left of
+ * the page shared out between them (up to a little more than an entry's
+ * own padding), so a page ends nearer its foot, evenly spaced. At least the
+ * line itself: the pages are laid out (paginated) without it.
+ */
+function EntryGap() {
+  return (
+    <div
+      aria-hidden
+      className="max-h-[2.6em] min-h-px flex-1"
+      style={{ background: `linear-gradient(${GOLD}55, ${GOLD}55) center / 100% 1px no-repeat` }}
+    />
+  )
+}
+
 export function EntryItem({ entry }: { entry: GuideEntry }) {
   const { t } = useTranslation()
-  // A hairline of gold under each, none under the last on its page.
   return (
-    <article className="border-b border-[#C9A46455] pt-[0.8em] pb-[0.75em] last:border-transparent">
+    <article className="shrink-0 pt-[0.8em] pb-[0.75em]">
       {/* The name itself is the link (map, Airbnb…), with an arrow: a line
           of its own for it cost the room for a second place on a phone's
           page. */}
@@ -409,7 +424,7 @@ export function EntriesFrame({
   return (
     <div className={`flex h-full flex-col ${PAD}`}>
       <RunningHead section={section} />
-      <div ref={listRef} className="relative min-h-0 flex-1 overflow-hidden">
+      <div ref={listRef} className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         {children}
       </div>
       <Folio n={folio ?? 0} />
@@ -529,7 +544,10 @@ export function PageContent({
       return (
         <EntriesFrame section={spec.section} folio={folio}>
           {entries.map((e, i) => (
-            <EntryItem key={`${spec.from + i}`} entry={e} />
+            <Fragment key={`${spec.from + i}`}>
+              {i > 0 && <EntryGap />}
+              <EntryItem entry={e} />
+            </Fragment>
           ))}
         </EntriesFrame>
       )
