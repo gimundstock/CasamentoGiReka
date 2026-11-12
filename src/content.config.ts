@@ -45,7 +45,7 @@ export const CONFIG = {
     date: '2027-06-05', // ISO format YYYY-MM-DD (the countdown, the year)
     // The date as printed, as written: it is the day in Brasília, wherever
     // the guest is reading (never worked out from `date` by the browser).
-    dateText_pt: '5 de junho de 2027',
+    dateText_pt: '5 de Junho de 2027',
     dateText_en: '5 June 2027',
     /** Save the Date's line. */
     dateShort_pt: '05 DE JUN DE 2027',
@@ -55,7 +55,7 @@ export const CONFIG = {
     address: 'SHIN QI 16 Área Especial, Brasília - DF, 71530-200',
     mapsUrl:
       'https://maps.google.com/?q=Clube+do+Congresso+SHIN+QI+16+Área+Especial+Lago+Norte+Brasília+DF+71530-200',
-    dresscode_pt: 'Passeio completo',
+    dresscode_pt: 'Passeio Completo',
     dresscode_en: 'Cocktail attire',
     rsvpDeadline: '2027-02-28', // ISO format YYYY-MM-DD
     rsvpDeadlineText_pt: '28 de fevereiro',
