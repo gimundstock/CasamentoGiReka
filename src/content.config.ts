@@ -153,7 +153,8 @@ export const CONFIG = {
           'Rascunho: vestido longo, em tecido leve, em um dos tons abaixo, que são as cores do nosso jardim.',
         text_en:
           'Draft: a long dress, in a light fabric, in one of the colours below, the colours of our garden.',
-        palette: ['#ADB897', '#F5D1B2', '#DC9A32', '#B9A8B5'],
+        // From the couple's moodboard: terracotta, marigold, coral, raspberry, lilac.
+        palette: ['#BF5335', '#E8A84D', '#DE8A78', '#B93953', '#CFB1BE'],
       },
       {
         title_pt: 'Padrinhos',
