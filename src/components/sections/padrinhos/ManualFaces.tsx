@@ -5,11 +5,8 @@ import { EMBOSS_SHADOW } from '../../ui/emboss'
 import { GOLD, ScriptText } from '../passport/Pages'
 
 const BASE = import.meta.env.BASE_URL
-/** The wildflowers growing up from the cover's foot (2000 × 477). */
+/** The site's wildflower border (2000 × 477), at a page's foot. */
 const BORDER = `${BASE}flowers/wildflower_border.webp`
-const BORDER_ASPECT = 477 / 2000
-/** How wide the border is drawn, as a multiple of the cover's width. */
-const BORDER_SPAN = 1.7
 
 type Lang = 'pt' | 'en'
 
@@ -19,42 +16,60 @@ export const CARD_PAPER = `url(${BASE}padrinhos/ivory-paper.webp) center / cover
 /** A sheet's edge: a hairline of shade, as the paper's thickness catches the light. */
 const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.1)'
 
+/** The cover's painting: wildflowers up its left edge, water across its foot (1070 × 1470). */
+const COVER_ART = `${BASE}padrinhos/cover.webp`
+
+/** A small gold diamond, between rules. */
+function Diamond() {
+  return (
+    <span
+      aria-hidden
+      className="block h-[0.32em] w-[0.32em] shrink-0 rotate-45"
+      style={{ background: GOLD }}
+    />
+  )
+}
+
 /**
- * The manual's cover, `w` × `h` (px): the couple's names at its top left,
- * the title in spaced capitals running up its right edge — so it reads even where
- * only that edge shows, the manual lying under the passport on the desk —
- * and wildflowers growing up from its foot.
+ * The manual's cover, `w` × `h` (px), on its painting: the couple's names
+ * at its top over a gold rule, and the title in spaced capitals running up
+ * its right edge between gold rules — so it reads even where only that
+ * edge shows, the manual lying under the passport on the desk.
  */
-export function Cover({ w, h }: { w: number; h: number }) {
+export function Cover({ w }: { w: number; h: number }) {
   const { t } = useTranslation()
-  const bw = w * BORDER_SPAN
-  const bh = bw * BORDER_ASPECT
   return (
     <div
       className="absolute inset-0 overflow-hidden"
       style={{
-        background: `url(${BORDER}) ${((w - bw) / 2).toFixed(1)}px ${(h - bh).toFixed(1)}px / ${bw.toFixed(1)}px auto no-repeat, ${CARD_PAPER}`,
+        background: `url(${COVER_ART}) center / cover`,
         boxShadow: EDGE,
         borderRadius: 'inherit',
-        fontSize: w / 21,
+        fontSize: w / 22,
       }}
     >
-      <span className="font-sans text-forest-deep absolute top-[12%] left-[11%] flex flex-col gap-[0.7em] text-[1em] leading-none tracking-[0.3em] whitespace-nowrap uppercase">
-        <span>{CONFIG.couple.bride}</span>
-        <span>&amp; {CONFIG.couple.groom}</span>
-      </span>
-      {/* Read from the foot up, as a spine is: in Jost, spaced capitals. */}
-      <span
-        className="font-sans text-honey absolute top-[9%] right-[7%] text-[1.05em] leading-none tracking-[0.28em] whitespace-nowrap uppercase"
-        style={{
-          writingMode: 'vertical-rl',
-          transform: 'rotate(180deg)',
-          height: '68%',
-          textAlign: 'end',
-        }}
-      >
-        {t('padrinhos.cover')}
-      </span>
+      <div className="absolute top-[17%] right-[28%] left-[16%] flex flex-col items-center">
+        <span className="font-sans text-forest-deep text-[0.9em] leading-none tracking-[0.3em] whitespace-nowrap uppercase">
+          {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
+        </span>
+        <span aria-hidden className="mt-[1.1em] flex w-[62%] items-center gap-[0.5em]">
+          <span className="h-px flex-1" style={{ background: GOLD }} />
+          <Diamond />
+          <span className="h-px flex-1" style={{ background: GOLD }} />
+        </span>
+      </div>
+      {/* Read from the foot up, as a spine is. */}
+      <div className="absolute top-[7%] right-[8%] bottom-[25%] flex w-[1.4em] flex-col items-center gap-[0.7em]">
+        <span aria-hidden className="w-px flex-1" style={{ background: GOLD }} />
+        <Diamond />
+        <span
+          className="font-sans text-honey text-[0.84em] leading-none tracking-[0.3em] whitespace-nowrap uppercase"
+          style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+        >
+          {t('padrinhos.cover')}
+        </span>
+        <span aria-hidden className="h-[4%] w-px" style={{ background: GOLD }} />
+      </div>
     </div>
   )
 }
