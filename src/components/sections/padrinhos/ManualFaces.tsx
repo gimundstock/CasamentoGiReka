@@ -27,10 +27,10 @@ const COVER_ART = `${BASE}padrinhos/cover.webp`
  * passport on the desk.
  */
 export function Cover({ w }: { w: number; h: number }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const names = useContext(PadrinhoNames)
-  // "Alice e Laura" / "Alice, Laura and Rui".
-  const to = listOf(names, i18n.language === 'en' ? 'and' : 'e')
+  // "Alice & Laura", "Alice, Laura & Rui" (as the couple's own names are set).
+  const to = listOf(names)
   return (
     <div
       className="absolute inset-0 overflow-hidden"
@@ -47,10 +47,8 @@ export function Cover({ w }: { w: number; h: number }) {
           <span className="font-sans text-forest-deep text-[0.8em] tracking-[0.25em] uppercase">
             {t('padrinhos.for')}
           </span>
-          <span
-            className="font-script text-honey mt-[0.5em] text-[1.85em] leading-[1.45] text-balance"
-            style={{ textShadow: EMBOSS_SHADOW }}
-          >
+          {/* The welcome screen's colour for names. */}
+          <span className="font-script text-title mt-[0.5em] text-[1.85em] leading-[1.45] text-balance">
             <ScriptText>{to}</ScriptText>
           </span>
         </p>
@@ -172,8 +170,8 @@ function weddingDate(lang: Lang) {
   }).format(new Date(Date.UTC(y, m - 1, d)))
 }
 
-/** Names as a list: "Alice", "Alice e Laura", "Alice, Laura e Rui". */
-function listOf(names: string[], and: string) {
+/** Names as a list: "Alice", "Alice & Laura", "Alice, Laura & Rui". */
+function listOf(names: string[]) {
   if (names.length < 2) return names.join('')
-  return `${names.slice(0, -1).join(', ')} ${and} ${names[names.length - 1]}`
+  return `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`
 }
