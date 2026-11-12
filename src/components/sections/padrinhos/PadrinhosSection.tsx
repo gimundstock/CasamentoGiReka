@@ -67,7 +67,7 @@ function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean
     const opened = reduced ? 1 : ease(seg(s, T.unfold))
     foldRef.current?.set(opened)
     if (panRef.current && phone && !reduced) {
-      const at = opened
+      const at = -opened
       panRef.current.style.transform = `translate3d(${(pan * at).toFixed(2)}px, 0, 0)`
     }
     const hint = openHintRef.current

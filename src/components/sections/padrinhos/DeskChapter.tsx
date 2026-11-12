@@ -92,11 +92,11 @@ export function DeskChapter({
 
       const opened = ease(seg(c, CHAPTER.unfold))
       const folded = ease(seg(c, CHAPTER.fold))
-      foldRef.current?.set(opened * (1 - folded))
-      // A phone: the page (on the left) comes on as it opens, and back to
+      foldRef.current?.set(opened, folded)
+      // A phone: the page (on the right) comes on as it opens, and back to
       // the middle as it shuts.
       if (panRef.current && pan) {
-        const at = opened - folded
+        const at = folded - opened
         panRef.current.style.transform = `translate3d(${(pan * at).toFixed(2)}px, 0, 0)`
       }
 

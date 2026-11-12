@@ -21,10 +21,11 @@ const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.1)'
 const COVER_ART = `${BASE}padrinhos/cover.webp`
 
 /**
- * The inside of the cover, facing the page: the cover's painting mirrored,
- * its flowers up the outer (right) edge, no words.
+ * The cover's painting with no words: the inside of the cover, facing the
+ * page (`mirrored`, its flowers up the other edge), and the back of the
+ * card.
  */
-export function CoverInside() {
+export function CoverArt({ mirrored = false }: { mirrored?: boolean }) {
   return (
     <div
       aria-hidden
@@ -32,7 +33,7 @@ export function CoverInside() {
       style={{ borderRadius: 'inherit', boxShadow: EDGE }}
     >
       <div
-        className="absolute inset-0 -scale-x-100"
+        className={`absolute inset-0 ${mirrored ? '-scale-x-100' : ''}`}
         style={{ background: `url(${COVER_ART}) center / cover` }}
       />
     </div>
