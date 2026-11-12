@@ -34,7 +34,9 @@ function lyingOnDesk(g: PassportGeometry, d: DeskLayout) {
       rot: 0,
     }
   }
-  return { x: P.x + pw * 0.24, y: P.y - ph * 0.04, s: P.s, rot: P.rot + 7 }
+  // Fanned out from under the passport's right edge, turned well away from
+  // it, so its edge (the title) shows in the wedge between them.
+  return { x: P.x + pw * 0.36, y: P.y - ph * 0.03, s: P.s, rot: P.rot + 12 }
 }
 
 /**

@@ -20,8 +20,10 @@ export const CARD_PAPER = TAB_PAPER
 const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.18)'
 
 /**
- * The manual's cover, `w` × `h` (px): the couple's names, the title in
- * script, and wildflowers growing up from its foot.
+ * The manual's cover, `w` × `h` (px): the couple's names at its top left,
+ * the title in script running up its right edge — so it reads even where
+ * only that edge shows, the manual lying under the passport on the desk —
+ * and wildflowers growing up from its foot.
  */
 export function Cover({ w, h }: { w: number; h: number }) {
   const { t } = useTranslation()
@@ -37,20 +39,23 @@ export function Cover({ w, h }: { w: number; h: number }) {
         fontSize: w / 21,
       }}
     >
-      <div
-        className="absolute inset-x-0 flex flex-col items-center text-center"
-        style={{ top: '22%' }}
+      <span className="font-sans text-forest-deep absolute top-[12%] left-[11%] flex flex-col gap-[0.7em] text-[1em] leading-none tracking-[0.3em] whitespace-nowrap uppercase">
+        <span>{CONFIG.couple.bride}</span>
+        <span>&amp; {CONFIG.couple.groom}</span>
+      </span>
+      {/* Read from the foot up, as a spine is. */}
+      <span
+        className="font-script text-honey absolute top-[9%] right-[6%] text-[1.75em] leading-[1.3] whitespace-nowrap"
+        style={{
+          writingMode: 'vertical-rl',
+          transform: 'rotate(180deg)',
+          height: '68%',
+          textAlign: 'end',
+          textShadow: EMBOSS_SHADOW,
+        }}
       >
-        <span className="font-sans text-forest-deep text-[1em] leading-none tracking-[0.3em] whitespace-nowrap uppercase">
-          {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
-        </span>
-        <span
-          className="font-script text-honey mt-[0.75em] px-[8%] text-[2.6em] leading-[1.45] text-balance"
-          style={{ textShadow: EMBOSS_SHADOW }}
-        >
-          <ScriptText>{t('padrinhos.cover')}</ScriptText>
-        </span>
-      </div>
+        <ScriptText>{t('padrinhos.cover')}</ScriptText>
+      </span>
     </div>
   )
 }
