@@ -46,12 +46,12 @@ export function Cover({ w }: { w: number; h: number }) {
       {/* Who it is for, centred on the cover (its lines set from the left):
           "para" in Jost over the names in script, the second set in. */}
       {first && (
-        <p className="absolute inset-x-0 top-[19%] mx-auto w-fit text-left">
+        <p className="absolute inset-x-0 top-[17%] mx-auto w-fit text-left">
           <span className="font-sans text-forest-deep block text-[0.68em] tracking-[0.25em] uppercase">
             {t('padrinhos.for')}
           </span>
           {/* The welcome screen's colour for names. */}
-          <span className="font-script text-title mt-[0.5em] block text-[1.5em] leading-[1.35]">
+          <span className="font-script text-title mt-[0.95em] block text-[1.5em] leading-[1.35]">
             <ScriptText>{first}</ScriptText>
           </span>
           {second && (
