@@ -113,7 +113,7 @@ function PagePaper({
 }) {
   return (
     <div
-      className="absolute inset-0 flex flex-col justify-center overflow-hidden px-[10%] pt-[6%] pb-[27%] text-center"
+      className="absolute inset-0 flex flex-col justify-center overflow-hidden px-[10%] pt-[6%] pb-[21%] text-center"
       style={{
         background: CARD_PAPER,
         boxShadow: EDGE,
@@ -150,7 +150,7 @@ export function LetterPage({ lang, h }: { lang: Lang; h: number }) {
   return (
     <PagePaper h={h} mirrored>
       <PageTitle size="1.95em">{pt ? letter.title_pt : letter.title_en}</PageTitle>
-      <div className="font-serif text-forest-deep/90 mx-auto mt-[0.8em] max-w-[24em] space-y-[0.8em] text-left text-[1.15em] leading-[1.5] text-pretty">
+      <div className="font-serif text-forest-deep/90 mx-auto mt-[1.5em] max-w-[24em] space-y-[0.8em] text-left text-[1.15em] leading-[1.5] text-pretty">
         {(pt ? letter.paragraphs_pt : letter.paragraphs_en).map((text, i) => (
           <p key={i}>{text}</p>
         ))}
