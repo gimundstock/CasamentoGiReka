@@ -8,6 +8,7 @@ import { HeroBigDay } from './components/sections/HeroBigDay'
 import { RSVP } from './components/sections/RSVP'
 import { GiftShop } from './components/sections/GiftShop'
 import { PadrinhosSection } from './components/sections/padrinhos/PadrinhosSection'
+import { useManualSection } from './components/sections/padrinhos/available'
 import { useGuest } from './hooks/useGuest'
 import { guestName } from './utils/guest'
 import { CONFIG } from './content.config'
@@ -49,6 +50,8 @@ export default function App() {
   }, [])
 
   const guest = state.status === 'found' ? state.guest : null
+  // A padrinho's manual, between the invitation and the gift list.
+  const manualAfter = useManualSection(guest?.padrinho)
 
   if (!guest) {
     return <NameEntry state={state} onSubmit={lookupByName} />
@@ -61,9 +64,9 @@ export default function App() {
         <Hero1Welcome guest={guest} onReset={reset} />
         <HeroSaveDateCouple />
         <HeroBigDay holder={guestName(guest)} padrinho={guest.padrinho} />
-        <RSVP guest={guest} />
+        <RSVP guest={guest} giftsNext={!manualAfter} />
+        {manualAfter && <PadrinhosSection />}
         <GiftShop guest={guest} />
-        <PadrinhosSection padrinho={guest.padrinho} />
       </main>
       <Footer />
     </>

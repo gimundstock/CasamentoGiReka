@@ -121,12 +121,18 @@ export const CONFIG = {
 
   // ── Padrinhos' manual ─────────────────────────────────────
   // A card for the guests marked `padrinho` in the Sheet: it lies on the
-  // desk behind the passport, and opens like it (the cover turning left)
-  // onto two pages as the guest scrolls. DRAFT copy below: replace it, then
+  // desk behind the passport, and later opens like it (the cover turning
+  // left) onto two pages as the guest scrolls. DRAFT copy below: replace it, then
   // set `published: true` (until then it only shows in `npm run dev`).
   // `palette`: colour swatches (e.g. for what to wear), shown under a page.
   padrinhos: {
     published: false,
+    /**
+     * When it is opened: 'passport', on the desk once the passport is read
+     * (before the invitation); 'invitation', once the invitation (RSVP) has
+     * been answered, before the gift list.
+     */
+    opensAfter: 'invitation' as 'passport' | 'invitation',
     pages: [
       // Left page (the inside of the cover): a word for them.
       {

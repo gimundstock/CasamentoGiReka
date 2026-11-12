@@ -95,6 +95,7 @@ export function BrasiliaPassport({
   reduced,
   holder,
   chapter = false,
+  manualLies = false,
 }: {
   progress: MotionValue<number>
   g: PassportGeometry | null
@@ -103,6 +104,8 @@ export function BrasiliaPassport({
   holder?: string
   /** A padrinho's: their manual comes after it, on the desk (CHAPTER). */
   chapter?: Chapter
+  /** A padrinho's: their manual lies on the desk behind it. */
+  manualLies?: boolean
 }) {
   const { t, i18n } = useTranslation()
   const lang: Lang = i18n.language === 'en' ? 'en' : 'pt'
@@ -234,10 +237,11 @@ export function BrasiliaPassport({
   const flowersRef = useRef<HTMLDivElement>(null)
   const desk = !!g?.desk && !reduced
   const layout = useMemo(() => (g && desk ? deskLayout(g) : null), [g, desk])
-  // The padrinhos' manual, after the passport on the desk (padrinhos only).
+  // The padrinhos' manual, lying behind the passport on the desk, and
+  // opened there after it if it has its chapter (padrinhos only).
   const manual = useMemo(
-    () => (g && layout && chapter ? manualOnDesk(g, layout) : null),
-    [g, layout, chapter]
+    () => (g && layout && (chapter || manualLies) ? manualOnDesk(g, layout) : null),
+    [g, layout, chapter, manualLies]
   )
   const manualRef = useRef<DeskChapterHandle>(null)
   const nudgeDelay = useClockDelay(NUDGE_MS)

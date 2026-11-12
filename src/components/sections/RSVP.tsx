@@ -70,6 +70,11 @@ type Lang = 'pt' | 'en'
 
 interface Props {
   guest: Guest
+  /**
+   * What comes on the desk as the reply card leaves: the gift list's title
+   * (the default), or nothing — the padrinhos' manual comes there first.
+   */
+  giftsNext?: boolean
 }
 
 /** ISO dates parse as UTC midnight, which is still the previous day in Brasília. */
@@ -185,7 +190,7 @@ function useGeometryTransform(
 
 // ── Section ───────────────────────────────────────────────
 
-export function RSVP({ guest }: Props) {
+export function RSVP({ guest, giftsNext = true }: Props) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as Lang
   const reduced = useReducedMotion()
@@ -456,7 +461,7 @@ export function RSVP({ guest }: Props) {
           <ScrollHint label={t('rsvp.scrollToReply')} />
         </motion.p>
 
-        {!reduced && (
+        {!reduced && giftsNext && (
           <motion.div
             aria-hidden
             className="pointer-events-none fixed inset-0"

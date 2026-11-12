@@ -27,7 +27,7 @@ import {
   type PassportGeometry,
   type Chapter,
 } from './passport/geometry'
-import { manualChapter } from './padrinhos/available'
+import { manualChapter, manualLies } from './padrinhos/available'
 import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 /** How long (vh) the stage stays pinned under the RSVP past the hand-over. */
@@ -639,6 +639,7 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
             reduced={reduced}
             holder={holder}
             chapter={chapter}
+            manualLies={manualLies(padrinho, desk, reduced)}
           />
         </div>
       </div>
