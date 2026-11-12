@@ -408,7 +408,12 @@ export function EntriesFrame({
   return (
     <div className={`flex h-full flex-col ${PAD}`}>
       <RunningHead section={section} />
-      <div ref={listRef} className="relative min-h-0 flex-1 overflow-hidden">
+      {/* The entries centred down the page (a short page's few with room
+          above and below, not all at the top). */}
+      <div
+        ref={listRef}
+        className="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden"
+      >
         {children}
       </div>
       <Folio n={folio ?? 0} />

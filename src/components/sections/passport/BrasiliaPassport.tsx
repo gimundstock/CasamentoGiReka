@@ -775,13 +775,7 @@ export function BrasiliaPassport({
             {/* Index tabs: tucked in between the pages (the page block and the
               pages lie over their inner end), on the book's own paper. Only
               once the book is open. */}
-            {/* Not on the last stop: the inside back cover is the end, its art
-              left clear. */}
-            <nav
-              ref={tabsRef}
-              aria-label={t('city.passport.tabsLabel')}
-              style={{ opacity: 0, visibility: spread && cur === count - 1 ? 'hidden' : undefined }}
-            >
+            <nav ref={tabsRef} aria-label={t('city.passport.tabsLabel')} style={{ opacity: 0 }}>
               {SECTIONS.map((s, i) => {
                 const active = s === activeSection
                 // The tab is on the chapter's first leaf (its opener, always a
