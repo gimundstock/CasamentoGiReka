@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
-import { ceremonyStart, weddingDay } from '../../utils/weddingDate'
+import { ceremonyStart } from '../../utils/weddingDate'
 import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
@@ -290,15 +290,8 @@ export function HeroSaveDateCouple() {
     return 0
   })
 
-  const weddingDate = weddingDay()
-  const dateLine = weddingDate
-    .toLocaleDateString(i18n.language === 'pt' ? 'pt-BR' : 'en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
-    .toUpperCase()
-    .replace(/\./g, '')
+  const dateLine =
+    i18n.language === 'pt' ? CONFIG.wedding.dateShort_pt : CONFIG.wedding.dateShort_en
 
   // Cada número fica numa coluna com o seu rótulo embaixo, para os dois
   // sempre se alinharem — eram duas linhas de texto centralizadas por conta

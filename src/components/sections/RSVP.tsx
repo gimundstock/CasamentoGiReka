@@ -72,11 +72,6 @@ interface Props {
   guest: Guest
 }
 
-/** ISO dates parse as UTC midnight, which is still the previous day in Brasília. */
-function formatDate(iso: string, lang: Lang, opts: Intl.DateTimeFormatOptions) {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-GB', opts)
-}
-
 // ── Geometry ──────────────────────────────────────────────
 
 interface Geometry {
@@ -679,12 +674,9 @@ const CTA =
 
 function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide: boolean }) {
   const { t } = useTranslation()
-  const date = formatDate(CONFIG.wedding.date, lang, {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-  const deadline = formatDate(CONFIG.wedding.rsvpDeadline, lang, { day: 'numeric', month: 'long' })
+  const date = lang === 'pt' ? CONFIG.wedding.dateText_pt : CONFIG.wedding.dateText_en
+  const deadline =
+    lang === 'pt' ? CONFIG.wedding.rsvpDeadlineText_pt : CONFIG.wedding.rsvpDeadlineText_en
 
   return (
     // Bottom padding (a % of the width) keeps the text in the clear centre, above the painted flowers.

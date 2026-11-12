@@ -2,7 +2,6 @@ import { EMBOSS_SHADOW } from '../../ui/emboss'
 import { forwardRef, type CSSProperties, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../../content.config'
-import { weddingDay } from '../../../utils/weddingDate'
 import { ASSETS, type Illustration } from './assets'
 import type { Rect } from './geometry'
 import { sectionEntries, type GuideEntry, type PageSpec, type SectionKey } from './content'
@@ -443,7 +442,7 @@ function OpenerPage({ section, folio }: { section: SectionKey; folio: number }) 
  */
 function HolderPage({ holder }: { holder?: string }) {
   const { t } = useTranslation()
-  const year = weddingDay().getFullYear()
+  const year = CONFIG.wedding.date.slice(0, 4)
   return (
     <div className="relative flex h-full flex-col items-center px-[13%] pt-[3.2em] pb-[2.6em] text-center">
       {/* A spray of ipê growing in from the outer top corner. */}
