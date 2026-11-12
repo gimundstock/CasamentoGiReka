@@ -41,23 +41,27 @@ export function Cover({ w }: { w: number; h: number }) {
         fontSize: w / 22,
       }}
     >
-      {/* Read from the foot up, as a spine is: who it is for beside it. */}
-      <div className="absolute top-[6%] right-[4.5%] flex items-start gap-[0.55em]">
-        {to && (
-          <span
-            className="font-garamond text-forest-deep/85 text-[1.05em] leading-none whitespace-nowrap italic"
-            style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-          >
-            {t('padrinhos.for', { names: to })}
+      {/* Who it is for, across its top: "para" in Jost over the names in script. */}
+      {to && (
+        <p className="absolute top-[13%] right-[15%] left-[14%] flex flex-col items-center text-center">
+          <span className="font-sans text-forest-deep text-[0.8em] tracking-[0.25em] uppercase">
+            {t('padrinhos.for')}
           </span>
-        )}
-        <span
-          className="font-sans text-honey w-[1.4em] text-[0.92em] leading-none font-semibold tracking-[0.3em] whitespace-nowrap uppercase"
-          style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-        >
-          {t('padrinhos.cover')}
-        </span>
-      </div>
+          <span
+            className="font-script text-honey mt-[0.5em] text-[1.85em] leading-[1.45] text-balance"
+            style={{ textShadow: EMBOSS_SHADOW }}
+          >
+            <ScriptText>{to}</ScriptText>
+          </span>
+        </p>
+      )}
+      {/* Read from the foot up, as a spine is. */}
+      <span
+        className="font-sans text-honey absolute top-[6%] right-[4.5%] text-[0.92em] leading-none font-semibold tracking-[0.3em] whitespace-nowrap uppercase"
+        style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+      >
+        {t('padrinhos.cover')}
+      </span>
     </div>
   )
 }
