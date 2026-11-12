@@ -47,6 +47,7 @@ import {
   InsideBoard,
   EntriesFrame,
   EntryItem,
+  ENTRY_PAD,
   TAB_PAPER,
   paperFor,
   PageContent,
@@ -942,7 +943,7 @@ export function BrasiliaPassport({
           <div ref={itemsMeasureRef} className="absolute inset-x-0 top-0">
             {SECTIONS.map((s) =>
               sectionEntries(s, lang).map((e, i) => (
-                <div key={`${s}-${i}`} data-sec={s}>
+                <div key={`${s}-${i}`} data-sec={s} className={ENTRY_PAD}>
                   <EntryItem entry={e} />
                 </div>
               ))

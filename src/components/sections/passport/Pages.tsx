@@ -340,25 +340,36 @@ function Folio({ n }: { n: number }) {
 const PAD = 'px-[7.5%] pt-[2.2em] pb-[1.4em]'
 
 /**
- * Between two entries: a hairline of gold, in the middle of what is left of
- * the page shared out between them (up to a little more than an entry's
- * own padding), so a page ends nearer its foot, evenly spaced. At least the
- * line itself: the pages are laid out (paginated) without it.
+ * The space around a page's entries, shared out evenly: the same above the
+ * first (from the running head's rule), between each two (a hairline of
+ * gold in its middle) and under the last (down to an unseen rule a line
+ * above the folio) — each entry centred between its rules. Each at least
+ * an entry's old padding, which is what the pages are paginated with (see
+ * ENTRY_PAD), and at most a few lines, so a short page doesn't spread out.
  */
-function EntryGap() {
+function EntryGap({ edge }: { edge?: 'top' | 'bottom' }) {
   return (
     <div
       aria-hidden
-      className="max-h-[2.6em] min-h-px flex-1"
-      style={{ background: `linear-gradient(${GOLD}55, ${GOLD}55) center / 100% 1px no-repeat` }}
+      className={`max-h-[3em] flex-[1_1_0] ${
+        edge === 'top' ? 'min-h-[0.8em]' : edge === 'bottom' ? 'min-h-[0.75em]' : 'min-h-[1.55em]'
+      }`}
+      style={
+        edge
+          ? undefined
+          : { background: `linear-gradient(${GOLD}55, ${GOLD}55) center / 100% 1px no-repeat` }
+      }
     />
   )
 }
 
+/** An entry's padding when the pages are laid out: its gaps at their least. */
+export const ENTRY_PAD = 'pt-[0.8em] pb-[0.75em]'
+
 export function EntryItem({ entry }: { entry: GuideEntry }) {
   const { t } = useTranslation()
   return (
-    <article className="shrink-0 pt-[0.8em] pb-[0.75em]">
+    <article className="shrink-0">
       {/* The name itself is the link (map, Airbnb…), with an arrow: a line
           of its own for it cost the room for a second place on a phone's
           page. */}
@@ -424,7 +435,11 @@ export function EntriesFrame({
   return (
     <div className={`flex h-full flex-col ${PAD}`}>
       <RunningHead section={section} />
-      <div ref={listRef} className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+      {/* (Ending a line above the folio: the last entry's unseen rule.) */}
+      <div
+        ref={listRef}
+        className="relative mb-[1.3em] flex min-h-0 flex-1 flex-col overflow-hidden"
+      >
         {children}
       </div>
       <Folio n={folio ?? 0} />
@@ -543,12 +558,14 @@ export function PageContent({
       const entries = sectionEntries(spec.section, lang).slice(spec.from, spec.to)
       return (
         <EntriesFrame section={spec.section} folio={folio}>
+          <EntryGap edge="top" />
           {entries.map((e, i) => (
             <Fragment key={`${spec.from + i}`}>
               {i > 0 && <EntryGap />}
               <EntryItem entry={e} />
             </Fragment>
           ))}
+          <EntryGap edge="bottom" />
         </EntriesFrame>
       )
     }
