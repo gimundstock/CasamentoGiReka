@@ -621,9 +621,8 @@ export function BrasiliaPassport({
   // Never on the page, where it would take room from the content.
   const noteW = g.fontSize * 10
   const noteBeside = spread && g.vw - (g.book.x + g.book.w) >= noteW + 16
-  // On one page at a time the words run on one line, and the arrow is
-  // shorter: room for "scroll to go on" under it.
-  const noteH = g.fontSize * (spread ? 8.5 : 4.6)
+  // (One page at a time there is no note: see PagePeek.)
+  const noteH = spread ? g.fontSize * 8.5 : 0
   const pageRight = g.right.x + g.right.w
   const noteText = t(touch ? 'city.passport.cornerTouch' : 'city.passport.cornerClick')
   const pageBottom = g.right.y + g.right.h
@@ -756,26 +755,13 @@ export function BrasiliaPassport({
           {/* Under the book, once it is open: the site goes on below. Turning
             the pages is the corner note's job (on the page itself). */}
           <div ref={chromeRef} style={{ opacity: 0 }}>
-            {below >= (noteBeside ? 40 : noteH + (spread ? 56 : 34)) ? (
+            {below >= (noteBeside || !spread ? 40 : noteH + 56) && (
               <div
                 className="absolute inset-x-0 text-center"
-                style={{ top: g.book.h + (spread ? 16 : 10) + (noteBeside ? 0 : noteH) }}
+                style={{ top: g.book.h + 16 + (noteBeside ? 0 : noteH) }}
               >
                 <ScrollHint label={t('city.passport.hintScroll')} />
               </div>
-            ) : (
-              // No room under the note (a tall page on a tablet): on its row,
-              // from the page's left edge, where the book is wide enough.
-              !spread &&
-              g.right.w >= g.fontSize * 24 &&
-              below >= noteH * 0.6 + 16 && (
-                <div
-                  className="absolute text-left"
-                  style={{ left: g.right.x, top: g.book.h + noteH * 0.55 }}
-                >
-                  <ScrollHint label={t('city.passport.hintScroll')} />
-                </div>
-              )
             )}
           </div>
 
@@ -875,7 +861,9 @@ export function BrasiliaPassport({
             </div>
             {/* "Click to turn", hand-written on the desk with an S-shaped
               arrow running to the page corner it turns from. It is also the
-              next-page button. Not on the last stop. */}
+              next-page button. Not on the last stop. One page at a time
+              (phones, tablets) there is no room for it: the page's corner
+              lifts now and then instead, and a tap on the page turns it. */}
             <div
               ref={cornerRef}
               style={{
@@ -884,38 +872,48 @@ export function BrasiliaPassport({
                 transition: 'opacity 900ms ease-out, visibility 900ms',
               }}
             >
-              <button
-                type="button"
-                onClick={() => go(cur + 1)}
-                aria-label={t('city.passport.next')}
-                className={`group text-amber-deep pointer-events-auto absolute flex flex-col transition-opacity duration-500 ${
-                  noteBeside ? 'items-start' : 'items-end'
-                } ${cur === count - 1 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
-                style={
-                  // The arrow's tip stops a little short of the page corner.
-                  noteBeside
-                    ? {
-                        left: pageRight + g.fontSize * 1.5,
-                        bottom: g.book.h - pageBottom + g.fontSize * 0.55,
-                      }
-                    : {
-                        right: g.book.w - pageRight - g.fontSize * 0.6,
-                        top: pageBottom + g.fontSize * 0.6,
-                      }
-                }
-              >
-                {noteBeside ? (
-                  <>
-                    <NoteWords text={noteText} side="right" />
-                    <CornerArrow to="down" />
-                  </>
-                ) : (
-                  <>
-                    <CornerArrow to="up" short={!spread} />
-                    <NoteWords text={noteText} side="left" oneLine={!spread} />
-                  </>
-                )}
-              </button>
+              {spread ? (
+                <button
+                  type="button"
+                  onClick={() => go(cur + 1)}
+                  aria-label={t('city.passport.next')}
+                  className={`group text-amber-deep pointer-events-auto absolute flex flex-col transition-opacity duration-500 ${
+                    noteBeside ? 'items-start' : 'items-end'
+                  } ${cur === count - 1 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
+                  style={
+                    // The arrow's tip stops a little short of the page corner.
+                    noteBeside
+                      ? {
+                          left: pageRight + g.fontSize * 1.5,
+                          bottom: g.book.h - pageBottom + g.fontSize * 0.55,
+                        }
+                      : {
+                          right: g.book.w - pageRight - g.fontSize * 0.6,
+                          top: pageBottom + g.fontSize * 0.6,
+                        }
+                  }
+                >
+                  {noteBeside ? (
+                    <>
+                      <NoteWords text={noteText} side="right" />
+                      <CornerArrow to="down" />
+                    </>
+                  ) : (
+                    <>
+                      <CornerArrow to="up" />
+                      <NoteWords text={noteText} side="left" />
+                    </>
+                  )}
+                </button>
+              ) : (
+                cur < count - 1 && (
+                  <PagePeek
+                    right={g.book.w - pageRight}
+                    bottom={g.book.h - pageBottom}
+                    size={Math.min(g.right.w, g.right.h) * 0.13}
+                  />
+                )
+              )}
             </div>
           </div>
 
@@ -996,14 +994,14 @@ export function BrasiliaPassport({
  * the book it comes down from the words above, its tip at the bottom left;
  * under the book it goes up from the words below, its tip at the top right.
  */
-function CornerArrow({ to, short = false }: { to: 'down' | 'up'; short?: boolean }) {
+function CornerArrow({ to }: { to: 'down' | 'up' }) {
   return (
     <svg
       viewBox="0 0 40 60"
-      className={`${short ? 'h-[3em] w-[2em]' : 'h-[4.4em] w-[2.95em]'} shrink-0 transition-transform duration-300 ${
+      className={`h-[4.4em] w-[2.95em] shrink-0 transition-transform duration-300 ${
         to === 'down'
           ? '-scale-y-100 group-hover:-translate-x-[0.15em] group-hover:translate-y-[0.15em]'
-          : 'group-hover:-translate-x-[0.15em] group-hover:-translate-y-[0.15em]'
+          : '-scale-x-100 group-hover:translate-x-[0.15em] group-hover:-translate-y-[0.15em]'
       }`}
       aria-hidden
     >
@@ -1032,23 +1030,7 @@ function CornerArrow({ to, short = false }: { to: 'down' | 'up'; short?: boolean
  * the book they stand above the arrow (clear of the tabs); left of the corner,
  * under it.
  */
-function NoteWords({
-  text,
-  side,
-  oneLine = false,
-}: {
-  text: string
-  side: 'left' | 'right'
-  /** All on one line (a phone). */
-  oneLine?: boolean
-}) {
-  if (oneLine) {
-    return (
-      <span className="font-script -mt-[0.35em] mr-[0.4em] text-[1.6em] leading-[1.15] whitespace-nowrap">
-        {text}
-      </span>
-    )
-  }
+function NoteWords({ text, side }: { text: string; side: 'left' | 'right' }) {
   const [first, ...rest] = text.split(' ')
   const out = side === 'right' ? 'self-start' : 'self-end'
   return (
@@ -1073,4 +1055,31 @@ function showNote(el: HTMLElement, on: boolean) {
   if (el.style.visibility === v) return
   el.style.opacity = on ? '1' : '0'
   el.style.visibility = v
+}
+
+/**
+ * One page at a time: the page's lower corner lifting a little now and
+ * then, as a page about to be turned — the hint that a tap (or a swipe)
+ * turns it. The corner folds over (its back, the paper, shaded at the
+ * fold) and shows the next page under it. `right`/`bottom`: the corner,
+ * from the book's own right and bottom edges (px); `size`: how far it
+ * lifts at most.
+ */
+function PagePeek({ right, bottom, size }: { right: number; bottom: number; size: number }) {
+  return (
+    <div
+      aria-hidden
+      className="animate-page-peek pointer-events-none absolute origin-bottom-right"
+      style={{
+        right,
+        bottom,
+        width: size,
+        height: size,
+        borderBottomRightRadius: 'var(--page-rr, 0px)',
+        background:
+          'linear-gradient(135deg, #FBF5E8 0%, #EADBBE 48.5%, rgba(110, 78, 30, 0.25) 50%, #EFE3CB 51%, #F3E9D5 100%)',
+        filter: 'drop-shadow(-2px -2px 3px rgba(110, 78, 30, 0.22))',
+      }}
+    />
+  )
 }

@@ -65,8 +65,14 @@ export default {
         'drift-down': 'drift-down 18s linear infinite',
         bloom: 'bloom 1.2s ease-out forwards',
         nudge: 'nudge 2.2s ease-in-out infinite',
+        'page-peek': 'page-peek 4.5s ease-in-out infinite',
       },
       keyframes: {
+        // A page's corner lifting a little, then lying down again (PagePeek).
+        'page-peek': {
+          '0%, 55%, 100%': { transform: 'scale(0)' },
+          '68%, 80%': { transform: 'scale(1)' },
+        },
         nudge: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(3px)' },

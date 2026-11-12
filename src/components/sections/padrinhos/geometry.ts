@@ -27,12 +27,9 @@ function lyingOnDesk(g: PassportGeometry, d: DeskLayout) {
   const pw = P.s * g.coverBox.w
   const ph = P.s * g.coverBox.h
   if (d.hand) {
-    return {
-      x: (P.x + g.vw / 2 + d.envelope.x) / 2,
-      y: P.y - ph * 0.03,
-      s: P.s,
-      rot: 0,
-    }
+    // Tucked behind the passport, only its edge (the title) showing past
+    // it: the envelope's G&R stays clear.
+    return { x: P.x + pw * 0.15, y: P.y - ph * 0.025, s: P.s, rot: P.rot + 6 }
   }
   // Fanned out from under the passport's right edge, turned well away from
   // it, so its edge (the title) shows in the wedge between them.
