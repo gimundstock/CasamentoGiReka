@@ -145,7 +145,7 @@ export const CONFIG = {
      * The right page: what to wear, for each, with the colours to choose
      * from: painted dabs, by name, from public/padrinhos/paleta (terracota,
      * amarelo-ocre, rosa-coral, framboesa, lilas, verde-oliva,
-     * azul-acinzentado, bege, cinza).
+     * azul-acinzentado, bege, cinza-claro).
      */
     attireTitle_pt: 'Traje',
     attireTitle_en: 'Attire',
@@ -177,7 +177,7 @@ export const CONFIG = {
             label_en: 'Suit',
             text_pt: '',
             text_en: '',
-            palette: ['cinza', 'azul-acinzentado'],
+            palette: ['cinza-claro', 'azul-acinzentado'],
           },
           {
             label_pt: 'Gravata',
