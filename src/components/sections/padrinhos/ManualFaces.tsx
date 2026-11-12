@@ -20,9 +20,9 @@ const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.1)'
 const COVER_ART = `${BASE}padrinhos/cover.webp`
 
 /**
- * The manual's cover, `w` × `h` (px), on its painting: the couple's names
- * at its top, and the title in spaced capitals running up its right edge —
- * so it reads even where only that edge shows, the manual lying under the
+ * The manual's cover, `w` × `h` (px), on its painting: the title in
+ * spaced capitals running up its right edge, from near its top — so it
+ * reads even where only that edge shows, the manual lying under the
  * passport on the desk.
  */
 export function Cover({ w }: { w: number; h: number }) {
@@ -37,13 +37,8 @@ export function Cover({ w }: { w: number; h: number }) {
         fontSize: w / 22,
       }}
     >
-      <div className="absolute top-[17%] right-[28%] left-[16%] flex justify-center">
-        <span className="font-sans text-forest-deep text-[0.9em] leading-none tracking-[0.3em] whitespace-nowrap uppercase">
-          {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
-        </span>
-      </div>
       {/* Read from the foot up, as a spine is. */}
-      <div className="absolute top-[7%] right-[8%] bottom-[25%] flex w-[1.4em] flex-col items-center justify-center">
+      <div className="absolute top-[6%] right-[4.5%] bottom-[25%] flex w-[1.4em] flex-col items-center justify-start">
         <span
           className="font-sans text-honey text-[0.92em] leading-none tracking-[0.3em] whitespace-nowrap uppercase"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
