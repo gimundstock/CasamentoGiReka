@@ -49,7 +49,7 @@ export function Cover({ w }: { w: number; h: number }) {
       <div className="absolute inset-x-0 top-[6%] flex">
         {first && (
           <p className="absolute inset-x-0 top-1/2 mx-auto w-fit -translate-y-1/2 text-left">
-            <span className="font-garamond text-title block text-[1.1em] leading-none italic">
+            <span className="font-sans text-forest-deep block text-[0.68em] tracking-[0.25em] uppercase">
               {t('padrinhos.for')}
             </span>
             {/* The welcome screen's colour for names. */}
