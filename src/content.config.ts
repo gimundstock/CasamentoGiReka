@@ -119,6 +119,81 @@ export const CONFIG = {
     { id: 'vegano', pt: 'Vegano', en: 'Vegan' },
   ],
 
+  // ── Padrinhos' manual ─────────────────────────────────────
+  // A card for the guests marked `padrinhos` in the Sheet: it lies on the
+  // desk under the passport and, once the passport is read, is read as a
+  // greeting card: its cover turns over from right to left onto its two
+  // pages (a letter; what to wear), then it shuts again onto its back.
+  // DRAFT copy below: replace it, then set `published: true` (until then it
+  // only shows in `npm run dev`).
+  padrinhos: {
+    published: false,
+    /** The left page: a letter to them (two paragraphs). */
+    letter: {
+      title_pt: 'Queridos padrinhos',
+      title_en: 'Dear wedding party',
+      paragraphs_pt: [
+        'Cada um de vocês foi escolhido a dedo, com muito carinho, por ocupar um lugar especial em nossas vidas. Seja por fazer parte da nossa história como casal ou por estar presente em nossas trajetórias individuais, vocês compartilharam alegrias, nos apoiaram nos momentos difíceis e nos mostraram que sempre podemos contar com vocês. É por tudo isso que fazemos questão de tê-los ao nosso lado em um dos capítulos mais importantes da nossa história.',
+        'A missão de vocês como nossos padrinhos é, acima de tudo, continuar sendo quem sempre foram para nós: pessoas queridas com quem queremos compartilhar a vida inteira. E, no grande dia, queremos vocês bem pertinho, celebrando cada emoção, ajudando a eternizar esse momento e, é claro, assumindo a importantíssima responsabilidade de fazer dessa festa uma celebração inesquecível!',
+      ],
+      paragraphs_en: [
+        'Each of you was hand-picked, with great affection, for the special place you hold in our lives. Whether you are part of our story as a couple or have been there along our own paths, you have shared our joys, stood by us through the hard times and shown us that we can always count on you. That is why we want you by our side for one of the most important chapters of our story.',
+        'Your mission as our wedding party is, above all, to keep being who you have always been to us: dear people we want to share our whole lives with. And on the big day, we want you close by, celebrating every emotion, helping to make the moment last forever and, of course, taking on the all-important responsibility of making this party unforgettable!',
+      ],
+    },
+    /**
+     * The right page: what to wear, for each, with the colours to choose
+     * from: painted dabs, by name, from public/padrinhos/paleta (terracota,
+     * amarelo-ocre, rosa-coral, framboesa, lilas, verde-oliva,
+     * azul-acinzentado, bege, cinza-suave).
+     */
+    attireTitle_pt: 'Traje',
+    attireTitle_en: 'Attire',
+    attire: [
+      {
+        title_pt: 'Madrinhas',
+        title_en: 'Bridesmaids',
+        text_pt:
+          'Queremos um casamento bem colorido e descontraído, por isso escolhemos essa paleta com muito carinho. Fique à vontade para escolher a cor que mais combina com você!',
+        text_en:
+          'We want a colourful, relaxed wedding, so we chose this palette with great care. Feel free to pick the colour that suits you best!',
+        palette: ['terracota', 'amarelo-ocre', 'rosa-coral', 'framboesa', 'lilas', 'verde-oliva'],
+        items: [] as PadrinhosAttireItem[],
+        note_pt: '',
+        note_en: '',
+      },
+      {
+        title_pt: 'Padrinhos',
+        title_en: 'Groomsmen',
+        text_pt:
+          'Para harmonizar com as cores das madrinhas e com o traje do noivo, escolhemos tons mais neutros. Para acompanhar o noivo, nossa sugestão é usar uma gravata tradicional e um paletó de abotoamento simples, sem colete.',
+        text_en:
+          'To go with the bridesmaids’ colours and the groom’s suit, we chose more neutral tones. To match the groom, we suggest a classic tie and a single-breasted jacket, without a waistcoat.',
+        palette: [] as string[],
+        /** Piece by piece, each with its colours (dabs, as `palette`). */
+        items: [
+          {
+            label_pt: 'Terno',
+            label_en: 'Suit',
+            text_pt: '',
+            text_en: '',
+            palette: ['cinza-suave', 'azul-acinzentado'],
+          },
+          {
+            label_pt: 'Gravata',
+            label_en: 'Tie',
+            text_pt: 'no tom do terno do noivo',
+            text_en: 'the tone of the groom’s suit',
+            palette: ['bege'],
+          },
+        ] as PadrinhosAttireItem[],
+        /** A line under it all, if any. */
+        note_pt: '',
+        note_en: '',
+      },
+    ],
+  },
+
   // ── Brasília City Guide ───────────────────────────────────
   cityGuide: {
     // distance: by car to the venue (Clube do Congresso, at the far end of
@@ -1919,7 +1994,14 @@ export const CONFIG = {
     },
   ],
 }
-
+/** One piece of a padrinho's attire: what it is, its colour, and the colour's dabs. */
+export interface PadrinhosAttireItem {
+  label_pt: string
+  label_en: string
+  text_pt: string
+  text_en: string
+  palette: string[]
+}
 export type MenuOption = (typeof CONFIG.menuOptions)[number]
 export type GiftConfig = (typeof CONFIG.gifts)[number]
 export type CotaConfig = (typeof CONFIG.gifts)[number]['cotas'][number]

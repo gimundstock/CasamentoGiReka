@@ -25,7 +25,9 @@ import {
   seg,
   swapOpacities,
   type PassportGeometry,
+  type Chapter,
 } from './passport/geometry'
+import { manualChapter } from './padrinhos/available'
 import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
 
 /** How long (vh) the stage stays pinned under the RSVP past the hand-over. */
@@ -97,7 +99,9 @@ const PAINT_END = 0.82
 
 // The stage scrolls (is pinned) for the big day, then for the passport
 // (longer on a wide screen, where it shares a desk with the invitation).
-const lockedVh = (desk: boolean) => PASSPORT_START_VH + passportVh(desk)
+// (And, for a padrinho, for their manual on the desk: CHAPTER.)
+const lockedVh = (desk: boolean, chapter: Chapter = false) =>
+  PASSPORT_START_VH + passportVh(desk, chapter)
 const deskNow = () => isDesk(window.innerWidth, window.innerHeight)
 // Nav highlight: "The Wedding" until the passport starts taking shape, then
 // "Brasília". The band the Nav watches sits 30–45 % down the screen.
@@ -162,13 +166,18 @@ function useStageGeometry(ref: RefObject<HTMLDivElement | null>) {
  * subscription bug for opacity in framer-motion 12 here.
  */
 /** `holder`: the guest the passport is made out to (their display name). */
-export function HeroBigDay({ holder }: { holder?: string }) {
+export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: boolean }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
 
   const stageRef = useRef<HTMLDivElement>(null)
   // The stage's pinned length, read by the scroll transforms below.
-  const lockedRef = useRef(lockedVh(deskNow()))
+  const lockedRef = useRef(
+    lockedVh(
+      deskNow(),
+      manualChapter(padrinho, deskNow(), false, window.innerWidth, window.innerHeight)
+    )
+  )
   const { scrollYProgress: stageProgress } = useScroll({
     target: stageRef,
     offset: ['start start', 'end end'],
@@ -284,13 +293,20 @@ export function HeroBigDay({ holder }: { holder?: string }) {
   const viewRef = useRef<HTMLDivElement>(null)
   const geo = useStageGeometry(viewRef)
   const desk = geo?.desk ?? deskNow()
-  const locked = lockedVh(desk)
+  const chapter = manualChapter(
+    padrinho,
+    desk,
+    reduced,
+    geo?.vw ?? window.innerWidth,
+    geo?.vh ?? window.innerHeight
+  )
+  const locked = lockedVh(desk, chapter)
   useLayoutEffect(() => {
     lockedRef.current = locked
   })
   // Stopped part-way through opening or closing the book: carried on to the
   // nearest state it can rest in (above all, lying open, readable).
-  usePassportSnap(stageRef, lockedRef, desk, !reduced)
+  usePassportSnap(stageRef, lockedRef, desk, !reduced, chapter)
   const compactRef = useRef<HTMLDivElement>(null)
   const compact = useCallback(
     (v: number) => {
@@ -617,7 +633,13 @@ export function HeroBigDay({ holder }: { holder?: string }) {
           </motion.div>
 
           {/* ── z-40  The city guide, as a passport. ── */}
-          <BrasiliaPassport progress={passVh} g={geo} reduced={reduced} holder={holder} />
+          <BrasiliaPassport
+            progress={passVh}
+            g={geo}
+            reduced={reduced}
+            holder={holder}
+            chapter={chapter}
+          />
         </div>
       </div>
     </section>

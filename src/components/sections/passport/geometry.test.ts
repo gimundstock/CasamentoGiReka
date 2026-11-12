@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DESK, passportTime, PASSPORT_VH, PHASE, snapTarget } from './geometry'
+import { CHAPTER, DESK, passportTime, passportVh, PASSPORT_VH, PHASE, snapTarget } from './geometry'
 
 const HOLD = DESK.hold[1] - DESK.hold[0]
 const shut = PHASE.open[0] - 10
@@ -56,5 +56,26 @@ describe('snapTarget on the desk', () => {
 
   it('ignores the hold, where the passport lies on the desk', () => {
     expect(snapTarget(DESK.hold[0] + 20, 1, true)).toBeNull()
+  })
+})
+
+describe('snapTarget with the padrinhos’ manual', () => {
+  const c = (n: number) => CHAPTER.at + n + HOLD
+  it('carries a manual part-way in on to it lying shut, or back to the passport', () => {
+    expect(snapTarget(c(30), 1, true, 'desk')).toBe(c(CHAPTER.shut))
+    expect(snapTarget(c(30), -1, true, 'desk')).toBe(DESK.close[1] + HOLD)
+  })
+  it('finishes unfolding it, and leaves it alone lying open', () => {
+    const open = c((CHAPTER.unfold[1] + CHAPTER.fold[0]) / 2)
+    expect(snapTarget(c(CHAPTER.unfold[0] + 20), 1, true, 'desk')).toBe(open)
+    expect(snapTarget(open, 1, true, 'desk')).toBeNull()
+  })
+  it('the envelope comes only after it, the stage that much longer', () => {
+    expect(snapTarget(c(CHAPTER.len) + 20, 1, true, 'desk')).toBe(DESK.end + HOLD + CHAPTER.len)
+    expect(passportVh(true, 'desk')).toBe(passportVh(true) + CHAPTER.len)
+  })
+  it('on a phone, stops at each page', () => {
+    const right = c((CHAPTER.toRight[1] + CHAPTER.fold[0]) / 2)
+    expect(snapTarget(c(CHAPTER.toRight[0] + 15), 1, true, 'hand')).toBe(right)
   })
 })

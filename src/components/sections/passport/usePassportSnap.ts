@@ -1,6 +1,6 @@
 import { useEffect, type RefObject } from 'react'
 import { isAutoScrolling, smoothScrollToY } from '../../../utils/smoothScroll'
-import { PASSPORT_START_VH, snapTarget } from './geometry'
+import { PASSPORT_START_VH, snapTarget, type Chapter } from './geometry'
 
 /**
  * How long the scroll must be still to count as come to rest, ms. Long
@@ -18,12 +18,14 @@ const SETTLE_MS = 180
  *
  * `stageRef` is HeroBigDay's pinned stage, `lockedRef` its pinned length in
  * vh: the same mapping from scroll to the passport's time as its own.
+ * `chapter`: the padrinhos' manual's chapter is in the stage (CHAPTER).
  */
 export function usePassportSnap(
   stageRef: RefObject<HTMLDivElement | null>,
   lockedRef: { readonly current: number },
   desk: boolean,
-  enabled: boolean
+  enabled: boolean,
+  chapter: Chapter = false
 ) {
   useEffect(() => {
     if (!enabled) return
@@ -43,7 +45,7 @@ export function usePassportSnap(
       if (span <= 0) return
       const p = (window.scrollY - top) / span
       if (p <= 0 || p >= 1) return
-      const target = snapTarget(p * locked - PASSPORT_START_VH, dir, desk)
+      const target = snapTarget(p * locked - PASSPORT_START_VH, dir, desk, chapter)
       if (target === null) return
       const y = top + ((target + PASSPORT_START_VH) / locked) * span
       const dist = Math.abs(y - window.scrollY)
@@ -82,5 +84,5 @@ export function usePassportSnap(
       window.removeEventListener('touchend', onTouchEnd)
       window.removeEventListener('touchcancel', onTouchEnd)
     }
-  }, [stageRef, lockedRef, desk, enabled])
+  }, [stageRef, lockedRef, desk, enabled, chapter])
 }

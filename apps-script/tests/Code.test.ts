@@ -39,7 +39,27 @@ describe('handleGetGuest', () => {
     expect(app.handleGetGuest({ id: 'r01' })).toMatchObject({
       displayName: 'Ana e Bruno',
       padrinho: false,
+      padrinhos: [],
     })
+  })
+
+  it('padrinhos: the names in the column, only those of the invitation who are', () => {
+    const guests = [
+      [...GUESTS_HEADER, 'padrinhos'],
+      ['f01', 'Família Lima', 'pt', 'Alice Lima, Laura Lima, Rui Lima, Eva Lima, Tom Lima', false, ' Alice,Laura '],
+      ['f02', 'Gil', 'pt', 'Gil Prado', false, ''],
+      ['f03', 'Eva e Felipe', 'pt', 'Eva Melo, Felipe Melo', false, true],
+      ['f04', 'Hugo', 'pt', 'Hugo Reis', false, 'FALSE'],
+    ]
+    const { app } = createSandbox({ guests })
+    expect(app.handleGetGuest({ id: 'f01' })).toMatchObject({
+      padrinho: true,
+      padrinhos: ['Alice', 'Laura'],
+    })
+    expect(app.handleGetGuest({ id: 'f02' })).toMatchObject({ padrinho: false, padrinhos: [] })
+    // A checkbox still works: all of the invitation.
+    expect(app.handleGetGuest({ id: 'f03' })?.padrinhos).toEqual(['Eva Melo', 'Felipe Melo'])
+    expect(app.handleGetGuest({ id: 'f04' })?.padrinho).toBe(false)
   })
 
   it('reads displayName and padrinho when the columns are there', () => {

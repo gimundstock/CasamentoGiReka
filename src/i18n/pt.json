@@ -191,5 +191,12 @@
     "top": "Voltar ao início",
     "menu": "Menu",
     "switchLanguage": "Ver o site em inglês"
+  },
+  "padrinhos": {
+    "label": "Manual dos padrinhos",
+    "cover": "Manual dos padrinhos",
+    "kicker": "Para os padrinhos",
+    "hintOpen": "Role para abrir o manual",
+    "for": "para"
   }
 }

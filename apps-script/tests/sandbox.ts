@@ -74,6 +74,7 @@ export interface Guest {
   attendees: string[]
   displayName: string
   padrinho: boolean
+  padrinhos: string[]
   photos: string[]
   rsvpSubmitted: boolean
   rsvpAttendees: { name: string; attending: boolean }[]

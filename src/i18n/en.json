@@ -191,5 +191,12 @@
     "top": "Back to top",
     "menu": "Menu",
     "switchLanguage": "View the site in Portuguese"
+  },
+  "padrinhos": {
+    "label": "Wedding party guide",
+    "cover": "Wedding party guide",
+    "kicker": "For the wedding party",
+    "hintOpen": "Scroll to open the guide",
+    "for": "for"
   }
 }
