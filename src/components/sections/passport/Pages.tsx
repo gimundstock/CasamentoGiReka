@@ -341,8 +341,9 @@ const PAD = 'px-[7.5%] pt-[2.2em] pb-[1.4em]'
 
 export function EntryItem({ entry }: { entry: GuideEntry }) {
   const { t } = useTranslation()
+  // A hairline of gold under each, none under the last on its page.
   return (
-    <article className="border-t pt-[0.75em] pb-[0.8em]" style={{ borderColor: `${GOLD}55` }}>
+    <article className="border-b border-[#C9A46455] pt-[0.8em] pb-[0.75em] last:border-transparent">
       {/* The name itself is the link (map, Airbnb…), with an arrow: a line
           of its own for it cost the room for a second place on a phone's
           page. */}
@@ -408,12 +409,7 @@ export function EntriesFrame({
   return (
     <div className={`flex h-full flex-col ${PAD}`}>
       <RunningHead section={section} />
-      {/* The entries centred down the page (a short page's few with room
-          above and below, not all at the top). */}
-      <div
-        ref={listRef}
-        className="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden"
-      >
+      <div ref={listRef} className="relative min-h-0 flex-1 overflow-hidden">
         {children}
       </div>
       <Folio n={folio ?? 0} />
