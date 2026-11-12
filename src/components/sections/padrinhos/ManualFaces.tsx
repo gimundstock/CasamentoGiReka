@@ -186,22 +186,23 @@ export function AttirePage({ lang, h }: { lang: Lang; h: number }) {
             </ul>
           )}
           {group.items.length > 0 && (
-            // Piece by piece: what it is, its colour, and the colour's dabs.
-            <ul className="mx-auto mt-[1em] w-fit space-y-[0.7em] text-left">
+            // Piece by piece: what it is and its colour, then the colour's
+            // dabs (as large as the madrinhas'), both columns lined up.
+            <ul className="mx-auto mt-[1em] grid w-fit grid-cols-[auto_auto] items-center gap-x-[1.1em] gap-y-[0.7em] text-left">
               {group.items.map((item, j) => (
-                <li key={j} className="flex items-center gap-[0.8em]">
-                  <span className="flex w-[4.35em] shrink-0 justify-end gap-[0.35em]">
-                    {item.palette.map((name) => (
-                      <span key={name} aria-hidden className="block h-[2em] w-[2em]">
-                        <Dab name={name} />
-                      </span>
-                    ))}
-                  </span>
+                <li key={j} className="contents">
                   <span className="font-serif text-forest-deep/90 text-[1.12em] leading-snug">
                     <span className="font-sans text-forest-deep mr-[0.5em] text-[0.7em] tracking-[0.25em] uppercase">
                       {pt ? item.label_pt : item.label_en}
                     </span>
                     {pt ? item.text_pt : item.text_en}
+                  </span>
+                  <span className="flex gap-[0.7em]">
+                    {item.palette.map((name) => (
+                      <span key={name} aria-hidden className="block h-[2.6em] w-[2.6em]">
+                        <Dab name={name} />
+                      </span>
+                    ))}
                   </span>
                 </li>
               ))}
