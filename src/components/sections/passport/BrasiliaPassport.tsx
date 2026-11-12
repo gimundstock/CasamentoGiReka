@@ -621,7 +621,9 @@ export function BrasiliaPassport({
   // Never on the page, where it would take room from the content.
   const noteW = g.fontSize * 10
   const noteBeside = spread && g.vw - (g.book.x + g.book.w) >= noteW + 16
-  const noteH = g.fontSize * 8.5
+  // On one page at a time the words run on one line, and the arrow is
+  // shorter: room for "scroll to go on" under it.
+  const noteH = g.fontSize * (spread ? 8.5 : 4.6)
   const pageRight = g.right.x + g.right.w
   const noteText = t(touch ? 'city.passport.cornerTouch' : 'city.passport.cornerClick')
   const pageBottom = g.right.y + g.right.h
@@ -754,13 +756,26 @@ export function BrasiliaPassport({
           {/* Under the book, once it is open: the site goes on below. Turning
             the pages is the corner note's job (on the page itself). */}
           <div ref={chromeRef} style={{ opacity: 0 }}>
-            {below >= (noteBeside ? 40 : noteH + 56) && (
+            {below >= (noteBeside ? 40 : noteH + (spread ? 56 : 34)) ? (
               <div
                 className="absolute inset-x-0 text-center"
-                style={{ top: g.book.h + 16 + (noteBeside ? 0 : noteH) }}
+                style={{ top: g.book.h + (spread ? 16 : 10) + (noteBeside ? 0 : noteH) }}
               >
                 <ScrollHint label={t('city.passport.hintScroll')} />
               </div>
+            ) : (
+              // No room under the note (a tall page on a tablet): on its row,
+              // from the page's left edge, where the book is wide enough.
+              !spread &&
+              g.right.w >= g.fontSize * 24 &&
+              below >= noteH * 0.6 + 16 && (
+                <div
+                  className="absolute text-left"
+                  style={{ left: g.right.x, top: g.book.h + noteH * 0.55 }}
+                >
+                  <ScrollHint label={t('city.passport.hintScroll')} />
+                </div>
+              )
             )}
           </div>
 
@@ -880,7 +895,7 @@ export function BrasiliaPassport({
                   // The arrow's tip stops a little short of the page corner.
                   noteBeside
                     ? {
-                        left: pageRight + g.fontSize * 0.55,
+                        left: pageRight + g.fontSize * 1.5,
                         bottom: g.book.h - pageBottom + g.fontSize * 0.55,
                       }
                     : {
@@ -896,8 +911,8 @@ export function BrasiliaPassport({
                   </>
                 ) : (
                   <>
-                    <CornerArrow to="up" />
-                    <NoteWords text={noteText} side="left" />
+                    <CornerArrow to="up" short={!spread} />
+                    <NoteWords text={noteText} side="left" oneLine={!spread} />
                   </>
                 )}
               </button>
@@ -981,14 +996,14 @@ export function BrasiliaPassport({
  * the book it comes down from the words above, its tip at the bottom left;
  * under the book it goes up from the words below, its tip at the top right.
  */
-function CornerArrow({ to }: { to: 'down' | 'up' }) {
+function CornerArrow({ to, short = false }: { to: 'down' | 'up'; short?: boolean }) {
   return (
     <svg
       viewBox="0 0 40 60"
-      className={`h-[4.4em] w-[2.95em] shrink-0 transition-transform duration-300 ${
+      className={`${short ? 'h-[3em] w-[2em]' : 'h-[4.4em] w-[2.95em]'} shrink-0 transition-transform duration-300 ${
         to === 'down'
           ? '-scale-y-100 group-hover:-translate-x-[0.15em] group-hover:translate-y-[0.15em]'
-          : '-scale-x-100 group-hover:translate-x-[0.15em] group-hover:-translate-y-[0.15em]'
+          : 'group-hover:-translate-x-[0.15em] group-hover:-translate-y-[0.15em]'
       }`}
       aria-hidden
     >
@@ -1017,7 +1032,23 @@ function CornerArrow({ to }: { to: 'down' | 'up' }) {
  * the book they stand above the arrow (clear of the tabs); left of the corner,
  * under it.
  */
-function NoteWords({ text, side }: { text: string; side: 'left' | 'right' }) {
+function NoteWords({
+  text,
+  side,
+  oneLine = false,
+}: {
+  text: string
+  side: 'left' | 'right'
+  /** All on one line (a phone). */
+  oneLine?: boolean
+}) {
+  if (oneLine) {
+    return (
+      <span className="font-script -mt-[0.35em] mr-[0.4em] text-[1.6em] leading-[1.15] whitespace-nowrap">
+        {text}
+      </span>
+    )
+  }
   const [first, ...rest] = text.split(' ')
   const out = side === 'right' ? 'self-start' : 'self-end'
   return (
