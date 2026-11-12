@@ -19,22 +19,11 @@ const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.1)'
 /** The cover's painting: wildflowers up its left edge, water across its foot (1070 × 1470). */
 const COVER_ART = `${BASE}padrinhos/cover.webp`
 
-/** A small gold diamond, between rules. */
-function Diamond() {
-  return (
-    <span
-      aria-hidden
-      className="block h-[0.32em] w-[0.32em] shrink-0 rotate-45"
-      style={{ background: GOLD }}
-    />
-  )
-}
-
 /**
  * The manual's cover, `w` × `h` (px), on its painting: the couple's names
- * at its top over a gold rule, and the title in spaced capitals running up
- * its right edge between gold rules — so it reads even where only that
- * edge shows, the manual lying under the passport on the desk.
+ * at its top, and the title in spaced capitals running up its right edge —
+ * so it reads even where only that edge shows, the manual lying under the
+ * passport on the desk.
  */
 export function Cover({ w }: { w: number; h: number }) {
   const { t } = useTranslation()
@@ -48,27 +37,19 @@ export function Cover({ w }: { w: number; h: number }) {
         fontSize: w / 22,
       }}
     >
-      <div className="absolute top-[17%] right-[28%] left-[16%] flex flex-col items-center">
+      <div className="absolute top-[17%] right-[28%] left-[16%] flex justify-center">
         <span className="font-sans text-forest-deep text-[0.9em] leading-none tracking-[0.3em] whitespace-nowrap uppercase">
           {CONFIG.couple.bride} &amp; {CONFIG.couple.groom}
         </span>
-        <span aria-hidden className="mt-[1.1em] flex w-[62%] items-center gap-[0.5em]">
-          <span className="h-px flex-1" style={{ background: GOLD }} />
-          <Diamond />
-          <span className="h-px flex-1" style={{ background: GOLD }} />
-        </span>
       </div>
       {/* Read from the foot up, as a spine is. */}
-      <div className="absolute top-[7%] right-[8%] bottom-[25%] flex w-[1.4em] flex-col items-center gap-[0.7em]">
-        <span aria-hidden className="w-px flex-1" style={{ background: GOLD }} />
-        <Diamond />
+      <div className="absolute top-[7%] right-[8%] bottom-[25%] flex w-[1.4em] flex-col items-center justify-center">
         <span
-          className="font-sans text-honey text-[0.84em] leading-none tracking-[0.3em] whitespace-nowrap uppercase"
+          className="font-sans text-honey text-[0.92em] leading-none tracking-[0.3em] whitespace-nowrap uppercase"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
           {t('padrinhos.cover')}
         </span>
-        <span aria-hidden className="h-[4%] w-px" style={{ background: GOLD }} />
       </div>
     </div>
   )
