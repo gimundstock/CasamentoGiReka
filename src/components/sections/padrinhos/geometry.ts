@@ -1,3 +1,4 @@
+import { NAV_HEIGHT } from '../Envelope'
 import {
   passportGeometry,
   pushPath,
@@ -23,8 +24,8 @@ export function manualSize(g: PassportGeometry) {
 
 /**
  * Where the shut manual lies on the desk at first: the last of the three,
- * behind the envelope's right end, as big as the passport (on a phone, a
- * third card in the hand, fanned on past the envelope). Its centre on
+ * over the envelope's right end, as big as the passport (on a phone, a
+ * third card in the hand, standing up behind the two). Its centre on
  * screen, scale and tilt.
  */
 function lyingOnDesk(g: PassportGeometry, d: DeskLayout) {
@@ -34,12 +35,31 @@ function lyingOnDesk(g: PassportGeometry, d: DeskLayout) {
   const E = d.envelope
   const ex = g.vw / 2 + E.x
   if (d.hand) {
-    // The fan's next card: as far past the envelope as it is past the
-    // passport, turned on further.
-    return { x: ex + (ex - P.x) * 0.38, y: P.y + ph * 0.04, s: P.s, rot: 18 }
+    // Behind the two, standing up out of the fan, so its cover's top (the
+    // names and the title) shows above them.
+    return {
+      x: g.vw / 2 + (ex - g.vw / 2) * 0.55,
+      y: Math.max(P.y - ph * 0.58, NAV_HEIGHT + 14 + ph / 2),
+      s: P.s,
+      rot: 5,
+      over: false,
+    }
   }
+  // As far out as the screen allows, lying over the envelope's end (its
+  // cover whole, the envelope's bouquet showing under it): its right edge
+  // (turned) a margin from the screen's.
   const ew = d.env.ew * E.s
-  return { x: ex + ew / 2 - pw * 0.28, y: g.vh / 2 + E.y - ph * 0.04, s: P.s, rot: 8 }
+  const rot = 6
+  const turn = (rot * Math.PI) / 180
+  const halfW = (pw * Math.cos(turn) + ph * Math.sin(turn)) / 2
+  const x = Math.min(ex + ew / 2 + pw * 0.2, g.vw - Math.max(24, g.vw * 0.025) - halfW)
+  return {
+    x,
+    y: Math.max(g.vh / 2 + E.y - ph * 0.12, NAV_HEIGHT + 12 + ph / 2),
+    s: P.s,
+    rot,
+    over: true,
+  }
 }
 
 /**

@@ -55,8 +55,9 @@ export function DeskChapter({
         const laid = ease(seg(at, [DESK.layIn[0] + 20, DESK.layIn[1] + 15]))
         mover.style.visibility = laid > 0 && away < 1 ? 'inherit' : 'hidden'
         mover.style.opacity = String(laid)
-        // The last of the three: under the envelope (drawn before it).
-        mover.style.zIndex = '0'
+        // The last of the three: over the envelope's end, (on a phone, the
+        // fan's last card) under it.
+        mover.style.zIndex = spot.lying.over ? '1' : '0'
         const x = L.x - g.vw / 2 + (spot.offRight + g.vw / 2 - L.x) * away
         const dy = L.y - y + (1 - laid) * 14
         mover.style.transform = `translate3d(${x.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${(L.rot + 8 * away).toFixed(3)}deg) scale(${L.s.toFixed(5)})`
