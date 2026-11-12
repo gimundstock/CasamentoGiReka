@@ -46,7 +46,7 @@ export function Cover({ w }: { w: number; h: number }) {
       {/* Who it is for, across its top, from the left: "para" in Jost over
           the names in script. */}
       {lines.length > 0 && (
-        <p className="absolute top-[13%] right-[18%] left-[18%] text-left">
+        <p className="absolute top-[19%] right-[14%] left-[27%] text-left">
           <span className="font-sans text-forest-deep block text-[0.68em] tracking-[0.25em] uppercase">
             {t('padrinhos.for')}
           </span>
