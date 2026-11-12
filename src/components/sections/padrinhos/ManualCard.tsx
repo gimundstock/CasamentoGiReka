@@ -1,13 +1,13 @@
 import { useImperativeHandle, useRef, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../../content.config'
-import { Cover, PageFace } from './ManualFaces'
+import { Cover, CoverInside, PageFace } from './ManualFaces'
 
 /** A sheet's own shadow, lying on the table. */
 const SHEET_SHADOW =
   '0 26px 50px -26px rgba(60, 40, 15, 0.55), 0 4px 10px -6px rgba(60, 40, 15, 0.3)'
 
-/** The open cover's (the left page's): no close shadow at the spine. */
+/** The open cover's: no close shadow at the spine. */
 const SPREAD_SHADOW = '0 26px 50px -26px rgba(60, 40, 15, 0.5)'
 
 export interface ManualCardHandle {
@@ -17,10 +17,13 @@ export interface ManualCardHandle {
 
 /**
  * The padrinhos' manual: a folded card, `w` × `h` shut (the passport's
- * cover), that opens as the passport does — its cover turning over to the
- * left — onto two pages (CONFIG.padrinhos.pages). Laid out open, `2w` wide;
- * shut, it moves half a page left so the shut card is where the open one
- * is centred. Turned by the scroll, through `handle` (no re-renders).
+ * cover), its spine on the right (where its title runs up it). Its cover
+ * opens over to the right, onto its one page (CONFIG.padrinhos.page); the
+ * inside of the cover, facing it, is the cover's painting mirrored. It
+ * shuts back from right to left. Laid out open, `2w` wide, the page on the
+ * left; shut, it moves half a page right so the shut card is where the
+ * open one is centred. Turned by the scroll, through `handle` (no
+ * re-renders).
  */
 export function ManualCard({
   w,
@@ -44,10 +47,9 @@ export function ManualCard({
       if (!root) return
       const one = (q: string) => root.querySelector<HTMLElement>(q)
       const shift = one('[data-shift]')
-      if (shift)
-        shift.style.transform = `translate3d(${(-(1 - turn) * w * 0.5).toFixed(2)}px, 0, 0)`
+      if (shift) shift.style.transform = `translate3d(${((1 - turn) * w * 0.5).toFixed(2)}px, 0, 0)`
       const cover = one('[data-cover]')
-      if (cover) cover.style.transform = `rotateY(${(-180 * turn).toFixed(2)}deg)`
+      if (cover) cover.style.transform = `rotateY(${(180 * turn).toFixed(2)}deg)`
       // Which face shows is set by the angle, not left to
       // backface-visibility (WebKit draws turned-away faces).
       const front = one('[data-face="front"]')
@@ -60,50 +62,47 @@ export function ManualCard({
     },
   }))
 
-  const [left, right] = CONFIG.padrinhos.pages
   const r = `${radius.toFixed(1)}px`
   return (
     <div ref={rootRef} className="relative" style={{ width: 2 * w, height: h, perspective: w * 8 }}>
       <div
         data-shift
         className="absolute inset-0"
-        style={{ transform: `translate3d(${-w * 0.5}px, 0, 0)`, transformStyle: 'preserve-3d' }}
+        style={{ transform: `translate3d(${w * 0.5}px, 0, 0)`, transformStyle: 'preserve-3d' }}
       >
-        {/* The right page, under the cover. */}
+        {/* The page, under the cover. */}
         <div
-          className="absolute top-0"
+          className="absolute top-0 left-0"
           style={{
-            left: w,
             width: w,
             height: h,
-            borderRadius: `0 ${r} ${r} 0`,
+            borderRadius: `${r} 0 0 ${r}`,
             boxShadow: SHEET_SHADOW,
             transform: 'translateZ(-1px)',
           }}
         >
-          <PageFace page={right} lang={lang} h={h} flowers />
+          <PageFace page={CONFIG.padrinhos.page} lang={lang} h={h} flowers />
         </div>
-        {/* The cover, hinged on its left edge: its inside is the left page. */}
+        {/* The cover, hinged on its right edge (the spine). */}
         <div
           data-cover
-          className="absolute top-0"
+          className="absolute top-0 left-0"
           style={{
-            left: w,
             width: w,
             height: h,
-            transformOrigin: 'left center',
+            transformOrigin: 'right center',
             transformStyle: 'preserve-3d',
           }}
         >
           <div
             data-face="front"
-            aria-hidden
             className="absolute inset-0 [backface-visibility:hidden]"
-            style={{ borderRadius: `0 ${r} ${r} 0` }}
+            style={{ borderRadius: `${r} 0 0 ${r}` }}
           >
             <Cover w={w} h={h} />
             <div
               data-shade
+              aria-hidden
               className="pointer-events-none absolute inset-0"
               style={{
                 opacity: 0,
@@ -114,17 +113,16 @@ export function ManualCard({
           </div>
           <div
             data-face="back"
+            aria-hidden
             className="absolute inset-0 [backface-visibility:hidden]"
             style={{
               visibility: 'hidden',
               transform: 'rotateY(180deg)',
-              borderRadius: `${r} 0 0 ${r}`,
-              // Only its long, soft shadow on the table: the close one would
-              // fall across the spine onto the right page.
+              borderRadius: `0 ${r} ${r} 0`,
               boxShadow: SPREAD_SHADOW,
             }}
           >
-            <PageFace page={left} lang={lang} h={h} />
+            <CoverInside />
             <div
               data-shade
               className="pointer-events-none absolute inset-0"
@@ -132,7 +130,7 @@ export function ManualCard({
                 opacity: 0,
                 borderRadius: 'inherit',
                 background:
-                  'linear-gradient(to right, rgba(70, 50, 20, 0.15), rgba(70, 50, 20, 0.55))',
+                  'linear-gradient(to left, rgba(70, 50, 20, 0.15), rgba(70, 50, 20, 0.55))',
               }}
             />
           </div>

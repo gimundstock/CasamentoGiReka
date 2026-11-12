@@ -21,6 +21,25 @@ const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.1)'
 const COVER_ART = `${BASE}padrinhos/cover.webp`
 
 /**
+ * The inside of the cover, facing the page: the cover's painting mirrored,
+ * its flowers up the outer (right) edge, no words.
+ */
+export function CoverInside() {
+  return (
+    <div
+      aria-hidden
+      className="absolute inset-0 overflow-hidden"
+      style={{ borderRadius: 'inherit', boxShadow: EDGE }}
+    >
+      <div
+        className="absolute inset-0 -scale-x-100"
+        style={{ background: `url(${COVER_ART}) center / cover` }}
+      />
+    </div>
+  )
+}
+
+/**
  * The manual's cover, `w` × `h` (px), on its painting: the title in
  * spaced capitals running up its right edge, from near its top — so it
  * reads even where only that edge shows, the manual lying under the

@@ -120,54 +120,39 @@ export const CONFIG = {
   ],
 
   // ── Padrinhos' manual ─────────────────────────────────────
-  // A card for the guests marked `padrinho` in the Sheet: it lies on the
-  // desk behind the passport, and opens like it (the cover turning left)
-  // onto two pages as the guest scrolls. DRAFT copy below: replace it, then
-  // set `published: true` (until then it only shows in `npm run dev`).
-  // `palette`: colour swatches (e.g. for what to wear), shown under a page.
+  // A card for the guests marked `padrinhos` in the Sheet: it lies on the
+  // desk under the passport and, once the passport is read, opens (its
+  // cover turning over to the right, its spine on the right) onto its one
+  // page. DRAFT copy below: replace it, then set `published: true` (until
+  // then it only shows in `npm run dev`). An empty kicker shows the wedding
+  // date; `palette`: colour swatches (e.g. for what to wear), under the page.
   padrinhos: {
     published: false,
-    pages: [
-      // Left page (the inside of the cover): a word for them.
-      {
-        kicker_pt: 'Para vocês',
-        kicker_en: 'For you',
-        title_pt: 'Obrigado',
-        title_en: 'Thank you',
-        intro_pt:
-          'Vocês estiveram ao nosso lado em tantos momentos que não conseguimos imaginar este dia sem vocês. Aqui está tudo o que precisam saber.',
-        intro_en:
-          'You have been by our side through so much that we cannot picture this day without you. Here is everything you need to know.',
-        items: [] as PadrinhosItem[],
-        palette: [] as string[],
-      },
-      // Right page: the day. (An empty kicker shows the wedding date.)
-      {
-        kicker_pt: '',
-        kicker_en: '',
-        title_pt: 'O grande dia',
-        title_en: 'The big day',
-        intro_pt: 'Os horários dos padrinhos, para chegarmos juntos a cada momento.',
-        intro_en: 'The wedding party’s times, so we reach every moment together.',
-        items: [
-          {
-            label_pt: 'a definir',
-            label_en: 'tbc',
-            text_pt: 'Chegada dos padrinhos',
-            text_en: 'Wedding party arrives',
-          },
-          {
-            label_pt: 'a definir',
-            label_en: 'tbc',
-            text_pt: 'Fotos com os noivos',
-            text_en: 'Photos with the couple',
-          },
-          { label_pt: '15h30', label_en: '3:30pm', text_pt: 'Cerimônia', text_en: 'Ceremony' },
-          { label_pt: 'a definir', label_en: 'tbc', text_pt: 'Festa', text_en: 'Party' },
-        ] as PadrinhosItem[],
-        palette: [] as string[],
-      },
-    ],
+    page: {
+      kicker_pt: '',
+      kicker_en: '',
+      title_pt: 'O grande dia',
+      title_en: 'The big day',
+      intro_pt: 'Os horários dos padrinhos, para chegarmos juntos a cada momento.',
+      intro_en: 'The wedding party’s times, so we reach every moment together.',
+      items: [
+        {
+          label_pt: 'a definir',
+          label_en: 'tbc',
+          text_pt: 'Chegada dos padrinhos',
+          text_en: 'Wedding party arrives',
+        },
+        {
+          label_pt: 'a definir',
+          label_en: 'tbc',
+          text_pt: 'Fotos com os noivos',
+          text_en: 'Photos with the couple',
+        },
+        { label_pt: '15h30', label_en: '3:30pm', text_pt: 'Cerimônia', text_en: 'Ceremony' },
+        { label_pt: 'a definir', label_en: 'tbc', text_pt: 'Festa', text_en: 'Party' },
+      ] as PadrinhosItem[],
+      palette: [] as string[],
+    },
   },
 
   // ── Brasília City Guide ───────────────────────────────────
@@ -1978,7 +1963,7 @@ export interface PadrinhosItem {
   text_pt: string
   text_en: string
 }
-export type PadrinhosPage = (typeof CONFIG.padrinhos.pages)[number]
+export type PadrinhosPage = typeof CONFIG.padrinhos.page
 export type MenuOption = (typeof CONFIG.menuOptions)[number]
 export type GiftConfig = (typeof CONFIG.gifts)[number]
 export type CotaConfig = (typeof CONFIG.gifts)[number]['cotas'][number]

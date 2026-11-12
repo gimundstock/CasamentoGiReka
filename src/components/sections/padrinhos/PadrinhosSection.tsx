@@ -11,15 +11,14 @@ import { useRestSnap, type Rest } from './useRestSnap'
 
 /**
  * The section's timeline, vh scrolled since its top reached the screen's.
- * The manual lies shut as it comes, opens, and lies open; on a phone,
- * where it is wider than the screen open, it is looked at a page at a
- * time (the left one as it opens). Then the page goes on, the manual open.
+ * The manual lies shut as it comes, opens, and lies open (on a phone,
+ * where it is wider than the screen open, moved so its page is on the
+ * screen). Then the page goes on, the manual open.
  */
 const T = {
   unfold: [30, 90] as const,
-  toRight: [120, 150] as const,
-  /** Pinned this long: open (desk), or at the right page (phone). */
-  end: { desk: 170, hand: 175 },
+  /** Pinned this long. */
+  end: { desk: 170, hand: 170 },
 }
 const point = (v: number): Rest => ({ from: v, to: v, aim: v })
 
@@ -68,7 +67,7 @@ function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean
     const opened = reduced ? 1 : ease(seg(s, T.unfold))
     foldRef.current?.set(opened)
     if (panRef.current && phone && !reduced) {
-      const at = opened - 2 * ease(seg(s, T.toRight))
+      const at = opened
       panRef.current.style.transform = `translate3d(${(pan * at).toFixed(2)}px, 0, 0)`
     }
     const hint = openHintRef.current
@@ -77,9 +76,7 @@ function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean
   useMotionValueEvent(scrollYProgress, 'change', update)
   useLayoutEffect(() => update(scrollYProgress.get()))
 
-  const rests: Rest[] = phone
-    ? [point(0), point((T.unfold[1] + T.toRight[0]) / 2), point(end)]
-    : [point(0), point(end)]
+  const rests: Rest[] = [point(0), point(end)]
   useRestSnap(trackRef, rests, !reduced)
 
   // Reduced motion: the manual simply lies open (on a phone, scrolled along

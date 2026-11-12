@@ -140,9 +140,6 @@ export const CHAPTER = {
   /** Lying shut at the centre. */
   shut: 62,
   unfold: [72, 130] as Span,
-  // A phone: open, the manual is wider than the screen, so it is looked
-  // at a page at a time — the left one as it opens, then the right.
-  toRight: [160, 190] as Span,
   fold: [238, 276] as Span,
   len: 282,
 }
@@ -428,22 +425,13 @@ export function snapTarget(
   // On the desk, read: the book shut again, before the envelope comes for it
   // (a glide never carries it from open straight on to the envelope).
   if (desk) rests.push({ from: DESK.close[1], to: DESK.close[1], aim: DESK.close[1] })
-  // The padrinhos' manual: lying shut at the centre, then open (on a
-  // phone, at each of its pages).
+  // The padrinhos' manual: lying shut at the centre, then open.
   if (desk && chapter) {
     const at = (c: number) => CHAPTER.at + c
     const point = (c: number) => ({ from: at(c), to: at(c), aim: at(c) })
     const [open, fold] = [CHAPTER.unfold[1], CHAPTER.fold[0]]
     rests.push(point(CHAPTER.shut))
-    if (chapter === 'desk') {
-      rests.push({
-        from: at(open + SNAP_EDGE),
-        to: at(fold - SNAP_EDGE),
-        aim: at((open + fold) / 2),
-      })
-    } else {
-      rests.push(point((open + CHAPTER.toRight[0]) / 2), point((CHAPTER.toRight[1] + fold) / 2))
-    }
+    rests.push({ from: at(open + SNAP_EDGE), to: at(fold - SNAP_EDGE), aim: at((open + fold) / 2) })
   }
   // Last: the envelope drawn in (desk), or the stage letting go, the site
   // going on below (the book open on it still).
