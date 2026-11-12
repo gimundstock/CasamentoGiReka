@@ -71,6 +71,10 @@ export type PageSpec =
   | { kind: 'blank' }
   /** The buriti palm: the first page a chapter leaves empty. */
   | { kind: 'buriti' }
+  /** A pequi tree: a later page a chapter leaves empty (spreads only). */
+  | { kind: 'pequi' }
+  /** The inside of the back cover: the last chapter's empty page (spreads only). */
+  | { kind: 'end' }
 
 /** Entry ranges [from, to) per page, for each chapter. */
 export type Chunks = Record<SectionKey, [number, number][]>
@@ -108,8 +112,11 @@ export function buildBook(chunks: Chunks): Book {
       own.push({ kind: 'buriti' })
     }
     pages.push(...own)
+    // On the spreads, a later chapter's empty page gets a pequi tree; the
+    // last chapter's, the inside of the back cover, as the book's end.
+    const last = section === SECTIONS[SECTIONS.length - 1]
     for (let i = 0; i < own.length; i += 2) {
-      spreads.push([own[i], own[i + 1] ?? { kind: 'blank' }])
+      spreads.push([own[i], own[i + 1] ?? { kind: last ? 'end' : 'pequi' }])
     }
   }
   return { pages, spreads, firstSpread, firstPage }

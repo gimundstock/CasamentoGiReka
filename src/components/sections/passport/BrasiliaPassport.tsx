@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMotionValueEvent, type MotionValue } from 'framer-motion'
-import { MASK } from './assets'
+import { ASSETS, MASK } from './assets'
 import { buildBook, pageSection, sectionEntries, SECTIONS, type Chunks } from './content'
 import type { PageSpec, SectionKey } from './content'
 import {
@@ -552,6 +552,27 @@ export function BrasiliaPassport({
               y: g.insideBox.y - g.left.y,
               w: g.insideBox.w,
               h: g.insideBox.h,
+            }}
+          />
+        </div>
+      )
+    }
+    if (p.kind === 'end') {
+      // The book's end (spreads only): the inside of the back cover, cropped
+      // to the page and lined up exactly with the back board beneath — the
+      // front's inside mirrored, closing the book.
+      const r = g.coverBox
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <div
+            aria-hidden
+            className="absolute"
+            style={{
+              left: r.x - g.right.x,
+              top: r.y - g.right.y,
+              width: r.w,
+              height: r.h,
+              background: `url(${ASSETS.backInside}) center / 100% 100% no-repeat`,
             }}
           />
         </div>

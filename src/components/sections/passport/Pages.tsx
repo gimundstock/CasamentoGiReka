@@ -520,6 +520,23 @@ function BlankPage() {
   return null
 }
 
+/** A pequi tree standing on the page, its trunk cut flat on the page's lower edge. */
+function PequiPage() {
+  return (
+    <div className="flex h-full items-end justify-center px-[6%]">
+      <img
+        src={ASSETS.pequi}
+        alt=""
+        aria-hidden
+        width={1000}
+        height={820}
+        draggable={false}
+        className="max-h-[80%] w-full object-contain object-bottom select-none"
+      />
+    </div>
+  )
+}
+
 /** A buriti palm standing on the page, nothing else. */
 function BuritiPage() {
   return (
@@ -578,5 +595,10 @@ export function PageContent({
       return <BlankPage />
     case 'buriti':
       return <BuritiPage />
+    case 'pequi':
+      return <PequiPage />
+    case 'end':
+      // (The leaf draws the back board itself: see BrasiliaPassport.)
+      return null
   }
 }
