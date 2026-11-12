@@ -43,34 +43,36 @@ export function Cover({ w }: { w: number; h: number }) {
         fontSize: w / 22,
       }}
     >
-      {/* Who it is for, centred on the cover (its lines set from the left):
-          "para" in Cormorant italic over the names in script, the second set
-          in. */}
-      {first && (
-        <p className="absolute inset-x-0 top-[17%] mx-auto w-fit text-left">
-          <span className="font-garamond text-title block text-[1.1em] leading-none italic">
-            {t('padrinhos.for')}
-          </span>
-          {/* The welcome screen's colour for names. */}
-          <span className="font-script text-title mt-[0.95em] block text-[1.5em] leading-[1.35]">
-            <ScriptText>{first}</ScriptText>
-          </span>
-          {second && (
-            <span className="font-script text-title mt-[0.55em] block pl-[1.3em] text-[1.5em] leading-[1.35]">
-              {/* (Room after the "&": the script's capitals swash in from the left.) */}
-              <span className="mr-[0.35em]">&amp;</span>
-              <ScriptText>{second}</ScriptText>
+      {/* The title up the right edge, from near the top; who it is for
+          centred on the cover across, and on the title's height. (The title
+          sets the box's height: the names are centred in it.) */}
+      <div className="absolute inset-x-0 top-[6%] flex">
+        {first && (
+          <p className="absolute inset-x-0 top-1/2 mx-auto w-fit -translate-y-1/2 text-left">
+            <span className="font-garamond text-title block text-[1.1em] leading-none italic">
+              {t('padrinhos.for')}
             </span>
-          )}
-        </p>
-      )}
-      {/* Read from the foot up, as a spine is. */}
-      <span
-        className="font-sans text-honey absolute top-[6%] right-[4.5%] text-[0.92em] leading-none font-semibold tracking-[0.3em] whitespace-nowrap uppercase"
-        style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-      >
-        {t('padrinhos.cover')}
-      </span>
+            {/* The welcome screen's colour for names. */}
+            <span className="font-script text-title mt-[0.95em] block text-[1.5em] leading-[1.35]">
+              <ScriptText>{first}</ScriptText>
+            </span>
+            {second && (
+              <span className="font-script text-title mt-[0.55em] block pl-[1.3em] text-[1.5em] leading-[1.35]">
+                {/* (Room after the "&": the script's capitals swash in from the left.) */}
+                <span className="mr-[0.35em]">&amp;</span>
+                <ScriptText>{second}</ScriptText>
+              </span>
+            )}
+          </p>
+        )}
+        {/* Read from the foot up, as a spine is. */}
+        <span
+          className="font-sans text-honey mr-[4.5%] ml-auto text-[0.92em] leading-none font-semibold tracking-[0.3em] whitespace-nowrap uppercase"
+          style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+        >
+          {t('padrinhos.cover')}
+        </span>
+      </div>
     </div>
   )
 }
