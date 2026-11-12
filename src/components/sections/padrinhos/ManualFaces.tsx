@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CONFIG, type PadrinhosPage } from '../../../content.config'
 import { EMBOSS_SHADOW } from '../../ui/emboss'
-import { GOLD, ScriptText, TAB_PAPER } from '../passport/Pages'
+import { GOLD, ScriptText } from '../passport/Pages'
 
 const BASE = import.meta.env.BASE_URL
 /** The wildflowers growing up from the cover's foot (2000 × 477). */
@@ -13,8 +13,8 @@ const BORDER_SPAN = 1.7
 
 type Lang = 'pt' | 'en'
 
-/** The card stock: the passport tabs' plain paper. */
-export const CARD_PAPER = TAB_PAPER
+/** The card stock: a soft ivory watercolour paper (1254 × 1254). */
+export const CARD_PAPER = `url(${BASE}padrinhos/ivory-paper.webp) center / cover`
 
 /** A sheet's edge: a hairline of shade, as the paper's thickness catches the light. */
 const EDGE = 'inset 0 0 0 1px rgba(150, 115, 60, 0.18)'
