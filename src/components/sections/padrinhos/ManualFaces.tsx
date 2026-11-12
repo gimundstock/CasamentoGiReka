@@ -1,8 +1,8 @@
-import { useContext, type CSSProperties } from 'react'
+import { useContext, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CONFIG, type PadrinhosPage } from '../../../content.config'
+import { CONFIG } from '../../../content.config'
 import { EMBOSS_SHADOW } from '../../ui/emboss'
-import { GOLD, ScriptText } from '../passport/Pages'
+import { ScriptText } from '../passport/Pages'
 import { PadrinhoNames } from './available'
 
 const BASE = import.meta.env.BASE_URL
@@ -97,113 +97,96 @@ export function Cover({ w }: { w: number; h: number }) {
   )
 }
 
-/**
- * One of the two pages inside, `h` px tall; `flowers` at its foot
- * (`mirrored` on the left page, so the two pages mirror each other).
- */
-export function PageFace({
-  page,
-  lang,
+/** A page inside, `h` px tall: the ivory paper, the site's wildflowers at its foot (`mirrored` on the left page, so the two mirror each other). */
+function PagePaper({
   h,
-  flowers = false,
   mirrored = false,
+  children,
 }: {
-  page: PadrinhosPage
-  lang: Lang
   h: number
-  flowers?: boolean
   mirrored?: boolean
+  children: ReactNode
 }) {
-  const pt = lang === 'pt'
-  const kicker = (pt ? page.kicker_pt : page.kicker_en) || weddingDate(lang)
-  const title = pt ? page.title_pt : page.title_en
-  const intro = pt ? page.intro_pt : page.intro_en
-  const style: CSSProperties = {
-    background: CARD_PAPER,
-    boxShadow: EDGE,
-    borderRadius: 'inherit',
-    fontSize: h / 46,
-  }
   return (
     <div
-      className="absolute inset-0 flex flex-col overflow-hidden px-[9%] pt-[16%] text-center"
-      style={style}
+      className="absolute inset-0 flex flex-col overflow-hidden px-[10%] pt-[12%] text-center"
+      style={{
+        background: CARD_PAPER,
+        boxShadow: EDGE,
+        borderRadius: 'inherit',
+        fontSize: h / 46,
+      }}
     >
-      <p className="font-sans text-amber-deep text-[max(0.82em,9px)] tracking-[0.3em] text-balance uppercase">
-        {kicker}
-      </p>
-      <h3
-        className="font-script text-honey mt-[0.35em] text-[3em] leading-[1.5]"
-        style={{ textShadow: EMBOSS_SHADOW }}
-      >
-        <ScriptText>{title}</ScriptText>
-      </h3>
-      {intro && (
-        <p className="font-serif text-forest-deep/90 mx-auto mt-[0.5em] max-w-[26em] text-[1.18em] leading-[1.45] text-pretty">
-          {intro}
-        </p>
-      )}
-      {page.items.length > 0 && (
-        // The day as a thread: times on the left, a gold dot on the line
-        // for each moment, what happens on the right.
-        <ol className="relative mx-auto mt-[1.8em] grid w-full max-w-[22em] grid-cols-[5.5em_1.8em_1fr] text-left">
-          <span
-            aria-hidden
-            className="absolute top-[1.1em] bottom-[1.1em] left-[6.4em] w-px"
-            style={{ background: `${GOLD}aa` }}
-          />
-          {page.items.map((item, i) => (
-            <li key={i} className="col-span-3 grid grid-cols-subgrid items-center py-[0.55em]">
-              <span className="font-sans text-amber-deep text-right text-[max(0.85em,9px)] tracking-[0.12em] uppercase tabular-nums">
-                {pt ? item.label_pt : item.label_en}
-              </span>
-              <span
-                aria-hidden
-                className="relative z-10 mx-auto h-[0.5em] w-[0.5em] rounded-full"
-                style={{ background: GOLD, boxShadow: '0 0 0 0.25em #FBF6EC' }}
-              />
-              <span className="font-serif text-forest-deep min-w-0 text-[1.15em] leading-snug">
-                {pt ? item.text_pt : item.text_en}
-              </span>
-            </li>
-          ))}
-        </ol>
-      )}
-      {page.palette.length > 0 && (
-        <ul className="mt-[1.8em] flex flex-wrap justify-center gap-[0.8em]">
-          {page.palette.map((c) => (
-            <li
-              key={c}
-              aria-hidden
-              className="h-[2.6em] w-[2.6em] rounded-full"
-              // A dab of watercolour, not a flat disc.
-              style={{
-                background: `radial-gradient(circle at 38% 34%, ${c}cc 0%, ${c} 55%, ${c}e6 100%)`,
-                boxShadow: `0 0 0 1px ${c}55, 0 1px 2px rgba(80, 60, 30, 0.18)`,
-              }}
-            />
-          ))}
-        </ul>
-      )}
-      {flowers && (
-        // The cover's wildflowers again, lower, at the page's foot.
-        <div
-          aria-hidden
-          className={`pointer-events-none absolute inset-x-0 bottom-0 h-[22%] opacity-90 ${mirrored ? '-scale-x-100' : ''}`}
-          style={{ background: `url(${BORDER}) center bottom / 160% auto no-repeat` }}
-        />
-      )}
+      {children}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-x-0 bottom-0 h-[20%] opacity-90 ${mirrored ? '-scale-x-100' : ''}`}
+        style={{ background: `url(${BORDER}) center bottom / 160% auto no-repeat` }}
+      />
     </div>
   )
 }
 
-/** The wedding date, written out in the language. */
-function weddingDate(lang: Lang) {
-  const [y, m, d] = CONFIG.wedding.date.split('-').map(Number)
-  return new Intl.DateTimeFormat(lang === 'pt' ? 'pt-BR' : 'en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(Date.UTC(y, m - 1, d)))
+/** A page's title, in script. */
+function PageTitle({ size, children }: { size: string; children: string }) {
+  return (
+    <h3
+      className="font-script text-honey leading-[1.5]"
+      style={{ fontSize: size, textShadow: EMBOSS_SHADOW }}
+    >
+      <ScriptText>{children}</ScriptText>
+    </h3>
+  )
+}
+
+/** The left page: a letter to them (CONFIG.padrinhos.letter). */
+export function LetterPage({ lang, h }: { lang: Lang; h: number }) {
+  const { letter } = CONFIG.padrinhos
+  const pt = lang === 'pt'
+  return (
+    <PagePaper h={h} mirrored>
+      <PageTitle size="2.9em">{pt ? letter.title_pt : letter.title_en}</PageTitle>
+      <div className="font-serif text-forest-deep/90 mx-auto mt-[1.1em] max-w-[24em] space-y-[0.8em] text-left text-[1.15em] leading-[1.5] text-pretty">
+        {(pt ? letter.paragraphs_pt : letter.paragraphs_en).map((text, i) => (
+          <p key={i}>{text}</p>
+        ))}
+      </div>
+    </PagePaper>
+  )
+}
+
+/**
+ * The right page: what to wear, for the madrinhas and for the padrinhos
+ * (CONFIG.padrinhos.attire), each with its colours to choose from.
+ */
+export function AttirePage({ lang, h }: { lang: Lang; h: number }) {
+  const pt = lang === 'pt'
+  return (
+    <PagePaper h={h}>
+      {CONFIG.padrinhos.attire.map((group, i) => (
+        <section key={i} className={i > 0 ? 'mt-[2.2em]' : ''}>
+          <PageTitle size="2.4em">{pt ? group.title_pt : group.title_en}</PageTitle>
+          <p className="font-serif text-forest-deep/90 mx-auto mt-[1.75em] max-w-[24em] text-[1.12em] leading-[1.45] text-pretty">
+            {pt ? group.text_pt : group.text_en}
+          </p>
+          {group.palette.length > 0 && (
+            <ul className="mt-[1em] flex flex-wrap justify-center gap-[0.7em]">
+              {group.palette.map((c) => (
+                <li
+                  key={c}
+                  aria-hidden
+                  className="h-[2.2em] w-[2.2em] rounded-full"
+                  // A dab of watercolour, not a flat disc.
+                  style={{
+                    background: `radial-gradient(circle at 38% 34%, ${c}cc 0%, ${c} 55%, ${c}e6 100%)`,
+                    boxShadow: `0 0 0 1px ${c}55, 0 1px 2px rgba(80, 60, 30, 0.18)`,
+                  }}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
+      ))}
+    </PagePaper>
+  )
 }

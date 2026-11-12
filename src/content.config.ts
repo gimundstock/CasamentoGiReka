@@ -123,50 +123,44 @@ export const CONFIG = {
   // A card for the guests marked `padrinhos` in the Sheet: it lies on the
   // desk under the passport and, once the passport is read, is read as a
   // greeting card: its cover turns over from right to left onto its two
-  // pages, then it shuts again onto its back. DRAFT copy below: replace it, then set `published: true` (until
-  // then it only shows in `npm run dev`). An empty kicker shows the wedding
-  // date; `palette`: colour swatches (e.g. for what to wear), under the page.
+  // pages (a letter; what to wear), then it shuts again onto its back.
+  // DRAFT copy below: replace it, then set `published: true` (until then it
+  // only shows in `npm run dev`).
   padrinhos: {
     published: false,
-    pages: [
-      // Left page (the inside of the cover): a word for them.
+    /** The left page: a letter to them (two paragraphs). DRAFT. */
+    letter: {
+      title_pt: 'Queridos padrinhos',
+      title_en: 'Dear wedding party',
+      paragraphs_pt: [
+        'Rascunho do primeiro parágrafo: um agradecimento por estarem ao nosso lado em tantos momentos, e por aceitarem estar conosco também neste.',
+        'Rascunho do segundo parágrafo: as informações para o grande dia, como o horário de chegada dos padrinhos, as fotos antes da cerimônia e o que mais precisarem saber.',
+      ],
+      paragraphs_en: [
+        'Draft of the first paragraph: thanking you for being by our side through so much, and for being with us for this too.',
+        'Draft of the second paragraph: what you need for the big day, such as when the wedding party arrives, the photos before the ceremony and anything else.',
+      ],
+    },
+    /**
+     * The right page: what to wear, for each, with the colours to choose
+     * from (hex). DRAFT.
+     */
+    attire: [
       {
-        kicker_pt: 'Para vocês',
-        kicker_en: 'For you',
-        title_pt: 'Obrigado',
-        title_en: 'Thank you',
-        intro_pt:
-          'Vocês estiveram ao nosso lado em tantos momentos que não conseguimos imaginar este dia sem vocês. Aqui está tudo o que precisam saber.',
-        intro_en:
-          'You have been by our side through so much that we cannot picture this day without you. Here is everything you need to know.',
-        items: [] as PadrinhosItem[],
-        palette: [] as string[],
+        title_pt: 'Madrinhas',
+        title_en: 'Bridesmaids',
+        text_pt:
+          'Rascunho: vestido longo, em tecido leve, em um dos tons abaixo, que são as cores do nosso jardim.',
+        text_en:
+          'Draft: a long dress, in a light fabric, in one of the colours below, the colours of our garden.',
+        palette: ['#ADB897', '#F5D1B2', '#DC9A32', '#B9A8B5'],
       },
-      // Right page: the day.
       {
-        kicker_pt: '',
-        kicker_en: '',
-        title_pt: 'O grande dia',
-        title_en: 'The big day',
-        intro_pt: 'Os horários dos padrinhos, para chegarmos juntos a cada momento.',
-        intro_en: 'The wedding party’s times, so we reach every moment together.',
-        items: [
-          {
-            label_pt: 'a definir',
-            label_en: 'tbc',
-            text_pt: 'Chegada dos padrinhos',
-            text_en: 'Wedding party arrives',
-          },
-          {
-            label_pt: 'a definir',
-            label_en: 'tbc',
-            text_pt: 'Fotos com os noivos',
-            text_en: 'Photos with the couple',
-          },
-          { label_pt: '15h30', label_en: '3:30pm', text_pt: 'Cerimônia', text_en: 'Ceremony' },
-          { label_pt: 'a definir', label_en: 'tbc', text_pt: 'Festa', text_en: 'Party' },
-        ] as PadrinhosItem[],
-        palette: [] as string[],
+        title_pt: 'Padrinhos',
+        title_en: 'Groomsmen',
+        text_pt: 'Rascunho: terno em um dos tons abaixo, com camisa clara; gravata opcional.',
+        text_en: 'Draft: a suit in one of the colours below, with a light shirt; tie optional.',
+        palette: ['#4E784F', '#8C9A86', '#B89B72', '#6B5A4B'],
       },
     ],
   },
@@ -1971,15 +1965,6 @@ export const CONFIG = {
     },
   ],
 }
-
-/** One line of a padrinhos' manual panel: a time or a term, and what it is. */
-export interface PadrinhosItem {
-  label_pt: string
-  label_en: string
-  text_pt: string
-  text_en: string
-}
-export type PadrinhosPage = (typeof CONFIG.padrinhos.pages)[number]
 export type MenuOption = (typeof CONFIG.menuOptions)[number]
 export type GiftConfig = (typeof CONFIG.gifts)[number]
 export type CotaConfig = (typeof CONFIG.gifts)[number]['cotas'][number]

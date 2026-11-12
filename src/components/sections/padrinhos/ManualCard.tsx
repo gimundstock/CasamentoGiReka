@@ -1,7 +1,6 @@
 import { useImperativeHandle, useRef, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CONFIG } from '../../../content.config'
-import { Cover, CoverArt, PageFace } from './ManualFaces'
+import { AttirePage, Cover, CoverArt, LetterPage } from './ManualFaces'
 
 /** A sheet's own shadow, lying on the table. */
 const SHEET_SHADOW =
@@ -19,9 +18,8 @@ export interface ManualCardHandle {
 /**
  * The padrinhos' manual: a folded card, `w` × `h` shut (the passport's
  * cover), as a greeting card is read. Shut, its cover; the cover turns over
- * from right to left, and it lies open — the inside of the cover on the
- * left (the cover's painting mirrored), its page on the right
- * (CONFIG.padrinhos.page); then the right half turns over from right to
+ * from right to left, and it lies open — a letter to them on the left (the
+ * inside of the cover), what to wear on the right; then the right half turns over from right to
  * left too, and it lies shut on its back (the painting, no words). Laid
  * out open, `2w` wide, the fold in the middle; shut, it is moved half a
  * page so the shut card is where the open one is centred. Turned by the
@@ -86,7 +84,6 @@ export function ManualCard({
     },
   }))
 
-  const [left, right] = CONFIG.padrinhos.pages
   const r = `${radius.toFixed(1)}px`
   const outerLeft = `${r} 0 0 ${r}`
   const outerRight = `0 ${r} ${r} 0`
@@ -135,18 +132,11 @@ export function ManualCard({
           className="absolute top-0"
           style={{ left: w, width: w, height: h, transformOrigin: 'left center', zIndex: 1 }}
         >
-          {face(
-            'page',
-            false,
-            outerRight,
-            'right',
-            <PageFace page={right} lang={lang} h={h} flowers />,
-            false
-          )}
+          {face('page', false, outerRight, 'right', <AttirePage lang={lang} h={h} />, false)}
           {face('back', true, outerLeft, 'right', <CoverArt />, true)}
         </div>
         {/* The left half: the cover outside (lying over the right half, shut);
-            the cover's painting mirrored inside. */}
+            the letter inside. */}
         <div
           data-half="left"
           className="absolute top-0 left-0"
@@ -158,14 +148,7 @@ export function ManualCard({
             zIndex: 2,
           }}
         >
-          {face(
-            'inside',
-            false,
-            outerLeft,
-            'left',
-            <PageFace page={left} lang={lang} h={h} flowers mirrored />,
-            true
-          )}
+          {face('inside', false, outerLeft, 'left', <LetterPage lang={lang} h={h} />, true)}
           {face('cover', true, outerRight, 'left', <Cover w={w} h={h} />, false)}
         </div>
       </div>
