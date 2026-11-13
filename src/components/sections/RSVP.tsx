@@ -822,11 +822,15 @@ function ReplyForm({ guest }: { guest: Guest }) {
 
       <div className="space-y-5">
         {attendees.map((attendee, i) => (
-          <div key={i} className="border-t border-forest-deep/10 pt-4 text-center first:border-t-0">
-            <p className="font-sans text-base md:text-lg tracking-[0.2em] uppercase">
+          // The name on the left, the two answers on the right.
+          <div
+            key={i}
+            className="flex items-center justify-between gap-4 border-t border-forest-deep/10 pt-4 first:border-t-0"
+          >
+            <p className="font-sans min-w-0 text-left text-base md:text-lg tracking-[0.2em] uppercase">
               {attendee.name}
             </p>
-            <div className="mt-2 flex justify-center gap-6 text-xs tracking-[0.3em] uppercase font-sans">
+            <div className="flex shrink-0 gap-4 text-[0.65rem] tracking-[0.22em] uppercase font-sans md:gap-5 md:text-xs">
               {([true, false] as const).map((value) => (
                 <button
                   key={String(value)}

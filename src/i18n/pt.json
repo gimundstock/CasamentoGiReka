@@ -98,7 +98,7 @@
   "rsvp": {
     "title": "Confirmação de Presença",
     "subtitle": "Por favor confirme sua presença até {{date}}",
-    "attending": "Confirmado(a)",
+    "attending": "Confirmar",
     "notAttending": "Não poderei ir",
     "menu": "Cardápio",
     "menuPlaceholder": "Escolha o prato",
