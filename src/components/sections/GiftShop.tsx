@@ -17,6 +17,7 @@ import { loadPaypalSdk, paypalEnabled, toEur, totalEur } from '../../utils/paypa
 import type { Cota, Gift } from '../../types'
 import type { Guest } from '../../types'
 import { guestName } from '../../utils/guest'
+import { groupCotas, setGroupQuantity, summarizeCotas, type CotaGroup } from '../../utils/cotas'
 import { CONFIG } from '../../content.config'
 
 interface Props {
@@ -70,14 +71,11 @@ export function GiftShop({ guest }: Props) {
     })
   }
 
-  function toggleCota(cota: Cota) {
+  function setQuantity(group: CotaGroup, qty: number) {
     if (!purchase) return
-    const exists = purchase.selectedCotas.find((c) => c.cotaId === cota.cotaId)
     setPurchase({
       ...purchase,
-      selectedCotas: exists
-        ? purchase.selectedCotas.filter((c) => c.cotaId !== cota.cotaId)
-        : [...purchase.selectedCotas, cota],
+      selectedCotas: setGroupQuantity(purchase.selectedCotas, group, qty),
     })
   }
 
@@ -214,7 +212,7 @@ export function GiftShop({ guest }: Props) {
           purchase={purchase}
           lang={lang}
           onClose={() => setPurchase(null)}
-          onToggleCota={toggleCota}
+          onSetQuantity={setQuantity}
           onProceedToPixFromCotas={() => setPurchase({ ...purchase, step: 'pix' })}
           onProceedToConfirm={() => setPurchase({ ...purchase, step: 'confirm' })}
           onProceedToPaypal={() => setPurchase({ ...purchase, step: 'paypal', error: null })}
@@ -366,6 +364,9 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                   loading="lazy"
                   decoding="async"
                   className="h-full w-full object-cover"
+                  // The generated paper is a darker peach than the card's cream: lift it
+                  // to about the placeholder's tone, without regenerating every image.
+                  style={{ filter: 'brightness(1.03) saturate(0.96)' }}
                   onError={() => setImageFailed(true)}
                 />
               )}
@@ -447,7 +448,7 @@ interface ModalProps {
   purchase: PurchaseState
   lang: 'pt' | 'en'
   onClose: () => void
-  onToggleCota: (c: Cota) => void
+  onSetQuantity: (group: CotaGroup, qty: number) => void
   onProceedToPixFromCotas: () => void
   onProceedToConfirm: () => void
   onProceedToPaypal: () => void
@@ -539,63 +540,63 @@ function GiftModal(props: ModalProps) {
                 {t('gifts.cotasTitle')}
               </p>
 
-              <div className="flex flex-wrap gap-2.5 mb-6">
-                {availableCotas.map((cota) => {
-                  const isSold = cota.purchased
-                  const isSelected = !!selectedCotas.find((c) => c.cotaId === cota.cotaId)
-                  const label = lang === 'pt' ? cota.label_pt : cota.label_en
-
-                  const baseChip =
-                    'inline-flex items-center gap-2 rounded-full px-4 py-2 font-sans text-sm transition-[background-color,color,box-shadow,opacity]'
-                  let chipClass = ''
-
-                  if (isSold) {
-                    chipClass = `${baseChip} bg-sage/20 text-title line-through cursor-not-allowed opacity-60`
-                  } else if (isSelected) {
-                    chipClass = `${baseChip} bg-forest-deep text-peach-light shadow-[0_4px_14px_rgba(63,96,65,0.25)]`
-                  } else {
-                    chipClass = `${baseChip} bg-white/60 border border-sage/40 text-title hover:border-forest/40 hover:bg-white/80`
-                  }
+              <ul className="mb-6 divide-y divide-sage/25 rounded-2xl border border-sage/30 bg-white/50">
+                {groupCotas(availableCotas).map((group) => {
+                  const free = group.cotas.filter((c) => !c.purchased).length
+                  const qty = selectedCotas.filter((c) =>
+                    group.cotas.some((g) => g.cotaId === c.cotaId)
+                  ).length
+                  const label = lang === 'pt' ? group.label_pt : group.label_en
+                  const stepClass =
+                    'flex h-9 w-9 items-center justify-center rounded-full border border-sage/50 font-sans text-lg leading-none text-title transition-colors enabled:hover:border-forest/50 enabled:hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed'
 
                   return (
-                    <button
-                      key={cota.cotaId}
-                      type="button"
-                      disabled={isSold}
-                      onClick={() => !isSold && props.onToggleCota(cota)}
-                      className={chipClass}
-                    >
-                      {isSelected && !isSold && (
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="-8 -8 16 16"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden
+                    <li key={group.key} className="flex items-center gap-3 px-4 py-3">
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`font-sans text-sm text-title ${free === 0 ? 'line-through opacity-60' : ''}`}
                         >
-                          <path
-                            d="M 0 0 C 3 -5 9 -6 14 -3 C 16 1 12 5 7 5 C 2 5 -1 3 0 0 Z"
-                            fill="#D0D8B8"
-                            transform="translate(-6 0) rotate(-20)"
-                          />
-                        </svg>
-                      )}
-                      <span>{label}</span>
-                      <span
-                        className={
-                          isSelected
-                            ? 'text-peach-light/90 font-semibold'
-                            : isSold
-                              ? 'text-title'
-                              : 'text-amber-deep font-semibold'
-                        }
-                      >
-                        · R$ {cota.price}
-                      </span>
-                    </button>
+                          {label}
+                        </p>
+                        <p className="font-sans text-xs text-title/80">
+                          <span className="font-semibold text-amber-deep">R$ {group.price}</span>
+                          {free === 0
+                            ? ` · ${t('gifts.soldOut')}`
+                            : group.cotas.length > 1
+                              ? ` · ${t('gifts.cotasLeft', { count: free })}`
+                              : ''}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <button
+                          type="button"
+                          className={stepClass}
+                          disabled={qty === 0}
+                          aria-label={t('gifts.removeOne', { label })}
+                          onClick={() => props.onSetQuantity(group, qty - 1)}
+                        >
+                          −
+                        </button>
+                        <span
+                          className="w-6 text-center font-sans text-base tabular-nums text-title"
+                          aria-live="polite"
+                        >
+                          {qty}
+                        </span>
+                        <button
+                          type="button"
+                          className={stepClass}
+                          disabled={qty >= free}
+                          aria-label={t('gifts.addOne', { label })}
+                          onClick={() => props.onSetQuantity(group, qty + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </li>
                   )
                 })}
-              </div>
+              </ul>
 
               {selectedCotas.length > 0 && (
                 <p className="text-center font-serif text-base text-title mb-5">
@@ -639,7 +640,7 @@ function GiftModal(props: ModalProps) {
                 R$ {props.totalAmount.toFixed(2)}
               </p>
               <p className="text-center font-serif text-xs text-title mb-6">
-                {selectedCotas.map((c) => (lang === 'pt' ? c.label_pt : c.label_en)).join(' + ')}
+                {summarizeCotas(selectedCotas, lang)}
               </p>
 
               <button
@@ -705,7 +706,7 @@ function GiftModal(props: ModalProps) {
                 € {eurTotal.toFixed(2)}
               </p>
               <p className="text-center font-serif text-xs text-title mb-6">
-                {selectedCotas.map((c) => (lang === 'pt' ? c.label_pt : c.label_en)).join(' + ')}
+                {summarizeCotas(selectedCotas, lang)}
               </p>
 
               {submitting ? (
@@ -983,13 +984,14 @@ function GiftModal(props: ModalProps) {
                   {t('gifts.summary')}
                 </p>
                 <p className="font-sans text-lg text-title">{giftName}</p>
-                {selectedCotas.map((c) => (
-                  <div key={c.cotaId} className="flex justify-between mt-1.5">
+                {groupCotas(selectedCotas).map((g) => (
+                  <div key={g.key} className="flex justify-between mt-1.5">
                     <span className="font-serif text-sm text-title">
-                      {lang === 'pt' ? c.label_pt : c.label_en}
+                      {g.cotas.length > 1 ? `${g.cotas.length}× ` : ''}
+                      {lang === 'pt' ? g.label_pt : g.label_en}
                     </span>
                     <span className="font-sans text-sm font-semibold text-amber-deep">
-                      {priceLabel(c.price)}
+                      {priceLabel(g.price * g.cotas.length)}
                     </span>
                   </div>
                 ))}
