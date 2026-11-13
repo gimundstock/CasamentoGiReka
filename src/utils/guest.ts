@@ -19,6 +19,17 @@ export function invitationOptions(guest: Guest): { count: number; context?: 'fem
 }
 
 /**
+ * The carousel's photos after the celebration: the guest's own, preceded by
+ * as many of the defaults as they lack. Each guest photo takes the place of
+ * the last default still there, so theirs always come last: no photos, all
+ * the defaults; one, all but the last default; as many as the defaults or
+ * more, only theirs.
+ */
+export function withDefaultPhotos<T>(guestPhotos: T[], defaults: readonly T[]): T[] {
+  return [...defaults.slice(0, Math.max(0, defaults.length - guestPhotos.length)), ...guestPhotos]
+}
+
+/**
  * Where to show each of the guest's photos from. The deploy copies every
  * guest photo from Drive into the site as guest-photos/<driveFileId>.jpg
  * (scripts/sync-guest-photos.mjs), so that copy comes first; the Drive URL
