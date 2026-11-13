@@ -69,9 +69,9 @@ export function Hero1Welcome({ guest, onReset }: Props) {
       </div>
 
       {/* Text column — right on desktop, below on mobile */}
-      {/* lg:pr-24 deixa livre a faixa da direita onde fica o rótulo do lago, que
+      {/* lg:pr-36 deixa livre a faixa da direita onde fica o rótulo do lago, que
           antes caía em cima de "conosco". */}
-      <div className="flex w-full flex-1 items-center justify-center px-6 py-10 lg:py-0 lg:pr-24 lg:pl-10">
+      <div className="flex w-full flex-1 items-center justify-center px-6 py-10 lg:py-0 lg:pr-36 lg:pl-0">
         <div className="relative w-full max-w-xl text-center">
           {/* Lavanda escondida temporariamente — descomente para trazer de volta.
           <img
@@ -90,7 +90,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
             {guestName(guest)}
           </h1>
 
-          <p className="font-sans text-title relative z-10 mt-10 text-sm tracking-[0.25em] text-balance uppercase lg:mt-24">
+          <p className="font-sans text-title relative z-10 mt-10 text-sm tracking-[0.25em] text-balance uppercase lg:mt-36">
             {t('welcome.invitation', invitationOptions(guest))}
           </p>
 

@@ -772,15 +772,14 @@ function ReplyForm({ guest }: { guest: Guest }) {
   if (justSubmitted || alreadySubmitted) {
     return (
       <div className="min-h-full flex flex-col items-center justify-center text-center text-title">
-        <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
-          {t('rsvp.replyTitle')}
-        </p>
-        <h3 className="font-serif text-2xl md:text-3xl mt-6">
-          {justSubmitted ? t('rsvp.successTitle') : t('rsvp.alreadyTitle')}
-        </h3>
-        <p className="font-serif italic text-lg mt-3">
-          {justSubmitted ? t('rsvp.successText') : t('rsvp.alreadySubmitted')}
-        </p>
+        {/* The title and the heading under it sit a little higher than
+            centring would put them, together. */}
+        <div className="relative -top-4">
+          <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
+            {t('rsvp.replyTitle')}
+          </p>
+          <h3 className="font-serif text-2xl md:text-3xl mt-6">{t('rsvp.successTitle')}</h3>
+        </div>
 
         {/* Who is and isn't coming: what they just sent, or their latest reply
             as the backend read it from the RSVPs tab. */}
@@ -804,7 +803,9 @@ function ReplyForm({ guest }: { guest: Guest }) {
           })}
         </div>
 
-        <p className="font-serif italic text-base text-title/70 mt-8">{t('rsvp.changeNote')}</p>
+        <p className="font-serif italic text-[1.05rem] md:text-lg text-title/75 mt-8">
+          {t('rsvp.changeNote')}
+        </p>
       </div>
     )
   }
