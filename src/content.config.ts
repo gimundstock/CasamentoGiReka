@@ -186,7 +186,7 @@ export const CONFIG = {
             label_en: 'Suit',
             text_pt: '',
             text_en: '',
-            palette: ['cinza-suave', 'azul-acinzentado'],
+            palette: ['cinza-suave'],
           },
           {
             label_pt: 'Gravata',
