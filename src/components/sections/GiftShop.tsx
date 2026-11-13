@@ -1230,7 +1230,6 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
     target: ref,
     offset: ['start start', `start -${RISE_VH * 100}vh`],
   })
-  const titleY = useTransform(rising, (v) => (GIFTS_TITLE_TOP - h / 2) * v)
   const titleScale = useTransform(rising, (v) => 1 + (HEADER_SCALE - 1) * v)
   const { scrollYProgress: ending } = useScroll({
     target: ref,
@@ -1308,7 +1307,7 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
               background: `linear-gradient(to bottom, #FBFAF8 0, #FBFAF8 ${GIFTS_TITLE_TOP + 34}px, rgba(251, 250, 248, 0) 100%)`,
             }}
           />
-          <GiftsTitle y={titleY} scale={titleScale} />
+          <GiftsTitle rise={rising} scale={titleScale} />
         </div>
       </motion.div>
     </motion.div>

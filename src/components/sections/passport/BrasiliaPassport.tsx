@@ -916,6 +916,7 @@ export function BrasiliaPassport({
                     right={g.book.w - pageRight}
                     bottom={g.book.h - pageBottom}
                     size={Math.min(g.right.w, g.right.h) * 0.13}
+                    radius={g.coverBox.w * BACK_CORNER - g.overhang}
                   />
                 )
               )}
@@ -1070,23 +1071,59 @@ function showNote(el: HTMLElement, on: boolean) {
  * from the book's own right and bottom edges (px); `size`: how far it
  * lifts at most.
  */
-function PagePeek({ right, bottom, size }: { right: number; bottom: number; size: number }) {
+function PagePeek({
+  right,
+  bottom,
+  size,
+  radius,
+}: {
+  right: number
+  bottom: number
+  size: number
+  /** The page's own corner radius (px): the folded tip keeps it. */
+  radius: number
+}) {
+  // In a 100 × 100 box on the corner: the fold a gentle curve from the
+  // right edge to the bottom one; under it the next page (the corner gone,
+  // rounded as the page is); over it the folded tip, the page's back, its
+  // rounded corner now at the top left.
+  const r = Math.min(40, (radius / size) * 100)
+  const fold = 'M100 0 Q63 63 0 100'
   return (
-    <div
+    <svg
       aria-hidden
-      className="animate-page-peek pointer-events-none absolute origin-bottom-right"
+      viewBox="0 0 100 100"
+      className="animate-page-peek pointer-events-none absolute origin-bottom-right overflow-visible"
       style={{
         right,
         bottom,
         width: size,
         height: size,
-        borderBottomRightRadius: 'var(--page-rr, 0px)',
         // Lying flat between peeks (and without the animation at all).
         transform: 'scale(0)',
-        background:
-          'linear-gradient(135deg, #FBF5E8 0%, #EADBBE 48.5%, rgba(110, 78, 30, 0.25) 50%, #EFE3CB 51%, #F3E9D5 100%)',
-        filter: 'drop-shadow(-2px -2px 3px rgba(110, 78, 30, 0.22))',
       }}
-    />
+    >
+      <defs>
+        <linearGradient id="peek-back" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#FCF7EC" />
+          <stop offset="0.55" stopColor="#F1E5CC" />
+          <stop offset="1" stopColor="#DCC9A4" />
+        </linearGradient>
+        <linearGradient id="peek-under" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0.45" stopColor="#D9C6A0" />
+          <stop offset="0.62" stopColor="#EFE3CB" />
+          <stop offset="1" stopColor="#F4EAD6" />
+        </linearGradient>
+      </defs>
+      <path
+        d={`${fold} L${100 - r} 100 A${r} ${r} 0 0 0 100 ${100 - r} Z`}
+        fill="url(#peek-under)"
+      />
+      <path
+        d={`${fold} L0 ${r} A${r} ${r} 0 0 1 ${r} 0 Z`}
+        fill="url(#peek-back)"
+        style={{ filter: 'drop-shadow(-1.5px -1.5px 2px rgba(110, 78, 30, 0.25))' }}
+      />
+    </svg>
   )
 }
