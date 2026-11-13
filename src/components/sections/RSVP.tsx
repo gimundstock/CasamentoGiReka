@@ -818,12 +818,11 @@ function ReplyForm({ guest }: { guest: Guest }) {
         <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
           {t('rsvp.replyTitle')}
         </p>
-        <p className="font-serif italic text-base mt-6 text-title/80">{t('rsvp.letterOpening')}</p>
       </div>
 
       <div className="space-y-5">
         {attendees.map((attendee, i) => (
-          <div key={i} className="border-t border-forest-deep/10 pt-4 text-center">
+          <div key={i} className="border-t border-forest-deep/10 pt-4 text-center first:border-t-0">
             <p className="font-sans text-base md:text-lg tracking-[0.2em] uppercase">
               {attendee.name}
             </p>
