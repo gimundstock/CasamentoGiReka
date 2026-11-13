@@ -50,7 +50,9 @@ const ART = `${import.meta.env.BASE_URL}cerrado`
 const artVars = {
   '--art-w': `max(100vw, calc((100vh - var(--art-top)) * ${ART_ASPECT.toFixed(4)}))`,
   '--art-h': `calc(var(--art-w) / ${ART_ASPECT.toFixed(4)})`,
-  '--art-left': 'clamp(calc(100vw - var(--art-w)), calc(50vw - var(--art-w) * 0.3), 0px)',
+  // (On phones, where it is wider than the screen: framed from a little
+  // right of the tree, so the setting sun stays on the screen.)
+  '--art-left': 'clamp(calc(100vw - var(--art-w)), calc(50vw - var(--art-w) * 0.42), 0px)',
 } as CSSProperties
 const artBox = {
   left: 'var(--art-left)',
@@ -215,7 +217,8 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
   })
   const sunRiseTop = useTransform(ext, (v: number) => {
     const t = riseT(v)
-    return `calc(50% * ${1 - t} + ${artY(sunYAt(0.3))} * ${t})`
+    // (50vh, as the flower's centre in Save the Date: see the sun there.)
+    return `calc(50vh * ${1 - t} + ${artY(sunYAt(0.3))} * ${t})`
   })
   const sunRiseScale = useTransform(ext, (v: number) => Math.pow(SUN_BIG_SCALE, 1 - riseT(v)))
   const sunRiseOpacity = useTransform([seam, ext], ([p, v]: number[]) => (p > 0 && v < 0.3 ? 1 : 0))
@@ -293,6 +296,8 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
   const viewRef = useRef<HTMLDivElement>(null)
   const geo = useStageGeometry(viewRef)
   const desk = geo?.desk ?? deskNow()
+  /** A phone held upright: the big day's title moves off the tree (see below). */
+  const phone = (geo?.vw ?? window.innerWidth) < 768
   const chapter = manualChapter(
     padrinho,
     desk,
@@ -606,9 +611,13 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
             className="absolute z-40 w-[min(18rem,80vw)] text-center"
             style={{
               opacity: infoOpacity,
-              // Keep the block inside the screen on narrow viewports.
-              left: `clamp(9rem, calc(${artX(62)} - 70px), calc(100% - 9rem))`,
-              top: `calc(${artY(40)} - 70px)`,
+              // Keep the block inside the screen on narrow viewports; on a
+              // phone, against the right edge, in the sky clear of the tree.
+              left: phone
+                ? 'calc(100% - min(9rem, 40vw))'
+                : `clamp(9rem, calc(${artX(62)} - 70px), calc(100% - 9rem))`,
+              // (Higher on a phone, in the sky above the small tree's flowers.)
+              top: phone ? `calc(${artY(25)} - 10px)` : `calc(${artY(40)} - 70px)`,
               x: '-50%',
               y: '-100%',
             }}

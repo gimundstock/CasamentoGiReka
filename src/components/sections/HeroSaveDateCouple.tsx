@@ -466,7 +466,11 @@ export function HeroSaveDateCouple() {
             alt=""
             aria-hidden
             draggable={false}
-            className="pointer-events-none fixed top-1/2 left-1/2 z-[11] max-w-none select-none"
+            // 50vh, not 50%: the flower is centred in the stage (100vh tall), and
+            // a fixed element's 50% is of the screen as it is now — on iOS,
+            // smaller while the address bar shows, so the sun slid off the
+            // flower's centre whenever it came back.
+            className="pointer-events-none fixed top-[50vh] left-1/2 z-[11] max-w-none select-none"
             style={{
               width: SUN_SIZE,
               height: SUN_SIZE,

@@ -416,9 +416,15 @@ export function EntryItem({ entry }: { entry: GuideEntry }) {
         {entry.description}
       </p>
       {(entry.address || entry.price) && (
-        <div className="font-sans text-forest mt-[0.5em] flex flex-wrap items-baseline justify-between gap-x-[1em] text-[max(0.66em,10px)] leading-snug">
-          <span>{entry.address}</span>
-          {entry.price && <span className="text-amber-deep tabular-nums">{entry.price}</span>}
+        // The price always on the first line, at the right; a long address
+        // wraps beside it.
+        <div className="font-sans text-forest mt-[0.5em] flex items-baseline justify-between gap-x-[1em] text-[max(0.66em,10px)] leading-snug">
+          <span className="min-w-0">{entry.address}</span>
+          {entry.price && (
+            <span className="text-amber-deep shrink-0 whitespace-nowrap tabular-nums">
+              {entry.price}
+            </span>
+          )}
         </div>
       )}
     </article>
