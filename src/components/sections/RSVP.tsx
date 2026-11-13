@@ -705,7 +705,7 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         {/* The script's capital R stands well right of its own loop: the "&"
             sits closer to it than to the name before. */}
         <span
-          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-3xl leading-none -my-1'}`}
+          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-3xl leading-none mb-4'}`}
         >
           &amp;
         </span>
