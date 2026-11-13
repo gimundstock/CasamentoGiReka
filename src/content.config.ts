@@ -57,9 +57,9 @@ export const CONFIG = {
       'https://maps.google.com/?q=Clube+do+Congresso+SHIN+QI+16+Área+Especial+Lago+Norte+Brasília+DF+71530-200',
     dresscode_pt: 'Passeio Completo',
     dresscode_en: 'Cocktail attire',
-    rsvpDeadline: '2027-02-28', // ISO format YYYY-MM-DD
-    rsvpDeadlineText_pt: '28 de fevereiro',
-    rsvpDeadlineText_en: '28 February',
+    rsvpDeadline: '2027-01-31', // ISO format YYYY-MM-DD
+    rsvpDeadlineText_pt: '31 de janeiro',
+    rsvpDeadlineText_en: '31 January',
   },
 
   // ── Couple Story ─────────────────────────────────────────
