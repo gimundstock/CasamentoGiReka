@@ -15,6 +15,11 @@ export interface Guest {
   padrinho?: boolean
   /** The invitation's padrinhos, by name: the manual is made out to them. */
   padrinhos?: string[]
+  /**
+   * The invitation's grammatical gender (the `genero` column), for the
+   * Portuguese "convidado/a/os/as". Blank: convidado(a) / convidados.
+   */
+  gender?: 'f' | 'm' | ''
   /** Set by the backend: the guest already has a row in the RSVPs tab. */
   rsvpSubmitted?: boolean
   /** Set by the backend: who is and isn't coming, from their latest reply. */

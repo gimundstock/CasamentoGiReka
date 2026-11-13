@@ -27,12 +27,17 @@
  * only stores state — guests, RSVPs, and the purchase log. Availability is
  * derived from which cotaIds appear in the Orders tab.
  *
- * Guests columns: guestId | groupName | language | attendees | displayName | padrinhos
+ * Guests columns: guestId | groupName | language | attendees | displayName | padrinhos | genero
  *   groupName    the name on the invitation, also what guests type to log in
  *   displayName  optional: how the site greets them ("Mãe e Pai"); blank → groupName
  *   padrinhos    the invitation's padrinhos, by name ("Alice, Laura"): they also
  *                get the padrinhos' manual, made out to them. TRUE: all of the
  *                invitation's attendees. (The header may also be `padrinho`.)
+ *   genero       optional: F or M, so the Portuguese invitation says
+ *                convidada/convidado (one guest) or convidadas/convidados (a
+ *                group: F only when they're all women). Blank: convidado(a) for
+ *                one, convidados for a group. (The header may also be `gênero`
+ *                or `gender`.)
  * Columns are read by header name, so their order in the sheet doesn't matter.
  * A guest's photos aren't in the sheet: they're whatever images sit in their
  * Drive subfolder (see GUEST_PHOTOS_FOLDER_ID), in file-name order.
@@ -218,6 +223,17 @@ function padrinhoNames(row) {
   return splitNames(text);
 }
 
+/**
+ * The invitation's grammatical gender, from the `genero` (or `gênero`,
+ * `gender`) cell: 'f' for F/feminino/female, 'm' for M/masculino/male, ''
+ * when blank or anything else.
+ */
+function guestGender(row) {
+  var cell = row.genero != null ? row.genero : row['gênero'] != null ? row['gênero'] : row.gender;
+  var first = normalize(cell == null ? '' : cell).charAt(0);
+  return first === 'f' || first === 'm' ? first : '';
+}
+
 /** A comma-separated list of names, trimmed, blanks dropped. */
 function splitNames(value) {
   return String(value == null ? '' : value)
@@ -303,6 +319,7 @@ function formatGuest(row) {
     photos: guestPhotoUrls(row.guestId),
     padrinhos: padrinhoNames(row),
     padrinho: padrinhoNames(row).length > 0,
+    gender: guestGender(row),
     rsvpSubmitted: rsvp !== null,
     rsvpAttendees: rsvp || [],
   };
