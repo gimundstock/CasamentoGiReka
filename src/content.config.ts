@@ -57,9 +57,9 @@ export const CONFIG = {
       'https://maps.google.com/?q=Clube+do+Congresso+SHIN+QI+16+Área+Especial+Lago+Norte+Brasília+DF+71530-200',
     dresscode_pt: 'Passeio Completo',
     dresscode_en: 'Cocktail attire',
-    rsvpDeadline: '2027-02-28', // ISO format YYYY-MM-DD
-    rsvpDeadlineText_pt: '28 de fevereiro',
-    rsvpDeadlineText_en: '28 February',
+    rsvpDeadline: '2027-01-31', // ISO format YYYY-MM-DD
+    rsvpDeadlineText_pt: '31 de janeiro',
+    rsvpDeadlineText_en: '31 January',
   },
 
   // ── Couple Story ─────────────────────────────────────────
@@ -143,10 +143,9 @@ export const CONFIG = {
   // desk under the passport and, once the passport is read, is read as a
   // greeting card: its cover turns over from right to left onto its two
   // pages (a letter; what to wear), then it shuts again onto its back.
-  // DRAFT copy below: replace it, then set `published: true` (until then it
-  // only shows in `npm run dev`).
+  // `published: false` hides it outside `npm run dev`.
   padrinhos: {
-    published: false,
+    published: true,
     /** The left page: a letter to them (two paragraphs). */
     letter: {
       title_pt: 'Queridos padrinhos',
@@ -185,9 +184,9 @@ export const CONFIG = {
         title_pt: 'Padrinhos',
         title_en: 'Groomsmen',
         text_pt:
-          'Para harmonizar com as cores das madrinhas e com o traje do noivo, escolhemos tons mais neutros. Para acompanhar o noivo, nossa sugestão é usar uma gravata tradicional e um paletó de abotoamento simples, sem colete.',
+          'Para harmonizar com as cores das madrinhas e com o traje do noivo, escolhemos tons mais neutros. Para acompanhar o noivo, nossa sugestão é usar uma gravata tradicional e um paletó de abotoamento simples, sem colete, com camisa branca e sapato marrom.',
         text_en:
-          'To go with the bridesmaids’ colours and the groom’s suit, we chose more neutral tones. To match the groom, we suggest a classic tie and a single-breasted jacket, without a waistcoat.',
+          'To go with the bridesmaids’ colours and the groom’s suit, we chose more neutral tones. To match the groom, we suggest a classic tie and a single-breasted jacket, without a waistcoat, with a white shirt and brown shoes.',
         palette: [] as string[],
         /** Piece by piece, each with its colours (dabs, as `palette`). */
         items: [

@@ -705,7 +705,7 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         {/* The script's capital R stands well right of its own loop: the "&"
             sits closer to it than to the name before. */}
         <span
-          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-3xl leading-none -my-1'}`}
+          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-3xl leading-none mb-4'}`}
         >
           &amp;
         </span>
@@ -812,7 +812,7 @@ function ReplyForm({ guest }: { guest: Guest }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="text-title mx-auto flex min-h-full w-full max-w-md flex-col justify-center gap-7"
+      className="text-title mx-auto flex min-h-full w-full max-w-md flex-col justify-center gap-10 md:gap-12"
     >
       <div className="text-center">
         <p className="font-display text-2xl md:text-3xl leading-[1.7] pt-2">
