@@ -133,10 +133,9 @@ export const CONFIG = {
   // desk under the passport and, once the passport is read, is read as a
   // greeting card: its cover turns over from right to left onto its two
   // pages (a letter; what to wear), then it shuts again onto its back.
-  // DRAFT copy below: replace it, then set `published: true` (until then it
-  // only shows in `npm run dev`).
+  // `published: false` hides it outside `npm run dev`.
   padrinhos: {
-    published: false,
+    published: true,
     /** The left page: a letter to them (two paragraphs). */
     letter: {
       title_pt: 'Queridos padrinhos',
