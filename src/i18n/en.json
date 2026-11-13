@@ -108,9 +108,6 @@
     "submit": "Confirm attendance",
     "submitting": "Sending…",
     "successTitle": "RSVP confirmed!",
-    "successText": "We can't wait to celebrate with you!",
-    "alreadyTitle": "Already confirmed",
-    "alreadySubmitted": "We've received your reply. Thank you!",
     "errorTitle": "Something went wrong",
     "error": "Error submitting. Please try again.",
     "kicker": "RSVP",
@@ -124,7 +121,7 @@
     "scrollToReply": "Scroll to reply",
     "repliedAttending": "Attending",
     "repliedNotAttending": "Unable to attend",
-    "changeNote": "If anything changes, please let the couple know."
+    "changeNote": "If you need to change your reply, let us know as soon as you can."
   },
   "gifts": {
     "title": "Gift Registry",

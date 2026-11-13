@@ -112,9 +112,6 @@
     "submit": "Confirmar presença",
     "submitting": "Enviando…",
     "successTitle": "Confirmação enviada!",
-    "successText": "Mal podemos esperar para celebrar com você!",
-    "alreadyTitle": "Você já confirmou",
-    "alreadySubmitted": "Recebemos sua resposta. Obrigado!",
     "errorTitle": "Algo deu errado",
     "error": "Erro ao enviar. Tente novamente.",
     "kicker": "Confirme sua presença",
@@ -128,7 +125,7 @@
     "scrollToReply": "Role para responder",
     "repliedAttending": "Confirmados",
     "repliedNotAttending": "Não poderão comparecer",
-    "changeNote": "Se precisar mudar algo, por favor avise os noivos."
+    "changeNote": "Se precisar alterar sua confirmação de presença, avise a gente assim que puder."
   },
   "gifts": {
     "title": "Lista de Presentes",
