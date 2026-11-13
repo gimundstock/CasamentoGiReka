@@ -124,8 +124,8 @@ export const CONFIG = {
   // ── Welcome carousel ─────────────────────────────────────
   // The hero's carousel opens on the celebration (the story's last photo),
   // then the guest's own photos. Until they have as many as there are
-  // photos here, these fill the places before theirs: a guest's first
-  // photo takes the last one's place, the next the one before, and so on.
+  // photos here, these follow theirs: a guest's first photo pushes out the
+  // last one here, the next the one before, and so on.
   // In public/photos/.
   welcome: {
     defaultPhotos: ['hero-2.jpg', 'hero-3.jpg', 'hero-4.jpg', 'hero-5.jpg'],

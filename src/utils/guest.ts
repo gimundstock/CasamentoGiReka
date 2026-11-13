@@ -19,14 +19,13 @@ export function invitationOptions(guest: Guest): { count: number; context?: 'fem
 }
 
 /**
- * The carousel's photos after the celebration: the guest's own, preceded by
- * as many of the defaults as they lack. Each guest photo takes the place of
- * the last default still there, so theirs always come last: no photos, all
- * the defaults; one, all but the last default; as many as the defaults or
- * more, only theirs.
+ * The carousel's photos after the celebration: the guest's own first, then
+ * as many of the defaults as they lack. Each guest photo pushes out the last
+ * default still there: no photos, all the defaults; one, theirs then all
+ * but the last default; as many as the defaults or more, only theirs.
  */
 export function withDefaultPhotos<T>(guestPhotos: T[], defaults: readonly T[]): T[] {
-  return [...defaults.slice(0, Math.max(0, defaults.length - guestPhotos.length)), ...guestPhotos]
+  return [...guestPhotos, ...defaults.slice(0, Math.max(0, defaults.length - guestPhotos.length))]
 }
 
 /**

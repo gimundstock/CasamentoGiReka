@@ -25,8 +25,8 @@ export function Hero1Welcome({ guest, onReset }: Props) {
   // depois vêm as fotos do convidado: a cópia que o deploy fez da pasta
   // dele no Drive, ou o próprio Drive para uma foto mais nova. Enquanto ele
   // tiver menos fotos que as padrão (CONFIG.welcome.defaultPhotos), elas
-  // completam os lugares antes das dele: cada foto do convidado toma o
-  // lugar da última padrão. Nenhuma foto do hero leva legenda.
+  // completam o carrossel depois das dele: cada foto do convidado tira a
+  // última padrão. Nenhuma foto do hero leva legenda.
   const celebration = CONFIG.story.milestones[CONFIG.story.milestones.length - 1]
   const photos: CarouselPhoto[] = [
     ...(celebration ? [{ src: `${base}photos/${celebration.photo}`, alt: altText }] : []),

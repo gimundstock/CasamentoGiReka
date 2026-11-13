@@ -60,11 +60,11 @@ describe('invitationOptions', () => {
 describe('withDefaultPhotos', () => {
   const defaults = ['d2', 'd3', 'd4', 'd5']
 
-  it("each guest photo takes the last default's place; theirs always come last", () => {
+  it('theirs first; each one pushes out the last default still there', () => {
     expect(withDefaultPhotos([], defaults)).toEqual(['d2', 'd3', 'd4', 'd5'])
-    expect(withDefaultPhotos(['g1'], defaults)).toEqual(['d2', 'd3', 'd4', 'g1'])
-    expect(withDefaultPhotos(['g1', 'g2'], defaults)).toEqual(['d2', 'd3', 'g1', 'g2'])
-    expect(withDefaultPhotos(['g1', 'g2', 'g3'], defaults)).toEqual(['d2', 'g1', 'g2', 'g3'])
+    expect(withDefaultPhotos(['g1'], defaults)).toEqual(['g1', 'd2', 'd3', 'd4'])
+    expect(withDefaultPhotos(['g1', 'g2'], defaults)).toEqual(['g1', 'g2', 'd2', 'd3'])
+    expect(withDefaultPhotos(['g1', 'g2', 'g3'], defaults)).toEqual(['g1', 'g2', 'g3', 'd2'])
   })
 
   it('as many as the defaults or more: only theirs', () => {
