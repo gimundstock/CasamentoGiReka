@@ -82,6 +82,32 @@ describe('handleGetGuest', () => {
     expect(app.handleGetGuest({ id: 'p03' })?.padrinho).toBe(false)
   })
 
+  it('gender: F or M from the genero column, blank otherwise', () => {
+    const guests = [
+      [...GUESTS_HEADER, 'genero'],
+      ['g01', 'Ana', 'pt', 'Ana Souza', false, 'F'],
+      ['g02', 'Gil', 'pt', 'Gil Prado', false, ' masculino '],
+      ['g03', 'Eva e Felipe', 'pt', 'Eva Melo, Felipe Melo', false, ''],
+      ['g04', 'Hugo', 'pt', 'Hugo Reis', false, 'x'],
+    ]
+    const { app } = createSandbox({ guests })
+    expect(app.handleGetGuest({ id: 'g01' })?.gender).toBe('f')
+    expect(app.handleGetGuest({ id: 'g02' })?.gender).toBe('m')
+    expect(app.handleGetGuest({ id: 'g03' })?.gender).toBe('')
+    expect(app.handleGetGuest({ id: 'g04' })?.gender).toBe('')
+    // No column at all: blank.
+    expect(createSandbox({ guests: baseGuests }).app.handleGetGuest({ id: 'r01' })?.gender).toBe('')
+  })
+
+  it('gender: the header may be gênero or gender', () => {
+    for (const header of ['gênero', 'gender']) {
+      const { app } = createSandbox({
+        guests: [[...GUESTS_HEADER, header], ['g01', 'Ana', 'pt', 'Ana Souza', false, 'Feminino']],
+      })
+      expect(app.handleGetGuest({ id: 'g01' })?.gender).toBe('f')
+    }
+  })
+
   it('logging in by name ignores displayName', () => {
     const guests = [
       [...GUESTS_HEADER, 'displayName', 'padrinho'],

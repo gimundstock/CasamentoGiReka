@@ -16,8 +16,7 @@
     "error": "Error fetching invitation. Please try again."
   },
   "welcome": {
-    "greeting": "Hello, {{name}}!",
-    "invitation": "You are invited to celebrate with us",
+    "invitation": "You are invited to celebrate with us!",
     "lake": "Paranoá Lake",
     "seats": "Your table has {{count}} reserved seat",
     "seats_plural": "Your table has {{count}} reserved seats",

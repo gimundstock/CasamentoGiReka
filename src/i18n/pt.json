@@ -16,8 +16,11 @@
     "error": "Erro ao buscar convite. Tente novamente."
   },
   "welcome": {
-    "greeting": "Olá, {{name}}!",
-    "invitation": "Você está convidado(a) para celebrar conosco",
+    "invitation_one": "Você está convidado(a) para celebrar com a gente!",
+    "invitation_male_one": "Você está convidado para celebrar com a gente!",
+    "invitation_female_one": "Você está convidada para celebrar com a gente!",
+    "invitation_other": "Vocês estão convidados para celebrar com a gente!",
+    "invitation_female_other": "Vocês estão convidadas para celebrar com a gente!",
     "lake": "Lago Paranoá",
     "seats": "Sua mesa tem {{count}} lugar reservado",
     "seats_plural": "Sua mesa tem {{count}} lugares reservados",

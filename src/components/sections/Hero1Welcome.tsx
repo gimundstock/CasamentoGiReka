@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { Guest } from '../../types'
-import { guestName, guestPhotoSources } from '../../utils/guest'
+import { guestName, guestPhotoSources, invitationOptions } from '../../utils/guest'
 import { CONFIG } from '../../content.config'
 import { PhotoCarousel, type CarouselPhoto } from '../ui/PhotoCarousel'
 
@@ -77,11 +77,11 @@ export function Hero1Welcome({ guest, onReset }: Props) {
               tamanho leva a própria entrelinha (1.8), senão o text-5xl/6xl
               volta a 1 e uma linha cai em cima da outra. */}
           <h1 className="font-display text-title relative z-10 text-4xl/[1.8] break-words sm:text-5xl/[1.8] md:text-6xl/[1.8]">
-            {t('welcome.greeting', { name: guestName(guest) })}
+            {guestName(guest)}
           </h1>
 
           <p className="font-sans text-title relative z-10 mt-10 text-sm tracking-[0.25em] text-balance uppercase lg:mt-24">
-            {t('welcome.invitation')}
+            {t('welcome.invitation', invitationOptions(guest))}
           </p>
 
           {/* Saída para quem digitou o nome errado — discreta, mas sempre à mão */}
