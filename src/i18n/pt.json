@@ -98,7 +98,7 @@
   "rsvp": {
     "title": "Confirmação de Presença",
     "subtitle": "Por favor confirme sua presença até {{date}}",
-    "attending": "Confirmado(a)",
+    "attending": "Confirmar",
     "notAttending": "Não poderei ir",
     "menu": "Cardápio",
     "menuPlaceholder": "Escolha o prato",
@@ -115,7 +115,6 @@
     "errorTitle": "Algo deu errado",
     "error": "Erro ao enviar. Tente novamente.",
     "kicker": "Confirme sua presença",
-    "letterOpening": "Querido(a) convidado(a),",
     "letterClose": "Com amor",
     "envelopeHint": "Role para abrir",
     "inviteRequest": "têm a alegria de convidar",
