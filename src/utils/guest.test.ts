@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import i18n from '../i18n'
-import { guestPhotoSources, invitationOptions } from './guest'
+import { guestPhotoSources, invitationOptions, withDefaultPhotos } from './guest'
 import type { Guest } from '../types'
 
 const guest = (photos?: string[]): Guest => ({
@@ -54,5 +54,22 @@ describe('invitationOptions', () => {
   it('English has one line for all', () => {
     expect(line(invited(['Ana', 'Bia'], 'f'), 'en')).toBe('You are invited to celebrate with us!')
     expect(line(invited([]), 'en')).toBe('You are invited to celebrate with us!')
+  })
+})
+
+describe('withDefaultPhotos', () => {
+  const defaults = ['d2', 'd3', 'd4', 'd5']
+
+  it('theirs first; each one pushes out the last default still there', () => {
+    expect(withDefaultPhotos([], defaults)).toEqual(['d2', 'd3', 'd4', 'd5'])
+    expect(withDefaultPhotos(['g1'], defaults)).toEqual(['g1', 'd2', 'd3', 'd4'])
+    expect(withDefaultPhotos(['g1', 'g2'], defaults)).toEqual(['g1', 'g2', 'd2', 'd3'])
+    expect(withDefaultPhotos(['g1', 'g2', 'g3'], defaults)).toEqual(['g1', 'g2', 'g3', 'd2'])
+  })
+
+  it('as many as the defaults or more: only theirs', () => {
+    expect(withDefaultPhotos(['g1', 'g2', 'g3', 'g4'], defaults)).toEqual(['g1', 'g2', 'g3', 'g4'])
+    const ten = Array.from({ length: 10 }, (_, i) => `g${i + 1}`)
+    expect(withDefaultPhotos(ten, defaults)).toEqual(ten)
   })
 })
