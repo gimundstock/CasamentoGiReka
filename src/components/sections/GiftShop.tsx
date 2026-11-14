@@ -20,6 +20,7 @@ import {
   type CardThemeId,
 } from '../gifts/cardThemes'
 import { buildPixPayload } from '../../utils/pix'
+import { renderCardImage } from '../../utils/cardImage'
 import { loadPaypalSdk, paypalEnabled, toEur, totalEur } from '../../utils/paypal'
 import type { Cota, Gift } from '../../types'
 import type { Guest } from '../../types'
@@ -205,6 +206,13 @@ export function GiftShop({ guest }: Props) {
     }
     setPurchase({ ...purchase, submitting: true, error: null })
     try {
+      // The card as the guest sees it, as a picture for the mails and the
+      // archive; if it can't be drawn, the mails carry the text alone.
+      const image = await renderCardImage(
+        getCardTheme(purchase.cardTheme),
+        purchase.cardMessage,
+        purchase.cardFrom
+      ).catch(() => undefined)
       await submitCard({
         guestId: guest.guestId,
         giftName: lang === 'pt' ? purchase.gift.name_pt : purchase.gift.name_en,
@@ -213,6 +221,7 @@ export function GiftShop({ guest }: Props) {
         message: purchase.cardMessage,
         completePurchase: true,
         selectedCotaLabels: purchase.selectedCotas.map((c) => c.label_pt),
+        image,
       })
       mailedRef.current = true
       setPurchase({ ...purchase, step: 'success', cardSent: true, submitting: false })

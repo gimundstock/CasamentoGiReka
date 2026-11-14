@@ -114,6 +114,7 @@ export async function submitCard(data: CardSubmission): Promise<{ success: boole
     message: data.message,
     completePurchase: data.completePurchase ?? false,
     selectedCotaLabels: data.selectedCotaLabels ?? [],
+    cardImage: data.image ?? '',
   })
 }
 

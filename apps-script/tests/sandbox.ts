@@ -32,6 +32,8 @@ export interface SandboxOptions {
   drive?: Record<string, Record<string, DriveFile[]>>
   /** The spreadsheet has no Cards tab yet (insertSheet makes it). */
   noCardsTab?: boolean
+  /** Drive refuses to make a folder or a file (no permission). */
+  driveError?: Error
   /** Makes every MailApp.sendEmail throw (quota, bad address). */
   mailError?: Error
   /** Answers UrlFetchApp.fetch; defaults to a 404 for every URL. */
@@ -94,6 +96,8 @@ export interface CardBody {
   /** The site held the gift's mails: send them now, with the card. */
   completePurchase?: boolean
   selectedCotaLabels?: string[]
+  /** The card as the guest saw it: a base64 JPEG. */
+  cardImage?: string
 }
 
 export interface FinishBody {
@@ -124,6 +128,13 @@ export interface RSVPBody {
   message?: string
 }
 
+export interface Blob {
+  bytes: number[]
+  type: string
+  name: string
+  getBytes: () => number[]
+}
+
 export interface Sandbox {
   app: AppsScriptGlobals
   sheets: Record<'Guests' | 'RSVPs' | 'Orders' | 'Cards', FakeSheet>
@@ -134,7 +145,11 @@ export interface Sandbox {
     subject: string
     body: string
     htmlBody?: string
+    inlineImages?: Record<string, Blob>
+    attachments?: Blob[]
   }>
+  /** Files the script made in Drive: the folder's name, the file's name and its bytes. */
+  driveFiles: Array<{ folder: string; name: string; bytes: number[] }>
   fetched: Array<{ url: string; opts: FetchOptions }>
 }
 
@@ -166,6 +181,8 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
     ]),
   }
   const sentMail: Sandbox['sentMail'] = []
+  const driveFiles: Sandbox['driveFiles'] = []
+  const madeFolders: Record<string, unknown> = {}
   let cardsMissing = !!opts.noCardsTab
   const fetched: Sandbox['fetched'] = []
   const answer = opts.fetch ?? (() => ({ code: 404, body: {} }))
@@ -181,6 +198,18 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
   const drive = opts.drive ?? {}
   const ctx = {
     DriveApp: {
+      getFoldersByName: (name: string) => iterate(name in madeFolders ? [madeFolders[name]] : []),
+      createFolder: (name: string) => {
+        if (opts.driveError) throw opts.driveError
+        const folder = {
+          createFile: (blob: { name: string; getBytes: () => number[] }) => {
+            driveFiles.push({ folder: name, name: blob.name, bytes: blob.getBytes() })
+            return { getUrl: () => `https://drive.example/${encodeURIComponent(blob.name)}` }
+          },
+        }
+        madeFolders[name] = folder
+        return folder
+      },
       getFolderById: (id: string) => {
         const folder = drive[id]
         if (!folder) throw new Error('No item with the given ID could be found')
@@ -246,6 +275,14 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
     },
     Utilities: {
       base64Encode: (s: string) => Buffer.from(s).toString('base64'),
+      // Apps Script's bytes are signed.
+      base64Decode: (s: string) => Array.from(Buffer.from(s, 'base64'), (b) => (b > 127 ? b - 256 : b)),
+      newBlob: (bytes: number[], type: string, name: string) => ({
+        bytes,
+        type,
+        name,
+        getBytes: () => bytes,
+      }),
     },
     console,
   } as Record<string, unknown>
@@ -253,5 +290,5 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
   createContext(ctx)
   runInContext(source, ctx)
 
-  return { app: ctx as unknown as AppsScriptGlobals, sheets, sentMail, fetched }
+  return { app: ctx as unknown as AppsScriptGlobals, sheets, sentMail, driveFiles, fetched }
 }

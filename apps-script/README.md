@@ -30,6 +30,14 @@ One mail each, with the card in it:
   total, how it was paid; Reply-To is the guest). `submitCard` with `completePurchase` sends them with
   the card in full; `finishPurchase` sends them without one (the guest skipped, closed the window or
   left the page).
+- **The card is a picture.** The site draws it (the template the guest chose with their text and name
+  on it: `src/utils/cardImage.ts`) and sends it as a base64 JPEG with the card. It is shown in both
+  mails (inline, `cid:cartao`) and attached to them, and archived in Drive: in the folder of the
+  `CARDS_FOLDER_ID` Script Property if set, else in a "Cartões do casamento" folder the script makes
+  in the owner's Drive. Its URL goes in the Cards tab (`imageUrl`). Anything but a JPEG within 6 MB is
+  ignored and the mails carry the text alone; if Drive refuses (permission), the mails go out anyway.
+  Saving to Drive may need the owner to authorize the project once more (Apps Script editor → run any
+  function → review permissions).
 - The address and the amounts are read from the guest's own order, by column position (the Orders
   header row may lack names), never from the request. The cota names come from the page, for the mail
   text only.

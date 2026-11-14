@@ -87,6 +87,8 @@ export interface CardSubmission {
   completePurchase?: boolean
   /** The cota names, shown in those mails. */
   selectedCotaLabels?: string[]
+  /** The card as the guest saw it: a base64 JPEG (see utils/cardImage). */
+  image?: string
 }
 
 /** The guest is done without a card: send the gift's held mails as they are. */

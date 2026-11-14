@@ -677,6 +677,84 @@ describe('the gift mails held for the card (deferEmail)', () => {
 })
 
 
+describe('the card as an image', () => {
+  const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
+  const orders = [
+    ORDERS_HEADER,
+    ['2026-01-01', 'r01', 'Ana e Bruno', 'ana@example.com', 'g1', 'Jantar', '["c1"]', 200, '', 'pix', 'BRL', 200, ''],
+  ]
+  // A JPEG starts FF D8 FF E0.
+  const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]).toString('base64')
+  const card = {
+    guestId: 'r01',
+    giftName: 'Jantar',
+    theme: 'cerrado',
+    from: 'Ana e Bruno',
+    message: 'Muito amor!',
+    completePurchase: true,
+    selectedCotaLabels: ['Entrada'],
+    cardImage: jpeg,
+  }
+
+  it('shows it in both mails and attaches it to them', () => {
+    const { app, sentMail } = createSandbox({ guests, orders })
+    app.handleSubmitCard(card)
+    expect(sentMail).toHaveLength(2)
+    for (const mail of sentMail) {
+      expect(mail.htmlBody).toContain('cid:cartao')
+      expect(mail.inlineImages?.cartao.type).toBe('image/jpeg')
+      expect(mail.attachments).toHaveLength(1)
+      expect(mail.attachments?.[0].name).toBe('Cartão - Ana e Bruno.jpg')
+      expect(mail.attachments?.[0].bytes.slice(0, 2)).toEqual([-1, -40])
+      // The text is still there, for clients that don't show images.
+      expect(mail.body).toContain('Muito amor!')
+    }
+  })
+
+  it('archives it in Drive and records where, in the Cards tab', () => {
+    const { app, sheets, driveFiles } = createSandbox({ guests, orders })
+    app.handleSubmitCard(card)
+    expect(driveFiles).toHaveLength(1)
+    expect(driveFiles[0].folder).toBe('Cartões do casamento')
+    expect(driveFiles[0].name).toMatch(/^\d{4}-\d\d-\d\d \d\dh\d\d - Ana e Bruno - Jantar\.jpg$/)
+    expect(driveFiles[0].bytes.slice(0, 2)).toEqual([-1, -40])
+    expect(sheets.Cards.rows.at(-1)?.[7]).toContain('https://drive.example/')
+  })
+
+  it('Drive refusing never stops the mails', () => {
+    const { app, sheets, sentMail } = createSandbox({
+      guests,
+      orders,
+      driveError: new Error('You do not have permission to call DriveApp.createFolder'),
+    })
+    expect(app.handleSubmitCard(card)).toEqual({ success: true })
+    expect(sentMail).toHaveLength(2)
+    expect(sentMail[0].htmlBody).toContain('cid:cartao')
+    expect(sheets.Cards.rows.at(-1)?.[7]).toBe('')
+  })
+
+  it('takes only a JPEG within the limit: anything else is ignored, the mails carry the text', () => {
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4]).toString('base64')
+    for (const cardImage of [png, 'not base64!', 'A'.repeat(6_000_001)]) {
+      const { app, sentMail, driveFiles } = createSandbox({ guests, orders })
+      app.handleSubmitCard({ ...card, cardImage })
+      expect(sentMail).toHaveLength(2)
+      expect(sentMail[0].inlineImages).toBeUndefined()
+      expect(sentMail[0].attachments).toBeUndefined()
+      expect(sentMail[0].htmlBody).not.toContain('cid:cartao')
+      expect(sentMail[0].body).toContain('Muito amor!')
+      expect(driveFiles).toHaveLength(0)
+    }
+  })
+
+  it('the card sent on its own (older page) carries the image too', () => {
+    const { app, sentMail } = createSandbox({ guests, orders })
+    app.handleSubmitCard({ ...card, completePurchase: false })
+    expect(sentMail).toHaveLength(2)
+    expect(sentMail.every((m) => m.attachments?.length === 1)).toBe(true)
+  })
+})
+
 describe('handleSubmitCard', () => {
   const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
 

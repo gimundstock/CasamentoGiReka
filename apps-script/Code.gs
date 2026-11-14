@@ -13,6 +13,8 @@
  *                  into the site (action=photoManifest)
  *   COUPLE_EMAILS  comma-separated addresses that receive the RSVPs, the gift
  *                  receipts and the cards
+ *   CARDS_FOLDER_ID  (optional) Drive folder where the cards' images are archived;
+ *                  else a "Cartões do casamento" folder is made in the owner's Drive
  *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
  *   PAYPAL_CLIENT_ID, PAYPAL_SECRET
  *                  the PayPal REST app's credentials (developer.paypal.com),
@@ -520,12 +522,26 @@ function htmlCard(message, from) {
   );
 }
 
+/** The card as the picture the guest made on the site, embedded (cid:cartao). */
+function htmlCardImage() {
+  return '<p style="margin:16px 0;"><img src="cid:cartao" alt="Cartão" style="max-width:100%;border-radius:10px;border:1px solid #E4D9BF;"></p>';
+}
+
+/** The card's image, shown in the mail and attached to it, when there is one. */
+function withCardImage(args, blob) {
+  if (blob) {
+    args.inlineImages = { cartao: blob };
+    args.attachments = [blob];
+  }
+  return args;
+}
+
 function htmlBodyOf(parts) {
   return '<div style="font-family:Arial,sans-serif;font-size:15px;color:#333;">' + parts.join('') + '</div>';
 }
 
 /** What the guest gets as soon as the gift is confirmed. */
-function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMessage, cardFrom) {
+function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMessage, cardFrom, cardBlob) {
   var guestName = guest ? guest.groupName : to;
   var subject = '🌸 Confirmação do presente — ' + giftName;
 
@@ -544,10 +560,12 @@ function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMess
   var body = lines.concat([''], cardMessage ? ['💌 Seu cartão:', '"' + cardMessage + '"' + (cardFrom ? '\n— ' + cardFrom : ''), ''] : [], close).join('\n');
 
   var parts = [htmlParagraph(lines.join('\n'))];
-  if (cardMessage) parts.push(htmlParagraph('💌 Seu cartão:'), htmlCard(cardMessage, cardFrom));
+  if (cardMessage) {
+    parts.push(htmlParagraph('💌 Seu cartão:'), cardBlob ? htmlCardImage() : htmlCard(cardMessage, cardFrom));
+  }
   parts.push(htmlParagraph(close.join('\n')));
 
-  sendMail({ to: to, subject: subject, body: body, htmlBody: htmlBodyOf(parts) });
+  sendMail(withCardImage({ to: to, subject: subject, body: body, htmlBody: htmlBodyOf(parts) }, cardBlob));
 }
 
 /** The couple's own record of a gift, apart from the guest's confirmation. */
@@ -570,14 +588,14 @@ function sendCoupleReceipt(o) {
   var body = lines.join('\n');
   if (o.cardMessage) {
     body += '\n\n💌 Cartão' + (o.cardFrom ? ' de ' + o.cardFrom : '') + ':\n"' + o.cardMessage + '"';
-    parts.push(htmlParagraph('💌 Cartão:'), htmlCard(o.cardMessage, o.cardFrom));
+    parts.push(htmlParagraph('💌 Cartão:'), o.cardBlob ? htmlCardImage() : htmlCard(o.cardMessage, o.cardFrom));
   }
-  sendMail(replyingTo(o.guestEmail, {
+  sendMail(withCardImage(replyingTo(o.guestEmail, {
     to: coupleEmailsCsv(),
     subject: '🎁 Presente recebido — ' + o.giftName + ' (' + o.groupName + ')',
     body: body,
     htmlBody: htmlBodyOf(parts),
-  }));
+  }), o.cardBlob));
 }
 
 /**
@@ -618,7 +636,7 @@ function mailOrder(order, cotaLabels, card) {
   var message = card ? card.message : '';
   var from = card ? card.from : '';
   if (order.guestEmail) {
-    sendPurchaseEmail(order.guestEmail, guestRow, order.giftName, cotaLabels, paidLabel, message, from);
+    sendPurchaseEmail(order.guestEmail, guestRow, order.giftName, cotaLabels, paidLabel, message, from, card ? card.blob : null);
   }
   sendCoupleReceipt({
     guestId: order.guestId,
@@ -632,6 +650,7 @@ function mailOrder(order, cotaLabels, card) {
     paymentRef: order.paymentRef,
     cardMessage: message,
     cardFrom: from,
+    cardBlob: card ? card.blob : null,
   });
 }
 
@@ -648,9 +667,57 @@ function cardsSheet() {
   var sheet = ss.getSheetByName('Cards');
   if (!sheet) {
     sheet = ss.insertSheet('Cards');
-    sheet.appendRow(['timestamp', 'guestId', 'groupName', 'giftName', 'theme', 'from', 'message']);
+    sheet.appendRow(['timestamp', 'guestId', 'groupName', 'giftName', 'theme', 'from', 'message', 'imageUrl']);
   }
   return sheet;
+}
+
+/** Largest card image taken, as base64 text (a 1484 x 1060 JPEG is ~0.4 MB). */
+var MAX_CARD_IMAGE_B64 = 6000000;
+
+/**
+ * The card as the guest saw it on the site (the picture they chose, their
+ * text on it), sent as base64 JPEG. Anything that isn't a JPEG within the
+ * size limit is ignored, and the mails carry the text alone.
+ */
+function cardImageBlob(b64, from) {
+  if (typeof b64 !== 'string' || !b64 || b64.length > MAX_CARD_IMAGE_B64) return null;
+  if (!/^[A-Za-z0-9+\/=]+$/.test(b64)) return null;
+  try {
+    var bytes = Utilities.base64Decode(b64);
+    // JPEG magic number FF D8 (as signed bytes).
+    if (bytes.length < 4 || bytes[0] !== -1 || bytes[1] !== -40) return null;
+    var name = ('Cartão - ' + from).replace(/[\\/:*?"<>|]/g, ' ').slice(0, 80) + '.jpg';
+    return Utilities.newBlob(bytes, 'image/jpeg', name);
+  } catch (e) {
+    if (typeof console !== 'undefined') console.error('card image: ' + e);
+    return null;
+  }
+}
+
+/**
+ * Archives the card image in Drive (CARDS_FOLDER_ID, or a folder "Cartões do
+ * casamento" made in the owner's Drive) and returns its URL, or '' if Drive
+ * wouldn't: the mails go out either way.
+ */
+function archiveCardImage(blob, stamp, from, giftName) {
+  try {
+    var id = PropertiesService.getScriptProperties().getProperty('CARDS_FOLDER_ID');
+    var folder;
+    if (id) {
+      folder = DriveApp.getFolderById(id);
+    } else {
+      var found = DriveApp.getFoldersByName('Cartões do casamento');
+      folder = found.hasNext() ? found.next() : DriveApp.createFolder('Cartões do casamento');
+    }
+    var name = (stamp.slice(0, 16).replace('T', ' ').replace(':', 'h') + ' - ' + from + ' - ' + giftName)
+      .replace(/[\\/:*?"<>|]/g, ' ')
+      .slice(0, 120) + '.jpg';
+    return folder.createFile(Utilities.newBlob(blob.getBytes(), 'image/jpeg', name)).getUrl();
+  } catch (e) {
+    if (typeof console !== 'undefined') console.error('archive card image: ' + e);
+    return '';
+  }
 }
 
 /**
@@ -670,16 +737,21 @@ function handleSubmitCard(body) {
   var theme = String(body.theme || '').slice(0, 30);
   var giftName = String(body.giftName || '').slice(0, 120);
 
+  var now = new Date().toISOString();
+  var blob = cardImageBlob(body.cardImage, from);
+  var imageUrl = blob ? archiveCardImage(blob, now, from, giftName) : '';
+
   // Whatever happens to the sheet, the card still reaches them by mail.
   try {
     cardsSheet().appendRow([
-      new Date().toISOString(),
+      now,
       body.guestId,
       groupName,
       giftName,
       theme,
       from,
       message,
+      imageUrl,
     ]);
   } catch (e) {
     if (typeof console !== 'undefined') console.error('Cards tab: ' + e);
@@ -687,7 +759,7 @@ function handleSubmitCard(body) {
 
   var order = lastOrderFor(body.guestId, giftName);
   if (body.completePurchase && order) {
-    mailOrder(order, cleanLabels(body.selectedCotaLabels), { message: message, from: from });
+    mailOrder(order, cleanLabels(body.selectedCotaLabels), { message: message, from: from, blob: blob });
     return { success: true };
   }
 
@@ -698,12 +770,12 @@ function handleSubmitCard(body) {
     'E-mail: ' + (guestEmail || '(não informado)'),
     'Modelo: ' + theme,
   ];
-  sendMail(replyingTo(guestEmail, {
+  sendMail(withCardImage(replyingTo(guestEmail, {
     to: coupleEmailsCsv(),
     subject: '💌 Novo cartão de ' + from + ' — ' + giftName,
     body: coupleLines.concat(['', '"' + message + '"']).join('\n'),
-    htmlBody: htmlBodyOf([htmlParagraph(coupleLines.join('\n')), htmlCard(message, from)]),
-  }));
+    htmlBody: htmlBodyOf([htmlParagraph(coupleLines.join('\n')), blob ? htmlCardImage() : htmlCard(message, from)]),
+  }), blob));
 
   if (guestEmail) {
     var guestLines = [
@@ -712,12 +784,12 @@ function handleSubmitCard(body) {
       'Seu cartão para ' + COUPLE_NAMES + ' foi entregue. Aqui está uma cópia:',
     ];
     var close = ['Presente: ' + giftName, '', 'Com carinho,', COUPLE_NAMES];
-    sendMail({
+    sendMail(withCardImage({
       to: guestEmail,
       subject: '💌 Seu cartão para ' + COUPLE_NAMES,
       body: guestLines.concat(['', '"' + message + '"', '— ' + from, ''], close).join('\n'),
-      htmlBody: htmlBodyOf([htmlParagraph(guestLines.join('\n')), htmlCard(message, from), htmlParagraph(close.join('\n'))]),
-    });
+      htmlBody: htmlBodyOf([htmlParagraph(guestLines.join('\n')), blob ? htmlCardImage() : htmlCard(message, from), htmlParagraph(close.join('\n'))]),
+    }, blob));
   }
 
   return { success: true };

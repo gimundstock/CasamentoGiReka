@@ -99,27 +99,37 @@ export function getCardTheme(id: CardThemeId): CardTheme {
 
 /** Message sizes, in container-width units, from the biggest down. */
 const SIZES = [3, 2.7, 2.4, 2.1, 1.9, 1.7]
-// How wide an average character of the serif is, in em; line height; the
-// signature's block (its gap, size and line), in container-width units.
+// How wide an average character of the serif is, in em.
 const CHAR_EM = 0.46
-const LINE_HEIGHT = 1.375
-const SIGNATURE_CQW = 2 + 2.4 * 1.25
+// The message's line height, in em; the signature's size, the gap above it
+// (container-width units) and its line height, in em. The card on the page and
+// its image (utils/cardImage) both lay themselves out from these.
+export const MESSAGE_LINE_HEIGHT = 1.375
+export const SIGNATURE_CQW = 2.4
+export const SIGNATURE_GAP_CQW = 2
+export const SIGNATURE_LINE_HEIGHT = 1.25
+const SIGNATURE_BLOCK_CQW = SIGNATURE_GAP_CQW + SIGNATURE_CQW * SIGNATURE_LINE_HEIGHT
 
 /**
  * The message's size in container-width units: shrinking as it grows, and
  * never so big that it would not fit the theme's writing area (its width and
  * height in the same units) — whatever was typed, it stays on the paper.
  */
-function messageSize(message: string, hasName: boolean, areaW: number, areaH: number): string {
+export function messageSize(
+  message: string,
+  hasName: boolean,
+  areaW: number,
+  areaH: number
+): string {
   const byLength =
     message.length <= 90 ? 3 : message.length <= 180 ? 2.7 : message.length <= 280 ? 2.4 : 2.1
-  const room = areaH - (hasName ? SIGNATURE_CQW : 0)
+  const room = areaH - (hasName ? SIGNATURE_BLOCK_CQW : 0)
   const fits = (size: number) => {
     const perLine = Math.max(1, Math.floor(areaW / (size * CHAR_EM)))
     const lines = message
       .split('\n')
       .reduce((n, line) => n + Math.max(1, Math.ceil(line.length / perLine)), 0)
-    return lines * size * LINE_HEIGHT <= room
+    return lines * size * MESSAGE_LINE_HEIGHT <= room
   }
   const size = SIZES.find((s) => s <= byLength && fits(s)) ?? SIZES[SIZES.length - 1]
   return `${size}cqw`
@@ -166,9 +176,10 @@ export function MessageCard({
         {/* Lines break at the area's width whatever was typed: a long run with
             no spaces or line breaks wraps too, it never runs off the paper. */}
         <p
-          className="font-serif w-full min-w-0 whitespace-pre-line leading-snug [overflow-wrap:anywhere]"
+          className="font-serif w-full min-w-0 whitespace-pre-line [overflow-wrap:anywhere]"
           style={{
             fontSize: messageSize(message || placeholder || '', !!from, areaW, areaH),
+            lineHeight: MESSAGE_LINE_HEIGHT,
             opacity: message ? 1 : 0.5,
           }}
         >
@@ -177,8 +188,12 @@ export function MessageCard({
         {/* The name signs it: small, at the lower right of the text. */}
         {from && (
           <p
-            className="font-display mt-[2cqw] max-w-full self-end text-right leading-[1.25] [overflow-wrap:anywhere]"
-            style={{ fontSize: '2.4cqw' }}
+            className="font-display max-w-full self-end text-right [overflow-wrap:anywhere]"
+            style={{
+              fontSize: `${SIGNATURE_CQW}cqw`,
+              marginTop: `${SIGNATURE_GAP_CQW}cqw`,
+              lineHeight: SIGNATURE_LINE_HEIGHT,
+            }}
           >
             {from}
           </p>
