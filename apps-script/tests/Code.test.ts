@@ -580,6 +580,103 @@ describe('doGet / doPost entry points', () => {
   })
 })
 
+describe('the gift mails held for the card (deferEmail)', () => {
+  const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
+  const gift = {
+    guestId: 'r01',
+    giftId: 'g1',
+    giftName: 'Jantar',
+    selectedCotaIds: ['c1', 'c2'],
+    selectedCotaLabels: ['Entrada', 'Prato'],
+    totalPrice: 200,
+    guestEmail: 'ana@example.com',
+    cardMessage: '',
+    deferEmail: true,
+  }
+
+  it('purchaseGift records the order and sends nothing yet', () => {
+    const { app, sheets, sentMail } = createSandbox({ guests })
+    expect(app.handlePurchaseGift(gift)).toEqual({ success: true })
+    expect(sheets.Orders.rows).toHaveLength(2)
+    expect(sentMail).toHaveLength(0)
+  })
+
+  it('the card sends them once each, with the card in full', () => {
+    const { app, sentMail } = createSandbox({ guests })
+    app.handlePurchaseGift(gift)
+    app.handleSubmitCard({
+      guestId: 'r01',
+      giftName: 'Jantar',
+      theme: 'cerrado',
+      from: 'Ana e Bruno',
+      message: 'Muito amor!',
+      completePurchase: true,
+      selectedCotaLabels: ['Entrada', 'Prato'],
+    })
+    expect(sentMail).toHaveLength(2)
+    const [toGuest, toCouple] = sentMail
+    expect(toGuest.to).toBe('ana@example.com')
+    expect(toGuest.subject).toContain('Confirmação do presente')
+    expect(toGuest.body).toContain('• Entrada')
+    expect(toGuest.body).toContain('Muito amor!')
+    expect(toGuest.htmlBody).toContain('Muito amor!')
+    expect(toCouple.to).toBe('a@example.com,b@example.com')
+    expect(toCouple.subject).toContain('Presente recebido')
+    expect(toCouple.body).toContain('R$ 200.00')
+    expect(toCouple.body).toContain('Muito amor!')
+    expect(toCouple.replyTo).toBe('ana@example.com')
+  })
+
+  it('skipping the card sends the same two mails, without one', () => {
+    const { app, sentMail } = createSandbox({ guests })
+    app.handlePurchaseGift(gift)
+    const out = app.handleFinishPurchase({
+      guestId: 'r01',
+      giftName: 'Jantar',
+      selectedCotaLabels: ['Entrada', 'Prato'],
+    })
+    expect(out).toEqual({ success: true })
+    expect(sentMail.map((m) => m.to)).toEqual(['ana@example.com', 'a@example.com,b@example.com'])
+    expect(sentMail[0].body).not.toContain('Seu cartão')
+    expect(sentMail[1].body).not.toContain('Cartão')
+  })
+
+  it('a PayPal order is mailed from the order\'s own columns, even with the header names missing', () => {
+    const orders = [
+      ['timestamp', 'guestId', 'groupName', 'guestEmail', 'giftId', 'giftName', 'selectedCotas', 'totalPrice', 'cardMessage'],
+      ['2026-01-01', 'r01', 'Ana e Bruno', 'ana@example.com', 'g1', 'Jantar', '["c1"]', 200, '', 'paypal', 'EUR', 32, 'CAP123'],
+    ]
+    const { app, sentMail } = createSandbox({ guests, orders })
+    app.handleFinishPurchase({ guestId: 'r01', giftName: 'Jantar', selectedCotaLabels: ['Entrada'] })
+    expect(sentMail[0].body).toContain('€ 32.00')
+    expect(sentMail[1].body).toContain('PayPal, € 32.00 (ref. CAP123)')
+  })
+
+  it('finishPurchase without an order of theirs mails nobody', () => {
+    const { app, sentMail } = createSandbox({ guests })
+    expect(app.handleFinishPurchase({ guestId: 'r01', giftName: 'Jantar' }).success).toBe(false)
+    expect(sentMail).toHaveLength(0)
+  })
+
+  it('the card is mailed even when the Cards tab is missing: it is created', () => {
+    const { app, sheets, sentMail } = createSandbox({ guests, noCardsTab: true })
+    app.handlePurchaseGift(gift)
+    app.handleSubmitCard({
+      guestId: 'r01',
+      giftName: 'Jantar',
+      theme: 'cerrado',
+      from: 'Ana',
+      message: 'Oi!',
+      completePurchase: true,
+      selectedCotaLabels: ['Entrada'],
+    })
+    expect(sheets.Cards.rows.at(-1)?.[6]).toBe('Oi!')
+    expect(sheets.Cards.rows.some((r) => r[0] === 'timestamp' && r[6] === 'message')).toBe(true)
+    expect(sentMail).toHaveLength(2)
+  })
+})
+
+
 describe('handleSubmitCard', () => {
   const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
 

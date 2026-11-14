@@ -11,7 +11,7 @@ import { DeskFlowers } from './passport/DeskFlowers'
 import { RSVP_SCENE_VH } from './RSVP'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
-import { purchaseGift, submitCard } from '../../api/sheets'
+import { finishPurchase, purchaseGift, submitCard } from '../../api/sheets'
 import {
   CARD_ASPECT,
   CARD_THEMES,
@@ -56,9 +56,14 @@ export function GiftShop({ guest }: Props) {
   // Touch: one polaroid lies turned over at a time; tapping another turns the
   // first back.
   const [flippedId, setFlippedId] = useState<string | null>(null)
+  // The gift's two mails are held until the card step is over: sent once, with
+  // the card (handleSendCard), or as they are if the guest skips, closes the
+  // window or leaves the page (flushMail).
+  const mailedRef = useRef(true)
   const reduced = useReducedMotion()
 
   function openGift(gift: Gift) {
+    mailedRef.current = true
     const availableCotas = gift.cotas.filter((c) => !c.purchased)
     if (availableCotas.length === 0) return
 
@@ -122,8 +127,10 @@ export function GiftShop({ guest }: Props) {
         totalPrice: totalAmount(purchase.selectedCotas),
         guestEmail: purchase.email,
         cardMessage: '',
+        deferEmail: true,
       })
       markCotasPurchased(purchase.selectedCotas.map((c) => c.cotaId))
+      mailedRef.current = false // the gift's mails now wait for the card step
       setPurchase({ ...purchase, step: 'card', submitting: false })
     } catch {
       setPurchase({ ...purchase, submitting: false, error: t('gifts.error') })
@@ -147,14 +154,48 @@ export function GiftShop({ guest }: Props) {
         cardMessage: '',
         paymentMethod: 'paypal',
         paypalOrderId: orderId,
+        deferEmail: true,
       })
       if (!res.success) throw new Error(res.error)
       markCotasPurchased(purchase.selectedCotas.map((c) => c.cotaId))
+      mailedRef.current = false
       setPurchase({ ...purchase, step: 'card', paidWith: 'paypal', submitting: false })
     } catch {
       setPurchase({ ...purchase, submitting: false, error: t('gifts.paypalError') })
     }
   }
+
+  // The card step is over without a card: the held mails go out as they are.
+  function flushMail(p: PurchaseState, keepalive = false) {
+    if (mailedRef.current) return
+    mailedRef.current = true
+    finishPurchase(
+      {
+        guestId: guest.guestId,
+        giftName: lang === 'pt' ? p.gift.name_pt : p.gift.name_en,
+        selectedCotaLabels: p.selectedCotas.map((c) => c.label_pt),
+      },
+      keepalive
+    ).catch(() => {})
+  }
+
+  function closeModal() {
+    if (purchase?.step === 'card') flushMail(purchase)
+    setPurchase(null)
+  }
+
+  // Leaving the page on the card step (not just switching apps): same.
+  const onLeaveRef = useRef<() => void>(() => {})
+  useEffect(() => {
+    onLeaveRef.current = () => {
+      if (purchase?.step === 'card') flushMail(purchase, true)
+    }
+  })
+  useEffect(() => {
+    const onLeave = () => onLeaveRef.current()
+    window.addEventListener('pagehide', onLeave)
+    return () => window.removeEventListener('pagehide', onLeave)
+  }, [])
 
   async function handleSendCard() {
     if (!purchase) return
@@ -170,7 +211,10 @@ export function GiftShop({ guest }: Props) {
         theme: purchase.cardTheme,
         from: purchase.cardFrom,
         message: purchase.cardMessage,
+        completePurchase: true,
+        selectedCotaLabels: purchase.selectedCotas.map((c) => c.label_pt),
       })
+      mailedRef.current = true
       setPurchase({ ...purchase, step: 'success', cardSent: true, submitting: false })
     } catch {
       setPurchase({ ...purchase, submitting: false, error: t('gifts.cardError') })
@@ -229,7 +273,7 @@ export function GiftShop({ guest }: Props) {
         <GiftModal
           purchase={purchase}
           lang={lang}
-          onClose={() => setPurchase(null)}
+          onClose={closeModal}
           onSetQuantity={setQuantity}
           onProceedToPixFromCotas={() => setPurchase({ ...purchase, step: 'pix' })}
           onProceedToConfirm={() => setPurchase({ ...purchase, step: 'confirm' })}
@@ -248,7 +292,10 @@ export function GiftShop({ guest }: Props) {
           onCardThemeChange={(v) => setPurchase({ ...purchase, cardTheme: v })}
           onCardFromChange={(v) => setPurchase({ ...purchase, cardFrom: v })}
           onSendCard={handleSendCard}
-          onSkipCard={() => setPurchase({ ...purchase, step: 'success', error: null })}
+          onSkipCard={() => {
+            flushMail(purchase)
+            setPurchase({ ...purchase, step: 'success', error: null })
+          }}
           onEmailChange={(v) => setPurchase({ ...purchase, email: v })}
           onConfirm={handleConfirm}
           onCopyPix={copyPix}

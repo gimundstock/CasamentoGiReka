@@ -1,5 +1,12 @@
 import { CONFIG } from '../content.config'
-import type { Guest, Gift, RSVPSubmission, PurchaseSubmission, CardSubmission } from '../types'
+import type {
+  Guest,
+  Gift,
+  RSVPSubmission,
+  PurchaseSubmission,
+  CardSubmission,
+  FinishSubmission,
+} from '../types'
 
 const BASE_URL = CONFIG.appScriptUrl
 
@@ -11,11 +18,12 @@ async function get<T>(params: Record<string, string>): Promise<T> {
   return res.json() as Promise<T>
 }
 
-async function post<T>(body: Record<string, unknown>): Promise<T> {
+async function post<T>(body: Record<string, unknown>, keepalive = false): Promise<T> {
   const res = await fetch(BASE_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(body),
+    keepalive,
   })
   if (!res.ok) throw new Error(`API error: ${res.status}`)
   return res.json() as Promise<T>
@@ -82,6 +90,7 @@ export async function purchaseGift(
     cardMessage: data.cardMessage,
     paymentMethod: data.paymentMethod ?? 'pix',
     paypalOrderId: data.paypalOrderId ?? '',
+    deferEmail: data.deferEmail ?? false,
   })
 }
 
@@ -103,5 +112,23 @@ export async function submitCard(data: CardSubmission): Promise<{ success: boole
     theme: data.theme,
     from: data.from,
     message: data.message,
+    completePurchase: data.completePurchase ?? false,
+    selectedCotaLabels: data.selectedCotaLabels ?? [],
   })
+}
+
+/** Mails the gift's confirmation and receipt as they are, for a guest who wrote no card. */
+export async function finishPurchase(
+  data: FinishSubmission,
+  keepalive = false
+): Promise<{ success: boolean }> {
+  return post<{ success: boolean }>(
+    {
+      action: 'finishPurchase',
+      guestId: data.guestId,
+      giftName: data.giftName,
+      selectedCotaLabels: data.selectedCotaLabels,
+    },
+    keepalive
+  )
 }

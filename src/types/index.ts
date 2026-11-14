@@ -73,6 +73,8 @@ export interface PurchaseSubmission {
   paymentMethod?: 'pix' | 'paypal'
   /** The PayPal order the guest approved; the Apps Script captures it. */
   paypalOrderId?: string
+  /** Hold the gift's two mails until the card step is over (the card goes in them). */
+  deferEmail?: boolean
 }
 
 export interface CardSubmission {
@@ -81,4 +83,15 @@ export interface CardSubmission {
   theme: string
   from: string
   message: string
+  /** Send the gift's mails now, with the card (they were held: see deferEmail). */
+  completePurchase?: boolean
+  /** The cota names, shown in those mails. */
+  selectedCotaLabels?: string[]
+}
+
+/** The guest is done without a card: send the gift's held mails as they are. */
+export interface FinishSubmission {
+  guestId: string
+  giftName: string
+  selectedCotaLabels: string[]
 }

@@ -99,6 +99,7 @@ function doPost(e) {
     if (action === 'purchaseGift') return jsonResponse(handlePurchaseGift(body));
     if (action === 'submitRSVP') return jsonResponse(handleSubmitRSVP(body));
     if (action === 'submitCard') return jsonResponse(handleSubmitCard(body));
+    if (action === 'finishPurchase') return jsonResponse(handleFinishPurchase(body));
     return jsonResponse({ error: 'Unknown action' });
   } catch (err) {
     return jsonResponse({ error: String(err) });
@@ -387,25 +388,26 @@ function handlePurchaseGift(body) {
       paymentRef,
     ]);
 
-    // Two mails: the confirmation to whoever gave the gift, and the couple's
-    // own receipt (which they get even if the guest left no address).
-    var cotaLabels = selectedCotaLabels;
-    var paidLabel = formatMoney(amountPaid, currency);
-    if (guestEmail) {
-      sendPurchaseEmail(guestEmail, guestRow, giftName, cotaLabels, paidLabel, cardMessage);
+    // The mails wait for the card when the site says one is coming
+    // (deferEmail): the gift's confirmation and the couple's receipt then
+    // go out once, with the card, from submitCard / finishPurchase. Without
+    // it (an older page), they go now.
+    if (!body.deferEmail) {
+      mailOrder(
+        {
+          guestId: guestId,
+          guestEmail: guestEmail,
+          giftName: giftName,
+          totalPrice: totalPrice,
+          paymentMethod: paymentMethod,
+          currency: currency,
+          amountPaid: amountPaid,
+          paymentRef: paymentRef,
+        },
+        selectedCotaLabels,
+        cardMessage ? { message: cardMessage, from: '' } : null
+      );
     }
-    sendCoupleReceipt({
-      guestId: guestId,
-      groupName: guestRow ? guestRow.groupName : guestId,
-      guestEmail: guestEmail,
-      giftName: giftName,
-      cotaLabels: cotaLabels,
-      totalPrice: totalPrice,
-      paymentMethod: paymentMethod,
-      paidLabel: paidLabel,
-      paymentRef: paymentRef,
-      cardMessage: cardMessage,
-    });
 
     return { success: true };
   } finally {
@@ -523,7 +525,7 @@ function htmlBodyOf(parts) {
 }
 
 /** What the guest gets as soon as the gift is confirmed. */
-function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMessage) {
+function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMessage, cardFrom) {
   var guestName = guest ? guest.groupName : to;
   var subject = '🌸 Confirmação do presente — ' + giftName;
 
@@ -539,10 +541,10 @@ function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMess
     'Total: ' + totalLabel,
   ];
   var close = ['Mal podemos esperar para celebrar com você!', '', 'Com carinho,', COUPLE_NAMES];
-  var body = lines.concat([''], cardMessage ? ['💌 Seu cartão:', '"' + cardMessage + '"', ''] : [], close).join('\n');
+  var body = lines.concat([''], cardMessage ? ['💌 Seu cartão:', '"' + cardMessage + '"' + (cardFrom ? '\n— ' + cardFrom : ''), ''] : [], close).join('\n');
 
   var parts = [htmlParagraph(lines.join('\n'))];
-  if (cardMessage) parts.push(htmlParagraph('💌 Seu cartão:'), htmlCard(cardMessage, ''));
+  if (cardMessage) parts.push(htmlParagraph('💌 Seu cartão:'), htmlCard(cardMessage, cardFrom));
   parts.push(htmlParagraph(close.join('\n')));
 
   sendMail({ to: to, subject: subject, body: body, htmlBody: htmlBodyOf(parts) });
@@ -567,8 +569,8 @@ function sendCoupleReceipt(o) {
   var parts = [htmlParagraph(lines.join('\n'))];
   var body = lines.join('\n');
   if (o.cardMessage) {
-    body += '\n\n💌 Cartão:\n"' + o.cardMessage + '"';
-    parts.push(htmlParagraph('💌 Cartão:'), htmlCard(o.cardMessage, ''));
+    body += '\n\n💌 Cartão' + (o.cardFrom ? ' de ' + o.cardFrom : '') + ':\n"' + o.cardMessage + '"';
+    parts.push(htmlParagraph('💌 Cartão:'), htmlCard(o.cardMessage, o.cardFrom));
   }
   sendMail(replyingTo(o.guestEmail, {
     to: coupleEmailsCsv(),
@@ -578,21 +580,87 @@ function sendCoupleReceipt(o) {
   }));
 }
 
-/** The guest's latest order of this gift (else their latest order), or null. */
+/**
+ * The guest's latest order of this gift (else their latest order), or null.
+ * Read by column position, as appended: the sheet's header row may be missing
+ * names for the payment columns, and a mail must not depend on it.
+ */
 function lastOrderFor(guestId, giftName) {
-  var mine = sheetToObjects(getSheet('Orders')).filter(function(o) {
-    return String(o.guestId) === String(guestId);
+  var rows = getSheet('Orders').getDataRange().getValues().slice(1).filter(function(r) {
+    return String(r[1]) === String(guestId);
   });
-  for (var i = mine.length - 1; i >= 0; i--) {
-    if (String(mine[i].giftName) === String(giftName)) return mine[i];
+  var row = null;
+  for (var i = rows.length - 1; i >= 0 && !row; i--) {
+    if (String(rows[i][5]) === String(giftName)) row = rows[i];
   }
-  return mine.length ? mine[mine.length - 1] : null;
+  row = row || rows[rows.length - 1];
+  if (!row) return null;
+  return {
+    guestId: row[1],
+    guestEmail: String(row[3] || ''),
+    giftName: row[5],
+    totalPrice: row[7],
+    paymentMethod: row[9] === 'paypal' ? 'paypal' : 'pix',
+    currency: row[10] || 'BRL',
+    amountPaid: row[11] === '' || row[11] === undefined ? row[7] : row[11],
+    paymentRef: row[12] || '',
+  };
 }
 
 /**
- * A card a guest writes for the couple after buying a gift. Stored in the
- * Cards tab and mailed to both: to the couple, and a copy to the guest (at
- * the address they gave with the gift) — each with the card in full.
+ * The two mails for a gift, once: the confirmation to the guest (at the
+ * address on their order) and the receipt to the couple — each with the
+ * written card in full, when there is one: card = { message, from }.
+ */
+function mailOrder(order, cotaLabels, card) {
+  var guestRow = handleGetGuest({ id: order.guestId });
+  var paidLabel = formatMoney(order.amountPaid, order.currency);
+  var message = card ? card.message : '';
+  var from = card ? card.from : '';
+  if (order.guestEmail) {
+    sendPurchaseEmail(order.guestEmail, guestRow, order.giftName, cotaLabels, paidLabel, message, from);
+  }
+  sendCoupleReceipt({
+    guestId: order.guestId,
+    groupName: guestRow ? guestRow.groupName : order.guestId,
+    guestEmail: order.guestEmail,
+    giftName: order.giftName,
+    cotaLabels: cotaLabels,
+    totalPrice: order.totalPrice,
+    paymentMethod: order.paymentMethod,
+    paidLabel: paidLabel,
+    paymentRef: order.paymentRef,
+    cardMessage: message,
+    cardFrom: from,
+  });
+}
+
+/** The cota names the site sends along, only ever shown in the mail text. */
+function cleanLabels(labels) {
+  return (Array.isArray(labels) ? labels : []).slice(0, 40).map(function(l) {
+    return String(l).slice(0, 120);
+  });
+}
+
+/** The Cards tab, made (with its header) if the sheet doesn't have one yet. */
+function cardsSheet() {
+  var ss = SpreadsheetApp.openById(requiredProperty('SHEET_ID'));
+  var sheet = ss.getSheetByName('Cards');
+  if (!sheet) {
+    sheet = ss.insertSheet('Cards');
+    sheet.appendRow(['timestamp', 'guestId', 'groupName', 'giftName', 'theme', 'from', 'message']);
+  }
+  return sheet;
+}
+
+/**
+ * A card a guest writes for the couple after buying a gift: stored in the
+ * Cards tab and mailed. With completePurchase (the site holds the gift's
+ * mails until now) it sends them, once each, with the card in full: the
+ * confirmation to the guest and the receipt to the couple. Without it (an
+ * older page already mailed the gift) it sends the card on its own: to the
+ * couple, and a copy to the guest. The address is taken from the guest's own
+ * order, never from the request.
  */
 function handleSubmitCard(body) {
   var guestRow = handleGetGuest({ id: body.guestId });
@@ -602,21 +670,28 @@ function handleSubmitCard(body) {
   var theme = String(body.theme || '').slice(0, 30);
   var giftName = String(body.giftName || '').slice(0, 120);
 
-  getSheet('Cards').appendRow([
-    new Date().toISOString(),
-    body.guestId,
-    groupName,
-    giftName,
-    theme,
-    from,
-    message,
-  ]);
+  // Whatever happens to the sheet, the card still reaches them by mail.
+  try {
+    cardsSheet().appendRow([
+      new Date().toISOString(),
+      body.guestId,
+      groupName,
+      giftName,
+      theme,
+      from,
+      message,
+    ]);
+  } catch (e) {
+    if (typeof console !== 'undefined') console.error('Cards tab: ' + e);
+  }
 
-  // The address and the total come from the order the guest made, never from
-  // the request: a card can't be used to mail anyone else.
   var order = lastOrderFor(body.guestId, giftName);
-  var guestEmail = order ? String(order.guestEmail || '') : '';
+  if (body.completePurchase && order) {
+    mailOrder(order, cleanLabels(body.selectedCotaLabels), { message: message, from: from });
+    return { success: true };
+  }
 
+  var guestEmail = order ? order.guestEmail : '';
   var coupleLines = [
     'Cartão de ' + from + ' (' + groupName + ')',
     'Presente: ' + giftName + (order && order.totalPrice ? ' — ' + formatMoney(order.totalPrice, 'BRL') : ''),
@@ -645,6 +720,14 @@ function handleSubmitCard(body) {
     });
   }
 
+  return { success: true };
+}
+
+/** The guest left without writing a card: the gift's two mails, with none. */
+function handleFinishPurchase(body) {
+  var order = lastOrderFor(body.guestId, String(body.giftName || '').slice(0, 120));
+  if (!order) return { success: false, error: 'Pedido não encontrado.' };
+  mailOrder(order, cleanLabels(body.selectedCotaLabels), null);
   return { success: true };
 }
 

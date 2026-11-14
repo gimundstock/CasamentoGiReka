@@ -30,6 +30,8 @@ export interface SandboxOptions {
   properties?: Record<string, string>
   /** Drive folders by ID, each mapping subfolder names to their files. */
   drive?: Record<string, Record<string, DriveFile[]>>
+  /** The spreadsheet has no Cards tab yet (insertSheet makes it). */
+  noCardsTab?: boolean
   /** Makes every MailApp.sendEmail throw (quota, bad address). */
   mailError?: Error
   /** Answers UrlFetchApp.fetch; defaults to a 404 for every URL. */
@@ -66,6 +68,7 @@ export interface AppsScriptGlobals {
   }
   handleSubmitRSVP: (body: RSVPBody) => { success: boolean }
   handleSubmitCard: (body: CardBody) => { success: boolean }
+  handleFinishPurchase: (body: FinishBody) => { success: boolean; error?: string }
   collectSoldCotaIds: () => Record<string, boolean>
 }
 
@@ -88,6 +91,15 @@ export interface CardBody {
   theme: string
   from: string
   message: string
+  /** The site held the gift's mails: send them now, with the card. */
+  completePurchase?: boolean
+  selectedCotaLabels?: string[]
+}
+
+export interface FinishBody {
+  guestId: string
+  giftName: string
+  selectedCotaLabels?: string[]
 }
 
 export interface PurchaseBody {
@@ -99,6 +111,8 @@ export interface PurchaseBody {
   totalPrice: number
   guestEmail: string
   cardMessage: string
+  /** The site holds the mails until the card step is over. */
+  deferEmail?: boolean
   paymentMethod?: 'pix' | 'paypal'
   paypalOrderId?: string
 }
@@ -152,6 +166,7 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
     ]),
   }
   const sentMail: Sandbox['sentMail'] = []
+  let cardsMissing = !!opts.noCardsTab
   const fetched: Sandbox['fetched'] = []
   const answer = opts.fetch ?? (() => ({ code: 404, body: {} }))
   const properties = opts.properties ?? {
@@ -188,7 +203,12 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
     },
     SpreadsheetApp: {
       openById: () => ({
-        getSheetByName: (name: keyof typeof sheets) => sheets[name],
+        getSheetByName: (name: keyof typeof sheets) =>
+          name === 'Cards' && cardsMissing ? null : sheets[name],
+        insertSheet: (name: keyof typeof sheets) => {
+          if (name === 'Cards') cardsMissing = false
+          return sheets[name]
+        },
       }),
     },
     ContentService: {
