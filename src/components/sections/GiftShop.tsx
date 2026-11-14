@@ -316,7 +316,6 @@ function GiftCard({ gift, index, lang, flipped, onFlip, onOpen, t }: GiftCardPro
   const frontShown = useTransform(rotateY, (r) => (r < 90 ? 'visible' : 'hidden'))
   const backShown = useTransform(rotateY, (r) => (r < 90 ? 'hidden' : 'visible'))
   const isSoldOut = gift.available === 0
-  const isPartial = gift.total > 1 && gift.available < gift.total && !isSoldOut
   const name = lang === 'pt' ? gift.name_pt : gift.name_en
   const description = lang === 'pt' ? gift.description_pt : gift.description_en
   const lowestPrice = Math.min(...gift.cotas.filter((c) => !c.purchased).map((c) => c.price))
@@ -436,14 +435,6 @@ function GiftCard({ gift, index, lang, flipped, onFlip, onOpen, t }: GiftCardPro
                     )}
                     R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
                   </p>
-                  {isPartial && (
-                    <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mt-1">
-                      {t('gifts.partiallyAvailable', {
-                        available: gift.available,
-                        total: gift.total,
-                      })}
-                    </p>
-                  )}
                   <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep mt-2 sm:mt-4">
                     {t(hover ? 'gifts.backHintClick' : 'gifts.backHintTap')}
                   </p>

@@ -132,7 +132,6 @@
     "subtitle": "Sua presença já é o nosso maior presente. Se quiser nos presentear, aqui está nossa lista.",
     "available": "Disponível",
     "soldOut": "Esgotado",
-    "partiallyAvailable": "{{available}} de {{total}} cotas disponíveis",
     "selectCotas": "Selecione as cotas",
     "cotasTitle": "Escolha quantas cotas",
     "totalSelected": "Total: R$ {{amount}}",
