@@ -648,25 +648,25 @@ function emailShell(o) {
 
 /** What the guest gets for their gift: the confirmation (with their card, once written). */
 function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMessage, cardFrom, cardBlob) {
-  var guestName = guest ? guest.groupName : to;
+  // Greeted as the site greets them (displayName, else the group's name).
+  var guestName = guest ? guest.displayName || guest.groupName : to;
   var subject = '🌸 Confirmação do presente — ' + giftName;
 
   var cotaList = cotaLabels.map(function(l) { return '• ' + l; }).join('\n');
 
   var lines = [
-    'Olá, ' + guestName + '!',
-    '',
-    'Obrigado pelo seu presente! Aqui está a confirmação:',
+    guestName + ',',
+    'Recebemos o seu presente, e ficamos muito agradecidos com o carinho. Aqui está a confirmação:',
     '',
     '🎁 Presente: ' + giftName,
     cotaList,
     'Total: ' + totalLabel,
   ];
-  var close = ['Mal podemos esperar para celebrar com você!', '', 'Com carinho,', COUPLE_NAMES];
+  var close = ['Com carinho,', COUPLE_NAMES];
   var body = lines.concat([''], cardMessage ? ['💌 Seu cartão:', '"' + cardMessage + '"' + (cardFrom ? '\n— ' + cardFrom : ''), ''] : [], close).join('\n');
 
   var parts = [
-    htmlParagraph('Olá, ' + guestName + '!\nRecebemos o seu presente, e ficamos muito felizes. Aqui está a confirmação:'),
+    htmlParagraph(guestName + ',\nRecebemos o seu presente, e ficamos muito agradecidos com o carinho. Aqui está a confirmação:'),
     htmlDetails([
       ['Presente', escapeHtml(giftName)],
       ['Cotas', htmlLines(cotaLabels)],
@@ -676,7 +676,6 @@ function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMess
   if (cardMessage) {
     parts.push(htmlLabel('Seu cartão'), cardBlob ? htmlCardImage() : htmlCard(cardMessage, cardFrom));
   }
-  parts.push(htmlParagraph('Mal podemos esperar para celebrar com você!'));
 
   sendMail(withCardImage({
     to: to,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getGuestById, getGuestByName } from '../api/sheets'
@@ -23,9 +23,13 @@ export type GuestState =
   | { status: 'error' }
 
 export function useGuest() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { i18n } = useTranslation()
   const [state, setState] = useState<GuestState>({ status: 'idle' })
+  // Bumped by "not you?": an answer from the backend that was on its way
+  // (the background refresh of a cached guest, a lookup) is then dropped
+  // when it lands, instead of logging the guest back in.
+  const generation = useRef(0)
 
   // On mount: try URL param first, then localStorage. A cached guest shows
   // straight away and is then refreshed from the backend, so what comes from
@@ -58,8 +62,10 @@ export function useGuest() {
       return
     }
 
+    const gen = generation.current
     setState({ status: 'loading' })
     const guest = await getGuestById(id)
+    if (gen !== generation.current) return
     if (guest) {
       setState({ status: 'found', guest })
       persist(guest)
@@ -71,7 +77,9 @@ export function useGuest() {
   /** Re-reads a cached guest in the background; keeps the cache if offline. */
   async function refreshGuest(id: string) {
     if (CONFIG.appScriptUrl === 'PLACEHOLDER_APPS_SCRIPT_URL') return
+    const gen = generation.current
     const guest = await getGuestById(id)
+    if (gen !== generation.current) return
     if (guest) {
       setState({ status: 'found', guest })
       localStorage.setItem(STORAGE_KEY, JSON.stringify(guest))
@@ -87,8 +95,10 @@ export function useGuest() {
       return
     }
 
+    const gen = generation.current
     setState({ status: 'loading' })
     const guest = await getGuestByName(name)
+    if (gen !== generation.current) return
     if (guest) {
       setState({ status: 'found', guest })
       persist(guest)
@@ -102,8 +112,22 @@ export function useGuest() {
     i18n.changeLanguage(guest.language)
   }
 
+  /**
+   * "Not you?": forgets the guest for good — the cache, any answer still on
+   * its way, and the invitation link's ?g= (or a reload would log them back in).
+   */
   function reset() {
+    generation.current++
     localStorage.removeItem(STORAGE_KEY)
+    if (searchParams.has('g')) {
+      setSearchParams(
+        (params) => {
+          params.delete('g')
+          return params
+        },
+        { replace: true }
+      )
+    }
     setState({ status: 'idle' })
   }
 

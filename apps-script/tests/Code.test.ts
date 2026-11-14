@@ -507,6 +507,29 @@ describe('handleSubmitRSVP', () => {
 describe('the mails\' look', () => {
   const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
 
+  it('greets the guest as the site does, and thanks them without assuming they will be there', () => {
+    const named = [
+      [...GUESTS_HEADER, 'displayName'],
+      ['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true, 'Ana e Bruninho'],
+    ]
+    const { app, sentMail } = createSandbox({ guests: named })
+    app.handlePurchaseGift({
+      guestId: 'r01',
+      giftId: 'g1',
+      giftName: 'Jantar',
+      selectedCotaIds: ['c1'],
+      selectedCotaLabels: ['Entrada'],
+      totalPrice: 100,
+      guestEmail: 'ana@example.com',
+      cardMessage: '',
+    })
+    const mail = sentMail[0]
+    expect(mail.body.startsWith('Ana e Bruninho,\nRecebemos o seu presente, e ficamos muito agradecidos com o carinho.')).toBe(true)
+    expect(mail.htmlBody).toContain('Ana e Bruninho,<br>Recebemos o seu presente')
+    expect(mail.body).not.toContain('celebrar com você')
+    expect(mail.htmlBody).not.toContain('celebrar com você')
+  })
+
   it('writes amounts the Brazilian way', () => {
     const { app, sentMail } = createSandbox({ guests })
     app.handlePurchaseGift({
