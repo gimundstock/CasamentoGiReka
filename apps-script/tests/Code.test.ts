@@ -470,29 +470,29 @@ describe('handleSubmitRSVP', () => {
     expect(row[2]).toBe('Ana e Bruno')
     expect(sentMail).toHaveLength(1)
     expect(sentMail[0].subject).toContain('Ana e Bruno')
+    expect(sentMail[0].body).toContain('Vão: Bruno Souza')
     expect(sentMail[0].body).toContain('Samba')
-    expect(sentMail[0].body).toContain('Até lá!')
   })
 
-  it('the couple\'s mail is the site-styled HTML: who goes, who doesn\'t, the song and the message', () => {
+  it('the couple\'s mail is the site-styled HTML: who goes, who doesn\'t and the song', () => {
     const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza, Ana Souza', true])
     const { app, sentMail } = createSandbox({ guests })
     app.handleSubmitRSVP({
       guestId: 'r01',
       attendeesJson: JSON.stringify([
-        { name: 'Bruno Souza', attending: true, menu: 'Peixe' },
-        { name: 'Ana <Souza>', attending: false, menu: '' },
+        { name: 'Bruno Souza', attending: true },
+        { name: 'Ana <Souza>', attending: false },
       ]),
       songRequest: 'Samba',
-      message: 'Até lá!',
+      message: '',
     })
     const html = sentMail[0].htmlBody ?? ''
-    expect(html).toContain('https://giovannaerenato.com.br/email/wreath.jpg')
+    expect(html).toContain('https://giovannaerenato.com.br/email/header.jpg')
     expect(html).toContain('Confirmação de presença')
-    expect(html).toContain('Bruno Souza <span style="color:#8A8A87;">· Peixe</span>')
-    expect(html).toContain('Ana &lt;Souza&gt;')
+    expect(html).toMatch(/Vão<\/td>.*Bruno Souza/)
+    expect(html).toMatch(/Não vão<\/td>.*Ana &lt;Souza&gt;/)
     expect(html).toContain('Samba')
-    expect(html).toContain('Até lá!')
+    expect(sentMail[0].body).toContain('Não vão: Ana <Souza>')
   })
 
   it('a broken attendees list still mails the couple', () => {
@@ -533,8 +533,8 @@ describe('the mails\' look', () => {
       },
     })
     app.handleSubmitRSVP({ guestId: 'r01', attendeesJson: '[]', songRequest: '', message: '' })
-    expect(sentMail[0].htmlBody).toContain('src="https://preview.example/email/wreath.jpg"')
-    expect(sentMail[0].htmlBody).toContain('src="https://preview.example/email/flowers.jpg"')
+    expect(sentMail[0].htmlBody).toContain('src="https://preview.example/email/header.jpg"')
+    expect(sentMail[0].htmlBody).toContain('href="https://preview.example"')
   })
 })
 

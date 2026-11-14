@@ -17,6 +17,7 @@ import {
   CARD_THEMES,
   MessageCard,
   getCardTheme,
+  limitLineBreaks,
   type CardThemeId,
 } from '../gifts/cardThemes'
 import { buildPixPayload } from '../../utils/pix'
@@ -297,7 +298,7 @@ export function GiftShop({ guest }: Props) {
               error: null,
             })
           }
-          onCardMessageChange={(v) => setPurchase({ ...purchase, cardMessage: v })}
+          onCardMessageChange={(v) => setPurchase({ ...purchase, cardMessage: limitLineBreaks(v) })}
           onCardThemeChange={(v) => setPurchase({ ...purchase, cardTheme: v })}
           onCardFromChange={(v) => setPurchase({ ...purchase, cardFrom: v })}
           onSendCard={handleSendCard}

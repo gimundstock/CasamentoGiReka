@@ -21,11 +21,12 @@
 
 ## Emails
 
-Every mail is HTML in the site's look (`emailShell` in `Code.gs`: the wreath with the couple's names,
-the site's colours and fonts with Georgia / Arial behind them for Gmail and Outlook, the little row of
-flowers and the site's address at the foot), with a plain-text version alongside. Its pictures are
-served by the site from `public/email/` (`SITE_URL` Script Property, else https://giovannaerenato.com.br),
-so they show once the site with them is deployed.
+Every mail is HTML in the site's look (`emailShell` in `Code.gs`: a header picture with the couple's
+names in the site's script among the Save the Date's wildflowers, the site's colours and fonts with
+Georgia / Arial behind them for Gmail and Outlook, and the site's address at the foot), with a
+plain-text version alongside. The header is served by the site from `public/email/header.jpg`
+(`SITE_URL` Script Property, else https://giovannaerenato.com.br), so it shows once the site with it
+is deployed. The RSVP mail lists who goes, who doesn't and the song.
 
 One mail each, with the card in it:
 

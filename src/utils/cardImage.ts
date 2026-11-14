@@ -1,10 +1,12 @@
 import {
   CARD_ASPECT,
   MESSAGE_LINE_HEIGHT,
+  MIN_MESSAGE_CQW,
+  SHRINK_STEP,
   SIGNATURE_CQW,
   SIGNATURE_GAP_CQW,
   SIGNATURE_LINE_HEIGHT,
-  messageSize,
+  estimateMessageSize,
   type CardTheme,
 } from '../components/gifts/cardThemes'
 import { wrapText } from './wrapText'
@@ -38,22 +40,35 @@ export async function renderCardImage(
   const areaH = (height * h) / 100
   const cqw = width / 100
 
-  const msgSize = parseFloat(messageSize(message, !!from, w, (h / 100) * (100 / CARD_ASPECT))) * cqw
   const sigSize = SIGNATURE_CQW * cqw
   const fonts = fontFamilies()
-  const msgFont = `${msgSize}px ${fonts.serif}`
   const sigFont = `${sigSize}px ${fonts.display}`
-  await Promise.all([document.fonts.load(msgFont, message), document.fonts.load(sigFont, from)])
+  await Promise.all([
+    document.fonts.load(`${cqw * 2}px ${fonts.serif}`, message),
+    document.fonts.load(sigFont, from),
+  ])
 
   const lineWidth = (font: string) => (s: string) => {
     ctx.font = font
     return ctx.measureText(s).width
   }
-  const lines = wrapText(message, areaW, lineWidth(msgFont))
   const sigLines = from ? wrapText(from, areaW, lineWidth(sigFont)) : []
-  const msgH = lines.length * msgSize * MESSAGE_LINE_HEIGHT
   const sigGap = sigLines.length ? SIGNATURE_GAP_CQW * cqw : 0
   const sigH = sigLines.length * sigSize * SIGNATURE_LINE_HEIGHT
+
+  // As the card on the page: from the estimate, smaller until it fits the area.
+  let sizeCqw = estimateMessageSize(message, !!from, w, (h / 100) * (100 / CARD_ASPECT))
+  let msgSize = sizeCqw * cqw
+  let msgFont = `${msgSize}px ${fonts.serif}`
+  let lines = wrapText(message, areaW, lineWidth(msgFont))
+  let msgH = lines.length * msgSize * MESSAGE_LINE_HEIGHT
+  while (msgH + sigGap + sigH > areaH && sizeCqw > MIN_MESSAGE_CQW) {
+    sizeCqw = Math.max(MIN_MESSAGE_CQW, sizeCqw * SHRINK_STEP)
+    msgSize = sizeCqw * cqw
+    msgFont = `${msgSize}px ${fonts.serif}`
+    lines = wrapText(message, areaW, lineWidth(msgFont))
+    msgH = lines.length * msgSize * MESSAGE_LINE_HEIGHT
+  }
 
   ctx.save()
   // (Like the card on the page, nothing is drawn outside its writing area.)
@@ -61,20 +76,36 @@ export async function renderCardImage(
   ctx.rect(areaX, areaY, areaW, areaH)
   ctx.clip()
   ctx.fillStyle = theme.ink
-  ctx.textBaseline = 'middle'
+  ctx.textBaseline = 'alphabetic'
+
+  // Each line placed as CSS places it in its line box: the font's ascent and
+  // descent centred in the line height, the baseline below the ascent. (A
+  // 'middle' baseline puts a script with tall ascenders, like the name's,
+  // higher than the page does.)
+  const baseline = (font: string, size: number, lineHeight: number) => {
+    ctx.font = font
+    const m = ctx.measureText('Hg')
+    const ascent = m.fontBoundingBoxAscent ?? size * 0.8
+    const descent = m.fontBoundingBoxDescent ?? size * 0.2
+    return (size * lineHeight - (ascent + descent)) / 2 + ascent
+  }
 
   // Centred in the area, the message centred and the name at its lower right.
   let y = areaY + (areaH - msgH - sigGap - sigH) / 2
+  const msgLine = msgSize * MESSAGE_LINE_HEIGHT
+  const msgBase = baseline(msgFont, msgSize, MESSAGE_LINE_HEIGHT)
   ctx.font = msgFont
   ctx.textAlign = 'center'
   lines.forEach((line, i) => {
-    ctx.fillText(line, areaX + areaW / 2, y + (i + 0.5) * msgSize * MESSAGE_LINE_HEIGHT)
+    ctx.fillText(line, areaX + areaW / 2, y + i * msgLine + msgBase)
   })
   y += msgH + sigGap
+  const sigLine = sigSize * SIGNATURE_LINE_HEIGHT
+  const sigBase = baseline(sigFont, sigSize, SIGNATURE_LINE_HEIGHT)
   ctx.font = sigFont
   ctx.textAlign = 'right'
   sigLines.forEach((line, i) => {
-    ctx.fillText(line, areaX + areaW, y + (i + 0.5) * sigSize * SIGNATURE_LINE_HEIGHT)
+    ctx.fillText(line, areaX + areaW, y + i * sigLine + sigBase)
   })
   ctx.restore()
 

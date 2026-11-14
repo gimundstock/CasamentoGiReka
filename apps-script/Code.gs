@@ -511,12 +511,13 @@ function escapeHtml(s) {
 // ── HTML mails, in the site's look ───────────────────────────────────────────
 // Table layout and inline styles, as mail clients need. The site's fonts are
 // asked for (Apple Mail and iOS show them); Gmail and Outlook fall back to
-// Georgia / Arial. The pictures (the wreath, the little row of flowers) are
-// served by the site itself, from public/email/.
+// Georgia / Arial. The header (the couple's names in the site's script among
+// the Save the Date's wildflowers, still) is a picture served by the site
+// itself, from public/email/.
 
 var MAIL = {
-  canvas: '#FBFAF8', // the site's background
-  paper: '#FDFBF6', // the card / modal paper
+  canvas: '#F3EEE7', // around the mail
+  paper: '#FBFAF8', // the site's background (and the header picture's)
   text: '#535351', // the site's text
   heading: '#3D3229',
   accent: '#94651A', // amber for small labels
@@ -604,8 +605,8 @@ function withCardImage(args, blob) {
 }
 
 /**
- * A whole mail: the wreath with the couple's names, a kicker and a title, the
- * content, and the flowers and the site's address at the foot.
+ * A whole mail: the header (the couple's names among wildflowers), a kicker
+ * and a title, the content, and the site's address at the foot.
  * o = { kicker, title, preheader, parts: [html, …] }
  */
 function emailShell(o) {
@@ -623,12 +624,13 @@ function emailShell(o) {
     '<tr><td align="center" style="padding:28px 12px;">' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:' +
     MAIL.paper + ';border:1px solid ' + MAIL.line + ';border-radius:20px;">' +
-    // The wreath, the kicker, the title.
-    '<tr><td align="center" style="padding:30px 32px 6px;">' +
-    '<a href="' + site + '" style="text-decoration:none;"><img src="' + site + '/email/wreath.jpg" width="180" ' +
-    'alt="Giovanna &amp; Renato" style="display:block;width:180px;height:auto;border:0;"></a>' +
+    // The header picture, the kicker, the title.
+    '<tr><td style="padding:0;"><a href="' + site + '" style="text-decoration:none;"><img src="' + site +
+    '/email/header.jpg" width="560" alt="' + escapeHtml(COUPLE_NAMES) + '" style="display:block;width:100%;max-width:560px;' +
+    'height:auto;border:0;border-radius:20px 20px 0 0;"></a></td></tr>' +
+    '<tr><td align="center" style="padding:16px 32px 6px;">' +
     (o.kicker
-      ? '<p style="margin:18px 0 6px;font-family:' + MAIL.sans + ';font-size:11px;letter-spacing:4px;' +
+      ? '<p style="margin:0 0 6px;font-family:' + MAIL.sans + ';font-size:11px;letter-spacing:4px;' +
         'text-transform:uppercase;color:' + MAIL.accent + ';">' + escapeHtml(o.kicker) + '</p>'
       : '') +
     '<h1 style="margin:0;font-family:' + MAIL.serif + ';font-size:30px;font-weight:400;font-style:italic;' +
@@ -636,12 +638,8 @@ function emailShell(o) {
     '</td></tr>' +
     // The content.
     '<tr><td style="padding:22px 36px 8px;">' + o.parts.join('') + '</td></tr>' +
-    // The foot.
-    '<tr><td align="center" style="padding:6px 32px 30px;">' +
-    '<img src="' + site + '/email/flowers.jpg" width="210" alt="" style="display:block;width:210px;height:auto;' +
-    'border:0;margin:0 auto 14px;">' +
-    '<p style="margin:0 0 4px;font-family:' + MAIL.serif + ';font-size:17px;font-style:italic;color:' +
-    MAIL.heading + ';">' + escapeHtml(COUPLE_NAMES) + '</p>' +
+    // The foot: the site's address.
+    '<tr><td align="center" style="padding:14px 32px 28px;">' +
     '<a href="' + site + '" style="font-family:' + MAIL.sans + ';font-size:11px;letter-spacing:3px;' +
     'text-transform:uppercase;color:' + MAIL.accent + ';text-decoration:none;">' + escapeHtml(host) + '</a>' +
     '</td></tr></table></td></tr></table></body></html>'
@@ -993,7 +991,7 @@ function handleSubmitRSVP(body) {
   var going = attendees.filter(function(a) { return a && a.attending; });
   var notGoing = attendees.filter(function(a) { return a && !a.attending; });
   var person = function(a) {
-    return escapeHtml(a.name || '') + (a.menu ? ' <span style="color:#8A8A87;">· ' + escapeHtml(a.menu) + '</span>' : '');
+    return escapeHtml(a.name || '');
   };
 
   sendMail({
@@ -1005,9 +1003,9 @@ function handleSubmitRSVP(body) {
       'Grupo: ' + groupName,
       'ID: ' + guestId,
       '',
-      'Convidados: ' + attendeesJson,
+      'Vão: ' + (going.map(function(a) { return a.name; }).join(', ') || '—'),
+      notGoing.length ? 'Não vão: ' + notGoing.map(function(a) { return a.name; }).join(', ') : '',
       songRequest ? 'Música: ' + songRequest : '',
-      message ? 'Mensagem: ' + message : '',
     ].filter(Boolean).join('\n'),
     htmlBody: emailShell({
       kicker: 'Confirmação de presença',
@@ -1020,7 +1018,7 @@ function handleSubmitRSVP(body) {
           ['Música', escapeHtml(songRequest)],
           ['ID', escapeHtml(guestId)],
         ]),
-      ].concat(message ? [htmlLabel('Mensagem'), htmlCard(message, '')] : []),
+      ],
     }),
   });
 
