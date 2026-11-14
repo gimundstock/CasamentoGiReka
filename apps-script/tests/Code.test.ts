@@ -286,7 +286,7 @@ describe('handlePurchaseGift', () => {
     }
   }
 
-  it('appends an Orders row and emails the guest on success', () => {
+  it('appends an Orders row, confirms to the guest and sends the couple a receipt', () => {
     const { app, sheets, sentMail } = createSandbox({ guests })
     const result = app.handlePurchaseGift(purchase())
     expect(result).toEqual({ success: true })
@@ -296,10 +296,33 @@ describe('handlePurchaseGift', () => {
     expect(row[2]).toBe('Ana e Bruno')
     expect(row[6]).toBe(JSON.stringify(['c1', 'c2']))
     expect(row[7]).toBe(200)
-    expect(sentMail).toHaveLength(1)
-    expect(sentMail[0].to).toBe('guest@example.com')
-    expect(sentMail[0].subject).toContain('Jantar')
-    expect(sentMail[0].body).toContain('Parabéns!')
+    expect(sentMail).toHaveLength(2)
+    const [toGuest, toCouple] = sentMail
+    // The guest's own confirmation, not copied to the couple (they get their own).
+    expect(toGuest.to).toBe('guest@example.com')
+    expect(toGuest.bcc).toBeUndefined()
+    expect(toGuest.subject).toContain('Jantar')
+    expect(toGuest.body).toContain('Parabéns!')
+    expect(toGuest.htmlBody).toContain('Parabéns!')
+    // The couple's receipt: who, what, how much and how it was paid.
+    expect(toCouple.to).toBe('a@example.com,b@example.com')
+    expect(toCouple.replyTo).toBe('guest@example.com')
+    expect(toCouple.subject).toContain('Jantar')
+    expect(toCouple.body).toContain('Ana e Bruno')
+    expect(toCouple.body).toContain('guest@example.com')
+    expect(toCouple.body).toContain('• Entrada')
+    expect(toCouple.body).toContain('R$ 200,00')
+    expect(toCouple.body).toContain('PIX')
+    expect(toCouple.body).toContain('Parabéns!')
+  })
+
+  it('a mail that fails never undoes the recorded purchase', () => {
+    const { app, sheets } = createSandbox({
+      guests,
+      mailError: new Error('Service invoked too many times for one day: email.'),
+    })
+    expect(app.handlePurchaseGift(purchase())).toEqual({ success: true })
+    expect(sheets.Orders.rows).toHaveLength(2)
   })
 
   it('rejects when any selected cota is already sold', () => {
@@ -315,12 +338,15 @@ describe('handlePurchaseGift', () => {
     expect(sentMail).toHaveLength(0)
   })
 
-  it('skips the email when guestEmail is empty', () => {
+  it('without a guest address, only the couple is mailed', () => {
     const { app, sheets, sentMail } = createSandbox({ guests })
     const result = app.handlePurchaseGift(purchase({ guestEmail: '' }))
     expect(result.success).toBe(true)
     expect(sheets.Orders.rows).toHaveLength(2)
-    expect(sentMail).toHaveLength(0)
+    expect(sentMail).toHaveLength(1)
+    expect(sentMail[0].to).toBe('a@example.com,b@example.com')
+    expect(sentMail[0].replyTo).toBeUndefined()
+    expect(sentMail[0].body).toContain('(não informado)')
   })
   it('records a PIX purchase as pix, in BRL', () => {
     const { app, sheets, fetched } = createSandbox({ guests })
@@ -383,7 +409,9 @@ describe('handlePurchaseGift with PayPal', () => {
     expect(row[7]).toBe(200)
     expect(row.slice(9)).toEqual(['paypal', 'EUR', 32, 'CAP123'])
     expect(sentMail[0].to).toBe('payer@example.eu')
-    expect(sentMail[0].body).toContain('€ 32.00')
+    expect(sentMail[0].body).toContain('€ 32,00')
+    expect(sentMail[1].to).toContain('a@example.com')
+    expect(sentMail[1].body).toContain('PayPal, € 32,00 (ref. CAP123)')
   })
 
   it('uses the live API when PAYPAL_ENV is live', () => {
@@ -442,8 +470,71 @@ describe('handleSubmitRSVP', () => {
     expect(row[2]).toBe('Ana e Bruno')
     expect(sentMail).toHaveLength(1)
     expect(sentMail[0].subject).toContain('Ana e Bruno')
+    expect(sentMail[0].body).toContain('Vão: Bruno Souza')
     expect(sentMail[0].body).toContain('Samba')
-    expect(sentMail[0].body).toContain('Até lá!')
+  })
+
+  it('the couple\'s mail is the site-styled HTML: who goes, who doesn\'t and the song', () => {
+    const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza, Ana Souza', true])
+    const { app, sentMail } = createSandbox({ guests })
+    app.handleSubmitRSVP({
+      guestId: 'r01',
+      attendeesJson: JSON.stringify([
+        { name: 'Bruno Souza', attending: true },
+        { name: 'Ana <Souza>', attending: false },
+      ]),
+      songRequest: 'Samba',
+      message: '',
+    })
+    const html = sentMail[0].htmlBody ?? ''
+    expect(html).toContain('https://giovannaerenato.com.br/email/header.jpg')
+    expect(html).toContain('Confirmação de presença')
+    expect(html).toMatch(/Vão<\/td>.*Bruno Souza/)
+    expect(html).toMatch(/Não vão<\/td>.*Ana &lt;Souza&gt;/)
+    expect(html).toContain('Samba')
+    expect(sentMail[0].body).toContain('Não vão: Ana <Souza>')
+  })
+
+  it('a broken attendees list still mails the couple', () => {
+    const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
+    const { app, sentMail } = createSandbox({ guests })
+    app.handleSubmitRSVP({ guestId: 'r01', attendeesJson: 'not json', songRequest: '', message: '' })
+    expect(sentMail).toHaveLength(1)
+    expect(sentMail[0].htmlBody).toContain('Ana e Bruno')
+  })
+})
+
+describe('the mails\' look', () => {
+  const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
+
+  it('writes amounts the Brazilian way', () => {
+    const { app, sentMail } = createSandbox({ guests })
+    app.handlePurchaseGift({
+      guestId: 'r01',
+      giftId: 'g1',
+      giftName: 'Lua de Mel',
+      selectedCotaIds: ['c1'],
+      selectedCotaLabels: ['Hospedagem'],
+      totalPrice: 12300.5,
+      guestEmail: 'ana@example.com',
+      cardMessage: '',
+    })
+    expect(sentMail[0].body).toContain('R$ 12.300,50')
+    expect(sentMail[1].htmlBody).toContain('R$ 12.300,50')
+  })
+
+  it('takes the pictures from SITE_URL when it is set', () => {
+    const { app, sentMail } = createSandbox({
+      guests,
+      properties: {
+        SHEET_ID: 'x',
+        COUPLE_EMAILS: 'a@example.com',
+        SITE_URL: 'https://preview.example/',
+      },
+    })
+    app.handleSubmitRSVP({ guestId: 'r01', attendeesJson: '[]', songRequest: '', message: '' })
+    expect(sentMail[0].htmlBody).toContain('src="https://preview.example/email/header.jpg"')
+    expect(sentMail[0].htmlBody).toContain('href="https://preview.example"')
   })
 })
 
@@ -552,10 +643,185 @@ describe('doGet / doPost entry points', () => {
   })
 })
 
+describe('the gift mails held for the card (deferEmail)', () => {
+  const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
+  const gift = {
+    guestId: 'r01',
+    giftId: 'g1',
+    giftName: 'Jantar',
+    selectedCotaIds: ['c1', 'c2'],
+    selectedCotaLabels: ['Entrada', 'Prato'],
+    totalPrice: 200,
+    guestEmail: 'ana@example.com',
+    cardMessage: '',
+    deferEmail: true,
+  }
+
+  it('purchaseGift records the order and sends nothing yet', () => {
+    const { app, sheets, sentMail } = createSandbox({ guests })
+    expect(app.handlePurchaseGift(gift)).toEqual({ success: true })
+    expect(sheets.Orders.rows).toHaveLength(2)
+    expect(sentMail).toHaveLength(0)
+  })
+
+  it('the card sends them once each, with the card in full', () => {
+    const { app, sentMail } = createSandbox({ guests })
+    app.handlePurchaseGift(gift)
+    app.handleSubmitCard({
+      guestId: 'r01',
+      giftName: 'Jantar',
+      theme: 'cerrado',
+      from: 'Ana e Bruno',
+      message: 'Muito amor!',
+      completePurchase: true,
+      selectedCotaLabels: ['Entrada', 'Prato'],
+    })
+    expect(sentMail).toHaveLength(2)
+    const [toGuest, toCouple] = sentMail
+    expect(toGuest.to).toBe('ana@example.com')
+    expect(toGuest.subject).toContain('Confirmação do presente')
+    expect(toGuest.body).toContain('• Entrada')
+    expect(toGuest.body).toContain('Muito amor!')
+    expect(toGuest.htmlBody).toContain('Muito amor!')
+    expect(toCouple.to).toBe('a@example.com,b@example.com')
+    expect(toCouple.subject).toContain('Presente recebido')
+    expect(toCouple.body).toContain('R$ 200,00')
+    expect(toCouple.body).toContain('Muito amor!')
+    expect(toCouple.replyTo).toBe('ana@example.com')
+  })
+
+  it('skipping the card sends the same two mails, without one', () => {
+    const { app, sentMail } = createSandbox({ guests })
+    app.handlePurchaseGift(gift)
+    const out = app.handleFinishPurchase({
+      guestId: 'r01',
+      giftName: 'Jantar',
+      selectedCotaLabels: ['Entrada', 'Prato'],
+    })
+    expect(out).toEqual({ success: true })
+    expect(sentMail.map((m) => m.to)).toEqual(['ana@example.com', 'a@example.com,b@example.com'])
+    expect(sentMail[0].body).not.toContain('Seu cartão')
+    expect(sentMail[1].body).not.toContain('Cartão')
+  })
+
+  it('a PayPal order is mailed from the order\'s own columns, even with the header names missing', () => {
+    const orders = [
+      ['timestamp', 'guestId', 'groupName', 'guestEmail', 'giftId', 'giftName', 'selectedCotas', 'totalPrice', 'cardMessage'],
+      ['2026-01-01', 'r01', 'Ana e Bruno', 'ana@example.com', 'g1', 'Jantar', '["c1"]', 200, '', 'paypal', 'EUR', 32, 'CAP123'],
+    ]
+    const { app, sentMail } = createSandbox({ guests, orders })
+    app.handleFinishPurchase({ guestId: 'r01', giftName: 'Jantar', selectedCotaLabels: ['Entrada'] })
+    expect(sentMail[0].body).toContain('€ 32,00')
+    expect(sentMail[1].body).toContain('PayPal, € 32,00 (ref. CAP123)')
+  })
+
+  it('finishPurchase without an order of theirs mails nobody', () => {
+    const { app, sentMail } = createSandbox({ guests })
+    expect(app.handleFinishPurchase({ guestId: 'r01', giftName: 'Jantar' }).success).toBe(false)
+    expect(sentMail).toHaveLength(0)
+  })
+
+  it('the card is mailed even when the Cards tab is missing: it is created', () => {
+    const { app, sheets, sentMail } = createSandbox({ guests, noCardsTab: true })
+    app.handlePurchaseGift(gift)
+    app.handleSubmitCard({
+      guestId: 'r01',
+      giftName: 'Jantar',
+      theme: 'cerrado',
+      from: 'Ana',
+      message: 'Oi!',
+      completePurchase: true,
+      selectedCotaLabels: ['Entrada'],
+    })
+    expect(sheets.Cards.rows.at(-1)?.[6]).toBe('Oi!')
+    expect(sheets.Cards.rows.some((r) => r[0] === 'timestamp' && r[6] === 'message')).toBe(true)
+    expect(sentMail).toHaveLength(2)
+  })
+})
+
+
+describe('the card as an image', () => {
+  const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
+  const orders = [
+    ORDERS_HEADER,
+    ['2026-01-01', 'r01', 'Ana e Bruno', 'ana@example.com', 'g1', 'Jantar', '["c1"]', 200, '', 'pix', 'BRL', 200, ''],
+  ]
+  // A JPEG starts FF D8 FF E0.
+  const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]).toString('base64')
+  const card = {
+    guestId: 'r01',
+    giftName: 'Jantar',
+    theme: 'cerrado',
+    from: 'Ana e Bruno',
+    message: 'Muito amor!',
+    completePurchase: true,
+    selectedCotaLabels: ['Entrada'],
+    cardImage: jpeg,
+  }
+
+  it('shows it in both mails and attaches it to them', () => {
+    const { app, sentMail } = createSandbox({ guests, orders })
+    app.handleSubmitCard(card)
+    expect(sentMail).toHaveLength(2)
+    for (const mail of sentMail) {
+      expect(mail.htmlBody).toContain('cid:cartao')
+      expect(mail.inlineImages?.cartao.type).toBe('image/jpeg')
+      expect(mail.attachments).toHaveLength(1)
+      expect(mail.attachments?.[0].name).toBe('Cartão - Ana e Bruno.jpg')
+      expect(mail.attachments?.[0].bytes.slice(0, 2)).toEqual([-1, -40])
+      // The text is still there, for clients that don't show images.
+      expect(mail.body).toContain('Muito amor!')
+    }
+  })
+
+  it('archives it in Drive and records where, in the Cards tab', () => {
+    const { app, sheets, driveFiles } = createSandbox({ guests, orders })
+    app.handleSubmitCard(card)
+    expect(driveFiles).toHaveLength(1)
+    expect(driveFiles[0].folder).toBe('Cartões do casamento')
+    expect(driveFiles[0].name).toMatch(/^\d{4}-\d\d-\d\d \d\dh\d\d - Ana e Bruno - Jantar\.jpg$/)
+    expect(driveFiles[0].bytes.slice(0, 2)).toEqual([-1, -40])
+    expect(sheets.Cards.rows.at(-1)?.[7]).toContain('https://drive.example/')
+  })
+
+  it('Drive refusing never stops the mails', () => {
+    const { app, sheets, sentMail } = createSandbox({
+      guests,
+      orders,
+      driveError: new Error('You do not have permission to call DriveApp.createFolder'),
+    })
+    expect(app.handleSubmitCard(card)).toEqual({ success: true })
+    expect(sentMail).toHaveLength(2)
+    expect(sentMail[0].htmlBody).toContain('cid:cartao')
+    expect(sheets.Cards.rows.at(-1)?.[7]).toBe('')
+  })
+
+  it('takes only a JPEG within the limit: anything else is ignored, the mails carry the text', () => {
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4]).toString('base64')
+    for (const cardImage of [png, 'not base64!', 'A'.repeat(6_000_001)]) {
+      const { app, sentMail, driveFiles } = createSandbox({ guests, orders })
+      app.handleSubmitCard({ ...card, cardImage })
+      expect(sentMail).toHaveLength(2)
+      expect(sentMail[0].inlineImages).toBeUndefined()
+      expect(sentMail[0].attachments).toBeUndefined()
+      expect(sentMail[0].htmlBody).not.toContain('cid:cartao')
+      expect(sentMail[0].body).toContain('Muito amor!')
+      expect(driveFiles).toHaveLength(0)
+    }
+  })
+
+  it('the card sent on its own (older page) carries the image too', () => {
+    const { app, sentMail } = createSandbox({ guests, orders })
+    app.handleSubmitCard({ ...card, completePurchase: false })
+    expect(sentMail).toHaveLength(2)
+    expect(sentMail.every((m) => m.attachments?.length === 1)).toBe(true)
+  })
+})
+
 describe('handleSubmitCard', () => {
   const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
 
-  it('appends a Cards row and notifies the couple', () => {
+  it('appends a Cards row and mails the couple (no order found: only them)', () => {
     const { app, sheets, sentMail } = createSandbox({ guests })
     const result = app.handleSubmitCard({
       guestId: 'r01',
@@ -574,6 +840,51 @@ describe('handleSubmitCard', () => {
     expect(row[6]).toBe('Muito amor!')
     expect(sentMail).toHaveLength(1)
     expect(sentMail[0].body).toContain('Muito amor!')
+  })
+
+  it('mails the card, in full, to the couple and to the guest who gave the gift', () => {
+    const orders = [
+      ORDERS_HEADER,
+      ['2026-01-01', 'r01', 'Ana e Bruno', 'ana@example.com', 'g1', 'Air Fryer', JSON.stringify(['c1']), 380, ''],
+    ]
+    const { app, sentMail } = createSandbox({ guests, orders })
+    app.handleSubmitCard({
+      guestId: 'r01',
+      giftName: 'Air Fryer',
+      theme: 'zelda',
+      from: 'Ana e Bruno',
+      message: 'Muito amor!\nBeijos <3',
+    })
+    expect(sentMail).toHaveLength(2)
+    const [toCouple, toGuest] = sentMail
+    expect(toCouple.to).toBe('a@example.com,b@example.com')
+    expect(toCouple.replyTo).toBe('ana@example.com')
+    expect(toCouple.body).toContain('Muito amor!\nBeijos <3')
+    expect(toCouple.body).toContain('R$ 380,00')
+    expect(toCouple.htmlBody).toContain('Muito amor!<br>Beijos &lt;3')
+    expect(toGuest.to).toBe('ana@example.com')
+    expect(toGuest.subject).toContain('Seu cartão')
+    expect(toGuest.body).toContain('Muito amor!\nBeijos <3')
+    expect(toGuest.body).toContain('Air Fryer')
+    expect(toGuest.htmlBody).toContain('Muito amor!<br>Beijos &lt;3')
+  })
+
+  it('takes the address from the guest\'s own order, never from the request', () => {
+    const orders = [
+      ORDERS_HEADER,
+      ['2026-01-01', 'r01', 'Ana e Bruno', 'ana@example.com', 'g1', 'Air Fryer', JSON.stringify(['c1']), 380, ''],
+      ['2026-01-02', 'r99', 'Outros', 'outros@example.com', 'g2', 'Panela', JSON.stringify(['c2']), 100, ''],
+    ]
+    const { app, sentMail } = createSandbox({ guests, orders })
+    app.handleSubmitCard({
+      guestId: 'r01',
+      giftName: 'Air Fryer',
+      theme: 'up',
+      from: 'Ana',
+      message: 'Oi',
+      guestEmail: 'evil@example.com',
+    } as never)
+    expect(sentMail.map((m) => m.to)).toEqual(['a@example.com,b@example.com', 'ana@example.com'])
   })
 
   it('caps the message at 400 characters', () => {

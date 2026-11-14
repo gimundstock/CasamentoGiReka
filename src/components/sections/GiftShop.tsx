@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react'
 import { animate, motion, useMotionValue, useScroll, useTransform } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { createPortal } from 'react-dom'
 import { QRCode } from 'react-qrcode-logo'
 import { Flower, Petal } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
@@ -10,9 +11,17 @@ import { DeskFlowers } from './passport/DeskFlowers'
 import { RSVP_SCENE_VH } from './RSVP'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
-import { purchaseGift, submitCard } from '../../api/sheets'
-import { CARD_THEMES, MessageCard, getCardTheme, type CardThemeId } from '../gifts/cardThemes'
+import { finishPurchase, purchaseGift, submitCard } from '../../api/sheets'
+import {
+  CARD_ASPECT,
+  CARD_THEMES,
+  MessageCard,
+  getCardTheme,
+  limitLineBreaks,
+  type CardThemeId,
+} from '../gifts/cardThemes'
 import { buildPixPayload } from '../../utils/pix'
+import { renderCardImage } from '../../utils/cardImage'
 import { loadPaypalSdk, paypalEnabled, toEur, totalEur } from '../../utils/paypal'
 import type { Cota, Gift } from '../../types'
 import type { Guest } from '../../types'
@@ -46,9 +55,17 @@ export function GiftShop({ guest }: Props) {
   const lang = i18n.language as 'pt' | 'en'
   const { gifts, loading, markCotasPurchased } = useGifts()
   const [purchase, setPurchase] = useState<PurchaseState | null>(null)
+  // Touch: one polaroid lies turned over at a time; tapping another turns the
+  // first back.
+  const [flippedId, setFlippedId] = useState<string | null>(null)
+  // The gift's two mails are held until the card step is over: sent once, with
+  // the card (handleSendCard), or as they are if the guest skips, closes the
+  // window or leaves the page (flushMail).
+  const mailedRef = useRef(true)
   const reduced = useReducedMotion()
 
   function openGift(gift: Gift) {
+    mailedRef.current = true
     const availableCotas = gift.cotas.filter((c) => !c.purchased)
     if (availableCotas.length === 0) return
 
@@ -112,8 +129,10 @@ export function GiftShop({ guest }: Props) {
         totalPrice: totalAmount(purchase.selectedCotas),
         guestEmail: purchase.email,
         cardMessage: '',
+        deferEmail: true,
       })
       markCotasPurchased(purchase.selectedCotas.map((c) => c.cotaId))
+      mailedRef.current = false // the gift's mails now wait for the card step
       setPurchase({ ...purchase, step: 'card', submitting: false })
     } catch {
       setPurchase({ ...purchase, submitting: false, error: t('gifts.error') })
@@ -137,14 +156,48 @@ export function GiftShop({ guest }: Props) {
         cardMessage: '',
         paymentMethod: 'paypal',
         paypalOrderId: orderId,
+        deferEmail: true,
       })
       if (!res.success) throw new Error(res.error)
       markCotasPurchased(purchase.selectedCotas.map((c) => c.cotaId))
+      mailedRef.current = false
       setPurchase({ ...purchase, step: 'card', paidWith: 'paypal', submitting: false })
     } catch {
       setPurchase({ ...purchase, submitting: false, error: t('gifts.paypalError') })
     }
   }
+
+  // The card step is over without a card: the held mails go out as they are.
+  function flushMail(p: PurchaseState, keepalive = false) {
+    if (mailedRef.current) return
+    mailedRef.current = true
+    finishPurchase(
+      {
+        guestId: guest.guestId,
+        giftName: lang === 'pt' ? p.gift.name_pt : p.gift.name_en,
+        selectedCotaLabels: p.selectedCotas.map((c) => c.label_pt),
+      },
+      keepalive
+    ).catch(() => {})
+  }
+
+  function closeModal() {
+    if (purchase?.step === 'card') flushMail(purchase)
+    setPurchase(null)
+  }
+
+  // Leaving the page on the card step (not just switching apps): same.
+  const onLeaveRef = useRef<() => void>(() => {})
+  useEffect(() => {
+    onLeaveRef.current = () => {
+      if (purchase?.step === 'card') flushMail(purchase, true)
+    }
+  })
+  useEffect(() => {
+    const onLeave = () => onLeaveRef.current()
+    window.addEventListener('pagehide', onLeave)
+    return () => window.removeEventListener('pagehide', onLeave)
+  }, [])
 
   async function handleSendCard() {
     if (!purchase) return
@@ -154,13 +207,24 @@ export function GiftShop({ guest }: Props) {
     }
     setPurchase({ ...purchase, submitting: true, error: null })
     try {
+      // The card as the guest sees it, as a picture for the mails and the
+      // archive; if it can't be drawn, the mails carry the text alone.
+      const image = await renderCardImage(
+        getCardTheme(purchase.cardTheme),
+        purchase.cardMessage,
+        purchase.cardFrom
+      ).catch(() => undefined)
       await submitCard({
         guestId: guest.guestId,
         giftName: lang === 'pt' ? purchase.gift.name_pt : purchase.gift.name_en,
         theme: purchase.cardTheme,
         from: purchase.cardFrom,
         message: purchase.cardMessage,
+        completePurchase: true,
+        selectedCotaLabels: purchase.selectedCotas.map((c) => c.label_pt),
+        image,
       })
+      mailedRef.current = true
       setPurchase({ ...purchase, step: 'success', cardSent: true, submitting: false })
     } catch {
       setPurchase({ ...purchase, submitting: false, error: t('gifts.cardError') })
@@ -199,7 +263,15 @@ export function GiftShop({ guest }: Props) {
             <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-16 lg:gap-y-14">
               {gifts.map((gift, i) => (
                 <div key={gift.giftId}>
-                  <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
+                  <GiftCard
+                    gift={gift}
+                    index={i}
+                    lang={lang}
+                    flipped={flippedId === gift.giftId}
+                    onFlip={() => setFlippedId(gift.giftId)}
+                    onOpen={() => openGift(gift)}
+                    t={t}
+                  />
                 </div>
               ))}
             </div>
@@ -211,7 +283,7 @@ export function GiftShop({ guest }: Props) {
         <GiftModal
           purchase={purchase}
           lang={lang}
-          onClose={() => setPurchase(null)}
+          onClose={closeModal}
           onSetQuantity={setQuantity}
           onProceedToPixFromCotas={() => setPurchase({ ...purchase, step: 'pix' })}
           onProceedToConfirm={() => setPurchase({ ...purchase, step: 'confirm' })}
@@ -226,11 +298,14 @@ export function GiftShop({ guest }: Props) {
               error: null,
             })
           }
-          onCardMessageChange={(v) => setPurchase({ ...purchase, cardMessage: v })}
+          onCardMessageChange={(v) => setPurchase({ ...purchase, cardMessage: limitLineBreaks(v) })}
           onCardThemeChange={(v) => setPurchase({ ...purchase, cardTheme: v })}
           onCardFromChange={(v) => setPurchase({ ...purchase, cardFrom: v })}
           onSendCard={handleSendCard}
-          onSkipCard={() => setPurchase({ ...purchase, step: 'success', error: null })}
+          onSkipCard={() => {
+            flushMail(purchase)
+            setPurchase({ ...purchase, step: 'success', error: null })
+          }}
           onEmailChange={(v) => setPurchase({ ...purchase, email: v })}
           onConfirm={handleConfirm}
           onCopyPix={copyPix}
@@ -271,16 +346,20 @@ interface GiftCardProps {
   gift: Gift
   index: number
   lang: 'pt' | 'en'
+  /** Touch screens: this card is the one turned over (the parent keeps just one). */
+  flipped: boolean
+  onFlip: () => void
   onOpen: () => void
   t: (key: string, opts?: Record<string, unknown>) => string
 }
 
-function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
+function GiftCard({ gift, index, lang, flipped, onFlip, onOpen, t }: GiftCardProps) {
   const [imageFailed, setImageFailed] = useState(!gift.imageUrl)
-  // No hover on touch screens: the first tap turns the polaroid over, the
-  // next one (on its back) opens the gift.
+  // No hover on touch screens: the first tap turns the polaroid over (the
+  // parent turns any other one back), the next one (on its back) opens the gift.
   const [hover] = useState(() => window.matchMedia('(hover: hover)').matches)
-  const [turned, setTurned] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const turned = hover ? hovered : flipped
   // Turned over as the invitation is (RSVP): like a card in the hand, not a
   // sign on a pivot — the turn eases in and out, and on the way the card
   // lifts a little, grows, leans back and swings a few degrees before
@@ -301,13 +380,12 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
   const frontShown = useTransform(rotateY, (r) => (r < 90 ? 'visible' : 'hidden'))
   const backShown = useTransform(rotateY, (r) => (r < 90 ? 'hidden' : 'visible'))
   const isSoldOut = gift.available === 0
-  const isPartial = gift.total > 1 && gift.available < gift.total && !isSoldOut
   const name = lang === 'pt' ? gift.name_pt : gift.name_en
   const description = lang === 'pt' ? gift.description_pt : gift.description_en
   const lowestPrice = Math.min(...gift.cotas.filter((c) => !c.purchased).map((c) => c.price))
 
   const onClick = () => {
-    if (!hover && !turned) return setTurned(true)
+    if (!hover && !flipped) return onFlip()
     if (!isSoldOut) onOpen()
   }
   const face = 'absolute inset-0 rounded-[3px] [backface-visibility:hidden]'
@@ -318,10 +396,10 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
       onClick={onClick}
       // Turned over by hover or keyboard focus (mouse), or by the first tap
       // (touch).
-      onMouseEnter={() => hover && setTurned(true)}
-      onMouseLeave={() => hover && setTurned(false)}
-      onFocus={(e) => hover && e.currentTarget.matches(':focus-visible') && setTurned(true)}
-      onBlur={() => setTurned(false)}
+      onMouseEnter={() => hover && setHovered(true)}
+      onMouseLeave={() => hover && setHovered(false)}
+      onFocus={(e) => hover && e.currentTarget.matches(':focus-visible') && setHovered(true)}
+      onBlur={() => setHovered(false)}
       aria-disabled={isSoldOut}
       aria-label={name}
       className={`group mx-auto block w-full max-w-[14rem] text-left [perspective:1200px] ${
@@ -421,14 +499,6 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
                     )}
                     R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
                   </p>
-                  {isPartial && (
-                    <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-title mt-1">
-                      {t('gifts.partiallyAvailable', {
-                        available: gift.available,
-                        total: gift.total,
-                      })}
-                    </p>
-                  )}
                   <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep mt-2 sm:mt-4">
                     {t(hover ? 'gifts.backHintClick' : 'gifts.backHintTap')}
                   </p>
@@ -492,10 +562,10 @@ function GiftModal(props: ModalProps) {
 
   return (
     <div
+      // (Not closed by a click outside: only by the X, so a stray tap doesn't lose a card.)
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-0 sm:px-4 bg-forest-deep/40 backdrop-blur-sm"
-      onClick={(e) => e.target === e.currentTarget && props.onClose()}
     >
-      <div className="relative bg-peach-light w-full sm:max-w-md rounded-t-3xl sm:rounded-[28px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_rgba(63,96,65,0.25)] border border-sage/30">
+      <div className="relative bg-peach-light w-full sm:max-w-md md:max-w-lg lg:max-w-xl rounded-t-3xl sm:rounded-[28px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_rgba(63,96,65,0.25)] border border-sage/30">
         {/* Paper texture inside modal */}
         <div
           className="absolute inset-0 bg-paper opacity-25 pointer-events-none rounded-t-3xl sm:rounded-[28px]"
@@ -831,12 +901,15 @@ function GiftModal(props: ModalProps) {
               </div>
 
               <div className="mb-4">
-                <MessageCard
+                <ZoomableCard
                   theme={getCardTheme(cardTheme)}
                   message={cardMessage}
                   from={cardFrom}
                   placeholder={t('gifts.cardPlaceholder')}
                 />
+                <p className="mt-1.5 text-center font-sans text-[10px] tracking-[0.3em] uppercase text-title/70">
+                  {t('gifts.cardEnlargeHint')}
+                </p>
               </div>
 
               <div className="space-y-4 mb-5">
@@ -1010,7 +1083,7 @@ function GiftModal(props: ModalProps) {
                     <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-2">
                       {t('gifts.cardSent')}
                     </p>
-                    <MessageCard
+                    <ZoomableCard
                       theme={getCardTheme(cardTheme)}
                       message={cardMessage}
                       from={cardFrom}
@@ -1025,6 +1098,68 @@ function GiftModal(props: ModalProps) {
         </div>
       </div>
     </div>
+  )
+}
+
+// ─── Message card, enlarged ──────────────────────────────────────────────────
+
+/** The card as a button: it opens bigger over the page, for a better preview. */
+function ZoomableCard(props: ComponentProps<typeof MessageCard>) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={t('gifts.cardEnlarge')}
+        className="block w-full cursor-zoom-in"
+      >
+        <MessageCard {...props} />
+      </button>
+      {open &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('gifts.cardEnlarge')}
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-[70] flex cursor-zoom-out items-center justify-center bg-forest-deep/70 p-3 backdrop-blur-sm sm:p-8"
+          >
+            {/* As wide as the screen allows, and no taller than it. */}
+            <div
+              className="w-full"
+              style={{
+                maxWidth: `min(1100px, calc((100dvh - 1.5rem) * ${CARD_ASPECT.toFixed(3)}))`,
+              }}
+            >
+              <MessageCard {...props} />
+            </div>
+            <button
+              type="button"
+              aria-label={t('gifts.close')}
+              className="absolute right-3 top-3 text-peach-light/90 hover:text-peach-light"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>,
+          document.body
+        )}
+    </>
   )
 }
 

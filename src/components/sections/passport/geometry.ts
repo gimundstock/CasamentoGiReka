@@ -552,6 +552,14 @@ export interface PassportGeometry {
   overhang: number
 }
 
+/**
+ * Where the painting is framed when it is wider than the screen (phones): the
+ * point of it, as a fraction of its width, that sits at the screen's centre.
+ * HeroBigDay's CSS (--art-left) and the cover's copy (passportGeometry) must
+ * agree on it, or the painting jumps when the cover takes over.
+ */
+export const ART_CENTER = 0.42
+
 const NAV_H = 72
 const CONTROLS_H = 56
 /** cover.webp's corner radius, as a fraction of its width (measured: 54 / 989). */
@@ -575,7 +583,7 @@ export function passportGeometry(vw: number, vh: number, screenH = vh): Passport
   const artTop = vw >= 768 ? 0.14 * vh : 0.44 * vh
   const artW = Math.max(vw, (vh - artTop) * PAINT_ASPECT)
   const artH = artW / PAINT_ASPECT
-  const artLeft = Math.max(vw - artW, Math.min(vw / 2 - artW * 0.3, 0))
+  const artLeft = Math.max(vw - artW, Math.min(vw / 2 - artW * ART_CENTER, 0))
   const art = { x: artLeft, y: artTop, w: artW, h: artH }
 
   // Book size: the open spread as big as fits under the nav, with room for
