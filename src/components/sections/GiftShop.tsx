@@ -508,7 +508,7 @@ function GiftModal(props: ModalProps) {
       // (Not closed by a click outside: only by the X, so a stray tap doesn't lose a card.)
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-0 sm:px-4 bg-forest-deep/40 backdrop-blur-sm"
     >
-      <div className="relative bg-peach-light w-full sm:max-w-md rounded-t-3xl sm:rounded-[28px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_rgba(63,96,65,0.25)] border border-sage/30">
+      <div className="relative bg-peach-light w-full sm:max-w-md md:max-w-lg lg:max-w-xl rounded-t-3xl sm:rounded-[28px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_rgba(63,96,65,0.25)] border border-sage/30">
         {/* Paper texture inside modal */}
         <div
           className="absolute inset-0 bg-paper opacity-25 pointer-events-none rounded-t-3xl sm:rounded-[28px]"

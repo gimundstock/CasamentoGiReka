@@ -17,7 +17,15 @@
 | Deployment ID | taken from `VITE_APPSCRIPT_URL` (override with `APPSCRIPT_DEPLOYMENT_ID` in `.env.local`) |
 
 `COUPLE_EMAILS` is comma-separated and must mirror `CONFIG.coupleEmails` in
-`src/content.config.ts`. A missing property makes every request return
+`src/content.config.ts`.
+
+## Emails
+
+- **A gift** (`purchaseGift`): a confirmation to the guest (at the address they gave) and a
+  separate receipt to the couple, who get theirs even if the guest left no address.
+- **A card** (`submitCard`, written after the gift): the card in full, to the couple and as a copy to
+  the guest. The address is taken from the guest's own order in the Orders tab, never from the request.
+- A mail that fails (daily quota, a bad address) is logged and never undoes the recorded purchase or card. A missing property makes every request return
 `{ "error": "Missing Script Property: …" }`.
 
 ### PayPal

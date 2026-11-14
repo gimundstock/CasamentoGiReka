@@ -11,7 +11,8 @@
  *   PHOTO_SYNC_TOKEN  a long random string, also a GitHub Actions secret: the
  *                  deploy uses it to list every guest photo and copy them
  *                  into the site (action=photoManifest)
- *   COUPLE_EMAILS  comma-separated addresses that receive RSVP and gift copies
+ *   COUPLE_EMAILS  comma-separated addresses that receive the RSVPs, the gift
+ *                  receipts and the cards
  *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
  *   PAYPAL_CLIENT_ID, PAYPAL_SECRET
  *                  the PayPal REST app's credentials (developer.paypal.com),
@@ -386,9 +387,25 @@ function handlePurchaseGift(body) {
       paymentRef,
     ]);
 
+    // Two mails: the confirmation to whoever gave the gift, and the couple's
+    // own receipt (which they get even if the guest left no address).
+    var cotaLabels = selectedCotaLabels;
+    var paidLabel = formatMoney(amountPaid, currency);
     if (guestEmail) {
-      sendPurchaseEmail(guestEmail, guestRow, giftName, selectedCotaLabels, formatMoney(amountPaid, currency), cardMessage);
+      sendPurchaseEmail(guestEmail, guestRow, giftName, cotaLabels, paidLabel, cardMessage);
     }
+    sendCoupleReceipt({
+      guestId: guestId,
+      groupName: guestRow ? guestRow.groupName : guestId,
+      guestEmail: guestEmail,
+      giftName: giftName,
+      cotaLabels: cotaLabels,
+      totalPrice: totalPrice,
+      paymentMethod: paymentMethod,
+      paidLabel: paidLabel,
+      paymentRef: paymentRef,
+      cardMessage: cardMessage,
+    });
 
     return { success: true };
   } finally {
@@ -456,13 +473,63 @@ function capturePaypalOrder(orderId) {
   };
 }
 
+/**
+ * Mail must never undo what is already recorded: a purchase or a card is in
+ * its sheet by now, so a mail that fails (quota, a bad address) is logged and
+ * the guest still sees it go through.
+ */
+function sendMail(args) {
+  try {
+    MailApp.sendEmail(args);
+  } catch (e) {
+    if (typeof console !== 'undefined') console.error('sendEmail failed: ' + e);
+  }
+}
+
+/** `args` with Reply-To set to the guest's address, so the couple can answer them. */
+function replyingTo(email, args) {
+  if (email) args.replyTo = email;
+  return args;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** A paragraph of plain text as HTML: its lines kept. */
+function htmlParagraph(text) {
+  return '<p style="margin:0 0 12px;">' + escapeHtml(text).replace(/\n/g, '<br>') + '</p>';
+}
+
+/** The written card as a block of its own, for the HTML half of a mail. */
+function htmlCard(message, from) {
+  return (
+    '<div style="margin:16px 0;padding:20px 24px;background:#FBF6EC;border:1px solid #E4D9BF;' +
+    'border-radius:10px;font-family:Georgia,serif;font-size:17px;line-height:1.5;color:#4A4033;">' +
+    escapeHtml(message).replace(/\n/g, '<br>') +
+    (from
+      ? '<div style="margin-top:14px;text-align:right;font-style:italic;">— ' + escapeHtml(from) + '</div>'
+      : '') +
+    '</div>'
+  );
+}
+
+function htmlBodyOf(parts) {
+  return '<div style="font-family:Arial,sans-serif;font-size:15px;color:#333;">' + parts.join('') + '</div>';
+}
+
+/** What the guest gets as soon as the gift is confirmed. */
 function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMessage) {
   var guestName = guest ? guest.groupName : to;
   var subject = '🌸 Confirmação do presente — ' + giftName;
 
   var cotaList = cotaLabels.map(function(l) { return '• ' + l; }).join('\n');
 
-  var body = [
+  var lines = [
     'Olá, ' + guestName + '!',
     '',
     'Obrigado pelo seu presente! Aqui está a confirmação:',
@@ -470,26 +537,62 @@ function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMess
     '🎁 Presente: ' + giftName,
     cotaList,
     'Total: ' + totalLabel,
-    '',
-    cardMessage ? '💌 Seu cartão:\n"' + cardMessage + '"' : '',
-    '',
-    'Mal podemos esperar para celebrar com você!',
-    '',
-    'Com carinho,',
-    COUPLE_NAMES,
-  ].filter(function(l) { return l !== undefined; }).join('\n');
+  ];
+  var close = ['Mal podemos esperar para celebrar com você!', '', 'Com carinho,', COUPLE_NAMES];
+  var body = lines.concat([''], cardMessage ? ['💌 Seu cartão:', '"' + cardMessage + '"', ''] : [], close).join('\n');
 
-  MailApp.sendEmail({
-    to: to,
-    bcc: coupleEmailsCsv(),
-    subject: subject,
+  var parts = [htmlParagraph(lines.join('\n'))];
+  if (cardMessage) parts.push(htmlParagraph('💌 Seu cartão:'), htmlCard(cardMessage, ''));
+  parts.push(htmlParagraph(close.join('\n')));
+
+  sendMail({ to: to, subject: subject, body: body, htmlBody: htmlBodyOf(parts) });
+}
+
+/** The couple's own record of a gift, apart from the guest's confirmation. */
+function sendCoupleReceipt(o) {
+  var pix = o.paymentMethod !== 'paypal';
+  var lines = [
+    'Presente recebido!',
+    '',
+    'De: ' + o.groupName + ' (' + o.guestId + ')',
+    'E-mail: ' + (o.guestEmail || '(não informado)'),
+    '',
+    '🎁 Presente: ' + o.giftName,
+    o.cotaLabels.map(function(l) { return '• ' + l; }).join('\n'),
+    'Total: ' + formatMoney(o.totalPrice, 'BRL'),
+    pix
+      ? 'Pagamento: PIX (o convidado confirmou no site: conferir no extrato)'
+      : 'Pagamento: PayPal, ' + o.paidLabel + (o.paymentRef ? ' (ref. ' + o.paymentRef + ')' : ''),
+  ];
+  var parts = [htmlParagraph(lines.join('\n'))];
+  var body = lines.join('\n');
+  if (o.cardMessage) {
+    body += '\n\n💌 Cartão:\n"' + o.cardMessage + '"';
+    parts.push(htmlParagraph('💌 Cartão:'), htmlCard(o.cardMessage, ''));
+  }
+  sendMail(replyingTo(o.guestEmail, {
+    to: coupleEmailsCsv(),
+    subject: '🎁 Presente recebido — ' + o.giftName + ' (' + o.groupName + ')',
     body: body,
+    htmlBody: htmlBodyOf(parts),
+  }));
+}
+
+/** The guest's latest order of this gift (else their latest order), or null. */
+function lastOrderFor(guestId, giftName) {
+  var mine = sheetToObjects(getSheet('Orders')).filter(function(o) {
+    return String(o.guestId) === String(guestId);
   });
+  for (var i = mine.length - 1; i >= 0; i--) {
+    if (String(mine[i].giftName) === String(giftName)) return mine[i];
+  }
+  return mine.length ? mine[mine.length - 1] : null;
 }
 
 /**
  * A card a guest writes for the couple after buying a gift. Stored in the
- * Cards tab and mailed to the couple.
+ * Cards tab and mailed to both: to the couple, and a copy to the guest (at
+ * the address they gave with the gift) — each with the card in full.
  */
 function handleSubmitCard(body) {
   var guestRow = handleGetGuest({ id: body.guestId });
@@ -509,17 +612,38 @@ function handleSubmitCard(body) {
     message,
   ]);
 
-  MailApp.sendEmail({
+  // The address and the total come from the order the guest made, never from
+  // the request: a card can't be used to mail anyone else.
+  var order = lastOrderFor(body.guestId, giftName);
+  var guestEmail = order ? String(order.guestEmail || '') : '';
+
+  var coupleLines = [
+    'Cartão de ' + from + ' (' + groupName + ')',
+    'Presente: ' + giftName + (order && order.totalPrice ? ' — ' + formatMoney(order.totalPrice, 'BRL') : ''),
+    'E-mail: ' + (guestEmail || '(não informado)'),
+    'Modelo: ' + theme,
+  ];
+  sendMail(replyingTo(guestEmail, {
     to: coupleEmailsCsv(),
     subject: '💌 Novo cartão de ' + from + ' — ' + giftName,
-    body: [
-      'Cartão de ' + from + ' (' + groupName + ')',
-      'Presente: ' + giftName,
-      'Modelo: ' + theme,
+    body: coupleLines.concat(['', '"' + message + '"']).join('\n'),
+    htmlBody: htmlBodyOf([htmlParagraph(coupleLines.join('\n')), htmlCard(message, from)]),
+  }));
+
+  if (guestEmail) {
+    var guestLines = [
+      'Olá, ' + groupName + '!',
       '',
-      '"' + message + '"',
-    ].join('\n'),
-  });
+      'Seu cartão para ' + COUPLE_NAMES + ' foi entregue. Aqui está uma cópia:',
+    ];
+    var close = ['Presente: ' + giftName, '', 'Com carinho,', COUPLE_NAMES];
+    sendMail({
+      to: guestEmail,
+      subject: '💌 Seu cartão para ' + COUPLE_NAMES,
+      body: guestLines.concat(['', '"' + message + '"', '— ' + from, ''], close).join('\n'),
+      htmlBody: htmlBodyOf([htmlParagraph(guestLines.join('\n')), htmlCard(message, from), htmlParagraph(close.join('\n'))]),
+    });
+  }
 
   return { success: true };
 }

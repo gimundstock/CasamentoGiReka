@@ -30,6 +30,8 @@ export interface SandboxOptions {
   properties?: Record<string, string>
   /** Drive folders by ID, each mapping subfolder names to their files. */
   drive?: Record<string, Record<string, DriveFile[]>>
+  /** Makes every MailApp.sendEmail throw (quota, bad address). */
+  mailError?: Error
   /** Answers UrlFetchApp.fetch; defaults to a 404 for every URL. */
   fetch?: (url: string, opts: FetchOptions) => { code: number; body: unknown }
 }
@@ -111,7 +113,14 @@ export interface RSVPBody {
 export interface Sandbox {
   app: AppsScriptGlobals
   sheets: Record<'Guests' | 'RSVPs' | 'Orders' | 'Cards', FakeSheet>
-  sentMail: Array<{ to: string; bcc?: string; subject: string; body: string }>
+  sentMail: Array<{
+    to: string
+    bcc?: string
+    replyTo?: string
+    subject: string
+    body: string
+    htmlBody?: string
+  }>
   fetched: Array<{ url: string; opts: FetchOptions }>
 }
 
@@ -189,7 +198,8 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
       }),
     },
     MailApp: {
-      sendEmail: (args: { to: string; bcc?: string; subject: string; body: string }) => {
+      sendEmail: (args: Sandbox['sentMail'][number]) => {
+        if (opts.mailError) throw opts.mailError
         sentMail.push(args)
       },
     },
