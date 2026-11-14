@@ -32,7 +32,7 @@ export const CARD_THEMES: CardTheme[] = [
     label_en: 'Cerrado',
     image: img('cerrado'),
     ink: '#4A4033',
-    area: { top: 14, height: 44, left: 22, width: 56 },
+    area: { top: 16, height: 49, left: 29, width: 42 },
   },
   {
     id: 'junina',
@@ -62,9 +62,10 @@ export const CARD_THEMES: CardTheme[] = [
     id: 'wow',
     label_pt: 'WoW',
     label_en: 'WoW',
+    // Silvermoon: the paper is clear between the castle's light and the lantern.
     image: img('wow'),
-    ink: '#34405A',
-    area: { top: 14, height: 40, left: 22, width: 56 },
+    ink: '#4A4033',
+    area: { top: 16, height: 47, left: 37, width: 44 },
   },
   {
     id: 'luxembourg',
@@ -96,12 +97,32 @@ export function getCardTheme(id: CardThemeId): CardTheme {
   return CARD_THEMES.find((t) => t.id === id) ?? CARD_THEMES[0]
 }
 
-/** Message size in container-width units, shrinking as the message grows. */
-function messageSize(length: number): string {
-  if (length <= 90) return '3cqw'
-  if (length <= 180) return '2.7cqw'
-  if (length <= 280) return '2.4cqw'
-  return '2.1cqw'
+/** Message sizes, in container-width units, from the biggest down. */
+const SIZES = [3, 2.7, 2.4, 2.1, 1.9, 1.7]
+// How wide an average character of the serif is, in em; line height; the
+// signature's block (its gap, size and line), in container-width units.
+const CHAR_EM = 0.46
+const LINE_HEIGHT = 1.375
+const SIGNATURE_CQW = 2 + 2.4 * 1.25
+
+/**
+ * The message's size in container-width units: shrinking as it grows, and
+ * never so big that it would not fit the theme's writing area (its width and
+ * height in the same units) — whatever was typed, it stays on the paper.
+ */
+function messageSize(message: string, hasName: boolean, areaW: number, areaH: number): string {
+  const byLength =
+    message.length <= 90 ? 3 : message.length <= 180 ? 2.7 : message.length <= 280 ? 2.4 : 2.1
+  const room = areaH - (hasName ? SIGNATURE_CQW : 0)
+  const fits = (size: number) => {
+    const perLine = Math.max(1, Math.floor(areaW / (size * CHAR_EM)))
+    const lines = message
+      .split('\n')
+      .reduce((n, line) => n + Math.max(1, Math.ceil(line.length / perLine)), 0)
+    return lines * size * LINE_HEIGHT <= room
+  }
+  const size = SIZES.find((s) => s <= byLength && fits(s)) ?? SIZES[SIZES.length - 1]
+  return `${size}cqw`
 }
 
 /** The card: the watercolour template with the guest's message written on top. */
@@ -117,6 +138,9 @@ export function MessageCard({
   placeholder?: string
 }) {
   const { top, height, left = 15, width = 70 } = theme.area
+  // The writing area in container-width units (the card is CARD_ASPECT wide for its height).
+  const areaW = width
+  const areaH = (height / 100) * (100 / CARD_ASPECT)
   return (
     <div
       className="relative mx-auto w-full overflow-hidden rounded-lg border border-black/10 shadow-sm"
@@ -143,7 +167,10 @@ export function MessageCard({
             no spaces or line breaks wraps too, it never runs off the paper. */}
         <p
           className="font-serif w-full min-w-0 whitespace-pre-line leading-snug [overflow-wrap:anywhere]"
-          style={{ fontSize: messageSize(message.length), opacity: message ? 1 : 0.5 }}
+          style={{
+            fontSize: messageSize(message || placeholder || '', !!from, areaW, areaH),
+            opacity: message ? 1 : 0.5,
+          }}
         >
           {message || placeholder}
         </p>
