@@ -98,10 +98,10 @@ export function getCardTheme(id: CardThemeId): CardTheme {
 
 /** Message size in container-width units, shrinking as the message grows. */
 function messageSize(length: number): string {
-  if (length <= 90) return '3.9cqw'
-  if (length <= 180) return '3.3cqw'
-  if (length <= 280) return '2.8cqw'
-  return '2.4cqw'
+  if (length <= 90) return '3cqw'
+  if (length <= 180) return '2.7cqw'
+  if (length <= 280) return '2.4cqw'
+  return '2.1cqw'
 }
 
 /** The card: the watercolour template with the guest's message written on top. */
@@ -130,7 +130,7 @@ export function MessageCard({
         className="absolute inset-0 h-full w-full select-none object-cover"
       />
       <div
-        className="absolute flex flex-col items-center justify-center text-center"
+        className="absolute flex min-w-0 flex-col items-center justify-center overflow-hidden text-center"
         style={{
           top: `${top}%`,
           height: `${height}%`,
@@ -139,14 +139,20 @@ export function MessageCard({
           color: theme.ink,
         }}
       >
+        {/* Lines break at the area's width whatever was typed: a long run with
+            no spaces or line breaks wraps too, it never runs off the paper. */}
         <p
-          className="font-serif whitespace-pre-line leading-snug"
+          className="font-serif w-full min-w-0 whitespace-pre-line leading-snug [overflow-wrap:anywhere]"
           style={{ fontSize: messageSize(message.length), opacity: message ? 1 : 0.5 }}
         >
           {message || placeholder}
         </p>
+        {/* The name signs it: small, at the lower right of the text. */}
         {from && (
-          <p className="font-display mt-[2cqw] leading-none" style={{ fontSize: '4.6cqw' }}>
+          <p
+            className="font-display mt-[2cqw] max-w-full self-end text-right leading-[1.25] [overflow-wrap:anywhere]"
+            style={{ fontSize: '2.4cqw' }}
+          >
             {from}
           </p>
         )}

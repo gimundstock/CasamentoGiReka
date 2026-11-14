@@ -158,6 +158,8 @@
     "cotasLeft": "{{count}} disponíveis",
     "removeOne": "Tirar uma cota: {{label}}",
     "addOne": "Adicionar uma cota: {{label}}",
+    "cardEnlarge": "Ampliar o cartão",
+    "cardEnlargeHint": "Toque no cartão para ampliar",
     "noCotas": "Nenhuma cota selecionada",
     "emailRequired": "Por favor, informe seu e-mail",
     "soldOutStamp": "esgotado",

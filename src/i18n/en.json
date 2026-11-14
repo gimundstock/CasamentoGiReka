@@ -154,6 +154,8 @@
     "cotasLeft": "{{count}} left",
     "removeOne": "Remove one share: {{label}}",
     "addOne": "Add one share: {{label}}",
+    "cardEnlarge": "Enlarge the card",
+    "cardEnlargeHint": "Tap the card to enlarge",
     "noCotas": "No shares selected",
     "emailRequired": "Please enter your email",
     "soldOutStamp": "sold out",

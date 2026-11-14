@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react'
 import { animate, motion, useMotionValue, useScroll, useTransform } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { createPortal } from 'react-dom'
 import { QRCode } from 'react-qrcode-logo'
 import { Flower, Petal } from '../botanicals'
 import { Bloom } from '../motion/Bloom'
@@ -11,7 +12,13 @@ import { RSVP_SCENE_VH } from './RSVP'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
 import { purchaseGift, submitCard } from '../../api/sheets'
-import { CARD_THEMES, MessageCard, getCardTheme, type CardThemeId } from '../gifts/cardThemes'
+import {
+  CARD_ASPECT,
+  CARD_THEMES,
+  MessageCard,
+  getCardTheme,
+  type CardThemeId,
+} from '../gifts/cardThemes'
 import { buildPixPayload } from '../../utils/pix'
 import { loadPaypalSdk, paypalEnabled, toEur, totalEur } from '../../utils/paypal'
 import type { Cota, Gift } from '../../types'
@@ -498,8 +505,8 @@ function GiftModal(props: ModalProps) {
 
   return (
     <div
+      // (Not closed by a click outside: only by the X, so a stray tap doesn't lose a card.)
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-0 sm:px-4 bg-forest-deep/40 backdrop-blur-sm"
-      onClick={(e) => e.target === e.currentTarget && props.onClose()}
     >
       <div className="relative bg-peach-light w-full sm:max-w-md rounded-t-3xl sm:rounded-[28px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_rgba(63,96,65,0.25)] border border-sage/30">
         {/* Paper texture inside modal */}
@@ -837,12 +844,15 @@ function GiftModal(props: ModalProps) {
               </div>
 
               <div className="mb-4">
-                <MessageCard
+                <ZoomableCard
                   theme={getCardTheme(cardTheme)}
                   message={cardMessage}
                   from={cardFrom}
                   placeholder={t('gifts.cardPlaceholder')}
                 />
+                <p className="mt-1.5 text-center font-sans text-[10px] tracking-[0.3em] uppercase text-title/70">
+                  {t('gifts.cardEnlargeHint')}
+                </p>
               </div>
 
               <div className="space-y-4 mb-5">
@@ -1016,7 +1026,7 @@ function GiftModal(props: ModalProps) {
                     <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-2">
                       {t('gifts.cardSent')}
                     </p>
-                    <MessageCard
+                    <ZoomableCard
                       theme={getCardTheme(cardTheme)}
                       message={cardMessage}
                       from={cardFrom}
@@ -1031,6 +1041,68 @@ function GiftModal(props: ModalProps) {
         </div>
       </div>
     </div>
+  )
+}
+
+// ─── Message card, enlarged ──────────────────────────────────────────────────
+
+/** The card as a button: it opens bigger over the page, for a better preview. */
+function ZoomableCard(props: ComponentProps<typeof MessageCard>) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={t('gifts.cardEnlarge')}
+        className="block w-full cursor-zoom-in"
+      >
+        <MessageCard {...props} />
+      </button>
+      {open &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('gifts.cardEnlarge')}
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-[70] flex cursor-zoom-out items-center justify-center bg-forest-deep/70 p-3 backdrop-blur-sm sm:p-8"
+          >
+            {/* As wide as the screen allows, and no taller than it. */}
+            <div
+              className="w-full"
+              style={{
+                maxWidth: `min(1100px, calc((100dvh - 1.5rem) * ${CARD_ASPECT.toFixed(3)}))`,
+              }}
+            >
+              <MessageCard {...props} />
+            </div>
+            <button
+              type="button"
+              aria-label={t('gifts.close')}
+              className="absolute right-3 top-3 text-peach-light/90 hover:text-peach-light"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>,
+          document.body
+        )}
+    </>
   )
 }
 
