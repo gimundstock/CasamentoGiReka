@@ -21,6 +21,12 @@
 
 ## Emails
 
+Every mail is HTML in the site's look (`emailShell` in `Code.gs`: the wreath with the couple's names,
+the site's colours and fonts with Georgia / Arial behind them for Gmail and Outlook, the little row of
+flowers and the site's address at the foot), with a plain-text version alongside. Its pictures are
+served by the site from `public/email/` (`SITE_URL` Script Property, else https://giovannaerenato.com.br),
+so they show once the site with them is deployed.
+
 One mail each, with the card in it:
 
 - `purchaseGift` records the order. The site sends `deferEmail`, so no mail goes yet (without it, an

@@ -13,6 +13,8 @@
  *                  into the site (action=photoManifest)
  *   COUPLE_EMAILS  comma-separated addresses that receive the RSVPs, the gift
  *                  receipts and the cards
+ *   SITE_URL       (optional) where the mails' pictures are served from (public/email/);
+ *                  else https://giovannaerenato.com.br
  *   CARDS_FOLDER_ID  (optional) Drive folder where the cards' images are archived;
  *                  else a "Cartões do casamento" folder is made in the owner's Drive
  *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
@@ -419,7 +421,9 @@ function handlePurchaseGift(body) {
 
 function formatMoney(amount, currency) {
   var symbol = currency === 'BRL' ? 'R$' : currency === 'EUR' ? '€' : currency;
-  return symbol + ' ' + Number(amount).toFixed(2);
+  // Written the Brazilian way: 2.300,00.
+  var parts = Number(amount).toFixed(2).split('.');
+  return symbol + ' ' + parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + parts[1];
 }
 
 function paypalBaseUrl() {
@@ -504,16 +508,76 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
-/** A paragraph of plain text as HTML: its lines kept. */
-function htmlParagraph(text) {
-  return '<p style="margin:0 0 12px;">' + escapeHtml(text).replace(/\n/g, '<br>') + '</p>';
+// ── HTML mails, in the site's look ───────────────────────────────────────────
+// Table layout and inline styles, as mail clients need. The site's fonts are
+// asked for (Apple Mail and iOS show them); Gmail and Outlook fall back to
+// Georgia / Arial. The pictures (the wreath, the little row of flowers) are
+// served by the site itself, from public/email/.
+
+var MAIL = {
+  canvas: '#FBFAF8', // the site's background
+  paper: '#FDFBF6', // the card / modal paper
+  text: '#535351', // the site's text
+  heading: '#3D3229',
+  accent: '#94651A', // amber for small labels
+  line: '#E7DCC9',
+  serif: "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+  sans: "Jost, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+};
+
+/** The site's address (SITE_URL Script Property, else the wedding domain), no trailing slash. */
+function siteUrl() {
+  var url = PropertiesService.getScriptProperties().getProperty('SITE_URL');
+  return String(url || 'https://giovannaerenato.com.br').replace(/\/+$/, '');
 }
 
-/** The written card as a block of its own, for the HTML half of a mail. */
+/** A paragraph of plain text: its lines kept. */
+function htmlParagraph(text) {
+  return (
+    '<p style="margin:0 0 14px;font-family:' + MAIL.serif + ';font-size:18px;line-height:1.55;color:' +
+    MAIL.text + ';">' + escapeHtml(text).replace(/\n/g, '<br>') + '</p>'
+  );
+}
+
+/** A small spaced-out capital label, as the site's kickers. */
+function htmlLabel(text) {
+  return (
+    '<p style="margin:22px 0 8px;font-family:' + MAIL.sans + ';font-size:11px;letter-spacing:3px;' +
+    'text-transform:uppercase;color:' + MAIL.accent + ';">' + escapeHtml(text) + '</p>'
+  );
+}
+
+/** Label / value rows, the value as HTML already (escape it first). */
+function htmlDetails(rows) {
+  return (
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 10px;' +
+    'border-top:1px solid ' + MAIL.line + ';">' +
+    rows
+      .filter(function(r) { return r && r[1] !== ''; })
+      .map(function(r) {
+        return (
+          '<tr><td valign="top" style="padding:10px 12px 10px 0;width:110px;border-bottom:1px solid ' + MAIL.line +
+          ';font-family:' + MAIL.sans + ';font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8A8A87;">' +
+          escapeHtml(r[0]) + '</td><td style="padding:9px 0;border-bottom:1px solid ' + MAIL.line +
+          ';font-family:' + MAIL.serif + ';font-size:17px;line-height:1.45;color:' + MAIL.text + ';">' + r[1] +
+          '</td></tr>'
+        );
+      })
+      .join('') +
+    '</table>'
+  );
+}
+
+/** Lines of text as escaped HTML, one per line. */
+function htmlLines(lines) {
+  return lines.map(escapeHtml).join('<br>');
+}
+
+/** The written card as a block of its own (no picture of it). */
 function htmlCard(message, from) {
   return (
-    '<div style="margin:16px 0;padding:20px 24px;background:#FBF6EC;border:1px solid #E4D9BF;' +
-    'border-radius:10px;font-family:Georgia,serif;font-size:17px;line-height:1.5;color:#4A4033;">' +
+    '<div style="margin:8px 0 16px;padding:22px 26px;background:#FFF4E8;border:1px solid ' + MAIL.line + ';' +
+    'border-radius:12px;font-family:' + MAIL.serif + ';font-size:18px;line-height:1.55;color:' + MAIL.text + ';">' +
     escapeHtml(message).replace(/\n/g, '<br>') +
     (from
       ? '<div style="margin-top:14px;text-align:right;font-style:italic;">— ' + escapeHtml(from) + '</div>'
@@ -524,7 +588,10 @@ function htmlCard(message, from) {
 
 /** The card as the picture the guest made on the site, embedded (cid:cartao). */
 function htmlCardImage() {
-  return '<p style="margin:16px 0;"><img src="cid:cartao" alt="Cartão" style="max-width:100%;border-radius:10px;border:1px solid #E4D9BF;"></p>';
+  return (
+    '<p style="margin:8px 0 16px;"><img src="cid:cartao" alt="Cartão" width="488" style="display:block;' +
+    'width:100%;max-width:488px;height:auto;border-radius:12px;border:1px solid ' + MAIL.line + ';"></p>'
+  );
 }
 
 /** The card's image, shown in the mail and attached to it, when there is one. */
@@ -536,11 +603,52 @@ function withCardImage(args, blob) {
   return args;
 }
 
-function htmlBodyOf(parts) {
-  return '<div style="font-family:Arial,sans-serif;font-size:15px;color:#333;">' + parts.join('') + '</div>';
+/**
+ * A whole mail: the wreath with the couple's names, a kicker and a title, the
+ * content, and the flowers and the site's address at the foot.
+ * o = { kicker, title, preheader, parts: [html, …] }
+ */
+function emailShell(o) {
+  var site = siteUrl();
+  var host = site.replace(/^https?:\/\//, '');
+  return (
+    '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400' +
+    '&family=Jost:wght@400;500&display=swap" rel="stylesheet"></head>' +
+    '<body style="margin:0;padding:0;background:' + MAIL.canvas + ';">' +
+    // What the inbox shows next to the subject.
+    '<div style="display:none;max-height:0;overflow:hidden;opacity:0;">' + escapeHtml(o.preheader || '') + '</div>' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' + MAIL.canvas + ';">' +
+    '<tr><td align="center" style="padding:28px 12px;">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:' +
+    MAIL.paper + ';border:1px solid ' + MAIL.line + ';border-radius:20px;">' +
+    // The wreath, the kicker, the title.
+    '<tr><td align="center" style="padding:30px 32px 6px;">' +
+    '<a href="' + site + '" style="text-decoration:none;"><img src="' + site + '/email/wreath.jpg" width="180" ' +
+    'alt="Giovanna &amp; Renato" style="display:block;width:180px;height:auto;border:0;"></a>' +
+    (o.kicker
+      ? '<p style="margin:18px 0 6px;font-family:' + MAIL.sans + ';font-size:11px;letter-spacing:4px;' +
+        'text-transform:uppercase;color:' + MAIL.accent + ';">' + escapeHtml(o.kicker) + '</p>'
+      : '') +
+    '<h1 style="margin:0;font-family:' + MAIL.serif + ';font-size:30px;font-weight:400;font-style:italic;' +
+    'line-height:1.2;color:' + MAIL.heading + ';">' + escapeHtml(o.title) + '</h1>' +
+    '</td></tr>' +
+    // The content.
+    '<tr><td style="padding:22px 36px 8px;">' + o.parts.join('') + '</td></tr>' +
+    // The foot.
+    '<tr><td align="center" style="padding:6px 32px 30px;">' +
+    '<img src="' + site + '/email/flowers.jpg" width="210" alt="" style="display:block;width:210px;height:auto;' +
+    'border:0;margin:0 auto 14px;">' +
+    '<p style="margin:0 0 4px;font-family:' + MAIL.serif + ';font-size:17px;font-style:italic;color:' +
+    MAIL.heading + ';">' + escapeHtml(COUPLE_NAMES) + '</p>' +
+    '<a href="' + site + '" style="font-family:' + MAIL.sans + ';font-size:11px;letter-spacing:3px;' +
+    'text-transform:uppercase;color:' + MAIL.accent + ';text-decoration:none;">' + escapeHtml(host) + '</a>' +
+    '</td></tr></table></td></tr></table></body></html>'
+  );
 }
 
-/** What the guest gets as soon as the gift is confirmed. */
+/** What the guest gets for their gift: the confirmation (with their card, once written). */
 function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMessage, cardFrom, cardBlob) {
   var guestName = guest ? guest.groupName : to;
   var subject = '🌸 Confirmação do presente — ' + giftName;
@@ -559,18 +667,38 @@ function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMess
   var close = ['Mal podemos esperar para celebrar com você!', '', 'Com carinho,', COUPLE_NAMES];
   var body = lines.concat([''], cardMessage ? ['💌 Seu cartão:', '"' + cardMessage + '"' + (cardFrom ? '\n— ' + cardFrom : ''), ''] : [], close).join('\n');
 
-  var parts = [htmlParagraph(lines.join('\n'))];
+  var parts = [
+    htmlParagraph('Olá, ' + guestName + '!\nRecebemos o seu presente, e ficamos muito felizes. Aqui está a confirmação:'),
+    htmlDetails([
+      ['Presente', escapeHtml(giftName)],
+      ['Cotas', htmlLines(cotaLabels)],
+      ['Total', escapeHtml(totalLabel)],
+    ]),
+  ];
   if (cardMessage) {
-    parts.push(htmlParagraph('💌 Seu cartão:'), cardBlob ? htmlCardImage() : htmlCard(cardMessage, cardFrom));
+    parts.push(htmlLabel('Seu cartão'), cardBlob ? htmlCardImage() : htmlCard(cardMessage, cardFrom));
   }
-  parts.push(htmlParagraph(close.join('\n')));
+  parts.push(htmlParagraph('Mal podemos esperar para celebrar com você!'));
 
-  sendMail(withCardImage({ to: to, subject: subject, body: body, htmlBody: htmlBodyOf(parts) }, cardBlob));
+  sendMail(withCardImage({
+    to: to,
+    subject: subject,
+    body: body,
+    htmlBody: emailShell({
+      kicker: 'Presente confirmado',
+      title: 'Obrigado pelo carinho!',
+      preheader: giftName + ' — ' + totalLabel,
+      parts: parts,
+    }),
+  }, cardBlob));
 }
 
 /** The couple's own record of a gift, apart from the guest's confirmation. */
 function sendCoupleReceipt(o) {
   var pix = o.paymentMethod !== 'paypal';
+  var payment = pix
+    ? 'PIX (o convidado confirmou no site: conferir no extrato)'
+    : 'PayPal, ' + o.paidLabel + (o.paymentRef ? ' (ref. ' + o.paymentRef + ')' : '');
   var lines = [
     'Presente recebido!',
     '',
@@ -580,21 +708,33 @@ function sendCoupleReceipt(o) {
     '🎁 Presente: ' + o.giftName,
     o.cotaLabels.map(function(l) { return '• ' + l; }).join('\n'),
     'Total: ' + formatMoney(o.totalPrice, 'BRL'),
-    pix
-      ? 'Pagamento: PIX (o convidado confirmou no site: conferir no extrato)'
-      : 'Pagamento: PayPal, ' + o.paidLabel + (o.paymentRef ? ' (ref. ' + o.paymentRef + ')' : ''),
+    'Pagamento: ' + payment,
   ];
-  var parts = [htmlParagraph(lines.join('\n'))];
   var body = lines.join('\n');
+  var parts = [
+    htmlDetails([
+      ['De', escapeHtml(o.groupName) + ' <span style="color:#8A8A87;">(' + escapeHtml(o.guestId) + ')</span>'],
+      ['E-mail', escapeHtml(o.guestEmail || '(não informado)')],
+      ['Presente', escapeHtml(o.giftName)],
+      ['Cotas', htmlLines(o.cotaLabels)],
+      ['Total', escapeHtml(formatMoney(o.totalPrice, 'BRL'))],
+      ['Pagamento', escapeHtml(payment)],
+    ]),
+  ];
   if (o.cardMessage) {
     body += '\n\n💌 Cartão' + (o.cardFrom ? ' de ' + o.cardFrom : '') + ':\n"' + o.cardMessage + '"';
-    parts.push(htmlParagraph('💌 Cartão:'), o.cardBlob ? htmlCardImage() : htmlCard(o.cardMessage, o.cardFrom));
+    parts.push(htmlLabel('Cartão' + (o.cardFrom ? ' de ' + o.cardFrom : '')), o.cardBlob ? htmlCardImage() : htmlCard(o.cardMessage, o.cardFrom));
   }
   sendMail(withCardImage(replyingTo(o.guestEmail, {
     to: coupleEmailsCsv(),
     subject: '🎁 Presente recebido — ' + o.giftName + ' (' + o.groupName + ')',
     body: body,
-    htmlBody: htmlBodyOf(parts),
+    htmlBody: emailShell({
+      kicker: 'Presente recebido',
+      title: o.giftName,
+      preheader: o.groupName + ' — ' + formatMoney(o.totalPrice, 'BRL'),
+      parts: parts,
+    }),
   }), o.cardBlob));
 }
 
@@ -774,7 +914,19 @@ function handleSubmitCard(body) {
     to: coupleEmailsCsv(),
     subject: '💌 Novo cartão de ' + from + ' — ' + giftName,
     body: coupleLines.concat(['', '"' + message + '"']).join('\n'),
-    htmlBody: htmlBodyOf([htmlParagraph(coupleLines.join('\n')), blob ? htmlCardImage() : htmlCard(message, from)]),
+    htmlBody: emailShell({
+      kicker: 'Novo cartão',
+      title: 'Cartão de ' + from,
+      preheader: giftName,
+      parts: [
+        htmlDetails([
+          ['De', escapeHtml(groupName)],
+          ['Presente', escapeHtml(giftName) + (order && order.totalPrice ? ' — ' + escapeHtml(formatMoney(order.totalPrice, 'BRL')) : '')],
+          ['E-mail', escapeHtml(guestEmail || '(não informado)')],
+        ]),
+        blob ? htmlCardImage() : htmlCard(message, from),
+      ],
+    }),
   }), blob));
 
   if (guestEmail) {
@@ -788,7 +940,16 @@ function handleSubmitCard(body) {
       to: guestEmail,
       subject: '💌 Seu cartão para ' + COUPLE_NAMES,
       body: guestLines.concat(['', '"' + message + '"', '— ' + from, ''], close).join('\n'),
-      htmlBody: htmlBodyOf([htmlParagraph(guestLines.join('\n')), blob ? htmlCardImage() : htmlCard(message, from), htmlParagraph(close.join('\n'))]),
+      htmlBody: emailShell({
+        kicker: 'Cartão entregue',
+        title: 'Seu cartão chegou!',
+        preheader: giftName,
+        parts: [
+          htmlParagraph('Olá, ' + groupName + '!\nSeu cartão para ' + COUPLE_NAMES + ' foi entregue. Aqui está uma cópia:'),
+          blob ? htmlCardImage() : htmlCard(message, from),
+          htmlDetails([['Presente', escapeHtml(giftName)]]),
+        ],
+      }),
     }, blob));
   }
 
@@ -822,7 +983,20 @@ function handleSubmitRSVP(body) {
     message,
   ]);
 
-  MailApp.sendEmail({
+  var attendees = [];
+  try {
+    attendees = JSON.parse(attendeesJson || '[]');
+  } catch (e) {
+    attendees = [];
+  }
+  if (!Array.isArray(attendees)) attendees = [];
+  var going = attendees.filter(function(a) { return a && a.attending; });
+  var notGoing = attendees.filter(function(a) { return a && !a.attending; });
+  var person = function(a) {
+    return escapeHtml(a.name || '') + (a.menu ? ' <span style="color:#8A8A87;">· ' + escapeHtml(a.menu) + '</span>' : '');
+  };
+
+  sendMail({
     to: coupleEmailsCsv(),
     subject: '✅ RSVP recebido — ' + groupName,
     body: [
@@ -835,6 +1009,19 @@ function handleSubmitRSVP(body) {
       songRequest ? 'Música: ' + songRequest : '',
       message ? 'Mensagem: ' + message : '',
     ].filter(Boolean).join('\n'),
+    htmlBody: emailShell({
+      kicker: 'Confirmação de presença',
+      title: groupName,
+      preheader: going.length + ' vão, ' + notGoing.length + ' não vão',
+      parts: [
+        htmlDetails([
+          ['Vão', going.map(person).join('<br>') || '—'],
+          ['Não vão', notGoing.map(person).join('<br>')],
+          ['Música', escapeHtml(songRequest)],
+          ['ID', escapeHtml(guestId)],
+        ]),
+      ].concat(message ? [htmlLabel('Mensagem'), htmlCard(message, '')] : []),
+    }),
   });
 
   return { success: true };

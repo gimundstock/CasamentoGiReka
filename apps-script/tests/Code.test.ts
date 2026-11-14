@@ -311,7 +311,7 @@ describe('handlePurchaseGift', () => {
     expect(toCouple.body).toContain('Ana e Bruno')
     expect(toCouple.body).toContain('guest@example.com')
     expect(toCouple.body).toContain('• Entrada')
-    expect(toCouple.body).toContain('R$ 200.00')
+    expect(toCouple.body).toContain('R$ 200,00')
     expect(toCouple.body).toContain('PIX')
     expect(toCouple.body).toContain('Parabéns!')
   })
@@ -409,9 +409,9 @@ describe('handlePurchaseGift with PayPal', () => {
     expect(row[7]).toBe(200)
     expect(row.slice(9)).toEqual(['paypal', 'EUR', 32, 'CAP123'])
     expect(sentMail[0].to).toBe('payer@example.eu')
-    expect(sentMail[0].body).toContain('€ 32.00')
+    expect(sentMail[0].body).toContain('€ 32,00')
     expect(sentMail[1].to).toContain('a@example.com')
-    expect(sentMail[1].body).toContain('PayPal, € 32.00 (ref. CAP123)')
+    expect(sentMail[1].body).toContain('PayPal, € 32,00 (ref. CAP123)')
   })
 
   it('uses the live API when PAYPAL_ENV is live', () => {
@@ -472,6 +472,69 @@ describe('handleSubmitRSVP', () => {
     expect(sentMail[0].subject).toContain('Ana e Bruno')
     expect(sentMail[0].body).toContain('Samba')
     expect(sentMail[0].body).toContain('Até lá!')
+  })
+
+  it('the couple\'s mail is the site-styled HTML: who goes, who doesn\'t, the song and the message', () => {
+    const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza, Ana Souza', true])
+    const { app, sentMail } = createSandbox({ guests })
+    app.handleSubmitRSVP({
+      guestId: 'r01',
+      attendeesJson: JSON.stringify([
+        { name: 'Bruno Souza', attending: true, menu: 'Peixe' },
+        { name: 'Ana <Souza>', attending: false, menu: '' },
+      ]),
+      songRequest: 'Samba',
+      message: 'Até lá!',
+    })
+    const html = sentMail[0].htmlBody ?? ''
+    expect(html).toContain('https://giovannaerenato.com.br/email/wreath.jpg')
+    expect(html).toContain('Confirmação de presença')
+    expect(html).toContain('Bruno Souza <span style="color:#8A8A87;">· Peixe</span>')
+    expect(html).toContain('Ana &lt;Souza&gt;')
+    expect(html).toContain('Samba')
+    expect(html).toContain('Até lá!')
+  })
+
+  it('a broken attendees list still mails the couple', () => {
+    const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
+    const { app, sentMail } = createSandbox({ guests })
+    app.handleSubmitRSVP({ guestId: 'r01', attendeesJson: 'not json', songRequest: '', message: '' })
+    expect(sentMail).toHaveLength(1)
+    expect(sentMail[0].htmlBody).toContain('Ana e Bruno')
+  })
+})
+
+describe('the mails\' look', () => {
+  const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
+
+  it('writes amounts the Brazilian way', () => {
+    const { app, sentMail } = createSandbox({ guests })
+    app.handlePurchaseGift({
+      guestId: 'r01',
+      giftId: 'g1',
+      giftName: 'Lua de Mel',
+      selectedCotaIds: ['c1'],
+      selectedCotaLabels: ['Hospedagem'],
+      totalPrice: 12300.5,
+      guestEmail: 'ana@example.com',
+      cardMessage: '',
+    })
+    expect(sentMail[0].body).toContain('R$ 12.300,50')
+    expect(sentMail[1].htmlBody).toContain('R$ 12.300,50')
+  })
+
+  it('takes the pictures from SITE_URL when it is set', () => {
+    const { app, sentMail } = createSandbox({
+      guests,
+      properties: {
+        SHEET_ID: 'x',
+        COUPLE_EMAILS: 'a@example.com',
+        SITE_URL: 'https://preview.example/',
+      },
+    })
+    app.handleSubmitRSVP({ guestId: 'r01', attendeesJson: '[]', songRequest: '', message: '' })
+    expect(sentMail[0].htmlBody).toContain('src="https://preview.example/email/wreath.jpg"')
+    expect(sentMail[0].htmlBody).toContain('src="https://preview.example/email/flowers.jpg"')
   })
 })
 
@@ -622,7 +685,7 @@ describe('the gift mails held for the card (deferEmail)', () => {
     expect(toGuest.htmlBody).toContain('Muito amor!')
     expect(toCouple.to).toBe('a@example.com,b@example.com')
     expect(toCouple.subject).toContain('Presente recebido')
-    expect(toCouple.body).toContain('R$ 200.00')
+    expect(toCouple.body).toContain('R$ 200,00')
     expect(toCouple.body).toContain('Muito amor!')
     expect(toCouple.replyTo).toBe('ana@example.com')
   })
@@ -648,8 +711,8 @@ describe('the gift mails held for the card (deferEmail)', () => {
     ]
     const { app, sentMail } = createSandbox({ guests, orders })
     app.handleFinishPurchase({ guestId: 'r01', giftName: 'Jantar', selectedCotaLabels: ['Entrada'] })
-    expect(sentMail[0].body).toContain('€ 32.00')
-    expect(sentMail[1].body).toContain('PayPal, € 32.00 (ref. CAP123)')
+    expect(sentMail[0].body).toContain('€ 32,00')
+    expect(sentMail[1].body).toContain('PayPal, € 32,00 (ref. CAP123)')
   })
 
   it('finishPurchase without an order of theirs mails nobody', () => {
@@ -797,7 +860,7 @@ describe('handleSubmitCard', () => {
     expect(toCouple.to).toBe('a@example.com,b@example.com')
     expect(toCouple.replyTo).toBe('ana@example.com')
     expect(toCouple.body).toContain('Muito amor!\nBeijos <3')
-    expect(toCouple.body).toContain('R$ 380.00')
+    expect(toCouple.body).toContain('R$ 380,00')
     expect(toCouple.htmlBody).toContain('Muito amor!<br>Beijos &lt;3')
     expect(toGuest.to).toBe('ana@example.com')
     expect(toGuest.subject).toContain('Seu cartão')
