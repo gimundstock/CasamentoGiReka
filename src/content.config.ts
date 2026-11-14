@@ -263,7 +263,7 @@ export const CONFIG = {
         priceRange: 'R$ 220–340',
         priceRange_en: '~€35–55',
         url: '',
-        address: 'Av. Eixo Sul, Lote 6 — Lago Sul (próximo ao BSB)',
+        address: 'Av. Eixo Sul, Lote 6 — Lago Sul',
       },
       {
         name: 'Brasília Palace Hotel',

@@ -36,6 +36,11 @@ interface Props {
   style?: CSSProperties
 }
 
+/** A sideways drag this long (px) turns the page. */
+const SWIPE_PX = 40
+/** The library's own flick: a swipe within this many ms (its swipeTimeout) is its. */
+const FLICK_MS = 250
+
 type Render = {
   drawFrame: () => void
   update: () => void
@@ -232,11 +237,7 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
     pfRef.current = pf
     // A click or a tap on a page turns it (left half back, right half on),
     // unless it lands on a link or a button in the page.
-    const onClick = (e: MouseEvent) => {
-      if (pf.getState() !== 'read') return
-      if ((e.target as HTMLElement).closest('a, button')) return
-      const r = host.getBoundingClientRect()
-      const back = e.clientX - r.left < r.width / 2
+    const turn = (back: boolean) => {
       const step = portrait ? 1 : 2
       const to = pf.getCurrentPageIndex() + (back ? -step : step)
       if (to >= 0 && to < count) onTurnRef.current?.(to)
@@ -244,9 +245,50 @@ export const FlipBook = forwardRef<FlipBookHandle, Props>(function FlipBook(
       if (back) pf.flipPrev()
       else pf.flipNext()
     }
+    const onClick = (e: MouseEvent) => {
+      if (pf.getState() !== 'read') return
+      if ((e.target as HTMLElement).closest('a, button')) return
+      const r = host.getBoundingClientRect()
+      turn(e.clientX - r.left < r.width / 2)
+    }
     host.addEventListener('click', onClick)
+
+    // A drag across the page, at any speed. The library decides a swipe when
+    // the finger lifts, and only if the whole gesture took under its
+    // swipeTimeout (a flick), or else follows a curl dragged from a corner:
+    // a finger that moves at its own pace turned nothing. This takes those
+    // the library leaves: mostly sideways, long enough, slower than a flick,
+    // and not a curl being dragged (the book is then no longer at rest).
+    // Vertical drags are the page's scroll: left alone.
+    let drag: { x: number; y: number; t: number } | null = null
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0]
+      drag = e.touches.length === 1 && t ? { x: t.clientX, y: t.clientY, t: Date.now() } : null
+    }
+    const onTouchEnd = (e: TouchEvent) => {
+      const t = e.changedTouches[0]
+      const from = drag
+      drag = null
+      if (!from || !t || pf.getState() !== 'read') return
+      const dx = t.clientX - from.x
+      const dy = t.clientY - from.y
+      if (Date.now() - from.t < FLICK_MS) return // the library's flick
+      if (Math.abs(dx) < SWIPE_PX || Math.abs(dy) > Math.abs(dx) * 0.6) return
+      turn(dx > 0)
+    }
+    const onTouchCancel = () => {
+      drag = null
+    }
+    if (touch) {
+      host.addEventListener('touchstart', onTouchStart, { passive: true })
+      host.addEventListener('touchend', onTouchEnd, { passive: true })
+      host.addEventListener('touchcancel', onTouchCancel, { passive: true })
+    }
     return () => {
       host.removeEventListener('click', onClick)
+      host.removeEventListener('touchstart', onTouchStart)
+      host.removeEventListener('touchend', onTouchEnd)
+      host.removeEventListener('touchcancel', onTouchCancel)
       pf.destroy()
       pfRef.current = null
     }

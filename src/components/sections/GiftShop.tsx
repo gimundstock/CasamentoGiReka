@@ -46,6 +46,9 @@ export function GiftShop({ guest }: Props) {
   const lang = i18n.language as 'pt' | 'en'
   const { gifts, loading, markCotasPurchased } = useGifts()
   const [purchase, setPurchase] = useState<PurchaseState | null>(null)
+  // Touch: one polaroid lies turned over at a time; tapping another turns the
+  // first back.
+  const [flippedId, setFlippedId] = useState<string | null>(null)
   const reduced = useReducedMotion()
 
   function openGift(gift: Gift) {
@@ -199,7 +202,15 @@ export function GiftShop({ guest }: Props) {
             <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-16 lg:gap-y-14">
               {gifts.map((gift, i) => (
                 <div key={gift.giftId}>
-                  <GiftCard gift={gift} index={i} lang={lang} onOpen={() => openGift(gift)} t={t} />
+                  <GiftCard
+                    gift={gift}
+                    index={i}
+                    lang={lang}
+                    flipped={flippedId === gift.giftId}
+                    onFlip={() => setFlippedId(gift.giftId)}
+                    onOpen={() => openGift(gift)}
+                    t={t}
+                  />
                 </div>
               ))}
             </div>
@@ -271,16 +282,20 @@ interface GiftCardProps {
   gift: Gift
   index: number
   lang: 'pt' | 'en'
+  /** Touch screens: this card is the one turned over (the parent keeps just one). */
+  flipped: boolean
+  onFlip: () => void
   onOpen: () => void
   t: (key: string, opts?: Record<string, unknown>) => string
 }
 
-function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
+function GiftCard({ gift, index, lang, flipped, onFlip, onOpen, t }: GiftCardProps) {
   const [imageFailed, setImageFailed] = useState(!gift.imageUrl)
-  // No hover on touch screens: the first tap turns the polaroid over, the
-  // next one (on its back) opens the gift.
+  // No hover on touch screens: the first tap turns the polaroid over (the
+  // parent turns any other one back), the next one (on its back) opens the gift.
   const [hover] = useState(() => window.matchMedia('(hover: hover)').matches)
-  const [turned, setTurned] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const turned = hover ? hovered : flipped
   // Turned over as the invitation is (RSVP): like a card in the hand, not a
   // sign on a pivot — the turn eases in and out, and on the way the card
   // lifts a little, grows, leans back and swings a few degrees before
@@ -307,7 +322,7 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
   const lowestPrice = Math.min(...gift.cotas.filter((c) => !c.purchased).map((c) => c.price))
 
   const onClick = () => {
-    if (!hover && !turned) return setTurned(true)
+    if (!hover && !flipped) return onFlip()
     if (!isSoldOut) onOpen()
   }
   const face = 'absolute inset-0 rounded-[3px] [backface-visibility:hidden]'
@@ -318,10 +333,10 @@ function GiftCard({ gift, index, lang, onOpen, t }: GiftCardProps) {
       onClick={onClick}
       // Turned over by hover or keyboard focus (mouse), or by the first tap
       // (touch).
-      onMouseEnter={() => hover && setTurned(true)}
-      onMouseLeave={() => hover && setTurned(false)}
-      onFocus={(e) => hover && e.currentTarget.matches(':focus-visible') && setTurned(true)}
-      onBlur={() => setTurned(false)}
+      onMouseEnter={() => hover && setHovered(true)}
+      onMouseLeave={() => hover && setHovered(false)}
+      onFocus={(e) => hover && e.currentTarget.matches(':focus-visible') && setHovered(true)}
+      onBlur={() => setHovered(false)}
       aria-disabled={isSoldOut}
       aria-label={name}
       className={`group mx-auto block w-full max-w-[14rem] text-left [perspective:1200px] ${

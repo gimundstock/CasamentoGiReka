@@ -15,6 +15,7 @@ import { CerradoPaint } from './CerradoPaint'
 import { usePassportSnap } from './passport/usePassportSnap'
 import { BrasiliaPassport } from './passport/BrasiliaPassport'
 import {
+  ART_CENTER,
   BIG_DAY_VH,
   PASSPORT_START_VH,
   isDesk,
@@ -52,7 +53,7 @@ const artVars = {
   '--art-h': `calc(var(--art-w) / ${ART_ASPECT.toFixed(4)})`,
   // (On phones, where it is wider than the screen: framed from a little
   // right of the tree, so the setting sun stays on the screen.)
-  '--art-left': 'clamp(calc(100vw - var(--art-w)), calc(50vw - var(--art-w) * 0.42), 0px)',
+  '--art-left': `clamp(calc(100vw - var(--art-w)), calc(50vw - var(--art-w) * ${ART_CENTER}), 0px)`,
 } as CSSProperties
 const artBox = {
   left: 'var(--art-left)',
