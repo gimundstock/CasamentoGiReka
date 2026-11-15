@@ -15,16 +15,16 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 
 ## Architecture decisions
 - **No server**: All persistence via Google Sheets + Apps Script. The frontend calls the Apps Script URL directly.
-- **Guest personalization**: URL param `?g=GUESTID` auto-loads guest profile. Fallback: name entry screen, exact match on the group name or one guest's full name (case, accents, "&"/"e"/"and" and name order ignored; no partial matches).
+- **Guest personalization**: URL param `?g=GUESTID` auto-loads guest profile. Fallback: name entry screen, exact match on the invitation's name, the group name only (case, accents, "&"/"e"/"and" and name order ignored; no partial matches, no single guest's name).
 - **PIX payments**: Client-side QR generation from the PIX EMV spec. One PIX key for all gifts, per-cota amounts.
-- **PayPal (guests abroad)**: the couple's EU PayPal account, charged in EUR at the fixed `CONFIG.paypal.eurPerBrl` rate, each cota rounded to whole euros (`src/utils/paypal.ts`). The browser only approves the order; `Code.gs` captures it after checking the cotas are free, so the PayPal Secret never reaches the frontend. Hidden when `VITE_PAYPAL_CLIENT_ID` is empty.
+- **How guests pay follows the language**: Portuguese → PIX (prices in R$); English → euros (prices in €, from the fixed `CONFIG.euro.eurPerBrl` rate, each cota rounded to whole euros, `src/utils/euro.ts`), with a PayPal.Me link (amount filled in) or the couple's Revolut.Me page. No switching midway; English falls back to PIX when no euro way is set up. All are paid outside the site: "Já paguei" (asked twice) → e-mail → card. No bank account details are shown. The usernames are env vars (the repo is public): `VITE_PAYPAL_ME`, `VITE_REVOLUT_ME`.
 - **Gift model**: Gift catalog (gifts + cotas + prices) lives in `src/content.config.ts` and is baked into the bundle. The Sheet only stores state. Cota availability is derived from the Orders tab — a cotaId appearing in any Orders row marks that cota as sold. A guest can buy multiple cotas at once.
 - **No credit card / no cloud costs**: Firebase rejected in favor of Google Sheets + Apps Script (100% free, no account needed beyond Google).
 
 ## Google Sheets tabs
 1. **Guests** — guestId, groupName, language, attendees (comma-sep), displayName (optional, how the site greets them; blank → groupName), padrinhos (the invitation's padrinhos by name, comma-separated, e.g. "Alice, Laura": they get the padrinhos' manual, made out to them; TRUE = all attendees), genero (optional F/M: the Portuguese "convidado/a" for one guest, "convidados/as" for a group, F only when all women; blank → "convidado(a)" / "convidados")
 2. **RSVPs** — timestamp, guestId, groupName, attendeesJson, menuChoicesJson, songRequest, message
-3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice (always BRL), cardMessage, paymentMethod (pix/paypal), currency, amountPaid, paymentRef (PayPal capture ID)
+3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice (always BRL), cardMessage, paymentMethod (pix/paypalme/revolut), currency (BRL, or EUR for the euro ways), amountPaid, paymentRef (unused; held PayPal capture IDs)
 4. **Cards** — timestamp, guestId, groupName, giftName, theme, from, message (the card a guest writes after buying a gift)
 
 The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Availability is derived from which cotaIds appear in the `selectedCotas` column of the Orders tab.
@@ -32,8 +32,9 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
 ## Apps Script endpoints
 - `GET ?action=getGuest&id=X` or `?action=getGuest&name=X` (exact normalized match, see `nameKey` in Code.gs)
 - `GET ?action=getSoldCotas` — returns `{ sold: string[] }` of cotaIds present in Orders
-- `POST {action:'purchaseGift', guestId, giftId, giftName, selectedCotaIds, selectedCotaLabels, totalPrice, guestEmail, cardMessage, paymentMethod?, paypalOrderId?}` — with `paymentMethod:'paypal'` it captures `paypalOrderId` via the PayPal API (Script Properties `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET`, `PAYPAL_ENV`)
-- `POST {action:'submitCard', guestId, giftName, theme, from, message}`
+- `POST {action:'purchaseGift', guestId, giftId, giftName, selectedCotaIds, selectedCotaLabels, totalPrice, guestEmail, cardMessage, paymentMethod?, amountEur?, deferEmail?}` — `paymentMethod` is `pix` (default), `paypalme` or `revolut` (the last two need `amountEur`); `deferEmail` holds the mails until `submitCard` (with `completePurchase`) or `finishPurchase`
+- `POST {action:'submitCard', guestId, giftName, theme, from, message, completePurchase?, selectedCotaLabels?, cardImage?}` — stores the card (Cards tab, its image archived in Drive); with `completePurchase` sends the gift's held mails with the card in them
+- `POST {action:'finishPurchase', guestId, giftName, selectedCotaLabels}` — the guest left the card step without a card: sends the held mails as they are
 - `POST {action:'submitRSVP', guestId, attendeesJson, menuChoicesJson, songRequest, message}`
 
 ## Scripts
@@ -66,7 +67,8 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
   - **Local dev**: copy `.env.example` → `.env.local` (gitignored) and fill it in.
   - **Prod**: set as a GitHub Actions repository secret with the same name.
   - If missing, `CONFIG.appScriptUrl` falls back to a placeholder and `getGifts()` serves `CONFIG.gifts` directly (useful for offline UI preview).
-- `VITE_PAYPAL_CLIENT_ID` — the PayPal REST app's Client ID (public). Sandbox ID locally, Live ID as a GitHub Actions secret. `sb` works as a throwaway sandbox ID for UI previews. Empty → PayPal hidden.
+- `VITE_PIX_KEY` — the PIX key (kept out of the public repo like the ones below; without it the PIX QR can't be paid).
+- `VITE_PAYPAL_ME`, `VITE_REVOLUT_ME` — the PayPal.Me and Revolut.Me usernames for paying in euros. Kept out of the public repo: `.env.local` locally, GitHub Actions secrets for the live site. An empty one hides its way.
 
 ## Git workflow
 
@@ -116,7 +118,7 @@ Outdoor celebration, wildflowers, delicate and natural. Use SVG wildflower illus
 
 ## Content to fill in (all in content.config.ts)
 - Couple's names, wedding date, time, venue, address, dress code
-- PIX key (CPF / phone / email / random key)
+- PIX key (CPF / phone / email / random key): the `VITE_PIX_KEY` env var, not the config
 - Couple's email (for receiving RSVP + gift copies)
 - Apps Script Web App URL (after deploying Code.gs)
 - Gift list with cotas

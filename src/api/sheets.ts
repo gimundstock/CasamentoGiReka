@@ -89,7 +89,7 @@ export async function purchaseGift(
     guestEmail: data.guestEmail,
     cardMessage: data.cardMessage,
     paymentMethod: data.paymentMethod ?? 'pix',
-    paypalOrderId: data.paypalOrderId ?? '',
+    amountEur: data.amountEur ?? null,
     deferEmail: data.deferEmail ?? false,
   })
 }

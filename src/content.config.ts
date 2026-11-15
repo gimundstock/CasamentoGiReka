@@ -8,8 +8,10 @@ export const CONFIG = {
   couple: {
     bride: 'Giovanna',
     groom: 'Renato',
-    // Your PIX key: CPF, phone (+55...), email, or random key
-    pixKey: 'PLACEHOLDER@email.com',
+    // The PIX key (CPF, phone +55…, email or random key). From the environment,
+    // not from here, as the repo is public: VITE_PIX_KEY (.env.local / GitHub
+    // secret). Without it the PIX QR code can't be paid.
+    pixKey: import.meta.env.VITE_PIX_KEY ?? '',
     // Instagram handles (optional, shown in Couple section)
     brideInstagram: '',
     groomInstagram: '',
@@ -27,17 +29,21 @@ export const CONFIG = {
   // See .env.example for the template.
   appScriptUrl: import.meta.env.VITE_APPSCRIPT_URL ?? 'PLACEHOLDER_APPS_SCRIPT_URL',
 
-  // ── PayPal (guests paying from abroad) ──────────────────
-  // The couple's EU PayPal account charges in euros. The Client ID is public
-  // and injected from VITE_PAYPAL_CLIENT_ID (.env.local / GitHub secret); the
-  // Secret lives only in the Apps Script's Script Properties. Without a
-  // Client ID the PayPal option is hidden and only PIX is offered.
-  paypal: {
-    clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID ?? '',
-    currency: 'EUR',
+  // ── Paying in euros (guests abroad) ──────────────────────
+  // Two ways, both paid outside the site (as PIX): a PayPal.Me link with the
+  // amount in, and the couple's Revolut.Me page. No bank account details are
+  // shown anywhere. The usernames come from the environment, not from here,
+  // as the repo is public: VITE_PAYPAL_ME and VITE_REVOLUT_ME (.env.local /
+  // GitHub secrets). An empty one hides its way; with neither, English
+  // readers pay with PIX too.
+  euro: {
     // Euros per real, fixed so prices don't move day to day. Each cota's
-    // BRL price × this rate, rounded to whole euros, is what PayPal charges.
+    // BRL price × this rate, rounded to whole euros, is its euro price.
     eurPerBrl: 0.16,
+    // paypal.me/<this>
+    paypalMe: import.meta.env.VITE_PAYPAL_ME ?? '',
+    // revolut.me/<this>
+    revolutMe: import.meta.env.VITE_REVOLUT_ME ?? '',
   },
 
   // ── Wedding Day ──────────────────────────────────────────
@@ -1944,37 +1950,37 @@ export const CONFIG = {
           cotaId: 'cota_036_a',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 500,
+          price: 1, // TEMP (teste): voltar para 500
         },
         {
           cotaId: 'cota_036_b',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 500,
+          price: 1, // TEMP (teste): voltar para 500
         },
         {
           cotaId: 'cota_036_c',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 500,
+          price: 1, // TEMP (teste): voltar para 500
         },
         {
           cotaId: 'cota_036_d',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 500,
+          price: 1, // TEMP (teste): voltar para 500
         },
         {
           cotaId: 'cota_036_e',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 500,
+          price: 1, // TEMP (teste): voltar para 500
         },
         {
           cotaId: 'cota_036_f',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 500,
+          price: 1, // TEMP (teste): voltar para 500
         },
       ],
     },

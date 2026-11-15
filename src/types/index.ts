@@ -70,9 +70,10 @@ export interface PurchaseSubmission {
   totalPrice: number
   guestEmail: string
   cardMessage: string
-  paymentMethod?: 'pix' | 'paypal'
-  /** The PayPal order the guest approved; the Apps Script captures it. */
-  paypalOrderId?: string
+  /** PIX, or in euros: PayPal.Me or Revolut (both checked by the couple). */
+  paymentMethod?: 'pix' | 'paypalme' | 'revolut'
+  /** The euro amount the guest was shown, when paying in euros. */
+  amountEur?: number
   /** Hold the gift's two mails until the card step is over (the card goes in them). */
   deferEmail?: boolean
 }

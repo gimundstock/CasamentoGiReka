@@ -8,7 +8,6 @@
 | What | Where it lives |
 |---|---|
 | `SHEET_ID`, `COUPLE_EMAILS` | Apps Script editor → **Project Settings → Script properties** |
-| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET`, `PAYPAL_ENV` | Same place. Only for PayPal gifts; `PAYPAL_ENV=live` for real payments, unset = sandbox |
 | `GUEST_PHOTOS_FOLDER_ID` | Same place. Optional: the Drive folder of guest photos (below) |
 | `PHOTO_SYNC_TOKEN` | Same place, **and** the GitHub Actions secret of the same name (below) |
 | `scriptId` | `.clasp.json` (gitignored; template in `.clasp.json.example`) |

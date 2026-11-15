@@ -60,14 +60,6 @@ export interface AppsScriptGlobals {
   handleGetSoldCotas: () => { sold: string[] }
   handlePhotoManifest: (params: { token?: string }) => { ids?: string[]; error?: string }
   handlePurchaseGift: (body: PurchaseBody) => { success: boolean; error?: string }
-  capturePaypalOrder: (orderId: string) => {
-    ok: boolean
-    error?: string
-    captureId?: string
-    amount?: number
-    currency?: string
-    payerEmail?: string
-  }
   handleSubmitRSVP: (body: RSVPBody) => { success: boolean }
   handleSubmitCard: (body: CardBody) => { success: boolean }
   handleFinishPurchase: (body: FinishBody) => { success: boolean; error?: string }
@@ -117,8 +109,9 @@ export interface PurchaseBody {
   cardMessage: string
   /** The site holds the mails until the card step is over. */
   deferEmail?: boolean
-  paymentMethod?: 'pix' | 'paypal'
-  paypalOrderId?: string
+  paymentMethod?: 'pix' | 'paypalme' | 'revolut'
+  /** The euro amount shown, when paying in euros. */
+  amountEur?: number
 }
 
 export interface RSVPBody {

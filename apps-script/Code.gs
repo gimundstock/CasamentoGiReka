@@ -13,16 +13,11 @@
  *                  into the site (action=photoManifest)
  *   COUPLE_EMAILS  comma-separated addresses that receive the RSVPs, the gift
  *                  receipts and the cards
+ *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
  *   SITE_URL       (optional) where the mails' pictures are served from (public/email/);
  *                  else https://giovannaerenato.com.br
  *   CARDS_FOLDER_ID  (optional) Drive folder where the cards' images are archived;
  *                  else a "Cartões do casamento" folder is made in the owner's Drive
- *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
- *   PAYPAL_CLIENT_ID, PAYPAL_SECRET
- *                  the PayPal REST app's credentials (developer.paypal.com),
- *                  needed only for PayPal gifts. The Secret lives here only.
- *   PAYPAL_ENV     'live' for real payments; anything else (or unset) uses
- *                  the PayPal sandbox
  *
  * GOOGLE SHEETS SETUP:
  * Create a spreadsheet with 4 tabs named exactly:
@@ -48,9 +43,11 @@
  * Drive subfolder (see GUEST_PHOTOS_FOLDER_ID), in file-name order.
  * RSVPs columns:  timestamp | guestId | groupName | attendeesJson | songRequest | message
  * Orders columns: timestamp | guestId | groupName | guestEmail | giftId | giftName | selectedCotas | totalPrice | cardMessage | paymentMethod | currency | amountPaid | paymentRef
- *   totalPrice is always in BRL (the catalog price). paymentMethod is 'pix' or
- *   'paypal'; for PayPal, currency/amountPaid are what PayPal actually
- *   captured and paymentRef is the PayPal capture ID.
+ *   totalPrice is always in BRL (the catalog price). paymentMethod is 'pix',
+ *   'paypalme' (PayPal, in euros) or 'revolut' (Revolut, in euros); all are
+ *   paid outside the site, the guest's word is the record. currency /
+ *   amountPaid are what the guest was asked for (EUR for the last two).
+ *   paymentRef is unused now (it held PayPal capture IDs).
  * Cards columns:  timestamp | guestId | groupName | giftName | theme | from | message
  */
 
@@ -180,15 +177,9 @@ function handleGetGuest(params) {
   if (params.name) {
     var needle = nameKey(params.name);
     if (needle.replace(/\|/g, '').length < 2) return null;
+    // Only the invitation's name (the group's), never one of its people's.
     var byGroup = rows.find(function(r) { return nameKey(r.groupName) === needle; });
-    if (byGroup) return formatGuest(byGroup);
-    var byAttendee = rows.find(function(r) {
-      return String(r.attendees).split(',').some(function(a) {
-        return a.trim() && nameKey(a) === needle;
-      });
-    });
-    if (byAttendee) return formatGuest(byAttendee);
-    return null;
+    return byGroup ? formatGuest(byGroup) : null;
   }
 
   return null;
@@ -349,7 +340,8 @@ function handlePurchaseGift(body) {
     var guestEmail = body.guestEmail;
     var cardMessage = body.cardMessage || '';
 
-    var paymentMethod = body.paymentMethod === 'paypal' ? 'paypal' : 'pix';
+    var paymentMethod =
+      body.paymentMethod === 'paypalme' || body.paymentMethod === 'revolut' ? body.paymentMethod : 'pix';
 
     var sold = collectSoldCotaIds();
     for (var i = 0; i < selectedCotaIds.length; i++) {
@@ -358,19 +350,16 @@ function handlePurchaseGift(body) {
       }
     }
 
-    // PIX is paid outside the site; the guest's word is the record. A PayPal
-    // order is only approved by the guest at this point: we capture it here,
-    // after the cotas are known to be free, so a sold-out cota never charges.
+    // Every way is paid outside the site; the guest's word is the record. In
+    // euros, the amount they were shown (whole euros, at the site's rate).
     var currency = 'BRL';
     var amountPaid = totalPrice;
     var paymentRef = '';
-    if (paymentMethod === 'paypal') {
-      var capture = capturePaypalOrder(body.paypalOrderId);
-      if (!capture.ok) return { success: false, error: capture.error };
-      currency = capture.currency;
-      amountPaid = capture.amount;
-      paymentRef = capture.captureId;
-      if (!guestEmail) guestEmail = capture.payerEmail;
+    if (paymentMethod !== 'pix') {
+      var eur = Number(body.amountEur);
+      if (!(eur > 0) || eur > 100000) return { success: false, error: 'Valor em euro inválido.' };
+      currency = 'EUR';
+      amountPaid = Math.round(eur * 100) / 100;
     }
 
     var now = new Date().toISOString();
@@ -424,61 +413,6 @@ function formatMoney(amount, currency) {
   // Written the Brazilian way: 2.300,00.
   var parts = Number(amount).toFixed(2).split('.');
   return symbol + ' ' + parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + parts[1];
-}
-
-function paypalBaseUrl() {
-  var env = PropertiesService.getScriptProperties().getProperty('PAYPAL_ENV');
-  return env === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
-}
-
-/**
- * Captures a PayPal order the guest approved in the browser. Returns
- * { ok, captureId, amount, currency, payerEmail } or { ok: false, error }.
- */
-function capturePaypalOrder(orderId) {
-  if (!orderId || !/^[A-Za-z0-9-]+$/.test(String(orderId))) {
-    return { ok: false, error: 'Pedido PayPal inválido.' };
-  }
-  var base = paypalBaseUrl();
-  var auth = Utilities.base64Encode(
-    requiredProperty('PAYPAL_CLIENT_ID') + ':' + requiredProperty('PAYPAL_SECRET')
-  );
-  var tokenRes = UrlFetchApp.fetch(base + '/v1/oauth2/token', {
-    method: 'post',
-    headers: { Authorization: 'Basic ' + auth },
-    payload: { grant_type: 'client_credentials' },
-    muteHttpExceptions: true,
-  });
-  if (tokenRes.getResponseCode() !== 200) {
-    return { ok: false, error: 'PayPal indisponível. Tente novamente.' };
-  }
-  var token = JSON.parse(tokenRes.getContentText()).access_token;
-
-  var res = UrlFetchApp.fetch(base + '/v2/checkout/orders/' + orderId + '/capture', {
-    method: 'post',
-    contentType: 'application/json',
-    headers: { Authorization: 'Bearer ' + token },
-    payload: '{}',
-    muteHttpExceptions: true,
-  });
-  var order = {};
-  try {
-    order = JSON.parse(res.getContentText());
-  } catch (e) {
-    // fall through to the status check
-  }
-  var unit = order.purchase_units && order.purchase_units[0];
-  var cap = unit && unit.payments && unit.payments.captures && unit.payments.captures[0];
-  if (res.getResponseCode() >= 300 || order.status !== 'COMPLETED' || !cap) {
-    return { ok: false, error: 'O pagamento PayPal não foi concluído.' };
-  }
-  return {
-    ok: true,
-    captureId: cap.id,
-    amount: Number(cap.amount.value),
-    currency: cap.amount.currency_code,
-    payerEmail: (order.payer && order.payer.email_address) || '',
-  };
 }
 
 /**
@@ -692,10 +626,14 @@ function sendPurchaseEmail(to, guest, giftName, cotaLabels, totalLabel, cardMess
 
 /** The couple's own record of a gift, apart from the guest's confirmation. */
 function sendCoupleReceipt(o) {
-  var pix = o.paymentMethod !== 'paypal';
-  var payment = pix
-    ? 'PIX (o convidado confirmou no site: conferir no extrato)'
-    : 'PayPal, ' + o.paidLabel + (o.paymentRef ? ' (ref. ' + o.paymentRef + ')' : '');
+  var payment =
+    o.paymentMethod === 'revolut'
+      ? 'Revolut, ' + o.paidLabel + ' (conferir no Revolut)'
+      : o.paymentMethod === 'paypalme'
+        ? 'PayPal, ' + o.paidLabel + ' (conferir no PayPal)'
+        : o.paymentMethod === 'paypal'
+          ? 'PayPal, ' + o.paidLabel + (o.paymentRef ? ' (ref. ' + o.paymentRef + ')' : '')
+          : 'PIX (o convidado confirmou no site: conferir no extrato)';
   var lines = [
     'Presente recebido!',
     '',
@@ -755,7 +693,7 @@ function lastOrderFor(guestId, giftName) {
     guestEmail: String(row[3] || ''),
     giftName: row[5],
     totalPrice: row[7],
-    paymentMethod: row[9] === 'paypal' ? 'paypal' : 'pix',
+    paymentMethod: ['paypalme', 'revolut', 'paypal'].indexOf(row[9]) >= 0 ? row[9] : 'pix',
     currency: row[10] || 'BRL',
     amountPaid: row[11] === '' || row[11] === undefined ? row[7] : row[11],
     paymentRef: row[12] || '',

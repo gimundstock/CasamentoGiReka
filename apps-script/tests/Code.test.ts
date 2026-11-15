@@ -187,10 +187,10 @@ describe('handleGetGuest', () => {
     expect(app.handleGetGuest({ name: 'CARLA E DIEGO' })?.guestId).toBe('r02')
   })
 
-  it('exact match on one attendee full name', () => {
+  it('only the invitation\'s name logs in, not one of its people\'s', () => {
     const { app } = createSandbox({ guests: baseGuests })
-    expect(app.handleGetGuest({ name: 'Carla Lima' })?.guestId).toBe('r02')
-    expect(app.handleGetGuest({ name: '  bruno   SOUZA ' })?.guestId).toBe('r01')
+    expect(app.handleGetGuest({ name: 'Carla Lima' })).toBeNull()
+    expect(app.handleGetGuest({ name: '  bruno   SOUZA ' })).toBeNull()
   })
 
   it('no partial matches: a first name alone does not log in', () => {
@@ -223,7 +223,8 @@ describe('handleGetGuest', () => {
       ['r02', 'Carla e Diego', 'pt', 'Carla Lima, Diego Rocha', true],
     )
     const { app } = createSandbox({ guests })
-    expect(app.handleGetGuest({ name: 'Carla Lima' })?.guestId).toBe('r02')
+    expect(app.handleGetGuest({ name: 'Carla e Diego' })?.guestId).toBe('r02')
+    expect(app.handleGetGuest({ name: 'Carla Lima' })).toBeNull()
     expect(app.handleGetGuest({ name: 'xyznotfound' })).toBeNull()
   })
 
@@ -356,27 +357,8 @@ describe('handlePurchaseGift', () => {
   })
 })
 
-describe('handlePurchaseGift with PayPal', () => {
+describe('handlePurchaseGift in euros (PayPal.Me, Revolut)', () => {
   const guests = guestsSheet(['r01', 'Ana e Bruno', 'pt', 'Bruno Souza', true])
-  const properties = {
-    SHEET_ID: 'test-sheet-id',
-    COUPLE_EMAILS: 'a@example.com',
-    PAYPAL_CLIENT_ID: 'cid',
-    PAYPAL_SECRET: 'secret',
-  }
-  const completed = {
-    status: 'COMPLETED',
-    payer: { email_address: 'payer@example.eu' },
-    purchase_units: [
-      { payments: { captures: [{ id: 'CAP123', amount: { value: '32.00', currency_code: 'EUR' } }] } },
-    ],
-  }
-  function paypal(captureCode = 201, captureBody: unknown = completed) {
-    return (url: string) =>
-      url.endsWith('/v1/oauth2/token')
-        ? { code: 200, body: { access_token: 'tok' } }
-        : { code: captureCode, body: captureBody }
-  }
   const body = {
     guestId: 'r01',
     giftId: 'g1',
@@ -384,72 +366,45 @@ describe('handlePurchaseGift with PayPal', () => {
     selectedCotaIds: ['c1', 'c2'],
     selectedCotaLabels: ['Entrada', 'Prato'],
     totalPrice: 200,
-    guestEmail: '',
+    guestEmail: 'ana@example.eu',
     cardMessage: '',
-    paymentMethod: 'paypal' as const,
-    paypalOrderId: 'ORDER-1',
+    paymentMethod: 'revolut' as const,
+    amountEur: 32,
   }
 
-  it('captures the order, records what PayPal took, and mails the payer', () => {
-    const { app, sheets, sentMail, fetched } = createSandbox({
-      guests,
-      properties,
-      fetch: paypal(),
-    })
+  it('records a Revolut payment in euros, the amount the guest was shown', () => {
+    const { app, sheets, sentMail, fetched } = createSandbox({ guests })
     expect(app.handlePurchaseGift(body)).toEqual({ success: true })
-    expect(fetched.map((f) => f.url)).toEqual([
-      'https://api-m.sandbox.paypal.com/v1/oauth2/token',
-      'https://api-m.sandbox.paypal.com/v2/checkout/orders/ORDER-1/capture',
-    ])
-    expect(fetched[0].opts.headers?.Authorization).toBe(
-      'Basic ' + Buffer.from('cid:secret').toString('base64'),
-    )
     const row = sheets.Orders.rows[1]
-    expect(row[3]).toBe('payer@example.eu')
     expect(row[7]).toBe(200)
-    expect(row.slice(9)).toEqual(['paypal', 'EUR', 32, 'CAP123'])
-    expect(sentMail[0].to).toBe('payer@example.eu')
+    expect(row.slice(9)).toEqual(['revolut', 'EUR', 32, ''])
+    expect(fetched).toHaveLength(0)
+    expect(sentMail[0].to).toBe('ana@example.eu')
     expect(sentMail[0].body).toContain('€ 32,00')
-    expect(sentMail[1].to).toContain('a@example.com')
-    expect(sentMail[1].body).toContain('PayPal, € 32,00 (ref. CAP123)')
+    expect(sentMail[1].body).toContain('Revolut, € 32,00 (conferir no Revolut)')
   })
 
-  it('uses the live API when PAYPAL_ENV is live', () => {
-    const { app, fetched } = createSandbox({
-      guests,
-      properties: { ...properties, PAYPAL_ENV: 'live' },
-      fetch: paypal(),
-    })
-    app.handlePurchaseGift(body)
-    expect(fetched[0].url).toBe('https://api-m.paypal.com/v1/oauth2/token')
+  it('records PayPal.Me the same way, for the couple to check in PayPal', () => {
+    const { app, sheets, sentMail } = createSandbox({ guests })
+    app.handlePurchaseGift({ ...body, paymentMethod: 'paypalme' })
+    expect(sheets.Orders.rows[1].slice(9)).toEqual(['paypalme', 'EUR', 32, ''])
+    expect(sentMail[1].body).toContain('PayPal, € 32,00 (conferir no PayPal)')
   })
 
-  it('records nothing when PayPal does not complete the capture', () => {
-    const { app, sheets, sentMail } = createSandbox({
-      guests,
-      properties,
-      fetch: paypal(422, { name: 'UNPROCESSABLE_ENTITY' }),
-    })
-    const result = app.handlePurchaseGift(body)
-    expect(result.success).toBe(false)
-    expect(sheets.Orders.rows).toHaveLength(1)
-    expect(sentMail).toHaveLength(0)
+  it('refuses a euro payment without a sensible amount', () => {
+    for (const amountEur of [undefined, 0, -5, Number.NaN, 1_000_000]) {
+      const { app, sheets, sentMail } = createSandbox({ guests })
+      const out = app.handlePurchaseGift({ ...body, amountEur })
+      expect(out.success).toBe(false)
+      expect(sheets.Orders.rows).toHaveLength(1)
+      expect(sentMail).toHaveLength(0)
+    }
   })
 
-  it('never captures when a cota is already sold', () => {
-    const orders = [
-      ORDERS_HEADER,
-      ['2026-01-01', 'r99', 'Prev', 'p@p.com', 'g1', 'Jantar', JSON.stringify(['c2']), 100, ''],
-    ]
-    const { app, fetched } = createSandbox({ guests, orders, properties, fetch: paypal() })
-    expect(app.handlePurchaseGift(body).success).toBe(false)
-    expect(fetched).toHaveLength(0)
-  })
-
-  it('rejects a malformed order ID without calling PayPal', () => {
-    const { app, fetched } = createSandbox({ guests, properties, fetch: paypal() })
-    expect(app.handlePurchaseGift({ ...body, paypalOrderId: '../x' }).success).toBe(false)
-    expect(fetched).toHaveLength(0)
+  it('anything else (a bank transfer included) is PIX, in reais', () => {
+    const { app, sheets } = createSandbox({ guests })
+    app.handlePurchaseGift({ ...body, paymentMethod: 'sepa' as never })
+    expect(sheets.Orders.rows[1].slice(9)).toEqual(['pix', 'BRL', 200, ''])
   })
 })
 
