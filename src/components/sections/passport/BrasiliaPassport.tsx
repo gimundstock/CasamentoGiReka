@@ -312,8 +312,16 @@ export function BrasiliaPassport({
       // Drawn, all but transparent, a little before the swap (see PHASE.warm).
       root.style.visibility = v >= PHASE.warm ? 'visible' : 'hidden'
       root.style.opacity = String(Math.max(0.01, swapOpacities(v).cover))
-      // The painting, from the swap on (see vignetteAt).
-      if (vignette) {
+      // Open — and, on the desk, closed again once read.
+      const closing = desk ? ease(seg(v, DESK.close)) : 0
+      const o = ease(seg(v, PHASE.open)) * (1 - closing)
+      // The painting, from the swap on (see vignetteAt). Out of the page
+      // while it can't be seen (before PHASE.warm; the book wide open): its
+      // layers and their masks took hundreds of MB of graphics memory, kept
+      // on a phone until Safari gave up. Back as soon as the cover starts
+      // to shut, while its inside still faces us: drawn by the time it shows.
+      if (vignette) vignette.style.display = v < PHASE.warm || o >= 1 ? 'none' : ''
+      if (vignette && vignette.style.display !== 'none') {
         const vs = vignetteAt(g, v, carry)
         const st = vignette.style
         st.clipPath = vs.clip
@@ -359,9 +367,6 @@ export function BrasiliaPassport({
       title.style.opacity = String(tt)
       title.style.transform = `translate3d(0, ${((1 - tt) * 8).toFixed(1)}px, 0)`
 
-      // Open — and, on the desk, closed again once read.
-      const closing = desk ? ease(seg(v, DESK.close)) : 0
-      const o = ease(seg(v, PHASE.open)) * (1 - closing)
       // Shut: centred, and lifted so the blot stays at the screen's centre.
       bookEl.style.transform = `translate3d(${(g.closedShift * (1 - o)).toFixed(1)}px, ${liftAt(g, v).toFixed(2)}px, 0)`
       cover.style.transform = `rotateY(${(-180 * o).toFixed(2)}deg)`

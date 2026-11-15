@@ -65,7 +65,7 @@
       "map": "Ver no mapa",
       "airbnb": "Ver no Airbnb",
       "prev": "Página anterior",
-        "bookLabel": "Passaporte de Brasília — guia da cidade",
+      "bookLabel": "Passaporte de Brasília — guia da cidade",
       "tabsLabel": "Capítulos do guia",
       "hintOpen": "Role para abrir o passaporte",
       "cornerClick": "clique para passar",
@@ -182,6 +182,7 @@
     "summary": "Resumo",
     "total": "Total",
     "done": "Concluído",
+    "cardKicker": "Seu cartão",
     "cardStepTitle": "Quer deixar um cartão para os noivos?",
     "cardStepText": "Escolha um modelo e escreva uma mensagem. Ele chega para a gente junto com o seu presente.",
     "cardTheme": "Modelo do cartão",
@@ -196,7 +197,7 @@
     "close": "Fechar"
   },
   "footer": {
-    "made": "Feito com amor",
+    "made": "Feito pelos noivos",
     "for": "para"
   },
   "language": "EN",

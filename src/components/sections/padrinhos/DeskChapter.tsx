@@ -1,8 +1,9 @@
-import { useImperativeHandle, useRef, type Ref } from 'react'
+import { useContext, useImperativeHandle, useRef, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ScrollHint } from '../../ui/ScrollHint'
 import { NAV_HEIGHT } from '../Envelope'
 import { CHAPTER, DESK, ease, pushedAt, seg, type PassportGeometry } from '../passport/geometry'
+import { PadrinhoRole } from './available'
 import { ManualCard, type ManualCardHandle } from './ManualCard'
 import type { ManualOnDesk } from './geometry'
 
@@ -34,6 +35,7 @@ export function DeskChapter({
   handle: Ref<DeskChapterHandle>
 }) {
   const { t } = useTranslation()
+  const role = useContext(PadrinhoRole)
   const moverRef = useRef<HTMLDivElement>(null)
   const panRef = useRef<HTMLDivElement>(null)
   const kickerRef = useRef<HTMLDivElement>(null)
@@ -127,13 +129,13 @@ export function DeskChapter({
           className="font-sans text-amber-deep absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
           style={{ top: NAV_HEIGHT + 32, opacity: 0, visibility: 'hidden' }}
         >
-          {t('padrinhos.kicker')}
+          {t('padrinhos.kicker', role)}
         </div>
       )}
       <div
         ref={moverRef}
         role="region"
-        aria-label={t('padrinhos.label')}
+        aria-label={t('padrinhos.label', role)}
         className="absolute"
         style={{
           left: g.vw / 2 - w,

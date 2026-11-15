@@ -8,9 +8,9 @@ import { HeroBigDay } from './components/sections/HeroBigDay'
 import { RSVP } from './components/sections/RSVP'
 import { GiftShop } from './components/sections/GiftShop'
 import { PadrinhosSection } from './components/sections/padrinhos/PadrinhosSection'
-import { PadrinhoNames } from './components/sections/padrinhos/available'
+import { PadrinhoNames, PadrinhoRole } from './components/sections/padrinhos/available'
 import { useGuest } from './hooks/useGuest'
-import { guestName } from './utils/guest'
+import { guestName, padrinhoRoleEn } from './utils/guest'
 import { CONFIG } from './content.config'
 
 function Footer() {
@@ -19,9 +19,9 @@ function Footer() {
     <footer className="bg-forest-deep text-peach-light py-20 text-center">
       {/* Kerning à mão, como no monograma da nav: o R da fonte cursiva abre
           um vão grande depois do &, então ele é puxado para perto. */}
-      {/* mb-8: a perna do R desce bem abaixo da linha de base e cortava a
-          linha de baixo. */}
-      <p className="font-display text-3xl md:text-4xl mb-8">
+      {/* mb-14: a perna do R desce bem abaixo da linha de base e encostava
+          na linha de baixo. */}
+      <p className="font-display text-3xl md:text-4xl mb-14">
         {CONFIG.couple.bride}
         <span className="ml-[0.3em]">&amp;</span>
         <span className="-ml-[0.15em]">{CONFIG.couple.groom}</span>
@@ -61,12 +61,14 @@ export default function App() {
       <main>
         {/* (Who the padrinhos' manual is made out to, for its cover.) */}
         <PadrinhoNames.Provider value={guest.padrinhos ?? []}>
-          <Hero1Welcome guest={guest} onReset={reset} />
-          <HeroSaveDateCouple />
-          <HeroBigDay holder={guestName(guest)} padrinho={guest.padrinho} />
-          <RSVP guest={guest} />
-          <GiftShop guest={guest} />
-          <PadrinhosSection padrinho={guest.padrinho} />
+          <PadrinhoRole.Provider value={padrinhoRoleEn(guest)}>
+            <Hero1Welcome guest={guest} onReset={reset} />
+            <HeroSaveDateCouple />
+            <HeroBigDay holder={guestName(guest)} padrinho={guest.padrinho} />
+            <RSVP guest={guest} />
+            <GiftShop guest={guest} />
+            <PadrinhosSection padrinho={guest.padrinho} />
+          </PadrinhoRole.Provider>
         </PadrinhoNames.Provider>
       </main>
       <Footer />

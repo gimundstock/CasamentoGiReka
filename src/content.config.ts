@@ -153,14 +153,16 @@ export const CONFIG = {
     /** The left page: a letter to them (two paragraphs). */
     letter: {
       title_pt: 'Queridos padrinhos',
-      title_en: 'Dear wedding party',
+      // (English: {{role}} is what they are to us — bridesmaid, groomsmen… —
+      // from the invitation's gender and how many they are; see padrinhoRoleEn.)
+      title_en: 'Dear {{role}}',
       paragraphs_pt: [
         'Cada um de vocês foi escolhido a dedo, com muito carinho, por ocupar um lugar especial em nossas vidas. Seja por fazer parte da nossa história como casal ou por estar presente em nossas trajetórias individuais, vocês compartilharam alegrias, nos apoiaram nos momentos difíceis e nos mostraram que sempre podemos contar com vocês. É por tudo isso que fazemos questão de tê-los ao nosso lado em um dos capítulos mais importantes da nossa história.',
         'A missão de vocês como nossos padrinhos é, acima de tudo, continuar sendo quem sempre foram para nós: pessoas queridas com quem queremos compartilhar a vida inteira. E, no grande dia, queremos vocês bem pertinho, celebrando cada emoção, ajudando a eternizar esse momento e, é claro, assumindo a importantíssima responsabilidade de fazer dessa festa uma celebração inesquecível!',
       ],
       paragraphs_en: [
         'Each of you was hand-picked, with great affection, for the special place you hold in our lives. Whether you are part of our story as a couple or have been there along our own paths, you have shared our joys, stood by us through the hard times and shown us that we can always count on you. That is why we want you by our side for one of the most important chapters of our story.',
-        'Your mission as our wedding party is, above all, to keep being who you have always been to us: dear people we want to share our whole lives with. And on the big day, we want you close by, celebrating every emotion, helping to make the moment last forever and, of course, taking on the all-important responsibility of making this party unforgettable!',
+        'Your mission as our {{role}} is, above all, to keep being who you have always been to us: dear people we want to share our whole lives with. And on the big day, we want you close by, celebrating every emotion, helping to make the moment last forever and, of course, taking on the all-important responsibility of making this party unforgettable!',
       ],
     },
     /**
@@ -179,7 +181,7 @@ export const CONFIG = {
           'Queremos um casamento bem colorido e descontraído, por isso escolhemos essa paleta com muito carinho. Fique à vontade para escolher a cor que mais combina com você!',
         text_en:
           'We want a colourful, relaxed wedding, so we chose this palette with great care. Feel free to pick the colour that suits you best!',
-        palette: ['terracota', 'amarelo-ocre', 'rosa-coral', 'framboesa', 'lilas', 'verde-oliva'],
+        palette: ['terracota', 'amarelo-ocre', 'rosa-coral', 'framboesa'],
         items: [] as PadrinhosAttireItem[],
         note_pt: '',
         note_en: '',
@@ -201,17 +203,10 @@ export const CONFIG = {
             text_en: '',
             palette: ['cinza-suave'],
           },
-          {
-            label_pt: 'Gravata',
-            label_en: 'Tie',
-            text_pt: 'no tom do terno do noivo',
-            text_en: 'the tone of the groom’s suit',
-            palette: ['bege'],
-          },
         ] as PadrinhosAttireItem[],
         /** A line under it all, if any. */
-        note_pt: '',
-        note_en: '',
+        note_pt: 'A gravata ainda vamos definir: avisamos em breve!',
+        note_en: 'We’re still choosing the tie: we’ll let you know soon!',
       },
     ],
   },
@@ -343,7 +338,7 @@ export const CONFIG = {
           'Renato\'s brother\'s bar! A relaxed wine bar in Asa Norte with an award-winning list. The kitchen is built around pork, hence the "swine".',
         priceRange: '',
         priceRange_en: '',
-        address: '314 Norte (CLN 314, Bloco B, Loja 21)',
+        address: '314 Norte',
         url: 'https://www.google.com/maps/search/?api=1&query=IVV+Swinebar+Bras%C3%ADlia',
       },
       {
@@ -369,7 +364,7 @@ export const CONFIG = {
           'A Brasília Northeastern classic, famous for its carne de sol, served with feijão de corda, paçoca, cassava and clarified butter — the full dish feeds about 3 people.',
         priceRange: 'R$ 60–90',
         priceRange_en: '~€10–15',
-        address: 'SCLS 107, Bloco E, Loja 2 — Asa Sul (também na 708 Norte)',
+        address: 'SCLS 107, Bloco E, Loja 2 — Asa Sul',
         url: 'https://www.google.com/maps/search/?api=1&query=Xique+Xique+Bras%C3%ADlia',
       },
       {
@@ -394,7 +389,7 @@ export const CONFIG = {
           'An excellent seafood restaurant with a panoramic view of Lake Paranoá and the JK Bridge.',
         priceRange: 'R$ 100–150',
         priceRange_en: '~€17–25',
-        address: 'Setor de Clubes Esportivos Sul, Trecho 2, Conj. 41 — às margens do Lago Paranoá',
+        address: 'Setor de Clubes Esportivos Sul, Trecho 2, Conj. 41',
         url: 'https://www.google.com/maps/search/?api=1&query=NAU+Frutos+do+Mar+Bras%C3%ADlia',
       },
       {
@@ -472,7 +467,7 @@ export const CONFIG = {
           "Repeatedly voted the city's best pizzeria, Valentina serves over 50 flavours of thin-crust, São Paulo-style pizza baked in a wood-fired oven.",
         priceRange: 'R$ 60–100',
         priceRange_en: '~€10–17',
-        address: 'Asa Norte: CLN 214 Bloco A — Asa Sul: CLS 310 Bloco A — Lago Sul',
+        address: 'CLN 214 Bloco A — Asa Norte',
         url: 'https://www.google.com/maps/search/?api=1&query=Valentina+Pizzaria+Bras%C3%ADlia',
       },
       {
@@ -485,7 +480,7 @@ export const CONFIG = {
           'A traditional Brasília bar that also has a full restaurant menu: cold draught beer, and generous snacks and dishes to share. It is usually packed, and great for a happy hour.',
         priceRange: 'R$ 70–120',
         priceRange_en: '~€12–20',
-        address: 'Pontão do Lago Sul (SHIS QL 10, Lote 1/30) e Asa Sul',
+        address: 'Pontão do Lago Sul e Asa Sul',
         url: 'https://www.google.com/maps/search/?api=1&query=Fausto+e+Manoel+Bras%C3%ADlia',
       },
       {
@@ -511,7 +506,7 @@ export const CONFIG = {
           'One of our favourite burger places, with excellent flame-grilled blends, house-made sauce and pickles. If you have a sweet tooth, the pudim (Brazilian flan) milkshake is the perfect finish.',
         priceRange: 'R$ 80–100',
         priceRange_en: '~€13–17',
-        address: 'Múltiplas unidades — Asa Sul, Asa Norte, Lago Sul e mais',
+        address: 'Asa Sul, Asa Norte, Lago Sul e mais',
         url: 'https://www.google.com/maps/search/?api=1&query=Ricco+Burger+Bras%C3%ADlia',
       },
       {
@@ -524,7 +519,7 @@ export const CONFIG = {
           'A Brasília institution, with the best hot dog in town. Our favourite is the double with sauce (without the tuna paste).',
         priceRange: 'R$ 20–40',
         priceRange_en: '~€3–7',
-        address: 'Unidade original: Entrequadra Sul 307/308, Asa Sul',
+        address: 'Entrequadra Sul 307/308, Asa Sul',
         url: 'https://www.google.com/maps/search/?api=1&query=Dog+da+Igrejinha+Bras%C3%ADlia',
       },
       {
@@ -550,7 +545,7 @@ export const CONFIG = {
           "Brasília's own Spontini! Founded in 1960, Dom Bosco is the city's oldest pizzeria and a sight in itself. Its menu has one flavour: mozzarella pizza by the slice, served with the traditional iced mate tea.",
         priceRange: 'R$ 10–20',
         priceRange_en: '~€2–3',
-        address: 'CLS 107 Bloco D, Loja 20, Asa Sul (unidade original)',
+        address: 'CLS 107 Bloco D, Loja 20, Asa Sul',
         url: 'https://www.google.com/maps/search/?api=1&query=Pizzaria+Dom+Bosco+Bras%C3%ADlia',
       },
       {
@@ -563,7 +558,7 @@ export const CONFIG = {
           'A very Brazilian coffee and afternoon-snack menu: Northeastern cuscuz, tapioca, pão na chapa (griddled bread), cakes and much more, with good coffee. In Maranhão, “dar um chêro” is an affectionate way to show care.',
         priceRange: 'R$ 25–50',
         priceRange_en: '~€4–8',
-        address: '109 Norte (CLN 109, Bloco C, Loja 37) e 107 Sul',
+        address: '109 Norte e 107 Sul',
         url: 'https://www.google.com/maps/search/?api=1&query=Caf%C3%A9+e+um+Ch%C3%AAro+Bras%C3%ADlia',
       },
       {
@@ -589,7 +584,7 @@ export const CONFIG = {
           "A Brasília bakery and sweets institution for over 30 years: cakes, tarts, fine sweets, savouries and coffee. The shrimp religiosa is Giovanna's favourite dish, and the strawberry-and-chocolate nuvem is Renato's favourite dessert.",
         priceRange: 'R$ 30–60',
         priceRange_en: '~€5–10',
-        address: 'Várias unidades — Lago Sul, Asa Norte, Asa Sul e Noroeste',
+        address: 'Várias unidades',
         url: 'https://www.google.com/maps/search/?api=1&query=Sweet+Cake+Bras%C3%ADlia',
       },
       {

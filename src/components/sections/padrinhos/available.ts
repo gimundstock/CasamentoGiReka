@@ -5,6 +5,12 @@ import { isHand, type Chapter } from '../passport/geometry'
 /** Who the manual is made out to (the guest's padrinhos, by name), for its cover. */
 export const PadrinhoNames = createContext<string[]>([])
 
+/** What they are to the couple, in English (padrinhoRoleEn), for the manual's words. */
+export const PadrinhoRole = createContext<{ role: string; guide: string }>({
+  role: 'bridesmaid and groomsman',
+  guide: 'Bridesmaid & groomsman guide',
+})
+
 /**
  * Whether the manual is out: once the couple publish it, or always in
  * `npm run dev` (so the draft can be seen before its content is in).

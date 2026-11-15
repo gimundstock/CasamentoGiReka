@@ -687,7 +687,10 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
     >
       {/* The details, tucked into a corner like a printed card's colophon: top right on
           wide cards, bottom right on upright ones where the painted flowers fill the left. */}
-      <div className={`absolute right-0 text-right leading-snug ${wide ? 'top-0' : 'bottom-0'}`}>
+      {/* (Upright: further into the corner, near the gold rule.) */}
+      <div
+        className={`absolute text-right leading-snug ${wide ? 'top-0 right-0' : '-bottom-5 -right-3'}`}
+      >
         <p className="font-sans text-[0.7rem] tracking-[0.3em] uppercase">{date}</p>
         <p className="font-serif text-base mt-1">
           {t('rsvp.inviteTime', { time: CONFIG.wedding.time })}
@@ -697,15 +700,17 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
 
       {/* Lifted a little above the lines under it. */}
       <h2
-        className={`font-display relative -top-[0.55em] leading-[1.45] ${
-          wide ? 'text-[3.1rem] whitespace-nowrap' : 'text-[2.6rem] flex flex-col'
+        className={`font-display relative leading-[1.45] ${
+          wide
+            ? '-top-[0.55em] text-[3.1rem] whitespace-nowrap'
+            : '-top-[1.1em] text-[2.6rem] flex flex-col'
         }`}
       >
         {CONFIG.couple.bride}
         {/* The script's capital R stands well right of its own loop: the "&"
             sits closer to it than to the name before. */}
         <span
-          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-3xl leading-none mb-4'}`}
+          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-3xl leading-none mb-4 relative left-[0.7em]'}`}
         >
           &amp;
         </span>
@@ -722,7 +727,8 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
       </p>
 
       {/* A little lower than the lines above it would put it. */}
-      <p className="font-serif italic text-[0.92rem] md:text-lg text-title/70 mt-6 relative top-5 md:top-6">
+      {/* It lies on the watercolour's blue: on a phone, darker and heavier to read there. */}
+      <p className="font-serif italic font-semibold md:font-normal text-[0.92rem] md:text-lg text-title md:text-title/70 mt-6 relative top-5 md:top-6">
         {t('rsvp.replyBy', { date: deadline })}
       </p>
     </div>

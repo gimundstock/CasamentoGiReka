@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { CONFIG } from '../../../content.config'
 import { EMBOSS_SHADOW } from '../../ui/emboss'
 import { ScriptText } from '../passport/Pages'
-import { PadrinhoNames } from './available'
+import { PadrinhoNames, PadrinhoRole } from './available'
 
 const BASE = import.meta.env.BASE_URL
 /** The site's wildflower border (2000 × 477), at a page's foot. */
@@ -49,6 +49,7 @@ export function CoverArt({ mirrored = false }: { mirrored?: boolean }) {
 export function Cover({ w }: { w: number; h: number }) {
   const { t } = useTranslation()
   const names = useContext(PadrinhoNames)
+  const role = useContext(PadrinhoRole)
   // "Iza" / "& Anton", the second set in (a padrinho or two; more, all but
   // the last on the first line).
   const first = names.length < 2 ? names.join('') : names.slice(0, -1).join(', ')
@@ -90,7 +91,7 @@ export function Cover({ w }: { w: number; h: number }) {
           className="font-sans text-honey mr-[4.5%] ml-auto text-[0.92em] leading-none font-semibold tracking-[0.3em] whitespace-nowrap uppercase"
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
         >
-          {t('padrinhos.cover')}
+          {t('padrinhos.cover', role)}
         </span>
       </div>
     </div>
@@ -147,12 +148,15 @@ function PageTitle({ size, children }: { size: string; children: string }) {
 export function LetterPage({ lang, h }: { lang: Lang; h: number }) {
   const { letter } = CONFIG.padrinhos
   const pt = lang === 'pt'
+  // (In English, {{role}}: bridesmaid, groomsmen… — see padrinhoRoleEn.)
+  const { role } = useContext(PadrinhoRole)
+  const withRole = (text: string) => text.replace(/\{\{role\}\}/g, role)
   return (
     <PagePaper h={h} mirrored>
-      <PageTitle size="1.95em">{pt ? letter.title_pt : letter.title_en}</PageTitle>
+      <PageTitle size="1.95em">{pt ? letter.title_pt : withRole(letter.title_en)}</PageTitle>
       <div className="font-serif text-forest-deep/90 mx-auto mt-[1.5em] max-w-[24em] space-y-[0.8em] text-left text-[1.15em] leading-[1.5] text-pretty">
         {(pt ? letter.paragraphs_pt : letter.paragraphs_en).map((text, i) => (
-          <p key={i}>{text}</p>
+          <p key={i}>{withRole(text)}</p>
         ))}
       </div>
     </PagePaper>
