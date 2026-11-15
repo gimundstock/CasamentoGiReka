@@ -24,12 +24,15 @@ A bilingual (PT default / EN secondary), guest-personalized wedding website for 
 ## Google Sheets tabs
 1. **Guests** — guestId, groupName, language, attendees (comma-sep), displayName (optional, how the site greets them; blank → groupName), padrinhos (the invitation's padrinhos by name, comma-separated, e.g. "Alice, Laura": they get the padrinhos' manual, made out to them; TRUE = all attendees), genero (optional F/M: the Portuguese "convidado/a" for one guest, "convidados/as" for a group, F only when all women; blank → "convidado(a)" / "convidados")
 2. **RSVPs** — timestamp, guestId, groupName, attendeesJson, menuChoicesJson, songRequest, message
-3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice (always BRL), cardMessage, paymentMethod (pix/paypalme/revolut), currency (BRL, or EUR for the euro ways), amountPaid, paymentRef (unused; held PayPal capture IDs)
+3. **Orders** — timestamp, guestId, groupName, guestEmail, giftId, giftName, selectedCotas, totalPrice (always BRL), cardMessage, paymentMethod (pix/paypalme/revolut), currency (BRL, or EUR for the euro ways), amountPaid, paymentRef (unused; held PayPal capture IDs), mailedAt (when the gift's mails went; never twice)
 4. **Cards** — timestamp, guestId, groupName, giftName, theme, from, message (the card a guest writes after buying a gift)
 
 The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Availability is derived from which cotaIds appear in the `selectedCotas` column of the Orders tab.
 
 ## Apps Script endpoints
+
+The Web App is open to the internet, so `Code.gs` trusts nothing in a request: every write needs a `guestId` on the Guests tab and is rate-limited per guest (CacheService); texts are cut to size; anything written to a sheet that would read as a formula (`= + - @`) is stored as text; e-mail addresses must be one plain address; a card or `finishPurchase` needs the guest's own order whose mails haven't gone; an RSVP answers only for the invitation's people; errors returned are generic (details go to the log). Writes answer `{ success, code? }` (`sold`, `limit`, `email`, `guest`, `order`, `mailed`, `invalid`), and the site shows each in its own words.
+
 - `GET ?action=getGuest&id=X` or `?action=getGuest&name=X` (exact normalized match, see `nameKey` in Code.gs)
 - `GET ?action=getSoldCotas` — returns `{ sold: string[] }` of cotaIds present in Orders
 - `POST {action:'purchaseGift', guestId, giftId, giftName, selectedCotaIds, selectedCotaLabels, totalPrice, guestEmail, cardMessage, paymentMethod?, amountEur?, deferEmail?}` — `paymentMethod` is `pix` (default), `paypalme` or `revolut` (the last two need `amountEur`); `deferEmail` holds the mails until `submitCard` (with `completePurchase`) or `finishPurchase`
@@ -69,6 +72,12 @@ The gift catalog is NOT in the Sheet — it lives in `src/content.config.ts`. Av
   - If missing, `CONFIG.appScriptUrl` falls back to a placeholder and `getGifts()` serves `CONFIG.gifts` directly (useful for offline UI preview).
 - `VITE_PIX_KEY` — the PIX key (kept out of the public repo like the ones below; without it the PIX QR can't be paid).
 - `VITE_PAYPAL_ME`, `VITE_REVOLUT_ME` — the PayPal.Me and Revolut.Me usernames for paying in euros. Kept out of the public repo: `.env.local` locally, GitHub Actions secrets for the live site. An empty one hides its way.
+
+## Security notes
+
+- The built page carries a Content-Security-Policy, a referrer policy and `noindex` (added in `vite.config.ts`, build only). A new external source (an embed, a CDN, an API) must be added to the CSP there, or it is blocked.
+- Account details and keys are never in the repo (it is public): env vars / GitHub secrets for the site, Script Properties for the Apps Script.
+- Guest IDs in the invitation links should be random and long (not `r01`, `r02`…): anyone who guesses one sees that invitation.
 
 ## Git workflow
 
@@ -119,7 +128,6 @@ Outdoor celebration, wildflowers, delicate and natural. Use SVG wildflower illus
 ## Content to fill in (all in content.config.ts)
 - Couple's names, wedding date, time, venue, address, dress code
 - PIX key (CPF / phone / email / random key): the `VITE_PIX_KEY` env var, not the config
-- Couple's email (for receiving RSVP + gift copies)
 - Apps Script Web App URL (after deploying Code.gs)
 - Gift list with cotas
 - City guide: hotels, transport, restaurants

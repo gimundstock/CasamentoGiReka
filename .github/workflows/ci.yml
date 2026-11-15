@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+# Read-only: this workflow only checks the code.
+permissions:
+  contents: read
+
 jobs:
   check:
     name: Typecheck, Lint & Format

@@ -94,6 +94,7 @@
     }
   },
   "rsvp": {
+    "tooMany": "Too many attempts in a row. Please try again in a little while.",
     "title": "RSVP",
     "subtitle": "Please confirm your attendance by {{date}}",
     "attending": "Attending",
@@ -162,6 +163,9 @@
     "revolutOpen": "Pay with Revolut",
     "revolutHint": "On the Revolut page, enter € {{amount}}.",
     "revolutTag": "Or send it in the app to",
+    "cotaTaken": "Someone has just taken this share. Close and choose another.",
+    "tooMany": "Too many attempts in a row. Please try again in a little while.",
+    "emailInvalid": "Check the e-mail: a single address, no spaces.",
     "noCotas": "No shares selected",
     "emailRequired": "Please enter your email",
     "soldOutStamp": "sold out",

@@ -41,6 +41,12 @@ async function main() {
     return
   }
 
+  // Drive file IDs only (letters, digits, - and _): they become file names
+  // here and part of a URL, so nothing else is taken from the answer.
+  const ids = manifest.ids.filter((id) => typeof id === 'string' && /^[A-Za-z0-9_-]{10,200}$/.test(id))
+  if (ids.length !== manifest.ids.length) warn(`${manifest.ids.length - ids.length} odd IDs ignored`)
+  manifest.ids = ids
+
   await mkdir(outDir, { recursive: true })
   // Drop copies of photos no longer in Drive, so a removed photo goes too.
   const keep = new Set(manifest.ids.map((id) => `${id}.jpg`))

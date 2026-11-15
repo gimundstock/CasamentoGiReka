@@ -17,10 +17,8 @@ export const CONFIG = {
     groomInstagram: '',
   },
 
-  // ── Contact ─────────────────────────────────────────────
-  // Both emails receive a BCC of every gift purchase and RSVP.
-  // Set these same addresses in apps-script/Code.gs → COUPLE_EMAILS.
-  coupleEmails: ['gimundstock@gmail.com', 'rekanobre@gmail.com'],
+  // (The couple's e-mails are not here: the repo and the site are public. The
+  // Apps Script reads them from its COUPLE_EMAILS Script Property.)
 
   // ── Apps Script ─────────────────────────────────────────
   // Injected at build time from the VITE_APPSCRIPT_URL env var.

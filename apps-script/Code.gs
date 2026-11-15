@@ -13,7 +13,7 @@
  *                  into the site (action=photoManifest)
  *   COUPLE_EMAILS  comma-separated addresses that receive the RSVPs, the gift
  *                  receipts and the cards
- *                  (must mirror CONFIG.coupleEmails in src/content.config.ts)
+ *                  (never in the site's code: the repo is public)
  *   SITE_URL       (optional) where the mails' pictures are served from (public/email/);
  *                  else https://giovannaerenato.com.br
  *   CARDS_FOLDER_ID  (optional) Drive folder where the cards' images are archived;
@@ -42,7 +42,8 @@
  * A guest's photos aren't in the sheet: they're whatever images sit in their
  * Drive subfolder (see GUEST_PHOTOS_FOLDER_ID), in file-name order.
  * RSVPs columns:  timestamp | guestId | groupName | attendeesJson | songRequest | message
- * Orders columns: timestamp | guestId | groupName | guestEmail | giftId | giftName | selectedCotas | totalPrice | cardMessage | paymentMethod | currency | amountPaid | paymentRef
+ * Orders columns: timestamp | guestId | groupName | guestEmail | giftId | giftName | selectedCotas | totalPrice | cardMessage | paymentMethod | currency | amountPaid | paymentRef | mailedAt
+ *   mailedAt (column 14) is when the gift's mails went; they never go twice.
  *   totalPrice is always in BRL (the catalog price). paymentMethod is 'pix',
  *   'paypalme' (PayPal, in euros) or 'revolut' (Revolut, in euros); all are
  *   paid outside the site, the guest's word is the record. currency /
@@ -68,6 +69,83 @@ function coupleEmailsCsv() {
     .join(',');
 }
 
+// ── Input safety ─────────────────────────────────────────────────────────────
+// The Web App is open to anyone on the internet, so nothing in a request is
+// trusted: every write needs a guest who is on the list, every text is cut to
+// size, and nothing typed can turn into a formula in the couple's spreadsheet.
+
+/** A text on one line, at most `max` characters. */
+function oneLine(s, max) {
+  return String(s == null ? '' : s).replace(/[\r\n\t]+/g, ' ').trim().slice(0, max);
+}
+
+/** A text with its line breaks, at most `max` characters. */
+function cleanText(s, max) {
+  return String(s == null ? '' : s).replace(/\r\n?/g, '\n').slice(0, max);
+}
+
+/**
+ * A value as written to a sheet cell. Text the Sheet would read as a formula
+ * (starting with = + - @, a tab or a CR) gets a leading apostrophe, which
+ * makes it plain text: a "=IMPORTXML(…)" typed by anyone stays words.
+ */
+function cell(v) {
+  if (typeof v !== 'string') return v;
+  return /^[=+\-@\t\r]/.test(v) ? "'" + v : v;
+}
+
+function cells(row) {
+  return row.map(cell);
+}
+
+/** One plain e-mail address, or '' if it isn't one (no lists, no names, no line breaks). */
+function cleanEmail(s) {
+  var e = String(s == null ? '' : s).trim();
+  if (e.length > 254) return '';
+  return /^[^\s@,;:<>()"'\[\]\\]+@[^\s@,;:<>()"'\[\]\\]+\.[A-Za-z]{2,}$/.test(e) ? e : '';
+}
+
+/** The Guests row with this id, as read from the sheet, or null. */
+function guestRowById(id) {
+  if (id == null || String(id).trim() === '') return null;
+  var rows = sheetToObjects(getSheet('Guests'));
+  return (
+    rows.find(function(r) {
+      return String(r.guestId) === String(id);
+    }) || null
+  );
+}
+
+/**
+ * True for at most `max` calls in `seconds` per key (a guest and an action),
+ * false after: someone scripting the Web App with a guest's id is slowed down.
+ */
+function withinLimit(key, max, seconds) {
+  var cache = CacheService.getScriptCache();
+  var n = Number(cache.get(key) || 0);
+  if (n >= max) return false;
+  cache.put(key, String(n + 1), seconds);
+  return true;
+}
+
+/** Compares two secrets without stopping at the first different character. */
+function sameSecret(a, b) {
+  a = String(a == null ? '' : a);
+  b = String(b == null ? '' : b);
+  if (!a || a.length !== b.length) return false;
+  var diff = 0;
+  for (var i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/** A refusal the site can tell apart (code) and show in its own words. */
+function refuse(code, error) {
+  return { success: false, code: code, error: error };
+}
+
+/** The largest request taken: a card's picture is about 0.6 MB of base64. */
+var MAX_REQUEST_CHARS = 8000000;
+
 // ── Response helper ──────────────────────────────────────────────────────────
 // Apps Script web apps deployed with "Anyone" access automatically send
 // Access-Control-Allow-Origin: * — no manual CORS headers needed (and
@@ -89,13 +167,18 @@ function doGet(e) {
     if (action === 'photoManifest') return jsonResponse(handlePhotoManifest(e.parameter));
     return jsonResponse({ error: 'Unknown action' });
   } catch (err) {
-    return jsonResponse({ error: String(err) });
+    // The details go to the log, not to whoever asked.
+    if (typeof console !== 'undefined') console.error('doGet: ' + err);
+    return jsonResponse({ error: 'Erro interno.' });
   }
 }
 
 function doPost(e) {
   try {
-    var body = JSON.parse(e.postData.contents);
+    var raw = e && e.postData ? String(e.postData.contents || '') : '';
+    if (!raw || raw.length > MAX_REQUEST_CHARS) return jsonResponse(refuse('invalid', 'Pedido inválido.'));
+    var body = JSON.parse(raw);
+    if (!body || typeof body !== 'object') return jsonResponse(refuse('invalid', 'Pedido inválido.'));
     var action = body.action;
     if (action === 'purchaseGift') return jsonResponse(handlePurchaseGift(body));
     if (action === 'submitRSVP') return jsonResponse(handleSubmitRSVP(body));
@@ -103,7 +186,8 @@ function doPost(e) {
     if (action === 'finishPurchase') return jsonResponse(handleFinishPurchase(body));
     return jsonResponse({ error: 'Unknown action' });
   } catch (err) {
-    return jsonResponse({ error: String(err) });
+    if (typeof console !== 'undefined') console.error('doPost: ' + err);
+    return jsonResponse({ error: 'Erro interno.' });
   }
 }
 
@@ -293,7 +377,7 @@ function guestPhotoUrls(guestId) {
  */
 function handlePhotoManifest(params) {
   var token = requiredProperty('PHOTO_SYNC_TOKEN');
-  if (!params || params.token !== token) return { error: 'Forbidden' };
+  if (!params || !sameSecret(params.token, token)) return { error: 'Forbidden' };
   var root = guestPhotosRoot();
   if (!root) return { ids: [] };
   var ids = [];
@@ -328,64 +412,89 @@ function handleGetSoldCotas() {
 }
 
 function handlePurchaseGift(body) {
+  // Only a guest on the list buys, only this gift's cotas, each once.
+  var guestRow = guestRowById(body.guestId);
+  if (!guestRow) return refuse('guest', 'Convite não encontrado.');
+  var guestId = String(guestRow.guestId);
+  var giftId = String(body.giftId || '');
+  if (!/^gift_\d{1,4}$/.test(giftId)) return refuse('invalid', 'Presente inválido.');
+  var giftName = oneLine(body.giftName, 120);
+  if (!giftName) return refuse('invalid', 'Presente inválido.');
+  var cotaPrefix = 'cota_' + giftId.slice(5) + '_';
+  var selectedCotaIds = Array.isArray(body.selectedCotaIds) ? body.selectedCotaIds.map(String) : [];
+  var ownCotas = selectedCotaIds.every(function(id, i) {
+    return (
+      /^cota_\d{1,4}_[A-Za-z0-9]{1,4}$/.test(id) &&
+      id.indexOf(cotaPrefix) === 0 &&
+      selectedCotaIds.indexOf(id) === i
+    );
+  });
+  if (!selectedCotaIds.length || selectedCotaIds.length > 60 || !ownCotas) {
+    return refuse('invalid', 'Cotas inválidas.');
+  }
+  var selectedCotaLabels = cleanLabels(body.selectedCotaLabels);
+  var totalPrice = Number(body.totalPrice);
+  if (!(totalPrice > 0) || totalPrice > 100000) return refuse('invalid', 'Valor inválido.');
+  // One plain address of the guest's own, or none (the couple still get theirs).
+  var typedEmail = String(body.guestEmail == null ? '' : body.guestEmail).trim();
+  var guestEmail = cleanEmail(typedEmail);
+  if (typedEmail && !guestEmail) return refuse('email', 'E-mail inválido.');
+  var cardMessage = cleanText(body.cardMessage, 400);
+
+  var paymentMethod =
+    body.paymentMethod === 'paypalme' || body.paymentMethod === 'revolut' ? body.paymentMethod : 'pix';
+  // Every way is paid outside the site; the guest's word is the record. In
+  // euros, the amount they were shown (whole euros, at the site's rate).
+  var currency = 'BRL';
+  var amountPaid = totalPrice;
+  var paymentRef = '';
+  if (paymentMethod !== 'pix') {
+    var eur = Number(body.amountEur);
+    if (!(eur > 0) || eur > 100000) return refuse('invalid', 'Valor em euro inválido.');
+    currency = 'EUR';
+    amountPaid = Math.round(eur * 100) / 100;
+  }
+
+  if (!withinLimit('buy:' + guestId, 20, 3600)) {
+    return refuse('limit', 'Muitas tentativas. Tente de novo mais tarde.');
+  }
+
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    var guestId = body.guestId;
-    var giftId = body.giftId;
-    var giftName = body.giftName;
-    var selectedCotaIds = body.selectedCotaIds || [];
-    var selectedCotaLabels = body.selectedCotaLabels || [];
-    var totalPrice = body.totalPrice;
-    var guestEmail = body.guestEmail;
-    var cardMessage = body.cardMessage || '';
-
-    var paymentMethod =
-      body.paymentMethod === 'paypalme' || body.paymentMethod === 'revolut' ? body.paymentMethod : 'pix';
-
     var sold = collectSoldCotaIds();
     for (var i = 0; i < selectedCotaIds.length; i++) {
       if (sold[selectedCotaIds[i]]) {
-        return { success: false, error: 'Cota ' + selectedCotaIds[i] + ' já foi comprada.' };
+        return refuse('sold', 'Cota ' + selectedCotaIds[i] + ' já foi comprada.');
       }
     }
 
-    // Every way is paid outside the site; the guest's word is the record. In
-    // euros, the amount they were shown (whole euros, at the site's rate).
-    var currency = 'BRL';
-    var amountPaid = totalPrice;
-    var paymentRef = '';
-    if (paymentMethod !== 'pix') {
-      var eur = Number(body.amountEur);
-      if (!(eur > 0) || eur > 100000) return { success: false, error: 'Valor em euro inválido.' };
-      currency = 'EUR';
-      amountPaid = Math.round(eur * 100) / 100;
-    }
-
     var now = new Date().toISOString();
-    var guestRow = handleGetGuest({ id: guestId });
-
-    getSheet('Orders').appendRow([
-      now,
-      guestId,
-      guestRow ? guestRow.groupName : guestId,
-      guestEmail,
-      giftId,
-      giftName,
-      JSON.stringify(selectedCotaIds),
-      totalPrice,
-      cardMessage,
-      paymentMethod,
-      currency,
-      amountPaid,
-      paymentRef,
-    ]);
-
     // The mails wait for the card when the site says one is coming
-    // (deferEmail): the gift's confirmation and the couple's receipt then
-    // go out once, with the card, from submitCard / finishPurchase. Without
-    // it (an older page), they go now.
-    if (!body.deferEmail) {
+    // (deferEmail): the gift's confirmation and the couple's receipt then go
+    // out once, with the card, from submitCard / finishPurchase. Without it,
+    // they go now. Column 14 (mailedAt) records that they went.
+    var mailNow = !body.deferEmail;
+    getSheet('Orders').appendRow(
+      cells([
+        now,
+        guestId,
+        String(guestRow.groupName),
+        guestEmail,
+        giftId,
+        giftName,
+        JSON.stringify(selectedCotaIds),
+        totalPrice,
+        cardMessage,
+        paymentMethod,
+        currency,
+        amountPaid,
+        paymentRef,
+        mailNow ? now : '',
+      ])
+    );
+
+    if (mailNow) {
       mailOrder(
         {
           guestId: guestId,
@@ -421,6 +530,8 @@ function formatMoney(amount, currency) {
  * the guest still sees it go through.
  */
 function sendMail(args) {
+  // (A subject is one line: nothing typed can add mail headers.)
+  if (args.subject) args.subject = oneLine(args.subject, 250);
   try {
     MailApp.sendEmail(args);
   } catch (e) {
@@ -679,25 +790,37 @@ function sendCoupleReceipt(o) {
  * names for the payment columns, and a mail must not depend on it.
  */
 function lastOrderFor(guestId, giftName) {
-  var rows = getSheet('Orders').getDataRange().getValues().slice(1).filter(function(r) {
-    return String(r[1]) === String(guestId);
-  });
-  var row = null;
-  for (var i = rows.length - 1; i >= 0 && !row; i--) {
-    if (String(rows[i][5]) === String(giftName)) row = rows[i];
+  var data = getSheet('Orders').getDataRange().getValues();
+  var match = -1;
+  var latest = -1;
+  for (var i = data.length - 1; i >= 1; i--) {
+    if (String(data[i][1]) !== String(guestId)) continue;
+    if (latest < 0) latest = i;
+    if (String(data[i][5]) === String(giftName)) {
+      match = i;
+      break;
+    }
   }
-  row = row || rows[rows.length - 1];
-  if (!row) return null;
+  var at = match >= 0 ? match : latest;
+  if (at < 0) return null;
+  var row = data[at];
   return {
+    rowNumber: at + 1,
     guestId: row[1],
-    guestEmail: String(row[3] || ''),
+    guestEmail: cleanEmail(row[3]),
     giftName: row[5],
     totalPrice: row[7],
     paymentMethod: ['paypalme', 'revolut', 'paypal'].indexOf(row[9]) >= 0 ? row[9] : 'pix',
     currency: row[10] || 'BRL',
     amountPaid: row[11] === '' || row[11] === undefined ? row[7] : row[11],
     paymentRef: row[12] || '',
+    mailedAt: row[13] || '',
   };
+}
+
+/** Records that this order's mails went (column 14), so they never go twice. */
+function markMailed(order) {
+  getSheet('Orders').getRange(order.rowNumber, 14).setValue(new Date().toISOString());
 }
 
 /**
@@ -796,135 +919,115 @@ function archiveCardImage(blob, stamp, from, giftName) {
 }
 
 /**
- * A card a guest writes for the couple after buying a gift: stored in the
- * Cards tab and mailed. With completePurchase (the site holds the gift's
- * mails until now) it sends them, once each, with the card in full: the
- * confirmation to the guest and the receipt to the couple. Without it (an
- * older page already mailed the gift) it sends the card on its own: to the
- * couple, and a copy to the guest. The address is taken from the guest's own
- * order, never from the request.
+ * A card a guest writes for the couple after buying a gift. Only for a gift
+ * they bought whose mails haven't gone yet: it is stored in the Cards tab, its
+ * picture archived in Drive, and the gift's two mails go out, once, with it in
+ * full — the confirmation to the guest (at the address on their order, never
+ * one from the request) and the receipt to the couple.
  */
 function handleSubmitCard(body) {
-  var guestRow = handleGetGuest({ id: body.guestId });
-  var groupName = guestRow ? guestRow.groupName : body.guestId;
-  var message = String(body.message || '').slice(0, 400);
-  var from = String(body.from || groupName).slice(0, 60);
-  var theme = String(body.theme || '').slice(0, 30);
-  var giftName = String(body.giftName || '').slice(0, 120);
+  var guestRow = guestRowById(body.guestId);
+  if (!guestRow) return refuse('guest', 'Convite não encontrado.');
+  var guestId = String(guestRow.guestId);
+  var groupName = String(guestRow.groupName);
+  var message = cleanText(body.message, 400);
+  if (!message.trim()) return refuse('invalid', 'Cartão vazio.');
+  var from = oneLine(body.from || groupName, 60);
+  var theme = oneLine(body.theme, 30);
+  var giftName = oneLine(body.giftName, 120);
+  if (!withinLimit('card:' + guestId, 10, 3600)) {
+    return refuse('limit', 'Muitas tentativas. Tente de novo mais tarde.');
+  }
 
-  var now = new Date().toISOString();
-  var blob = cardImageBlob(body.cardImage, from);
-  var imageUrl = blob ? archiveCardImage(blob, now, from, giftName) : '';
-
-  // Whatever happens to the sheet, the card still reaches them by mail.
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
   try {
-    cardsSheet().appendRow([
-      now,
-      body.guestId,
-      groupName,
-      giftName,
-      theme,
-      from,
-      message,
-      imageUrl,
-    ]);
-  } catch (e) {
-    if (typeof console !== 'undefined') console.error('Cards tab: ' + e);
-  }
+    var order = lastOrderFor(guestId, giftName);
+    if (!order) return refuse('order', 'Pedido não encontrado.');
+    if (order.mailedAt) return refuse('mailed', 'Este presente já foi confirmado.');
 
-  var order = lastOrderFor(body.guestId, giftName);
-  if (body.completePurchase && order) {
+    var now = new Date().toISOString();
+    var blob = cardImageBlob(body.cardImage, from);
+    var imageUrl = blob ? archiveCardImage(blob, now, from, giftName) : '';
+
+    // Whatever happens to the sheet, the card still reaches them by mail.
+    try {
+      cardsSheet().appendRow(cells([now, guestId, groupName, giftName, theme, from, message, imageUrl]));
+    } catch (e) {
+      if (typeof console !== 'undefined') console.error('Cards tab: ' + e);
+    }
+
     mailOrder(order, cleanLabels(body.selectedCotaLabels), { message: message, from: from, blob: blob });
+    markMailed(order);
     return { success: true };
+  } finally {
+    lock.releaseLock();
   }
-
-  var guestEmail = order ? order.guestEmail : '';
-  var coupleLines = [
-    'Cartão de ' + from + ' (' + groupName + ')',
-    'Presente: ' + giftName + (order && order.totalPrice ? ' — ' + formatMoney(order.totalPrice, 'BRL') : ''),
-    'E-mail: ' + (guestEmail || '(não informado)'),
-    'Modelo: ' + theme,
-  ];
-  sendMail(withCardImage(replyingTo(guestEmail, {
-    to: coupleEmailsCsv(),
-    subject: '💌 Novo cartão de ' + from + ' — ' + giftName,
-    body: coupleLines.concat(['', '"' + message + '"']).join('\n'),
-    htmlBody: emailShell({
-      kicker: 'Novo cartão',
-      title: 'Cartão de ' + from,
-      preheader: giftName,
-      parts: [
-        htmlDetails([
-          ['De', escapeHtml(groupName)],
-          ['Presente', escapeHtml(giftName) + (order && order.totalPrice ? ' — ' + escapeHtml(formatMoney(order.totalPrice, 'BRL')) : '')],
-          ['E-mail', escapeHtml(guestEmail || '(não informado)')],
-        ]),
-        blob ? htmlCardImage() : htmlCard(message, from),
-      ],
-    }),
-  }), blob));
-
-  if (guestEmail) {
-    var guestLines = [
-      'Olá, ' + groupName + '!',
-      '',
-      'Seu cartão para ' + COUPLE_NAMES + ' foi entregue. Aqui está uma cópia:',
-    ];
-    var close = ['Presente: ' + giftName, '', 'Com carinho,', COUPLE_NAMES];
-    sendMail(withCardImage({
-      to: guestEmail,
-      subject: '💌 Seu cartão para ' + COUPLE_NAMES,
-      body: guestLines.concat(['', '"' + message + '"', '— ' + from, ''], close).join('\n'),
-      htmlBody: emailShell({
-        kicker: 'Cartão entregue',
-        title: 'Seu cartão chegou!',
-        preheader: giftName,
-        parts: [
-          htmlParagraph('Olá, ' + groupName + '!\nSeu cartão para ' + COUPLE_NAMES + ' foi entregue. Aqui está uma cópia:'),
-          blob ? htmlCardImage() : htmlCard(message, from),
-          htmlDetails([['Presente', escapeHtml(giftName)]]),
-        ],
-      }),
-    }, blob));
-  }
-
-  return { success: true };
 }
 
-/** The guest left without writing a card: the gift's two mails, with none. */
+/** The guest left without writing a card: the gift's two mails, once, with none. */
 function handleFinishPurchase(body) {
-  var order = lastOrderFor(body.guestId, String(body.giftName || '').slice(0, 120));
-  if (!order) return { success: false, error: 'Pedido não encontrado.' };
-  mailOrder(order, cleanLabels(body.selectedCotaLabels), null);
-  return { success: true };
+  var guestRow = guestRowById(body.guestId);
+  if (!guestRow) return refuse('guest', 'Convite não encontrado.');
+  var guestId = String(guestRow.guestId);
+  if (!withinLimit('finish:' + guestId, 20, 3600)) {
+    return refuse('limit', 'Muitas tentativas. Tente de novo mais tarde.');
+  }
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var order = lastOrderFor(guestId, oneLine(body.giftName, 120));
+    if (!order) return refuse('order', 'Pedido não encontrado.');
+    if (order.mailedAt) return refuse('mailed', 'Este presente já foi confirmado.');
+    mailOrder(order, cleanLabels(body.selectedCotaLabels), null);
+    markMailed(order);
+    return { success: true };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function handleSubmitRSVP(body) {
-  var guestId = body.guestId;
-  var attendeesJson = body.attendeesJson;
-  var songRequest = body.songRequest || '';
-  var message = body.message || '';
+  // Only a guest on the list, answering only for the people on their invitation.
+  var guestRow = guestRowById(body.guestId);
+  if (!guestRow) return refuse('guest', 'Convite não encontrado.');
+  var guestId = String(guestRow.guestId);
+  var groupName = String(guestRow.groupName);
+  var key = function(n) {
+    return normalize(n).replace(/\s+/g, ' ');
+  };
+  var invited = String(guestRow.attendees)
+    .split(',')
+    .map(function(n) {
+      return key(n);
+    })
+    .filter(Boolean);
 
-  var guestRow = handleGetGuest({ id: guestId });
-  var groupName = guestRow ? guestRow.groupName : guestId;
-
-  var rsvpSheet = getSheet('RSVPs');
-  rsvpSheet.appendRow([
-    new Date().toISOString(),
-    guestId,
-    groupName,
-    attendeesJson,
-    songRequest,
-    message,
-  ]);
-
-  var attendees = [];
+  var attendees;
   try {
-    attendees = JSON.parse(attendeesJson || '[]');
+    attendees = JSON.parse(String(body.attendeesJson || '[]'));
   } catch (e) {
-    attendees = [];
+    return refuse('invalid', 'Resposta inválida.');
   }
-  if (!Array.isArray(attendees)) attendees = [];
+  if (!Array.isArray(attendees) || attendees.length > invited.length) {
+    return refuse('invalid', 'Resposta inválida.');
+  }
+  attendees = attendees.map(function(a) {
+    return { name: oneLine(a && a.name, 80), attending: !!(a && a.attending === true) };
+  });
+  var outsider = attendees.some(function(a) {
+    return invited.indexOf(key(a.name)) < 0;
+  });
+  if (outsider) return refuse('invalid', 'Nome fora do convite.');
+  var songRequest = oneLine(body.songRequest, 200);
+  if (!withinLimit('rsvp:' + guestId, 10, 3600)) {
+    return refuse('limit', 'Muitas tentativas. Tente de novo mais tarde.');
+  }
+  var attendeesJson = JSON.stringify(attendees);
+
+  // (The RSVP no longer asks for a message: its column stays empty.)
+  getSheet('RSVPs').appendRow(cells([new Date().toISOString(), guestId, groupName, attendeesJson, songRequest, '']));
+
   var going = attendees.filter(function(a) { return a && a.attending; });
   var notGoing = attendees.filter(function(a) { return a && !a.attending; });
   var person = function(a) {
