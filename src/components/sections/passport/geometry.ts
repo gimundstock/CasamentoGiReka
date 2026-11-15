@@ -93,6 +93,11 @@ export const PASSPORT_ANCHOR_VH = PASSPORT_START_VH + (PHASE.title[1] + PHASE.op
 // The passport's own timeline (PHASE) holds still while the desk is shown
 // (`hold`); everything after it runs `hold` later (see passportTime).
 
+// Pace: a motion that crosses the screen (the envelope drawn in, the
+// passport or the manual pushed off, a book shutting or opening) takes
+// about 70–80 vh, as the invitation's own (RSVP: the flap, the card out of
+// the envelope, its turn): scrolled at a steady speed, the scenes move at
+// about the same speed.
 export const DESK = {
   /**
    * The passport is carried to its place on the desk once the blot has
@@ -108,18 +113,18 @@ export const DESK = {
   hold: [262, 330] as Span,
   // In the passport's own time (after the hold):
   /** Read: the book closes on the page it is open at. */
-  close: [470, 505] as Span,
+  close: [470, 540] as Span,
   /**
    * The envelope is drawn in from the right, to where the invitation takes
    * over, pushing the shut passport off to the left.
    */
-  arrive: [504, 550] as Span,
+  arrive: [539, 609] as Span,
   /** The passport it pushes slides on a little longer, off the screen. */
-  shove: [504, 557] as Span,
+  shove: [539, 619] as Span,
   /** The kicker and the hint come with it. */
-  words: [536, 550] as Span,
+  words: [595, 609] as Span,
   /** End of the stage, in the passport's own time. */
-  end: 560,
+  end: 622,
 }
 const DESK_HOLD = DESK.hold[1] - DESK.hold[0]
 
@@ -135,18 +140,18 @@ const DESK_HOLD = DESK.hold[1] - DESK.hold[0]
 export const CHAPTER = {
   at: DESK.close[1],
   /** Drawn in to the centre (as DESK.arrive), the passport pushed off (as DESK.shove). */
-  arrive: [0, 46] as Span,
-  shove: [0, 53] as Span,
+  arrive: [0, 70] as Span,
+  shove: [0, 80] as Span,
   /** Lying shut at the centre. */
-  shut: 62,
-  unfold: [72, 130] as Span,
+  shut: 90,
+  unfold: [100, 170] as Span,
   /**
    * A phone: open, the manual is wider than the screen, so it is read a
    * page at a time — the left one as it opens, then the right.
    */
-  toRight: [160, 190] as Span,
-  fold: [238, 276] as Span,
-  len: 282,
+  toRight: [200, 230] as Span,
+  fold: [278, 348] as Span,
+  len: 354,
 }
 
 /** What the manual's chapter does to the scroll: `on`, 'desk' or 'hand' (a phone). */
@@ -819,9 +824,21 @@ export function vignetteBox(g: PassportGeometry): Rect {
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }
 }
 
+/**
+ * On a phone, the blot window is laid out at most this many times the
+ * screen's longer side. Its size at the hand-over was ~8× the screen's
+ * width (3000 px laid out, 9000 at 3×): its backing store and mask, kept
+ * for the rest of the page, took ~500 MB of graphics memory, enough for
+ * iOS Safari to kill the page. Smaller, it is scaled up at the hand-over:
+ * a shade softer while it closes in, the same once on the cover.
+ */
+const PHONE_WINDOW_MAX = 1.2
+
 /** How many times the slot the blot window is laid out: its size at the hand-over. */
 export function windowScale(g: PassportGeometry) {
-  return Math.max(1, (g.blotLocal.w * focusAt(g, PHASE.swap)) / g.slot.w)
+  const full = Math.max(1, (g.blotLocal.w * focusAt(g, PHASE.swap)) / g.slot.w)
+  if (g.vw >= 768) return full
+  return Math.max(1, Math.min(full, (PHONE_WINDOW_MAX * Math.max(g.vw, g.vh)) / g.slot.w))
 }
 
 /**

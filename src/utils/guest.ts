@@ -19,6 +19,31 @@ export function invitationOptions(guest: Guest): { count: number; context?: 'fem
 }
 
 /**
+ * What the padrinhos are, in English, for the manual: bridesmaid(s) or
+ * groomsman / groomsmen from the invitation's gender (the `genero` column)
+ * and how many padrinhos it has; both when it's mixed. `guide` is the
+ * manual's name ("Bridesmaid’s guide"). (Portuguese says "padrinhos" for all.)
+ */
+export function padrinhoRoleEn(guest: Guest): { role: string; guide: string } {
+  const n = Math.max(1, guest.padrinhos?.length ?? 0)
+  if (guest.gender === 'f') {
+    return n === 1
+      ? { role: 'bridesmaid', guide: 'Bridesmaid’s guide' }
+      : { role: 'bridesmaids', guide: 'Bridesmaids’ guide' }
+  }
+  if (guest.gender === 'm') {
+    return n === 1
+      ? { role: 'groomsman', guide: 'Groomsman’s guide' }
+      : { role: 'groomsmen', guide: 'Groomsmen’s guide' }
+  }
+  if (n > 2) return { role: 'bridesmaids and groomsmen', guide: 'Bridesmaids & groomsmen guide' }
+  // Two (a couple), or one whose gender the sheet doesn't say.
+  return n === 2
+    ? { role: 'bridesmaid and groomsman', guide: 'Bridesmaid & groomsman guide' }
+    : { role: 'bridesmaid or groomsman', guide: 'Bridesmaid & groomsman guide' }
+}
+
+/**
  * The carousel's photos after the celebration: the guest's own first, then
  * as many of the defaults as they lack. Each guest photo pushes out the last
  * default still there: no photos, all the defaults; one, theirs then all

@@ -61,7 +61,7 @@
       "map": "View on map",
       "airbnb": "View on Airbnb",
       "prev": "Previous page",
-        "bookLabel": "Passport to Brasília — city guide",
+      "bookLabel": "Passport to Brasília — city guide",
       "tabsLabel": "Guide chapters",
       "hintOpen": "Scroll to open the passport",
       "cornerClick": "click to turn",
@@ -178,6 +178,7 @@
     "summary": "Summary",
     "total": "Total",
     "done": "Done",
+    "cardKicker": "Your card",
     "cardStepTitle": "Would you like to leave a card for the couple?",
     "cardStepText": "Pick a design and write a message. It reaches us together with your gift.",
     "cardTheme": "Card design",
@@ -192,7 +193,7 @@
     "close": "Close"
   },
   "footer": {
-    "made": "Made with love",
+    "made": "Made by the bride & groom",
     "for": "for"
   },
   "language": "PT",
@@ -202,9 +203,9 @@
     "switchLanguage": "View the site in Portuguese"
   },
   "padrinhos": {
-    "label": "Wedding party guide",
-    "cover": "Wedding party guide",
-    "kicker": "For the wedding party",
+    "label": "{{guide}}",
+    "cover": "{{guide}}",
+    "kicker": "For our {{role}}",
     "hintOpen": "Scroll to open the guide",
     "for": "for"
   }

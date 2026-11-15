@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import i18n from '../i18n'
-import { guestPhotoSources, invitationOptions, withDefaultPhotos } from './guest'
+import { guestPhotoSources, invitationOptions, padrinhoRoleEn, withDefaultPhotos } from './guest'
 import type { Guest } from '../types'
 
 const guest = (photos?: string[]): Guest => ({
@@ -71,5 +71,23 @@ describe('withDefaultPhotos', () => {
     expect(withDefaultPhotos(['g1', 'g2', 'g3', 'g4'], defaults)).toEqual(['g1', 'g2', 'g3', 'g4'])
     const ten = Array.from({ length: 10 }, (_, i) => `g${i + 1}`)
     expect(withDefaultPhotos(ten, defaults)).toEqual(ten)
+  })
+})
+
+describe('padrinhoRoleEn', () => {
+  const base = { guestId: 'x', groupName: 'X', language: 'en', attendees: ['A', 'B'] }
+  const role = (gender: 'f' | 'm' | '', padrinhos: string[]) =>
+    padrinhoRoleEn({ ...base, gender, padrinhos } as never)
+
+  it('says bridesmaid(s) or groomsman / groomsmen from the invitation and how many', () => {
+    expect(role('f', ['Ana'])).toEqual({ role: 'bridesmaid', guide: 'Bridesmaid’s guide' })
+    expect(role('f', ['Ana', 'Bia']).role).toBe('bridesmaids')
+    expect(role('m', ['Bruno'])).toEqual({ role: 'groomsman', guide: 'Groomsman’s guide' })
+    expect(role('m', ['Bruno', 'Caio']).role).toBe('groomsmen')
+  })
+
+  it('both, for a mixed invitation', () => {
+    expect(role('', ['Ana', 'Bruno']).role).toBe('bridesmaid and groomsman')
+    expect(role('', ['Ana', 'Bruno', 'Caio']).role).toBe('bridesmaids and groomsmen')
   })
 })

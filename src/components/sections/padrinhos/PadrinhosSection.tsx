@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMotionValueEvent, useScroll } from 'framer-motion'
 import { useReducedMotion } from '../../motion/useReducedMotion'
 import { ScrollHint } from '../../ui/ScrollHint'
 import { ease, isDesk, passportGeometry, seg } from '../passport/geometry'
-import { manualChapter, manualSection } from './available'
+import { PadrinhoRole, manualChapter, manualSection } from './available'
 import { ManualCard, type ManualCardHandle } from './ManualCard'
 import { manualSize } from './geometry'
 import { useRestSnap, type Rest } from './useRestSnap'
@@ -54,6 +54,7 @@ export function PadrinhosSection({ padrinho }: { padrinho?: boolean }) {
 
 function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean }) {
   const { t } = useTranslation()
+  const role = useContext(PadrinhoRole)
   const trackRef = useRef<HTMLElement>(null)
   const foldRef = useRef<ManualCardHandle>(null)
   const panRef = useRef<HTMLDivElement>(null)
@@ -94,7 +95,7 @@ function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean
     <section
       ref={trackRef}
       id="padrinhos"
-      aria-label={t('padrinhos.label')}
+      aria-label={t('padrinhos.label', role)}
       className="bg-peach bg-paper relative"
       style={{ height: reduced ? '100svh' : `${end + 100}vh` }}
     >
@@ -103,7 +104,7 @@ function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean
           className="font-sans text-amber-deep absolute inset-x-0 text-center text-[0.65rem] tracking-[0.4em] uppercase"
           style={{ top: size.y - h / 2 - 40 }}
         >
-          {t('padrinhos.kicker')}
+          {t('padrinhos.kicker', role)}
         </p>
         {reduced && phone ? (
           <div

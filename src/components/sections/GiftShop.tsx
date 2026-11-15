@@ -11,6 +11,7 @@ import { DeskFlowers } from './passport/DeskFlowers'
 import { RSVP_SCENE_VH } from './RSVP'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { useGifts } from '../../hooks/useGifts'
+import { useScrollLock } from '../../hooks/useScrollLock'
 import { finishPurchase, purchaseGift, submitCard } from '../../api/sheets'
 import {
   CARD_ASPECT,
@@ -568,6 +569,9 @@ interface ModalProps {
 function GiftModal(props: ModalProps) {
   const { t } = useTranslation()
   const { purchase, lang } = props
+  // The page stays put behind it: only the popup scrolls.
+  const panelRef = useRef<HTMLDivElement>(null)
+  useScrollLock(true, panelRef)
   const {
     gift,
     step,
@@ -592,7 +596,10 @@ function GiftModal(props: ModalProps) {
       // (Not closed by a click outside: only by the X, so a stray tap doesn't lose a card.)
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-0 sm:px-4 bg-forest-deep/40 backdrop-blur-sm"
     >
-      <div className="relative bg-peach-light w-full sm:max-w-md md:max-w-lg lg:max-w-xl rounded-t-3xl sm:rounded-[28px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_rgba(63,96,65,0.25)] border border-sage/30">
+      <div
+        ref={panelRef}
+        className="relative overscroll-contain bg-peach-light w-full sm:max-w-md md:max-w-lg lg:max-w-xl rounded-t-3xl sm:rounded-[28px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_rgba(63,96,65,0.25)] border border-sage/30"
+      >
         {/* Paper texture inside modal */}
         <div
           className="absolute inset-0 bg-paper opacity-25 pointer-events-none rounded-t-3xl sm:rounded-[28px]"
@@ -600,19 +607,31 @@ function GiftModal(props: ModalProps) {
         />
 
         <div className="relative">
-          {/* Header */}
+          {/* Header: the gift — on the card step, the card's own title instead. */}
           <div className="flex items-start justify-between mb-6">
-            <div className="pr-4">
-              <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-amber-deep mb-1">
-                {step === 'success' ? t('gifts.successKicker') : t('gifts.stepKicker')}
-              </p>
-              <h3 className="font-sans text-xl text-title leading-snug">{giftName}</h3>
-              {step !== 'success' && (
-                <p className="font-serif text-sm text-title mt-1">
-                  {lang === 'pt' ? gift.description_pt : gift.description_en}
+            {step === 'card' ? (
+              <div className="pr-4">
+                <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-amber-deep mb-1">
+                  {t('gifts.cardKicker')}
                 </p>
-              )}
-            </div>
+                <h3 className="font-sans text-xl text-title leading-snug">
+                  {t('gifts.cardStepTitle')}
+                </h3>
+                <p className="font-serif text-sm text-title mt-1">{t('gifts.cardStepText')}</p>
+              </div>
+            ) : (
+              <div className="pr-4">
+                <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-amber-deep mb-1">
+                  {step === 'success' ? t('gifts.successKicker') : t('gifts.stepKicker')}
+                </p>
+                <h3 className="font-sans text-xl text-title leading-snug">{giftName}</h3>
+                {step !== 'success' && (
+                  <p className="font-serif text-sm text-title mt-1">
+                    {lang === 'pt' ? gift.description_pt : gift.description_en}
+                  </p>
+                )}
+              </div>
+            )}
             <button
               onClick={props.onClose}
               className="text-title/70 hover:text-title transition-colors shrink-0 mt-1"
@@ -856,9 +875,6 @@ function GiftModal(props: ModalProps) {
           {/* ── Step: card (after the gift is confirmed) ── */}
           {step === 'card' && (
             <>
-              <h4 className="font-sans text-xl text-title mb-1">{t('gifts.cardStepTitle')}</h4>
-              <p className="font-serif text-sm text-title mb-5">{t('gifts.cardStepText')}</p>
-
               <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-title mb-2">
                 {t('gifts.cardTheme')}
               </p>
