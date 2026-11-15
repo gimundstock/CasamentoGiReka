@@ -758,7 +758,11 @@ function ReplyForm({ guest }: { guest: Guest }) {
     setSubmitting(true)
     setError(null)
     try {
-      await submitRSVP({ guestId: guest.guestId, attendees, songRequest })
+      const res = await submitRSVP({ guestId: guest.guestId, attendees, songRequest })
+      if (!res.success) {
+        setError(t(res.code === 'limit' ? 'rsvp.tooMany' : 'rsvp.error'))
+        return
+      }
       setJustSubmitted(true)
     } catch {
       setError(t('rsvp.error'))

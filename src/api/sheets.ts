@@ -18,6 +18,14 @@ async function get<T>(params: Record<string, string>): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** What a write answers: success, or a refusal the site tells apart by its code. */
+export interface WriteResult {
+  success: boolean
+  /** 'sold' (a cota was just taken), 'limit' (too many tries), 'email', 'guest', 'mailed', … */
+  code?: string
+  error?: string
+}
+
 async function post<T>(body: Record<string, unknown>, keepalive = false): Promise<T> {
   const res = await fetch(BASE_URL, {
     method: 'POST',
@@ -75,10 +83,8 @@ async function fetchSoldCotaIds(): Promise<string[]> {
   }
 }
 
-export async function purchaseGift(
-  data: PurchaseSubmission
-): Promise<{ success: boolean; error?: string }> {
-  return post<{ success: boolean; error?: string }>({
+export async function purchaseGift(data: PurchaseSubmission): Promise<WriteResult> {
+  return post<WriteResult>({
     action: 'purchaseGift',
     guestId: data.guestId,
     giftId: data.giftId,
@@ -94,8 +100,8 @@ export async function purchaseGift(
   })
 }
 
-export async function submitRSVP(data: RSVPSubmission): Promise<{ success: boolean }> {
-  return post<{ success: boolean }>({
+export async function submitRSVP(data: RSVPSubmission): Promise<WriteResult> {
+  return post<WriteResult>({
     action: 'submitRSVP',
     guestId: data.guestId,
     attendeesJson: JSON.stringify(data.attendees),
@@ -104,8 +110,8 @@ export async function submitRSVP(data: RSVPSubmission): Promise<{ success: boole
   })
 }
 
-export async function submitCard(data: CardSubmission): Promise<{ success: boolean }> {
-  return post<{ success: boolean }>({
+export async function submitCard(data: CardSubmission): Promise<WriteResult> {
+  return post<WriteResult>({
     action: 'submitCard',
     guestId: data.guestId,
     giftName: data.giftName,
@@ -122,8 +128,8 @@ export async function submitCard(data: CardSubmission): Promise<{ success: boole
 export async function finishPurchase(
   data: FinishSubmission,
   keepalive = false
-): Promise<{ success: boolean }> {
-  return post<{ success: boolean }>(
+): Promise<WriteResult> {
+  return post<WriteResult>(
     {
       action: 'finishPurchase',
       guestId: data.guestId,

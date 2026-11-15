@@ -15,8 +15,7 @@
 | Web App URL | `.env.local` → `VITE_APPSCRIPT_URL`, and the GitHub Actions secret |
 | Deployment ID | taken from `VITE_APPSCRIPT_URL` (override with `APPSCRIPT_DEPLOYMENT_ID` in `.env.local`) |
 
-`COUPLE_EMAILS` is comma-separated and must mirror `CONFIG.coupleEmails` in
-`src/content.config.ts`.
+`COUPLE_EMAILS` is comma-separated. It lives only here, never in the site's code (the repo is public).
 
 ## Emails
 

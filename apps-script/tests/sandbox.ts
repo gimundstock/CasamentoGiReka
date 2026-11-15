@@ -20,6 +20,16 @@ class FakeSheet {
   appendRow(row: Row) {
     this.rows.push(row)
   }
+  /** One cell, 1-based as in Apps Script; the row grows to reach the column. */
+  getRange(row: number, column: number) {
+    return {
+      setValue: (v: unknown) => {
+        const r = this.rows[row - 1]
+        while (r.length < column) r.push('')
+        r[column - 1] = v
+      },
+    }
+  }
 }
 
 export interface SandboxOptions {
@@ -53,16 +63,23 @@ export interface FetchOptions {
   contentType?: string
 }
 
+/** What a write answers: success, or a refusal with a code the site tells apart. */
+export interface Refusable {
+  success: boolean
+  code?: string
+  error?: string
+}
+
 export interface AppsScriptGlobals {
   doGet: (e: { parameter: Record<string, string> }) => { getContent: () => string }
   doPost: (e: { postData: { contents: string } }) => { getContent: () => string }
   handleGetGuest: (params: { id?: string; name?: string }) => Guest | null
   handleGetSoldCotas: () => { sold: string[] }
   handlePhotoManifest: (params: { token?: string }) => { ids?: string[]; error?: string }
-  handlePurchaseGift: (body: PurchaseBody) => { success: boolean; error?: string }
-  handleSubmitRSVP: (body: RSVPBody) => { success: boolean }
-  handleSubmitCard: (body: CardBody) => { success: boolean }
-  handleFinishPurchase: (body: FinishBody) => { success: boolean; error?: string }
+  handlePurchaseGift: (body: PurchaseBody) => Refusable
+  handleSubmitRSVP: (body: RSVPBody) => Refusable
+  handleSubmitCard: (body: CardBody) => Refusable
+  handleFinishPurchase: (body: FinishBody) => Refusable
   collectSoldCotaIds: () => Record<string, boolean>
 }
 
@@ -166,14 +183,15 @@ const defaultOrders: Row[] = [
 
 export function createSandbox(opts: SandboxOptions = {}): Sandbox {
   const sheets = {
-    Guests: new FakeSheet('Guests', opts.guests ?? defaultGuests.map((r) => [...r])),
-    RSVPs: new FakeSheet('RSVPs', opts.rsvps ?? defaultRsvps.map((r) => [...r])),
-    Orders: new FakeSheet('Orders', opts.orders ?? defaultOrders.map((r) => [...r])),
+    Guests: new FakeSheet('Guests', (opts.guests ?? defaultGuests).map((r) => [...r])),
+    RSVPs: new FakeSheet('RSVPs', (opts.rsvps ?? defaultRsvps).map((r) => [...r])),
+    Orders: new FakeSheet('Orders', (opts.orders ?? defaultOrders).map((r) => [...r])),
     Cards: new FakeSheet('Cards', [
       ['timestamp', 'guestId', 'groupName', 'giftName', 'theme', 'from', 'message'],
     ]),
   }
   const sentMail: Sandbox['sentMail'] = []
+  const cache = new Map<string, string>()
   const driveFiles: Sandbox['driveFiles'] = []
   const madeFolders: Record<string, unknown> = {}
   let cardsMissing = !!opts.noCardsTab
@@ -248,6 +266,14 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
     PropertiesService: {
       getScriptProperties: () => ({
         getProperty: (key: string) => properties[key] ?? null,
+      }),
+    },
+    CacheService: {
+      getScriptCache: () => ({
+        get: (k: string) => cache.get(k) ?? null,
+        put: (k: string, v: string) => {
+          cache.set(k, v)
+        },
       }),
     },
     LockService: {

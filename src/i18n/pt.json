@@ -98,6 +98,7 @@
     }
   },
   "rsvp": {
+    "tooMany": "Muitas tentativas seguidas. Tente de novo daqui a pouco.",
     "title": "Confirmação de Presença",
     "subtitle": "Por favor confirme sua presença até {{date}}",
     "attending": "Confirmar",
@@ -166,6 +167,9 @@
     "revolutOpen": "Pagar no Revolut",
     "revolutHint": "Na página do Revolut, digite € {{amount}}.",
     "revolutTag": "Ou envie pelo app para",
+    "cotaTaken": "Essa cota acabou de ser escolhida por outra pessoa. Feche e escolha outra.",
+    "tooMany": "Muitas tentativas seguidas. Tente de novo daqui a pouco.",
+    "emailInvalid": "Confira o e-mail: um endereço só, sem espaços.",
     "noCotas": "Nenhuma cota selecionada",
     "emailRequired": "Por favor, informe seu e-mail",
     "soldOutStamp": "esgotado",

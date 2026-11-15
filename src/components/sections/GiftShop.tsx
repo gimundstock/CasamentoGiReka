@@ -136,7 +136,7 @@ export function GiftShop({ guest }: Props) {
 
     setPurchase({ ...purchase, submitting: true, error: null })
     try {
-      await purchaseGift({
+      const res = await purchaseGift({
         guestId: guest.guestId,
         giftId: purchase.gift.giftId,
         giftName: lang === 'pt' ? purchase.gift.name_pt : purchase.gift.name_en,
@@ -152,6 +152,19 @@ export function GiftShop({ guest }: Props) {
             ? undefined
             : totalEur(purchase.selectedCotas.map((c) => c.price)),
       })
+      // Refused (a cota taken meanwhile, too many tries…): say so, record nothing.
+      if (!res.success) {
+        const why =
+          res.code === 'sold'
+            ? 'gifts.cotaTaken'
+            : res.code === 'limit'
+              ? 'gifts.tooMany'
+              : res.code === 'email'
+                ? 'gifts.emailInvalid'
+                : 'gifts.error'
+        setPurchase({ ...purchase, submitting: false, error: t(why) })
+        return
+      }
       markCotasPurchased(purchase.selectedCotas.map((c) => c.cotaId))
       mailedRef.current = false // the gift's mails now wait for the card step
       setPurchase({ ...purchase, step: 'card', submitting: false })
@@ -207,7 +220,7 @@ export function GiftShop({ guest }: Props) {
         purchase.cardMessage,
         purchase.cardFrom
       ).catch(() => undefined)
-      await submitCard({
+      const res = await submitCard({
         guestId: guest.guestId,
         giftName: lang === 'pt' ? purchase.gift.name_pt : purchase.gift.name_en,
         theme: purchase.cardTheme,
@@ -217,6 +230,15 @@ export function GiftShop({ guest }: Props) {
         selectedCotaLabels: purchase.selectedCotas.map((c) => c.label_pt),
         image,
       })
+      // ('mailed': the gift's mails already went, e.g. a second tap — done all the same.)
+      if (!res.success && res.code !== 'mailed') {
+        setPurchase({
+          ...purchase,
+          submitting: false,
+          error: t(res.code === 'limit' ? 'gifts.tooMany' : 'gifts.cardError'),
+        })
+        return
+      }
       mailedRef.current = true
       setPurchase({ ...purchase, step: 'success', cardSent: true, submitting: false })
     } catch {
