@@ -22,7 +22,16 @@ import {
 } from '../gifts/cardThemes'
 import { buildPixPayload } from '../../utils/pix'
 import { renderCardImage } from '../../utils/cardImage'
-import { loadPaypalSdk, paypalEnabled, toEur, totalEur } from '../../utils/paypal'
+import {
+  euroFirst,
+  paypalMeEnabled,
+  paypalMeUrl,
+  priceText,
+  revolutEnabled,
+  revolutUrl,
+  toEur,
+  totalEur,
+} from '../../utils/euro'
 import type { Cota, Gift } from '../../types'
 import type { Guest } from '../../types'
 import { guestName } from '../../utils/guest'
@@ -33,7 +42,9 @@ interface Props {
   guest: Guest
 }
 
-type ModalStep = 'cotas' | 'pix' | 'paypal' | 'confirm' | 'card' | 'success'
+type ModalStep = 'cotas' | 'pix' | 'euro' | 'confirm' | 'card' | 'success'
+/** How the gift was paid: PIX, or in euros with PayPal or Revolut. */
+type PaidWith = 'pix' | 'paypalme' | 'revolut'
 
 interface PurchaseState {
   gift: Gift
@@ -47,7 +58,7 @@ interface PurchaseState {
   submitting: boolean
   error: string | null
   pixCopied: boolean
-  paidWith: 'pix' | 'paypal'
+  paidWith: PaidWith
 }
 
 export function GiftShop({ guest }: Props) {
@@ -64,12 +75,17 @@ export function GiftShop({ guest }: Props) {
   const mailedRef = useRef(true)
   const reduced = useReducedMotion()
 
+  // How a guest pays follows the site's language: in Portuguese PIX, in
+  // English euros (PayPal or a bank transfer) — no switching midway. (English
+  // with no euro way set up falls back to PIX.)
+  const payStep = (): ModalStep => (euroFirst(lang) ? 'euro' : 'pix')
+
   function openGift(gift: Gift) {
     mailedRef.current = true
     const availableCotas = gift.cotas.filter((c) => !c.purchased)
     if (availableCotas.length === 0) return
 
-    const step: ModalStep = gift.cotas.length === 1 ? 'pix' : 'cotas'
+    const step: ModalStep = gift.cotas.length === 1 ? payStep() : 'cotas'
     const selectedCotas = gift.cotas.length === 1 ? availableCotas : []
 
     setPurchase({
@@ -130,40 +146,17 @@ export function GiftShop({ guest }: Props) {
         guestEmail: purchase.email,
         cardMessage: '',
         deferEmail: true,
+        paymentMethod: purchase.paidWith,
+        amountEur:
+          purchase.paidWith === 'pix'
+            ? undefined
+            : totalEur(purchase.selectedCotas.map((c) => c.price)),
       })
       markCotasPurchased(purchase.selectedCotas.map((c) => c.cotaId))
       mailedRef.current = false // the gift's mails now wait for the card step
       setPurchase({ ...purchase, step: 'card', submitting: false })
     } catch {
       setPurchase({ ...purchase, submitting: false, error: t('gifts.error') })
-    }
-  }
-
-  // The guest approved the order in PayPal's window; the Apps Script checks
-  // the cotas are still free and only then captures the payment.
-  async function handlePaypalApproved(orderId: string) {
-    if (!purchase) return
-    setPurchase({ ...purchase, submitting: true, error: null })
-    try {
-      const res = await purchaseGift({
-        guestId: guest.guestId,
-        giftId: purchase.gift.giftId,
-        giftName: lang === 'pt' ? purchase.gift.name_pt : purchase.gift.name_en,
-        selectedCotaIds: purchase.selectedCotas.map((c) => c.cotaId),
-        selectedCotaLabels: purchase.selectedCotas.map((c) => c.label_pt),
-        totalPrice: totalAmount(purchase.selectedCotas),
-        guestEmail: '',
-        cardMessage: '',
-        paymentMethod: 'paypal',
-        paypalOrderId: orderId,
-        deferEmail: true,
-      })
-      if (!res.success) throw new Error(res.error)
-      markCotasPurchased(purchase.selectedCotas.map((c) => c.cotaId))
-      mailedRef.current = false
-      setPurchase({ ...purchase, step: 'card', paidWith: 'paypal', submitting: false })
-    } catch {
-      setPurchase({ ...purchase, submitting: false, error: t('gifts.paypalError') })
     }
   }
 
@@ -285,19 +278,30 @@ export function GiftShop({ guest }: Props) {
           lang={lang}
           onClose={closeModal}
           onSetQuantity={setQuantity}
-          onProceedToPixFromCotas={() => setPurchase({ ...purchase, step: 'pix' })}
-          onProceedToConfirm={() => setPurchase({ ...purchase, step: 'confirm' })}
-          onProceedToPaypal={() => setPurchase({ ...purchase, step: 'paypal', error: null })}
-          onBackToPix={() => setPurchase({ ...purchase, step: 'pix', error: null })}
-          onPaypalApproved={handlePaypalApproved}
-          onPaypalFailed={() => setPurchase({ ...purchase, error: t('gifts.paypalError') })}
-          onBack={() =>
+          onProceedFromCotas={() =>
+            setPurchase({ ...purchase, step: payStep(), paidWith: 'pix', error: null })
+          }
+          onPixPaid={() =>
+            setPurchase({ ...purchase, step: 'confirm', paidWith: 'pix', error: null })
+          }
+          onEuroPaid={(method) =>
+            setPurchase({ ...purchase, step: 'confirm', paidWith: method, error: null })
+          }
+          // Back from paying: to the cotas (a one-cota gift opens on paying).
+          onBackFromPayment={
+            purchase.gift.cotas.length > 1
+              ? () => setPurchase({ ...purchase, step: 'cotas', error: null })
+              : undefined
+          }
+          // Back from the e-mail: to the way they paid.
+          onBackFromConfirm={() =>
             setPurchase({
               ...purchase,
-              step: purchase.gift.cotas.length === 1 ? 'cotas' : 'cotas',
+              step: purchase.paidWith === 'pix' ? 'pix' : 'euro',
               error: null,
             })
           }
+          onBack={() => setPurchase({ ...purchase, step: 'cotas', error: null })}
           onCardMessageChange={(v) => setPurchase({ ...purchase, cardMessage: limitLineBreaks(v) })}
           onCardThemeChange={(v) => setPurchase({ ...purchase, cardTheme: v })}
           onCardFromChange={(v) => setPurchase({ ...purchase, cardFrom: v })}
@@ -383,6 +387,7 @@ function GiftCard({ gift, index, lang, flipped, onFlip, onOpen, t }: GiftCardPro
   const name = lang === 'pt' ? gift.name_pt : gift.name_en
   const description = lang === 'pt' ? gift.description_pt : gift.description_en
   const lowestPrice = Math.min(...gift.cotas.filter((c) => !c.purchased).map((c) => c.price))
+  const cardPrice = Number.isFinite(lowestPrice) ? lowestPrice : (gift.cotas[0]?.price ?? 0)
 
   const onClick = () => {
     if (!hover && !flipped) return onFlip()
@@ -466,7 +471,7 @@ function GiftCard({ gift, index, lang, flipped, onFlip, onOpen, t }: GiftCardPro
               {!isSoldOut && (
                 <p className="font-sans text-amber-deep mt-0.5 text-[0.75rem] tabular-nums sm:text-sm">
                   {gift.total > 1 && <span className="text-title/70">{t('gifts.fromPrice')} </span>}
-                  R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
+                  {priceText(cardPrice, euroFirst(lang))}
                 </p>
               )}
             </div>
@@ -497,7 +502,7 @@ function GiftCard({ gift, index, lang, flipped, onFlip, onOpen, t }: GiftCardPro
                         {t('gifts.fromPrice')}
                       </span>
                     )}
-                    R$ {Number.isFinite(lowestPrice) ? lowestPrice : gift.cotas[0]?.price}
+                    {priceText(cardPrice, euroFirst(lang))}
                   </p>
                   <p className="font-sans text-[0.6rem] tracking-[0.3em] uppercase text-amber-deep mt-2 sm:mt-4">
                     {t(hover ? 'gifts.backHintClick' : 'gifts.backHintTap')}
@@ -519,12 +524,12 @@ interface ModalProps {
   lang: 'pt' | 'en'
   onClose: () => void
   onSetQuantity: (group: CotaGroup, qty: number) => void
-  onProceedToPixFromCotas: () => void
-  onProceedToConfirm: () => void
-  onProceedToPaypal: () => void
-  onBackToPix: () => void
-  onPaypalApproved: (orderId: string) => Promise<void>
-  onPaypalFailed: () => void
+  onProceedFromCotas: () => void
+  onPixPaid: () => void
+  /** Back from PIX or euros, when there is somewhere to go back to. */
+  onBackFromPayment?: () => void
+  onBackFromConfirm: () => void
+  onEuroPaid: (method: 'paypalme' | 'revolut') => void
   onBack: () => void
   onCardMessageChange: (v: string) => void
   onCardThemeChange: (v: CardThemeId) => void
@@ -558,7 +563,7 @@ function GiftModal(props: ModalProps) {
   const availableCotas = gift.cotas
   const giftName = lang === 'pt' ? gift.name_pt : gift.name_en
   const eurTotal = totalEur(selectedCotas.map((c) => c.price))
-  const priceLabel = (brl: number) => (paidWith === 'paypal' ? `€ ${toEur(brl)}` : `R$ ${brl}`)
+  const priceLabel = (brl: number) => (paidWith !== 'pix' ? `€ ${toEur(brl)}` : `R$ ${brl}`)
 
   return (
     <div
@@ -629,7 +634,9 @@ function GiftModal(props: ModalProps) {
                           {label}
                         </p>
                         <p className="font-sans text-xs text-title/80">
-                          <span className="font-semibold text-amber-deep">R$ {group.price}</span>
+                          <span className="font-semibold text-amber-deep">
+                            {priceText(group.price, euroFirst(lang))}
+                          </span>
                           {free === 0
                             ? ` · ${t('gifts.soldOut')}`
                             : group.cotas.length > 1
@@ -670,15 +677,23 @@ function GiftModal(props: ModalProps) {
 
               {selectedCotas.length > 0 && (
                 <p className="text-center font-serif text-base text-title mb-5">
-                  {t('gifts.totalSelected', { amount: props.totalAmount.toFixed(2) })}
+                  {t('gifts.totalSelected', {
+                    amount: euroFirst(lang)
+                      ? `€ ${eurTotal}`
+                      : `R$ ${props.totalAmount.toFixed(2)}`,
+                  })}
                 </p>
               )}
 
               <PrimaryButton
                 disabled={selectedCotas.length === 0}
-                onClick={props.onProceedToPixFromCotas}
+                onClick={props.onProceedFromCotas}
               >
-                {selectedCotas.length === 0 ? t('gifts.noCotas') : t('gifts.proceed')}
+                {selectedCotas.length === 0
+                  ? t('gifts.noCotas')
+                  : euroFirst(lang)
+                    ? t('gifts.payEuro')
+                    : t('gifts.payPix')}
               </PrimaryButton>
             </>
           )}
@@ -737,25 +752,15 @@ function GiftModal(props: ModalProps) {
                 )}
               </button>
 
-              <PrimaryButton onClick={props.onProceedToConfirm}>{t('gifts.proceed')}</PrimaryButton>
+              <PaidButton
+                amount={`R$ ${props.totalAmount.toFixed(2)}`}
+                onConfirm={props.onPixPaid}
+              />
 
-              {paypalEnabled() && (
-                <div className="mt-5 border-t border-sage/30 pt-4 text-center">
-                  <p className="font-serif text-xs text-title mb-2">{t('gifts.paypalOffer')}</p>
-                  <button
-                    type="button"
-                    onClick={props.onProceedToPaypal}
-                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-sage/50 text-title hover:bg-sage/20 font-sans text-xs tracking-widest uppercase transition-colors"
-                  >
-                    {t('gifts.paypalButton', { amount: eurTotal })}
-                  </button>
-                </div>
-              )}
-
-              {gift.cotas.length > 1 && (
+              {props.onBackFromPayment && (
                 <div className="mt-3 text-center">
                   <button
-                    onClick={props.onBack}
+                    onClick={props.onBackFromPayment}
                     className="font-sans text-xs tracking-widest uppercase text-title hover:text-title transition-colors"
                   >
                     {t('gifts.back')}
@@ -765,50 +770,14 @@ function GiftModal(props: ModalProps) {
             </>
           )}
 
-          {/* ── Step: PayPal (guests abroad, charged in euros) ── */}
-          {step === 'paypal' && (
-            <>
-              <p className="font-serif text-sm text-title text-center mb-5 leading-relaxed">
-                {t('gifts.paypalInstructions')}
-              </p>
-
-              <p className="text-center font-sans tabular-nums text-3xl text-amber-deep mb-1">
-                € {eurTotal.toFixed(2)}
-              </p>
-              <p className="text-center font-serif text-xs text-title mb-6">
-                {summarizeCotas(selectedCotas, lang)}
-              </p>
-
-              {submitting ? (
-                <p className="text-center font-sans text-sm tracking-widest uppercase text-title py-6 animate-breath">
-                  {t('gifts.confirming')}
-                </p>
-              ) : (
-                <PaypalCheckout
-                  amountEur={eurTotal}
-                  description={giftName}
-                  onApproved={props.onPaypalApproved}
-                  onFailed={props.onPaypalFailed}
-                />
-              )}
-
-              {error && (
-                <p role="alert" className="text-sm text-terracotta text-center mt-4 font-serif">
-                  {error}
-                </p>
-              )}
-
-              {!submitting && (
-                <div className="mt-3 text-center">
-                  <button
-                    onClick={props.onBackToPix}
-                    className="font-sans text-xs tracking-widest uppercase text-title hover:text-title transition-colors"
-                  >
-                    {t('gifts.back')}
-                  </button>
-                </div>
-              )}
-            </>
+          {/* ── Step: in euros (guests abroad): bank transfer or PayPal ── */}
+          {step === 'euro' && (
+            <EuroPayment
+              amountEur={eurTotal}
+              summary={summarizeCotas(selectedCotas, lang)}
+              onPaid={props.onEuroPaid}
+              onBack={props.onBackFromPayment}
+            />
           )}
 
           {/* ── Step: confirm (card + email) ── */}
@@ -853,7 +822,7 @@ function GiftModal(props: ModalProps) {
 
               <div className="mt-3 text-center">
                 <button
-                  onClick={props.onBack}
+                  onClick={props.onBackFromConfirm}
                   className="font-sans text-xs tracking-widest uppercase text-title hover:text-title transition-colors"
                 >
                   {t('gifts.back')}
@@ -1073,7 +1042,7 @@ function GiftModal(props: ModalProps) {
                     {t('gifts.total')}
                   </span>
                   <span className="font-sans tabular-nums text-lg text-amber-deep">
-                    {paidWith === 'paypal'
+                    {paidWith !== 'pix'
                       ? `€ ${eurTotal.toFixed(2)}`
                       : `R$ ${props.totalAmount.toFixed(2)}`}
                   </span>
@@ -1199,71 +1168,167 @@ function PrimaryButton({ onClick, disabled, submitting, children }: PrimaryButto
   )
 }
 
-// ─── PayPal buttons ──────────────────────────────────────────────────────────
+// ─── "I've paid", confirmed ──────────────────────────────────────────────────
 
-interface PaypalCheckoutProps {
-  amountEur: number
-  description: string
-  onApproved: (orderId: string) => Promise<void>
-  onFailed: () => void
+/**
+ * "I've paid" asks again before going on, with the amount — "Confirm that
+ * your payment of R$ 250.00 went through?" — so a tap by reflex, before
+ * paying, doesn't record a gift that wasn't paid. "Not yet" puts it back.
+ */
+function PaidButton({ amount, onConfirm }: { amount: string; onConfirm: () => void }) {
+  const { t } = useTranslation()
+  const [asking, setAsking] = useState(false)
+  if (!asking) {
+    return <PrimaryButton onClick={() => setAsking(true)}>{t('gifts.paid')}</PrimaryButton>
+  }
+  return (
+    <div role="group" aria-live="polite">
+      <p className="mb-3 text-center font-serif text-base text-title">
+        {t('gifts.paidConfirm', { amount })}
+      </p>
+      {/* Side by side where they fit on one line each; stacked on a phone. */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+        <div className="sm:flex-1">
+          <PrimaryButton onClick={onConfirm}>{t('gifts.paidYes')}</PrimaryButton>
+        </div>
+        <button
+          type="button"
+          onClick={() => setAsking(false)}
+          className="rounded-full border border-sage/50 py-3 font-sans text-sm tracking-widest uppercase text-title hover:bg-sage/20 transition-colors sm:flex-1"
+        >
+          {t('gifts.paidNo')}
+        </button>
+      </div>
+    </div>
+  )
 }
 
-// PayPal's own buttons (PayPal account, or card as a guest), rendered into a
-// div. They only create and approve the order; the Apps Script captures it.
-function PaypalCheckout({ amountEur, description, onApproved, onFailed }: PaypalCheckoutProps) {
-  const { t } = useTranslation()
-  const ref = useRef<HTMLDivElement>(null)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'failed'>('loading')
-  // The buttons outlive renders; they call whatever the latest handlers are.
-  const handlers = useRef({ onApproved, onFailed })
-  useEffect(() => {
-    handlers.current = { onApproved, onFailed }
-  })
+// ─── Paying in euros ─────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    let cancelled = false
-    let buttons: { close: () => Promise<void> } | null = null
-    loadPaypalSdk()
-      .then((paypal) => {
-        if (cancelled || !ref.current) return
-        const b = paypal.Buttons({
-          style: { layout: 'vertical', shape: 'pill', color: 'gold', label: 'pay', height: 44 },
-          createOrder: (_data, actions) =>
-            actions.order.create({
-              intent: 'CAPTURE',
-              purchase_units: [
-                {
-                  description: description.slice(0, 127),
-                  amount: { currency_code: 'EUR', value: amountEur.toFixed(2) },
-                },
-              ],
-              application_context: { shipping_preference: 'NO_SHIPPING' },
-            }),
-          onApprove: (data) => handlers.current.onApproved(data.orderID),
-          onError: () => handlers.current.onFailed(),
-        })
-        buttons = b
-        return b.render(ref.current).then(() => !cancelled && setStatus('ready'))
-      })
-      .catch(() => !cancelled && setStatus('failed'))
-    return () => {
-      cancelled = true
-      buttons?.close().catch(() => {})
+interface EuroPaymentProps {
+  amountEur: number
+  summary: string
+  onPaid: (method: 'paypalme' | 'revolut') => void
+  onBack?: () => void
+}
+
+/**
+ * For guests abroad, paid outside the site as PIX is: PayPal (a PayPal.Me link
+ * with the amount in) or Revolut (the couple's Revolut.Me page, where the
+ * guest types the amount; or their @username in the app). No bank account
+ * details anywhere. "I've paid" then goes on to the e-mail and the card.
+ */
+function EuroPayment({ amountEur, summary, onPaid, onBack }: EuroPaymentProps) {
+  const { t } = useTranslation()
+  // PayPal first: the one every guest abroad can use.
+  const methods = [
+    ...(paypalMeEnabled() ? (['paypalme'] as const) : []),
+    ...(revolutEnabled() ? (['revolut'] as const) : []),
+  ]
+  const [method, setMethod] = useState<'paypalme' | 'revolut'>(methods[0] ?? 'paypalme')
+  const [copied, setCopied] = useState(false)
+  const revtag = `@${CONFIG.euro.revolutMe.trim()}`
+
+  async function copyRevtag() {
+    try {
+      await navigator.clipboard.writeText(revtag)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // clipboard not available
     }
-  }, [amountEur, description])
+  }
+
+  const linkClass =
+    'inline-flex w-full items-center justify-center gap-2 rounded-full border border-sage/50 py-3 font-sans text-xs tracking-widest uppercase text-title hover:bg-sage/20 transition-colors'
 
   return (
-    <div>
-      {status === 'loading' && (
-        <p className="text-center font-serif text-sm text-title py-4">{t('gifts.paypalLoading')}</p>
+    <>
+      <p className="font-serif text-sm text-title text-center mb-5 leading-relaxed">
+        {t('gifts.euroInstructions')}
+      </p>
+
+      <p className="text-center font-sans tabular-nums text-3xl text-amber-deep mb-1">
+        € {amountEur.toFixed(2)}
+      </p>
+      <p className="text-center font-serif text-xs text-title mb-5">{summary}</p>
+
+      {methods.length > 1 && (
+        <div
+          role="tablist"
+          className="mx-auto mb-5 flex w-full max-w-xs rounded-full border border-sage/50 p-1"
+        >
+          {methods.map((m) => (
+            <button
+              key={m}
+              type="button"
+              role="tab"
+              aria-selected={method === m}
+              onClick={() => setMethod(m)}
+              className={`flex-1 rounded-full py-2 font-sans text-[11px] tracking-widest uppercase transition-colors ${
+                method === m ? 'bg-forest-deep text-peach-light' : 'text-title hover:bg-sage/20'
+              }`}
+            >
+              {m === 'paypalme' ? 'PayPal' : 'Revolut'}
+            </button>
+          ))}
+        </div>
       )}
-      {status === 'failed' && (
-        <p role="alert" className="text-center font-serif text-sm text-terracotta py-4">
-          {t('gifts.paypalLoadError')}
-        </p>
+
+      {method === 'paypalme' && (
+        <div className="mb-5 text-center">
+          <a
+            href={paypalMeUrl(amountEur)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            {t('gifts.paypalOpen', { amount: amountEur })}
+          </a>
+          <p className="mt-2 font-serif text-xs text-title">{t('gifts.paypalHint')}</p>
+        </div>
       )}
-      <div ref={ref} className="relative z-0" />
-    </div>
+
+      {method === 'revolut' && (
+        <div className="mb-5 text-center">
+          <a href={revolutUrl()} target="_blank" rel="noopener noreferrer" className={linkClass}>
+            {t('gifts.revolutOpen')}
+          </a>
+          <p className="mt-2 font-serif text-xs text-title">
+            {t('gifts.revolutHint', { amount: amountEur })}
+          </p>
+          <p className="mt-1 font-serif text-xs text-title">
+            {t('gifts.revolutTag')}{' '}
+            <button
+              type="button"
+              onClick={copyRevtag}
+              aria-label={`${t('gifts.copy')}: ${revtag}`}
+              className="font-sans text-xs text-title underline decoration-sage underline-offset-4 hover:decoration-forest transition-colors"
+            >
+              {copied ? t('gifts.copied') : revtag}
+            </button>
+          </p>
+        </div>
+      )}
+
+      {/* (Keyed by the tab: switching it drops a half-made confirmation.) */}
+      <PaidButton
+        key={method}
+        amount={`€ ${amountEur.toFixed(2)}`}
+        onConfirm={() => onPaid(method)}
+      />
+
+      {onBack && (
+        <div className="mt-3 text-center">
+          <button
+            onClick={onBack}
+            className="font-sans text-xs tracking-widest uppercase text-title hover:text-title transition-colors"
+          >
+            {t('gifts.back')}
+          </button>
+        </div>
+      )}
+    </>
   )
 }
 

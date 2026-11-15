@@ -37,7 +37,9 @@ jobs:
         run: npm run release
         env:
           VITE_APPSCRIPT_URL: ${{ secrets.VITE_APPSCRIPT_URL }}
-          VITE_PAYPAL_CLIENT_ID: ${{ secrets.VITE_PAYPAL_CLIENT_ID }}
+          VITE_PIX_KEY: ${{ secrets.VITE_PIX_KEY }}
+          VITE_PAYPAL_ME: ${{ secrets.VITE_PAYPAL_ME }}
+          VITE_REVOLUT_ME: ${{ secrets.VITE_REVOLUT_ME }}
 
       - name: Copy guest photos from Drive
         run: node scripts/sync-guest-photos.mjs dist/guest-photos
