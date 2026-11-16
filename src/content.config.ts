@@ -1943,37 +1943,37 @@ export const CONFIG = {
           cotaId: 'cota_036_a',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 1, // TEMP (teste): voltar para 500
+          price: 500,
         },
         {
           cotaId: 'cota_036_b',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 1, // TEMP (teste): voltar para 500
+          price: 500,
         },
         {
           cotaId: 'cota_036_c',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 1, // TEMP (teste): voltar para 500
+          price: 500,
         },
         {
           cotaId: 'cota_036_d',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 1, // TEMP (teste): voltar para 500
+          price: 500,
         },
         {
           cotaId: 'cota_036_e',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 1, // TEMP (teste): voltar para 500
+          price: 500,
         },
         {
           cotaId: 'cota_036_f',
           label_pt: 'Cota do Fundo do Container',
           label_en: 'Container Fund Share',
-          price: 1, // TEMP (teste): voltar para 500
+          price: 500,
         },
       ],
     },

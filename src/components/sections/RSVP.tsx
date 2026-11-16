@@ -12,6 +12,7 @@ import {
 } from 'framer-motion'
 import { submitRSVP } from '../../api/sheets'
 import type { Guest, RSVPAttendee } from '../../types'
+import { guestName } from '../../utils/guest'
 import { CONFIG } from '../../content.config'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
@@ -718,9 +719,10 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         <span className={wide ? '-ml-[0.15em]' : undefined}>{CONFIG.couple.groom}</span>
       </h2>
       <p className="font-serif italic text-[1.05rem] md:text-xl mt-8">{t('rsvp.inviteRequest')}</p>
-      {/* Guests' names in Jost, here and on the reply side. */}
+      {/* Guests' names in Jost, here and on the reply side: as the site
+          greets them (displayName, else the invitation's name). */}
       <p className="font-sans text-base md:text-xl tracking-[0.18em] md:tracking-[0.25em] uppercase leading-normal mt-3 text-forest-deep">
-        {guest.groupName}
+        {guestName(guest)}
       </p>
       <p className="font-serif italic text-[1.05rem] md:text-xl mt-2">
         {t('rsvp.inviteCelebrate')}
