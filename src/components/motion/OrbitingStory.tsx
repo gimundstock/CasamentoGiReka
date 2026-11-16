@@ -65,6 +65,9 @@ export function OrbitingStory({
   const phone = vw < 768
   const imageRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLDivElement>(null)
+  // The orbit's box and its centre, where the two pieces hang from.
+  const boxRef = useRef<HTMLDivElement>(null)
+  const centre = useRef({ x: 0, y: 0 })
 
   const imageX = useMotionValue(0)
   const imageY = useMotionValue(0)
@@ -110,15 +113,21 @@ export function OrbitingStory({
       // The photo starts at the bottom (90°), the caption opposite it.
       const a = Math.PI / 2 + eased
       const b = a + Math.PI
-      imageX.set(rx * Math.cos(a))
+      // Each piece is a layer the browser moves as it was drawn (see below):
+      // it lands on whole screen pixels, or its words would be resampled
+      // between them, and soft.
+      const dpr = window.devicePixelRatio || 1
+      const onPixel = (from: number, d: number) => Math.round((from + d) * dpr) / dpr - from
+      const { x: cx, y: cy } = centre.current
+      imageX.set(onPixel(cx, rx * Math.cos(a)))
       // On a phone the piece goes straight through the middle, and every
       // milestone comes in the same way the scroll goes: up from below and
       // off over the top (round the ellipse, every other one would come
       // down from the top instead).
-      imageY.set(onPhone ? ry * Math.cos(eased - half * Math.PI) : ry * Math.sin(a))
+      imageY.set(onPixel(cy, onPhone ? ry * Math.cos(eased - half * Math.PI) : ry * Math.sin(a)))
       imageRotate.set(onPhone ? 0 : 8 * Math.sin(a))
-      textX.set(trx * Math.cos(b))
-      textY.set(ry * Math.sin(b))
+      textX.set(onPixel(cx, trx * Math.cos(b)))
+      textY.set(onPixel(cy, ry * Math.sin(b)))
     },
     [N, rate, scrollStart, totalDeg, opacity, imageX, imageY, imageRotate, textX, textY]
   )
@@ -127,6 +136,8 @@ export function OrbitingStory({
 
   useEffect(() => {
     function onResize() {
+      const box = boxRef.current
+      if (box) centre.current = { x: box.clientWidth / 2, y: box.clientHeight / 2 }
       setItemWidth(Math.min(358, window.innerWidth * 0.36))
       setTextWidth(captionWidth(window.innerWidth))
       setVw(window.innerWidth)
@@ -141,10 +152,13 @@ export function OrbitingStory({
   const item = items[index]
 
   return (
-    <motion.div className="pointer-events-none absolute inset-0" style={{ opacity }}>
+    <motion.div ref={boxRef} className="pointer-events-none absolute inset-0" style={{ opacity }}>
+      {/* (Each piece on its own layer: the browser then moves it as it is.
+          Drawn into the screen-sized layer they share, the photo, the card
+          and their shadows were redrawn at every step of the orbit.) */}
       <motion.div
         className="absolute top-1/2 left-1/2"
-        style={{ x: imageX, y: imageY, rotate: imageRotate }}
+        style={{ x: imageX, y: imageY, rotate: imageRotate, willChange: 'transform' }}
       >
         {phone ? (
           <div ref={imageRef} className="-translate-x-1/2 -translate-y-1/2">
@@ -161,7 +175,10 @@ export function OrbitingStory({
         )}
       </motion.div>
       {!phone && (
-        <motion.div className="absolute top-1/2 left-1/2" style={{ x: textX, y: textY }}>
+        <motion.div
+          className="absolute top-1/2 left-1/2"
+          style={{ x: textX, y: textY, willChange: 'transform' }}
+        >
           <div
             ref={textRef}
             className="-translate-x-1/2 -translate-y-1/2"

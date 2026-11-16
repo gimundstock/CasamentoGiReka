@@ -158,6 +158,16 @@ const PAPER = [0xfb, 0xfa, 0xf8] as const
 const COVER_RES = 0.5
 
 /**
+ * A repaint of the paper that takes longer than this (ms) is a slow device's
+ * (an M-series laptop: ~1.5; a ten-year-old one or an old phone: 5 and up).
+ * After SLOW_RUN of them in a row the paper is repainted every other frame
+ * from then on: the wet edge follows the sun a frame late, which doesn't
+ * show, and the frames in between are left for everything else on screen.
+ */
+const SLOW_MS = 4
+const SLOW_RUN = 6
+
+/**
  * The cerrado watercolor, painted in as the sun travels: the color spreads
  * out from the sun and stays along its arc, the pool widening as the sun
  * goes, with a soft, bleeding watercolor edge.
@@ -184,7 +194,23 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     /** Per-cell paint amount (0–1) and a scratch buffer for softening it. */
     alpha: Float32Array | null
     scratch: Float32Array | null
-  }>({ map: null, grid: null, cover: null, drawn: null, frame: 0, alpha: null, scratch: null })
+    /** Slow repaints in a row; `slow` once there were SLOW_RUN (see SLOW_MS). */
+    slowRun: number
+    slow: boolean
+    /** The last frame was passed over (a slow device repaints every other). */
+    skipped: boolean
+  }>({
+    map: null,
+    grid: null,
+    cover: null,
+    drawn: null,
+    frame: 0,
+    alpha: null,
+    scratch: null,
+    slowRun: 0,
+    slow: false,
+    skipped: false,
+  })
 
   /** Repaints the paper only when the picture changes. */
   function draw(v: number) {
@@ -207,6 +233,7 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
       ctx.fillRect(0, 0, W, H)
       return
     }
+    const began = performance.now()
     const px = cover.data
     const { reveal, gw, gh } = map
     const alpha = state.alpha!
@@ -226,16 +253,29 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = 'high'
     ctx.drawImage(grid, 0, 0, W, H)
+    if (!state.slow) {
+      state.slowRun = performance.now() - began > SLOW_MS ? state.slowRun + 1 : 0
+      if (state.slowRun >= SLOW_RUN) state.slow = true
+    }
   }
 
-  // At most one repaint per frame, with the latest progress.
+  // At most one repaint per frame, with the latest progress — every other
+  // frame on a slow device (the one passed over repaints on the next, so
+  // the last progress is always drawn).
   useMotionValueEvent(progress, 'change', () => {
     const state = stateRef.current
     if (state.frame) return
-    state.frame = requestAnimationFrame(() => {
+    const paint = () => {
+      if (state.slow && !state.skipped) {
+        state.skipped = true
+        state.frame = requestAnimationFrame(paint)
+        return
+      }
+      state.skipped = false
       state.frame = 0
       draw(progress.get())
-    })
+    }
+    state.frame = requestAnimationFrame(paint)
   })
 
   useEffect(() => {

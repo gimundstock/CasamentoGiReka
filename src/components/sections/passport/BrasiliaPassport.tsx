@@ -267,20 +267,26 @@ export function BrasiliaPassport({
       // the pages concentric inside them.
       /** One page edge in the open book's page block, px. */
       const hairline = Math.max(1, 1.6 * g.k)
+      // The book's variables (corner radii, the boards' and pages' edges):
+      // everything drawn from one is redrawn when it changes — the pages
+      // with their pictures, the boards and their shadows. So, while the
+      // cover turns, they move in steps too small to see (a quarter of a
+      // pixel) rather than at every frame; at rest (`exact`) they are the
+      // very values, and nothing is written that hasn't changed.
+      const setVar = (name: string, value: string) => {
+        if (bookEl.style.getPropertyValue(name) !== value) bookEl.style.setProperty(name, value)
+      }
+      const setPx = (name: string, n: number, exact: boolean) =>
+        setVar(name, `${(exact ? n : Math.round(n * 4) / 4).toFixed(2)}px`)
       const setRadii = (o: number) => {
+        const exact = o <= 0 || o >= 1
         const lerp = (to: number) => g.radius + (to - g.radius) * o
         const w = g.coverBox.w
-        bookEl.style.setProperty('--board-r', `${lerp(w * BOARD_CORNER).toFixed(2)}px`)
-        bookEl.style.setProperty('--back-r', `${lerp(w * BACK_CORNER).toFixed(2)}px`)
+        setPx('--board-r', lerp(w * BOARD_CORNER), exact)
+        setPx('--back-r', lerp(w * BACK_CORNER), exact)
         // Pages concentric with the board they lie on (left / right).
-        bookEl.style.setProperty(
-          '--page-r',
-          `${(lerp(w * BOARD_CORNER) - g.overhang).toFixed(2)}px`
-        )
-        bookEl.style.setProperty(
-          '--page-rr',
-          `${(lerp(w * BACK_CORNER) - g.overhang).toFixed(2)}px`
-        )
+        setPx('--page-r', lerp(w * BOARD_CORNER) - g.overhang, exact)
+        setPx('--page-rr', lerp(w * BACK_CORNER) - g.overhang, exact)
       }
       const show = (el: HTMLElement | null, o: number) => {
         if (!el) return
@@ -296,10 +302,10 @@ export function BrasiliaPassport({
         bookEl.style.transform = 'none'
         cover.style.visibility = 'hidden'
         show(base, 1)
-        bookEl.style.setProperty('--bd', '0px')
-        bookEl.style.setProperty('--open', '1')
+        setVar('--bd', '0px')
+        setVar('--open', '1')
         setRadii(1)
-        bookEl.style.setProperty('--ls', `${hairline.toFixed(2)}px`)
+        setPx('--ls', hairline, true)
         show(inside, 1)
         chrome.style.opacity = '1'
         if (tabsRef.current) tabsRef.current.style.opacity = '1'
@@ -320,7 +326,13 @@ export function BrasiliaPassport({
       // layers and their masks took hundreds of MB of graphics memory, kept
       // on a phone until Safari gave up. Back as soon as the cover starts
       // to shut, while its inside still faces us: drawn by the time it shows.
-      if (vignette) vignette.style.display = v < PHASE.warm || o >= 1 ? 'none' : ''
+      // Nor once the shut passport has been pushed off the desk (by the
+      // envelope, or by the padrinhos' manual): hidden but still in the
+      // page, the painting's layers stayed in graphics memory all through
+      // the invitation and the gifts (~200 MB on a laptop's screen).
+      const pushedOff =
+        !!layout && (seg(v, DESK.shove) >= 1 || (!!manual && seg(c, CHAPTER.shove) >= 1))
+      if (vignette) vignette.style.display = v < PHASE.warm || o >= 1 || pushedOff ? 'none' : ''
       if (vignette && vignette.style.display !== 'none') {
         const vs = vignetteAt(g, v, carry)
         const st = vignette.style
@@ -386,20 +398,22 @@ export function BrasiliaPassport({
       // Shut, the back board and the page block peek a few px past the
       // cover; open, the board is flush with its mirror on the left.
       const boardD = Math.max(3, 5 * g.k) * (1 - o)
-      bookEl.style.setProperty('--bd', `${boardD.toFixed(2)}px`)
-      bookEl.style.setProperty('--open', o.toFixed(3))
+      const atRest = o <= 0 || o >= 1
+      setPx('--bd', boardD, atRest)
+      // (The boards' shadow, which fades with this: in 25 steps.)
+      setVar('--open', (atRest ? o : Math.round(o * 25) / 25).toFixed(3))
       // Shut, the page block fills out to just past the cover's edge (only
       // that sliver shows); open, it is a few hairline page edges.
       const shutStep = (g.overhang + boardD * 0.55) / 4
-      bookEl.style.setProperty('--ls', `${(shutStep + (hairline - shutStep) * o).toFixed(2)}px`)
+      setPx('--ls', shutStep + (hairline - shutStep) * o, atRest)
       // Shut, the layers under the cover round at the spine with the cover
       // (so only a sliver following its curve shows at the bottom); open,
       // they square off to meet their mirror at the spine.
-      bookEl.style.setProperty('--sr', `${(g.radius * (1 - o)).toFixed(2)}px`)
+      setPx('--sr', g.radius * (1 - o), atRest)
       setRadii(o)
       // The pages too, at the spine, where they meet the cover's edge. (On
       // phones that is the notebook's fold: open, it runs straight down.)
-      bookEl.style.setProperty('--spine-r', `${Math.max(2, g.radius * (1 - o)).toFixed(2)}px`)
+      setPx('--spine-r', Math.max(2, g.radius * (1 - o)), atRest)
       show(inside, o >= 1 ? 1 : 0)
       // Shut or turning, the pages left of the spine are on the cover (its
       // inside face carries the open page there): none lie left of it. (Set
@@ -653,7 +667,9 @@ export function BrasiliaPassport({
           ref={envPaperRef}
           aria-hidden
           className="bg-peach bg-paper absolute inset-0"
-          style={{ opacity: 0, visibility: 'hidden' }}
+          // (On its own layer, as the haze below: fading as part of the
+          // stage's, each made the whole screen be redrawn at every step.)
+          style={{ opacity: 0, visibility: 'hidden', willChange: 'opacity' }}
         />
       )}
 
@@ -664,6 +680,7 @@ export function BrasiliaPassport({
         className="absolute inset-0"
         style={{
           opacity: 0,
+          willChange: 'opacity',
           background:
             'radial-gradient(60% 55% at 50% 55%, rgba(246, 214, 160, 0.55) 0%, rgba(246, 214, 160, 0.18) 45%, rgba(246, 214, 160, 0) 75%)',
         }}
