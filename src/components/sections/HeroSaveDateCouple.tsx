@@ -89,6 +89,18 @@ const REAL_VH = [
 ]
 const OLD_AT = [0, HEADING_AT, CASCADE_AT, SPIN_END, 1]
 
+/** The old timeline's progress at real progress `s` (0 → 1 of the pinned scroll). */
+function oldTimelineAt(s: number): number {
+  const vh = s * SCROLL_VH
+  for (let i = 1; i < REAL_VH.length; i++) {
+    if (vh <= REAL_VH[i] || i === REAL_VH.length - 1) {
+      const t = (vh - REAL_VH[i - 1]) / (REAL_VH[i] - REAL_VH[i - 1])
+      return OLD_AT[i - 1] + Math.min(1, Math.max(0, t)) * (OLD_AT[i] - OLD_AT[i - 1])
+    }
+  }
+  return 1
+}
+
 const DAISY_HERO_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero.webp`
 const DAISY_BLUR_SRC = `${import.meta.env.BASE_URL}flowers/cosmos_hero_blur.webp`
 
@@ -196,16 +208,7 @@ export function HeroSaveDateCouple() {
   // Old-timeline progress (see OLD_SCROLL_VH): identical to the real scroll
   // up to the story heading, faster to the first photo, slower through the
   // story milestones, then as before.
-  const scrollYProgress = useTransform(realProgress, (s: number) => {
-    const vh = s * SCROLL_VH
-    for (let i = 1; i < REAL_VH.length; i++) {
-      if (vh <= REAL_VH[i] || i === REAL_VH.length - 1) {
-        const t = (vh - REAL_VH[i - 1]) / (REAL_VH[i] - REAL_VH[i - 1])
-        return OLD_AT[i - 1] + Math.min(1, Math.max(0, t)) * (OLD_AT[i] - OLD_AT[i - 1])
-      }
-    }
-    return 1
-  })
+  const scrollYProgress = useTransform(realProgress, oldTimelineAt)
 
   // Daisy. Opacity is pinned to 0 from scroll start until the grow
   // begins (0.22), then fades up to 1 in a quick 4 % window, then stays at
@@ -257,7 +260,11 @@ export function HeroSaveDateCouple() {
     offset: ['start start', 'end start'],
   })
   const unpinAt = SCROLL_VH / (SCROLL_VH + 100)
-  const sunOpacity = useTransform([scrollYProgress, pastProgress], ([v, past]: number[]) => {
+  // (Combines the two scroll readings themselves, not scrollYProgress: a
+  // transform of a derived value could read it stale after a jump — a
+  // reload part-way down — and stay that way until the next scroll.)
+  const sunOpacity = useTransform([realProgress, pastProgress], ([s, past]: number[]) => {
+    const v = oldTimelineAt(s)
     // A few pixels of overlap past the unpin, where both suns are identical
     // and still (HeroBigDay holds its rotation there), so the hand-off has
     // no gap and no jump.
@@ -275,8 +282,8 @@ export function HeroSaveDateCouple() {
     target: stageRef,
     offset: ['start end', 'start start'],
   })
-  const titleProgress = useTransform([scrollYProgress, arrival], ([v, a]: number[]) =>
-    v > 0 ? v : (a - 1) * ARRIVE_SPAN
+  const titleProgress = useTransform([realProgress, arrival], ([s, a]: number[]) =>
+    s > 0 ? oldTimelineAt(s) : (a - 1) * ARRIVE_SPAN
   )
 
   // Save-the-date layer fades out 0.42 → 0.48. Function form for the same

@@ -146,82 +146,86 @@ function softenMask(alpha: Float32Array, scratch: Float32Array, w: number, h: nu
   }
 }
 
+/** The stage's paper (bg-peach), which the unpainted part of the painting shows. */
+const PAPER = [0xfb, 0xfa, 0xf8] as const
+/**
+ * The paper layer's resolution, as a share of the painting's size on screen
+ * (at up to 1.5 device pixels per CSS pixel). The reveal map is enlarged
+ * into it smoothly (high-quality resampling); the browser then stretches it
+ * the rest of the way. Stretched by the browser alone from the map's own
+ * cells, Safari showed the cells as steps along the wet edge.
+ */
+const COVER_RES = 0.5
+
 /**
  * The cerrado watercolor, painted in as the sun travels: the color spreads
  * out from the sun and stays along its arc, the pool widening as the sun
- * goes, with a soft, bleeding watercolor edge. Drawn on a canvas — the
- * painting is masked by a small reveal map, upscaled each frame.
+ * goes, with a soft, bleeding watercolor edge.
+ *
+ * The painting is a plain image, drawn once; over it lies a canvas of the
+ * stage's own paper at half the painting's resolution (COVER_RES),
+ * transparent where the paint has come in — the reveal map, enlarged
+ * smoothly into it. Over a plain paper background that is exactly the
+ * masked painting; each frame only that one smaller layer is redrawn. (The
+ * painting itself used to be re-masked on a full-size canvas every frame,
+ * two full-size draws: ~100 ms a frame on a computer drawing without its
+ * graphics card, as old ones do.)
  */
 export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef<{
-    img: HTMLImageElement | null
     map: ReturnType<typeof buildRevealMap> | null
-    mask: HTMLCanvasElement | null
-    maskData: ImageData | null
+    /** The reveal map as paper (one pixel per cell), and its pixels. */
+    grid: HTMLCanvasElement | null
+    cover: ImageData | null
     /** What the canvas shows now, so unchanged frames are skipped. */
     drawn: 'empty' | 'full' | 'partial' | null
     frame: number
     /** Per-cell paint amount (0–1) and a scratch buffer for softening it. */
     alpha: Float32Array | null
     scratch: Float32Array | null
-  }>({
-    img: null,
-    map: null,
-    mask: null,
-    maskData: null,
-    drawn: null,
-    frame: 0,
-    alpha: null,
-    scratch: null,
-  })
+  }>({ map: null, grid: null, cover: null, drawn: null, frame: 0, alpha: null, scratch: null })
 
-  /**
-   * Repaints only when the picture changes: while the sun hasn't started the
-   * paint (or once it's all painted) every frame would otherwise clear or
-   * redraw the whole canvas, and re-uploading it each time drops frames.
-   */
+  /** Repaints the paper only when the picture changes. */
   function draw(v: number) {
     const canvas = canvasRef.current
-    const { img, map, mask, maskData } = stateRef.current
-    if (!canvas || !img || !map || !mask || !maskData) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    const W = canvas.width
-    const H = canvas.height
     const state = stateRef.current
+    const { map, grid, cover } = state
+    const ctx = canvas?.getContext('2d')
+    if (!canvas || !ctx || !map || !grid || !cover) return
     const next = v <= start ? 'empty' : v >= end + FEATHER ? 'full' : 'partial'
     if (next !== 'partial' && next === state.drawn) return
     state.drawn = next
-    ctx.globalCompositeOperation = 'source-over'
-    ctx.clearRect(0, 0, W, H)
-    if (next === 'empty') return
-    if (next === 'full') {
-      ctx.drawImage(img, 0, 0, W, H)
+    // All painted: the paper is gone (and out of the page's layers).
+    canvas.style.visibility = next === 'full' ? 'hidden' : ''
+    if (next === 'full') return
+
+    const W = canvas.width
+    const H = canvas.height
+    if (next === 'empty') {
+      ctx.fillStyle = `rgb(${PAPER.join(',')})`
+      ctx.fillRect(0, 0, W, H)
       return
     }
-
-    const px = maskData.data
+    const px = cover.data
     const { reveal, gw, gh } = map
     const alpha = state.alpha!
     for (let n = 0; n < reveal.length; n++) {
       const a = (v - reveal[n]) / FEATHER
       alpha[n] = a <= 0 ? 0 : a >= 1 ? 1 : a
     }
-    // Where the paint stops along the sides of the sun's path the map has a
-    // hard edge, one cell painted and the next not; upscaled, those cells
-    // show as steps, worst on narrow screens where the painting is much
-    // wider than the window. Softening the map over a few cells first gives
-    // a smooth, watercolor edge at any size.
+    // Where the paint stops along the sides of the sun's path the map has
+    // a hard edge, one cell painted and the next not; stretched, those
+    // cells would show as steps, worst on narrow screens where the
+    // painting is much wider than the window. Softened over a few cells
+    // first, the edge is a smooth watercolor one at any size.
     softenMask(alpha, state.scratch!, gw, gh)
-    for (let n = 0; n < alpha.length; n++) px[n * 4 + 3] = alpha[n] * 255
-    mask.getContext('2d')?.putImageData(maskData, 0, 0)
+    for (let n = 0; n < alpha.length; n++) px[n * 4 + 3] = (1 - alpha[n]) * 255
+    grid.getContext('2d')?.putImageData(cover, 0, 0)
+    ctx.clearRect(0, 0, W, H)
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = 'high'
-    ctx.drawImage(mask, 0, 0, W, H)
-    ctx.globalCompositeOperation = 'source-in'
-    ctx.drawImage(img, 0, 0, W, H)
-    ctx.globalCompositeOperation = 'source-over'
+    ctx.drawImage(grid, 0, 0, W, H)
   }
 
   // At most one repaint per frame, with the latest progress.
@@ -237,33 +241,29 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
   useEffect(() => {
     const state = stateRef.current
     const map = buildRevealMap(aspect, sunX, sunY, start, end)
-    const mask = document.createElement('canvas')
-    mask.width = map.gw
-    mask.height = map.gh
-    const maskData = new ImageData(map.gw, map.gh)
-    // Mask color is irrelevant (only alpha is used by source-in).
+    const grid = document.createElement('canvas')
+    grid.width = map.gw
+    grid.height = map.gh
+    const cover = new ImageData(map.gw, map.gh)
+    for (let n = 0; n < cover.data.length; n += 4) {
+      cover.data[n] = PAPER[0]
+      cover.data[n + 1] = PAPER[1]
+      cover.data[n + 2] = PAPER[2]
+    }
     state.map = map
-    state.mask = mask
-    state.maskData = maskData
+    state.grid = grid
+    state.cover = cover
     state.alpha = new Float32Array(map.gw * map.gh)
     state.scratch = new Float32Array(map.gw * map.gh)
-
-    const img = new Image()
-    img.decoding = 'async'
-    img.onload = () => {
-      state.img = img
-      state.drawn = null
-      draw(progress.get())
-    }
-    img.src = src
+    state.drawn = null
 
     const canvas = canvasRef.current
     if (!canvas) return
     const resize = () => {
       const rect = canvas.getBoundingClientRect()
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
-      canvas.width = Math.max(1, Math.round(rect.width * dpr))
-      canvas.height = Math.max(1, Math.round(rect.height * dpr))
+      const scale = Math.min(window.devicePixelRatio || 1, 1.5) * COVER_RES
+      canvas.width = Math.max(map.gw, Math.round(rect.width * scale))
+      canvas.height = Math.max(map.gh, Math.round(rect.height * scale))
       // Resizing clears the canvas, so repaint whatever it should show.
       state.drawn = null
       draw(progress.get())
@@ -273,13 +273,23 @@ export function CerradoPaint({ src, aspect, progress, sunX, sunY, start, end }: 
     ro.observe(canvas)
     return () => {
       ro.disconnect()
-      img.onload = null
       cancelAnimationFrame(state.frame)
       state.frame = 0
     }
     // draw reads everything from refs; the inputs are module constants.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src, aspect, start, end])
+  }, [aspect, start, end])
 
-  return <canvas ref={canvasRef} className="h-full w-full" />
+  return (
+    <>
+      <img
+        src={src}
+        alt=""
+        draggable={false}
+        decoding="async"
+        className="absolute inset-0 h-full w-full max-w-none select-none"
+      />
+      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+    </>
+  )
 }

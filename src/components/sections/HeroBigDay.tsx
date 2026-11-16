@@ -212,13 +212,13 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
   const stageVh = useTransform(seam, (p: number) => p * (100 + lockedRef.current) - 100)
   // The big day's own 0 → 1 (its first BIG_DAY_VH of pinned scroll), and the
   // vh scrolled past it, which drives the passport.
-  const scrollYProgress = useTransform(stageVh, (vh: number) =>
-    Math.min(1, Math.max(0, vh / BIG_DAY_VH))
-  )
-  const passVh = useTransform(
-    stageVh,
-    (vh: number) => Math.min(lockedRef.current, Math.max(0, vh)) - PASSPORT_START_VH
-  )
+  // (Anything that needs two of these computes both from `stageVh` itself:
+  // a transform of two derived values could read one still stale after a
+  // jump — a reload part-way down — and kept the rising sun on screen.)
+  const bigDayAt = (vh: number) => Math.min(1, Math.max(0, vh / BIG_DAY_VH))
+  const passAt = (vh: number) => Math.min(lockedRef.current, Math.max(0, vh)) - PASSPORT_START_VH
+  const scrollYProgress = useTransform(stageVh, bigDayAt)
+  const passVh = useTransform(stageVh, passAt)
   const reduced = useReducedMotion()
 
   // Sun, phase 1: it arrives from HeroSaveDateCouple as the zoomed-in
@@ -243,7 +243,10 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
     return `calc(50vh * ${1 - t} + ${artY(sunYAt(0.3))} * ${t})`
   })
   const sunRiseScale = useTransform(ext, (v: number) => Math.pow(SUN_BIG_SCALE, 1 - riseT(v)))
-  const sunRiseOpacity = useTransform([seam, ext], ([p, v]: number[]) => (p > 0 && v < 0.3 ? 1 : 0))
+  // From Save the Date's unpinning (stageVh -100) to the hand-over (0.30).
+  const sunRiseOpacity = useTransform(stageVh, (vh: number) =>
+    vh > -100 && vh / BIG_DAY_VH < 0.3 ? 1 : 0
+  )
   // Holds the hand-off rotation for the first few pixels of the seam,
   // where the previous section's sun still overlaps this one.
   const sunRiseRotate = useTransform(
@@ -281,8 +284,9 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
 
   // Info panel fades in once the sun has set.
   // …and leaves again as the painting starts turning into the passport.
-  const infoOpacity = useTransform([scrollYProgress, passVh], ([v, pv]: number[]) => {
-    const out = 1 - seg(pv, PHASE.infoOut)
+  const infoOpacity = useTransform(stageVh, (vh: number) => {
+    const v = bigDayAt(vh)
+    const out = 1 - seg(passAt(vh), PHASE.infoOut)
     if (v < 0.85) return 0
     if (v < 0.92) return ((v - 0.85) / 0.07) * out
     return out
@@ -306,8 +310,8 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
   // Hand-off between the two sun elements at 0.30, where they match
   // exactly (same position, size, rotation and tint).
   // It fades with the info panel once the passport begins.
-  const sunArcOpacity = useTransform([scrollYProgress, passVh], ([v, pv]: number[]) =>
-    v < 0.3 ? 0 : 1 - seg(pv, PHASE.infoOut)
+  const sunArcOpacity = useTransform(stageVh, (vh: number) =>
+    bigDayAt(vh) < 0.3 ? 0 : 1 - seg(passAt(vh), PHASE.infoOut)
   )
 
   // ── Painting → passport ───────────────────────────────────────────────
