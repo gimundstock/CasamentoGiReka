@@ -29,7 +29,23 @@ import {
   type Chapter,
 } from './passport/geometry'
 import { manualChapter } from './padrinhos/available'
-import { SUN_BIG_SCALE, SUN_BLUR_FINAL, SUN_HANDOFF_ROTATE, SUN_SIZE, SUN_SRC } from './sun'
+import {
+  SUN_BIG_SCALE,
+  SUN_BLUR_FINAL,
+  SUN_GLOW_SCALE,
+  SUN_GLOW_SRC,
+  SUN_HANDOFF_ROTATE,
+  SUN_SIZE,
+  SUN_SRC,
+} from './sun'
+
+/** The sun's baked glow, centred on the sun's box (see SUN_GLOW_SRC). */
+const glowBox = {
+  left: `${(-(SUN_GLOW_SCALE - 1) / 2) * 100}%`,
+  top: `${(-(SUN_GLOW_SCALE - 1) / 2) * 100}%`,
+  width: `${SUN_GLOW_SCALE * 100}%`,
+  height: `${SUN_GLOW_SCALE * 100}%`,
+} as CSSProperties
 
 /** How long (vh) the stage stays pinned under the RSVP past the hand-over. */
 export const STAGE_OVERLAP_VH = 40
@@ -181,18 +197,27 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
       manualChapter(padrinho, deskNow(), false, window.innerWidth, window.innerHeight)
     )
   )
-  const { scrollYProgress: stageProgress } = useScroll({
-    target: stageRef,
-    offset: ['start start', 'end end'],
+  // One timeline for the whole stage: `stageVh`, the vh scrolled from the
+  // moment Save the Date unpins (-100: this stage's top a screen below the
+  // screen's top) to the end of its pinned scroll (`locked`). Measured on
+  // `seamRef`, from top edges only — never against the screen's height: on
+  // a phone that changes with the browser's toolbar and isn't the CSS 100vh
+  // the sections are pinned by, so the two halves of the sun disagreed on
+  // where the hand-over was and it vanished between them.
+  const seamRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress: seam } = useScroll({
+    target: seamRef,
+    offset: ['start start', 'end start'],
   })
+  const stageVh = useTransform(seam, (p: number) => p * (100 + lockedRef.current) - 100)
   // The big day's own 0 → 1 (its first BIG_DAY_VH of pinned scroll), and the
   // vh scrolled past it, which drives the passport.
-  const scrollYProgress = useTransform(stageProgress, (v: number) =>
-    Math.min(1, (v * lockedRef.current) / BIG_DAY_VH)
+  const scrollYProgress = useTransform(stageVh, (vh: number) =>
+    Math.min(1, Math.max(0, vh / BIG_DAY_VH))
   )
   const passVh = useTransform(
-    stageProgress,
-    (v: number) => v * lockedRef.current - PASSPORT_START_VH
+    stageVh,
+    (vh: number) => Math.min(lockedRef.current, Math.max(0, vh)) - PASSPORT_START_VH
   )
   const reduced = useReducedMotion()
 
@@ -200,14 +225,10 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
   // cosmos center — big, in the middle of the screen. It is FIXED on
   // screen from the moment that section unpins, through the 100vh where
   // the two sections scroll past each other, so it never moves with the
-  // page or shows twice. `seam` runs from that moment (this stage's top
-  // at the viewport bottom) to the end; `ext` is the same scroll on this
-  // section's own 0 → 1 timeline, so it is -1/3 at the hand-off.
-  const { scrollYProgress: seam } = useScroll({
-    target: stageRef,
-    offset: ['start end', 'end end'],
-  })
-  const ext = useTransform(seam, (p: number) => (p * (100 + lockedRef.current) - 100) / BIG_DAY_VH)
+  // page or shows twice. `seam` runs from that moment to the end; `ext` is
+  // the same scroll on this section's own 0 → 1 timeline, so it is -1/3 at
+  // the hand-off.
+  const ext = useTransform(stageVh, (vh: number) => vh / BIG_DAY_VH)
   // Starts rising while the two sections are still passing each other
   // (-0.15), and reaches the upper-left of the painting at its disc size
   // as the landscape settles (0.30).
@@ -241,6 +262,7 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
   // detail and a warm glow bleeds from its edge, like pigment on wet
   // paper. Crisp while big at the hand-off, fully soft once in the sky.
   // (`ext` is the same scroll as scrollYProgress, extended into the seam.)
+  // Only filters the GPU can apply here; the glow is an image (SUN_GLOW_SRC).
   const sunFilter = useTransform(ext, (v: number) => {
     const t = Math.min(1, Math.max(0, (v - 0.3) / 0.55))
     const soft = riseT(v)
@@ -249,9 +271,9 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
       `saturate(${(1 + 0.35 * t).toFixed(2)})`,
       `brightness(${(1 - 0.12 * t).toFixed(3)})`,
       `blur(${(SUN_BLUR_FINAL * soft).toFixed(2)}px)`,
-      `drop-shadow(0 0 ${(9 * soft).toFixed(1)}px rgba(255, 196, 80, ${(0.6 * soft).toFixed(2)}))`,
     ].join(' ')
   })
+  const sunGlowOpacity = useTransform(ext, riseT)
   const sunRotate = useTransform(
     scrollYProgress,
     (v: number) => SUN_HANDOFF_ROTATE + Math.max(0, v + 0.3) * 240
@@ -399,12 +421,17 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
                   upper-left as it shrinks. Unmasked: it starts outside the
                   sky. Sets the same art variables as the stage so its end
                   point lands on the painting. ── */}
-        <motion.img
-          src={SUN_SRC}
-          alt=""
+        {/* What the stage's timeline is measured on (see `seam`): from a
+            screen above the stage's top to the end of its pinned scroll. */}
+        <div
+          ref={seamRef}
           aria-hidden
-          draggable={false}
-          className="pointer-events-none fixed z-20 max-w-none select-none [--art-top:44vh] md:[--art-top:14vh]"
+          className="pointer-events-none absolute inset-x-0"
+          style={{ top: '-100vh', height: `${100 + locked}vh` }}
+        />
+        <motion.div
+          aria-hidden
+          className="pointer-events-none fixed z-20 [--art-top:44vh] md:[--art-top:14vh]"
           style={{
             ...artVars,
             left: sunRiseLeft,
@@ -415,11 +442,27 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
             y: '-50%',
             scale: sunRiseScale,
             rotate: sunRiseRotate,
-            filter: sunFilter,
             opacity: sunRiseOpacity,
             willChange: 'transform',
           }}
-        />
+        >
+          {/* (Each image on its own layer: the browser then moves, turns and
+              fades them as they are, without redrawing them every frame.) */}
+          <motion.img
+            src={SUN_GLOW_SRC}
+            alt=""
+            draggable={false}
+            className="absolute max-w-none select-none"
+            style={{ ...glowBox, opacity: sunGlowOpacity, willChange: 'opacity' }}
+          />
+          <motion.img
+            src={SUN_SRC}
+            alt=""
+            draggable={false}
+            className="absolute inset-0 h-full w-full max-w-none select-none"
+            style={{ filter: sunFilter, willChange: 'transform' }}
+          />
+        </motion.div>
         <div
           id="big-day"
           className="pointer-events-none absolute h-px w-px"
@@ -452,7 +495,7 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
               <motion.div
                 aria-hidden
                 className="pointer-events-none absolute z-10 overflow-hidden"
-                style={{ ...artBox, y: cerradoY, opacity: 0.9 }}
+                style={{ ...artBox, y: cerradoY, opacity: 0.9, willChange: 'transform' }}
               >
                 <CerradoPaint
                   src={`${ART}/paint.webp`}
@@ -496,13 +539,11 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
                     background:
                       'radial-gradient(circle, rgba(255, 226, 140, 0.45) 0%, rgba(255, 214, 120, 0.18) 35%, rgba(255, 214, 120, 0) 68%)',
                     opacity: sunArcOpacity,
+                    willChange: 'transform',
                   }}
                 />
-                <motion.img
-                  src={SUN_SRC}
-                  alt=""
-                  draggable={false}
-                  className="absolute max-w-none select-none"
+                <motion.div
+                  className="absolute"
                   style={{
                     left: sunLeftPct,
                     top: sunTopPct,
@@ -511,11 +552,25 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
                     x: '-50%',
                     y: '-50%',
                     rotate: sunRotate,
-                    filter: sunFilter,
                     opacity: sunArcOpacity,
                     willChange: 'transform',
                   }}
-                />
+                >
+                  <img
+                    src={SUN_GLOW_SRC}
+                    alt=""
+                    draggable={false}
+                    className="absolute max-w-none select-none"
+                    style={{ ...glowBox, willChange: 'transform' }}
+                  />
+                  <motion.img
+                    src={SUN_SRC}
+                    alt=""
+                    draggable={false}
+                    className="absolute inset-0 h-full w-full max-w-none select-none"
+                    style={{ filter: sunFilter, willChange: 'transform' }}
+                  />
+                </motion.div>
               </motion.div>
 
               {/* ── z-30  Pencil line art, registered onto the painting. SLIDES
@@ -526,7 +581,7 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
                 alt=""
                 aria-hidden
                 draggable={false}
-                style={{ ...artBox, y: cerradoY, opacity: linesOpacity }}
+                style={{ ...artBox, y: cerradoY, opacity: linesOpacity, willChange: 'transform' }}
                 className="pointer-events-none absolute z-30 max-w-none select-none"
               />
             </div>

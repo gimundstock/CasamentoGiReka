@@ -39,9 +39,10 @@ export function usePassportSnap(
       if (!el || touching || isAutoScrolling()) return
       const locked = lockedRef.current
       const top = window.scrollY + el.getBoundingClientRect().top
-      // As useScroll measures it: from the stage's top at the screen's top
-      // to its bottom at the screen's bottom.
-      const span = el.offsetHeight - window.innerHeight
+      // As HeroBigDay measures it: the stage's pinned scroll, `locked` vh of
+      // its 100 + locked (not against the screen's height, which on a phone
+      // changes with the browser's toolbar).
+      const span = (el.offsetHeight * locked) / (100 + locked)
       if (span <= 0) return
       const p = (window.scrollY - top) / span
       if (p <= 0 || p >= 1) return

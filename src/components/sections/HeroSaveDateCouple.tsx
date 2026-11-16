@@ -182,9 +182,16 @@ export function HeroSaveDateCouple() {
   const countdown = useCountdown(ceremonyStart())
 
   const stageRef = useRef<HTMLDivElement>(null)
+  // The pinned scroll, measured on `pinRef` (SCROLL_VH tall, from the
+  // stage's top) from top edges only — not to the stage's bottom at the
+  // screen's bottom: on a phone the screen's height changes with the
+  // browser's toolbar and isn't the CSS 100vh the stage is pinned by, so the
+  // flower hadn't finished (nor the sun reached the hand-over) when the
+  // stage let go.
+  const pinRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress: realProgress } = useScroll({
-    target: stageRef,
-    offset: ['start start', 'end end'],
+    target: pinRef,
+    offset: ['start start', 'end start'],
   })
   // Old-timeline progress (see OLD_SCROLL_VH): identical to the real scroll
   // up to the story heading, faster to the first photo, slower through the
@@ -321,6 +328,12 @@ export function HeroSaveDateCouple() {
   return (
     <section id="couple" className="relative bg-peach">
       <div ref={stageRef} className="relative" style={{ height: `${SCROLL_VH + 100}vh` }}>
+        <div
+          ref={pinRef}
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0"
+          style={{ height: `${SCROLL_VH}vh` }}
+        />
         {/* Inner anchor for the Nav "Save the Date" link — placed at scroll
             progress ~0.22 (800vh * 0.22 = 176vh into the stage), the moment
             the SAVE/THE/DATE typography is fully assembled. Empty 1px div
@@ -439,19 +452,23 @@ export function HeroSaveDateCouple() {
               willChange: 'transform, opacity',
             }}
           >
+            {/* Each image on its own layer: the browser then zooms, turns and
+                fades them as they are. Drawn into the box's layer instead,
+                they were redrawn at every step of the zoom (a ~2000px layer
+                on a phone) — the stutter that began as the flower grew. */}
             <motion.img
               src={DAISY_HERO_SRC}
               alt=""
               draggable={false}
               className="absolute inset-0 h-full w-full max-w-none object-contain select-none"
-              style={{ opacity: daisyCrispOpacity }}
+              style={{ opacity: daisyCrispOpacity, willChange: 'opacity' }}
             />
             <motion.img
               src={DAISY_BLUR_SRC}
               alt=""
               draggable={false}
               className="absolute inset-0 h-full w-full max-w-none object-contain select-none"
-              style={{ opacity: petalBlur }}
+              style={{ opacity: petalBlur, willChange: 'opacity' }}
             />
           </motion.div>
 
@@ -479,6 +496,7 @@ export function HeroSaveDateCouple() {
               scale: sunScale,
               rotate: daisyRotate,
               opacity: sunOpacity,
+              willChange: 'transform',
             }}
           />
 

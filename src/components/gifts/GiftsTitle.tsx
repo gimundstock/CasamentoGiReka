@@ -57,9 +57,13 @@ export function GiftsTitle({
       >
         {t('nav.gifts')}
       </p>
-      {/* Moved by a transform, not `top`: no layout or repaint each frame,
+      {/* Moved by a transform, not `top`, on a layer of its own: no layout
+          or repaint each frame (the script title redrawn as it shrank),
           which stuttered on phones. */}
-      <motion.div className="absolute inset-x-0 top-0 h-0" style={{ y: top, scale }}>
+      <motion.div
+        className="absolute inset-x-0 top-0 h-0"
+        style={{ y: top, scale, willChange: 'transform' }}
+      >
         <h2 className="font-display text-title -translate-y-1/2 px-4 text-center text-4xl leading-[1.35] md:text-5xl">
           {t('gifts.title')}
         </h2>
