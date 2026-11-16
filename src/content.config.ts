@@ -121,6 +121,10 @@ export const CONFIG = {
         text_en:
           "After so many encounters, adventures and shared dreams, it's time to celebrate a new chapter of our story! We are preparing every detail with love and care, dreaming of a warm celebration full of joy and affection. More than celebrating our union, we want to share this moment with the families and friends who are part of our story. After all, love is even more beautiful when celebrated together.",
         photo: 'couple.jpg',
+        // Where the 4:5 crop sits across the (wider) photo, as CSS
+        // object-position: a little left of centre, so the two faces sit in
+        // the middle of the polaroid. Optional on any milestone.
+        photoPosition: '42% 50%',
       },
     ],
   },
