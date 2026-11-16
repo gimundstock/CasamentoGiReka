@@ -18,12 +18,12 @@ import { ENV_CLOSED_Y, envelopeSize, NAV_HEIGHT as ENV_NAV_H } from '../Envelope
 
 export const BIG_DAY_VH = 300
 /**
- * Where the passport's timeline starts, in vh of the stage: a little before
- * the big day's own end, while its info panel is still settling — the
- * panel then stays a moment and leaves, without a stretch of scroll where
- * nothing moves.
+ * Where the passport's timeline starts, in vh of the stage: a little after
+ * the big day's own end. The info panel ("Sob o pôr do sol do cerrado",
+ * date, venue) is fully in from 0.92 of the big day (276vh) and stays
+ * until PHASE.infoOut, ~70vh later, long enough to read it while scrolling.
  */
-export const PASSPORT_START_VH = BIG_DAY_VH - 30
+export const PASSPORT_START_VH = BIG_DAY_VH + 10
 export const PASSPORT_VH = 470
 
 type Span = readonly [number, number]

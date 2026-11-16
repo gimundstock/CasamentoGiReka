@@ -18,3 +18,9 @@ export const SUN_BIG_SCALE = SUN_BIG_VMIN / 14
 // The sun softens into watercolor as it rises in HeroBigDay: crisp at the
 // hand-off, SUN_BLUR_FINAL (in the image's own px) once it is in the sky.
 export const SUN_BLUR_FINAL = 3.6
+// …and a warm glow bleeds from its edge. Baked into an image (the sun's
+// own shape, blurred, in gold: was a CSS drop-shadow, which iOS Safari
+// can't composite next to other filters, so it redrew the sun on the CPU
+// every frame). SUN_GLOW_SCALE times the sun's box, centred on it.
+export const SUN_GLOW_SRC = `${import.meta.env.BASE_URL}flowers/sun-glow.webp`
+export const SUN_GLOW_SCALE = 1.4

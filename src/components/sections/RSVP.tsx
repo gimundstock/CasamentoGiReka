@@ -699,19 +699,20 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
         <p className="font-serif text-base">{CONFIG.wedding.venue}</p>
       </div>
 
-      {/* Lifted a little above the lines under it. */}
+      {/* Lifted a little above the lines under it. (Upright, on a phone:
+          smaller and lifted less, clear of the gold rule on a short screen.) */}
       <h2
         className={`font-display relative leading-[1.45] ${
           wide
             ? '-top-[0.55em] text-[3.1rem] whitespace-nowrap'
-            : '-top-[1.1em] text-[2.6rem] flex flex-col'
+            : '-top-[0.5em] text-[2.15rem] flex flex-col'
         }`}
       >
         {CONFIG.couple.bride}
         {/* The script's capital R stands well right of its own loop: the "&"
             sits closer to it than to the name before. */}
         <span
-          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-3xl leading-none mb-4 relative left-[0.7em]'}`}
+          className={`text-amber ${wide ? 'text-[2.3rem] ml-[0.4em]' : 'text-[1.6rem] leading-none mb-3 relative left-[0.7em]'}`}
         >
           &amp;
         </span>

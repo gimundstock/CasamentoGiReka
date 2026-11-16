@@ -1544,6 +1544,7 @@ function GiftsDesk({ opening, children }: { opening: boolean; children: ReactNod
               // Opaque to a little under the title, then a short fade.
               height: GIFTS_TITLE_TOP + 60,
               opacity: rising,
+              willChange: 'opacity',
               background: `linear-gradient(to bottom, #FBFAF8 0, #FBFAF8 ${GIFTS_TITLE_TOP + 34}px, rgba(251, 250, 248, 0) 100%)`,
             }}
           />
