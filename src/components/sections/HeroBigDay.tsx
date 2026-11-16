@@ -55,9 +55,26 @@ export const STAGE_OVERLAP_VH = 40
 // art registered onto it (lines.webp), and a sky mask (sky-mask.webp) that
 // keeps the sun from showing over the hills. All share the 1376 × 768 aspect
 // (lines.webp is the hand-drawn vector art-src/cerrado/lines.svg rendered at
-// 3200px wide: Safari re-rasterised the 4MB SVG as it moved and stuttered).
+// 3200px wide: Safari re-rasterised the 4MB SVG as it moved and stuttered;
+// lines-1600.webp is the same at half the size, see linesSrc).
 const ART_ASPECT = 1376 / 768
 const ART = `${import.meta.env.BASE_URL}cerrado`
+
+/**
+ * The line art's file for this screen: the full 3200px one, or half that
+ * where the artwork is drawn on at most ~1700 screen pixels (a laptop's 1×
+ * screen, an older phone) — there the full one was four times the pixels to
+ * decode (23 MB) for nothing, and a stall as the drawing came up. Chosen
+ * once: a window resized later keeps its file.
+ */
+function linesSrc() {
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  // (--art-top, as on the stage: 44vh on a phone, 14vh from md up.)
+  const artW = Math.max(vw, vh * (vw >= 768 ? 0.86 : 0.56) * ART_ASPECT)
+  const small = artW * (window.devicePixelRatio || 1) <= 1760
+  return `${ART}/${small ? 'lines-1600' : 'lines'}.webp`
+}
 
 // Artwork box, full-bleed: at least as wide as the viewport and tall enough
 // to reach the bottom edge, hanging from --art-top (set on the stage; lower
@@ -189,6 +206,7 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
   const { t, i18n } = useTranslation()
   const lang = i18n.language as 'pt' | 'en'
 
+  const [lines] = useState(linesSrc)
   const stageRef = useRef<HTMLDivElement>(null)
   // The stage's pinned length, read by the scroll transforms below.
   const lockedRef = useRef(
@@ -581,7 +599,7 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
                     UP from below the viewport alongside the sun shrink so
                     the drawing rises into place. ── */}
               <motion.img
-                src={`${ART}/lines.webp`}
+                src={lines}
                 alt=""
                 aria-hidden
                 draggable={false}

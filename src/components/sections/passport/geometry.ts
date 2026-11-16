@@ -825,20 +825,21 @@ export function vignetteBox(g: PassportGeometry): Rect {
 }
 
 /**
- * On a phone, the blot window is laid out at most this many times the
- * screen's longer side. Its size at the hand-over was ~8× the screen's
- * width (3000 px laid out, 9000 at 3×): its backing store and mask, kept
- * for the rest of the page, took ~500 MB of graphics memory, enough for
- * iOS Safari to kill the page. Smaller, it is scaled up at the hand-over:
- * a shade softer while it closes in, the same once on the cover.
+ * The blot window is laid out at most this many times the screen's longer
+ * side. Its size at the hand-over was ~8× a phone's width (3000 px laid
+ * out, 9000 at 3×): its backing store and mask, kept for the rest of the
+ * page, took ~500 MB of graphics memory, enough for iOS Safari to kill the
+ * page. Smaller, it is scaled up at the hand-over: a shade softer while it
+ * closes in, the same once on the cover. (On a wide screen too: there it
+ * was ~3× the screen's width, ~200 MB on a laptop, and redrawn at every
+ * step as it closed in.)
  */
-const PHONE_WINDOW_MAX = 1.2
+const WINDOW_MAX = 1.2
 
 /** How many times the slot the blot window is laid out: its size at the hand-over. */
 export function windowScale(g: PassportGeometry) {
   const full = Math.max(1, (g.blotLocal.w * focusAt(g, PHASE.swap)) / g.slot.w)
-  if (g.vw >= 768) return full
-  return Math.max(1, Math.min(full, (PHONE_WINDOW_MAX * Math.max(g.vw, g.vh)) / g.slot.w))
+  return Math.max(1, Math.min(full, (WINDOW_MAX * Math.max(g.vw, g.vh)) / g.slot.w))
 }
 
 /**

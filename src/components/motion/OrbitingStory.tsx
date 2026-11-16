@@ -243,11 +243,15 @@ function StoryWords({ item }: { item: OrbitItem }) {
   )
 }
 
-/** The caption card: the original one's paper colour, corners and shadow. */
+/**
+ * The caption card: the original one's paper colour, corners and shadow.
+ * (All but opaque, with no blur of what is behind it: the card travels over
+ * the turning flower, and Safari blurred the flower anew at every step.)
+ */
 function StoryCard({ className = '', children }: { className?: string; children: ReactNode }) {
   return (
     <div
-      className={`rounded-[3px] bg-peach-light/90 shadow-[0_18px_40px_-14px_rgba(0,0,0,0.35)] backdrop-blur-sm ${className}`}
+      className={`rounded-[3px] bg-peach-light/95 shadow-[0_18px_40px_-14px_rgba(0,0,0,0.35)] ${className}`}
     >
       {children}
     </div>

@@ -760,6 +760,10 @@ export function BrasiliaPassport({
         className="absolute inset-0"
         style={{
           transformOrigin: layout ? `${layout.C.x}px ${layout.C.y}px` : undefined,
+          // Carried to the desk the book shrinks and turns: its layers (the
+          // cover, the painting and its masks, the pages) are then moved as
+          // they were drawn, not drawn again at every new size on the way.
+          willChange: layout ? 'transform' : undefined,
         }}
       >
         <div
