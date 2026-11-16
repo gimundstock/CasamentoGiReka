@@ -29,7 +29,15 @@ export function Hero1Welcome({ guest, onReset }: Props) {
   // última padrão. Nenhuma foto do hero leva legenda.
   const celebration = CONFIG.story.milestones[CONFIG.story.milestones.length - 1]
   const photos: CarouselPhoto[] = [
-    ...(celebration ? [{ src: `${base}photos/${celebration.photo}`, alt: altText }] : []),
+    ...(celebration
+      ? [
+          {
+            src: `${base}photos/${celebration.photo}`,
+            alt: altText,
+            position: celebration.photoPosition,
+          },
+        ]
+      : []),
     ...withDefaultPhotos<CarouselPhoto>(
       guestPhotoSources(guest, base).map((p) => ({ ...p, alt: guestName(guest) })),
       CONFIG.welcome.defaultPhotos.map((photo) => ({ src: `${base}photos/${photo}`, alt: altText }))

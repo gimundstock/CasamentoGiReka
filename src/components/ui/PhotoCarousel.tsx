@@ -9,6 +9,8 @@ export interface CarouselPhoto {
   caption?: string
   /** Se src falhar, tenta este (a foto direto do Drive, se a cópia não existe). */
   fallbackSrc?: string
+  /** Onde o recorte 4:5 fica na foto (CSS object-position); padrão: centro. */
+  position?: string
 }
 
 interface Props {
@@ -236,6 +238,7 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
                   }
                   alt=""
                   className="aspect-[4/5] w-full rounded-[1px] object-cover"
+                  style={photo.position ? { objectPosition: photo.position } : undefined}
                   onError={() => onPhotoError(photo, retries[photo.src] ?? 0)}
                   // As fotos dos convidados vêm do Drive, que recusa a imagem
                   // quando o pedido traz o Referer de outro site.

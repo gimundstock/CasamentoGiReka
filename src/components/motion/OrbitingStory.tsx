@@ -4,6 +4,8 @@ import { motion, useMotionValue, useMotionValueEvent, type MotionValue } from 'f
 export interface OrbitItem {
   imageSrc: string
   imageAlt: string
+  /** Where the 4:5 crop sits on the photo (CSS object-position). */
+  imagePosition?: string
   year: string
   title: string
   text: string
@@ -197,6 +199,7 @@ function Polaroid({ item, className = '' }: { item: OrbitItem; className?: strin
         src={item.imageSrc}
         alt={item.imageAlt}
         className="aspect-[4/5] w-full rounded-[1px] object-cover"
+        style={item.imagePosition ? { objectPosition: item.imagePosition } : undefined}
         decoding="async"
       />
     </div>

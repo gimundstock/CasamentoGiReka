@@ -319,6 +319,7 @@ export function HeroSaveDateCouple() {
     return {
       imageSrc: `${import.meta.env.BASE_URL}photos/${m.photo}`,
       imageAlt: title,
+      imagePosition: m.photoPosition,
       year: m.year,
       title,
       text,
