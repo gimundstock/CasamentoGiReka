@@ -469,16 +469,22 @@ export function snapTarget(
 }
 
 /**
- * Opacities of the stage painting and of the cover's copy across the swap.
- * Both are drawn at 0.9 and stacked (the cover's on top); the stage's fades
- * so that together they always cover exactly as much as one does — the
- * colour never pulses through the cross-fade.
+ * Across the swap: the opacity of the cover's copy, and whether the stage
+ * painting still shows under it (1) or is gone (0). The cover's copy fades
+ * in on a sheet of the stage's own paper, the two as one (BrasiliaPassport,
+ * the swap's paper), over the stage painting left as it is: at every step
+ * the screen is that much of the new picture over the old one, whatever the
+ * painting's own transparency.
+ *
+ * (The two copies used to be stacked, both see-through, the stage's fading
+ * so that together they covered as much as one. That only holds where the
+ * painting itself is opaque: along its soft top edge the two covered more
+ * than one, and the top of the screen darkened and cleared again through
+ * the fade.)
  */
 export function swapOpacities(v: number) {
-  const PAINT = 0.9
   const cover = ease(seg(v, PHASE.swapFade))
-  const stage = cover >= 1 ? 0 : (1 - cover) / (1 - PAINT * cover)
-  return { stage, cover }
+  return { stage: cover >= 1 ? 0 : 1, cover }
 }
 
 /** 0 → 1 across a span, clamped. */
@@ -825,20 +831,21 @@ export function vignetteBox(g: PassportGeometry): Rect {
 }
 
 /**
- * On a phone, the blot window is laid out at most this many times the
- * screen's longer side. Its size at the hand-over was ~8× the screen's
- * width (3000 px laid out, 9000 at 3×): its backing store and mask, kept
- * for the rest of the page, took ~500 MB of graphics memory, enough for
- * iOS Safari to kill the page. Smaller, it is scaled up at the hand-over:
- * a shade softer while it closes in, the same once on the cover.
+ * The blot window is laid out at most this many times the screen's longer
+ * side. Its size at the hand-over was ~8× a phone's width (3000 px laid
+ * out, 9000 at 3×): its backing store and mask, kept for the rest of the
+ * page, took ~500 MB of graphics memory, enough for iOS Safari to kill the
+ * page. Smaller, it is scaled up at the hand-over: a shade softer while it
+ * closes in, the same once on the cover. (On a wide screen too: there it
+ * was ~3× the screen's width, ~200 MB on a laptop, and redrawn at every
+ * step as it closed in.)
  */
-const PHONE_WINDOW_MAX = 1.2
+const WINDOW_MAX = 1.2
 
 /** How many times the slot the blot window is laid out: its size at the hand-over. */
 export function windowScale(g: PassportGeometry) {
   const full = Math.max(1, (g.blotLocal.w * focusAt(g, PHASE.swap)) / g.slot.w)
-  if (g.vw >= 768) return full
-  return Math.max(1, Math.min(full, (PHONE_WINDOW_MAX * Math.max(g.vw, g.vh)) / g.slot.w))
+  return Math.max(1, Math.min(full, (WINDOW_MAX * Math.max(g.vw, g.vh)) / g.slot.w))
 }
 
 /**

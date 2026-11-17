@@ -80,7 +80,9 @@ export function Nav() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-500 ${
-        scrolled ? 'bg-peach/90 backdrop-blur-sm' : 'bg-transparent'
+        // (No blur of the page behind it: everything under the bar moves
+        // with the scroll, and Safari blurred it anew at every frame.)
+        scrolled ? 'bg-peach/95' : 'bg-transparent'
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
