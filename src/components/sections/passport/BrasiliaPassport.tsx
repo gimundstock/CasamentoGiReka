@@ -232,6 +232,7 @@ export function BrasiliaPassport({
   const envWordsRef = useRef<HTMLDivElement>(null)
   const envHintRef = useRef<HTMLDivElement>(null)
   const envPaperRef = useRef<HTMLDivElement>(null)
+  const swapPaperRef = useRef<HTMLDivElement>(null)
   const flowersRef = useRef<HTMLDivElement>(null)
   const desk = !!g?.desk && !reduced
   const layout = useMemo(() => (g && desk ? deskLayout(g) : null), [g, desk])
@@ -308,7 +309,10 @@ export function BrasiliaPassport({
         setPx('--ls', hairline, true)
         show(inside, 1)
         chrome.style.opacity = '1'
-        if (tabsRef.current) tabsRef.current.style.opacity = '1'
+        if (tabsRef.current) {
+          tabsRef.current.style.opacity = '1'
+          tabsRef.current.style.visibility = 'inherit'
+        }
         if (cornerRef.current) showNote(cornerRef.current, true)
         if (shutHintRef.current) shutHintRef.current.style.opacity = '0'
         haze.style.opacity = '1'
@@ -317,7 +321,13 @@ export function BrasiliaPassport({
 
       // Drawn, all but transparent, a little before the swap (see PHASE.warm).
       root.style.visibility = v >= PHASE.warm ? 'visible' : 'hidden'
-      root.style.opacity = String(Math.max(0.01, swapOpacities(v).cover))
+      const swapped = swapOpacities(v).cover
+      root.style.opacity = String(Math.max(0.01, swapped))
+      // The swap's paper: under the cover's copy only while it fades in over
+      // the stage painting (see swapOpacities).
+      if (swapPaperRef.current) {
+        swapPaperRef.current.style.display = swapped > 0 && swapped < 1 ? '' : 'none'
+      }
       // Open — and, on the desk, closed again once read.
       const closing = desk ? ease(seg(v, DESK.close)) : 0
       const o = ease(seg(v, PHASE.open)) * (1 - closing)
@@ -425,7 +435,15 @@ export function BrasiliaPassport({
         leavesEl.style.setProperty('-webkit-clip-path', clip)
       }
       const chromeIn = seg(v, [PHASE.open[1] - 25, PHASE.open[1]])
-      if (tabsRef.current) tabsRef.current.style.opacity = String(chromeIn * (1 - closing))
+      // The tabs come in as the cover finishes turning, and are gone as
+      // soon as it starts back (the desk): fading with it all the way, they
+      // still stuck out of a book all but shut.
+      const tabsOut = desk ? seg(v, [DESK.close[0], DESK.close[0] + 25]) : 0
+      if (tabsRef.current) {
+        const tabs = chromeIn * (1 - tabsOut)
+        tabsRef.current.style.opacity = String(tabs)
+        tabsRef.current.style.visibility = tabs > 0 ? 'inherit' : 'hidden'
+      }
       // "Scroll to go on" stays under the book shut again on the desk (where
       // the snap leaves it), going only as the envelope comes for it; kept
       // centred under it as it shuts (the book moves by closedShift).
@@ -661,6 +679,15 @@ export function BrasiliaPassport({
       className="pointer-events-none absolute inset-0 z-40"
       style={{ visibility: 'hidden' }}
     >
+      {/* The swap's paper (see swapOpacities): the stage's own, under the
+          cover's copy of the painting while that fades in over the stage's. */}
+      <div
+        ref={swapPaperRef}
+        aria-hidden
+        className="bg-peach absolute inset-0"
+        style={{ display: 'none' }}
+      />
+
       {/* The desk's end: the invitation's paper comes in with its envelope. */}
       {layout && (
         <div

@@ -369,7 +369,8 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
         return
       }
       // From the swap on, the cover's own copy carries the painting
-      // (BrasiliaPassport): this one, still, fades out under it.
+      // (BrasiliaPassport): this one stays, still, under it while that
+      // fades in, and then goes.
       const { stage } = swapOpacities(v)
       el.style.opacity = stage >= 1 ? '' : String(stage)
       el.style.visibility = stage <= 0 ? 'hidden' : ''

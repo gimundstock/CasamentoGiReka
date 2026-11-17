@@ -469,16 +469,22 @@ export function snapTarget(
 }
 
 /**
- * Opacities of the stage painting and of the cover's copy across the swap.
- * Both are drawn at 0.9 and stacked (the cover's on top); the stage's fades
- * so that together they always cover exactly as much as one does — the
- * colour never pulses through the cross-fade.
+ * Across the swap: the opacity of the cover's copy, and whether the stage
+ * painting still shows under it (1) or is gone (0). The cover's copy fades
+ * in on a sheet of the stage's own paper, the two as one (BrasiliaPassport,
+ * the swap's paper), over the stage painting left as it is: at every step
+ * the screen is that much of the new picture over the old one, whatever the
+ * painting's own transparency.
+ *
+ * (The two copies used to be stacked, both see-through, the stage's fading
+ * so that together they covered as much as one. That only holds where the
+ * painting itself is opaque: along its soft top edge the two covered more
+ * than one, and the top of the screen darkened and cleared again through
+ * the fade.)
  */
 export function swapOpacities(v: number) {
-  const PAINT = 0.9
   const cover = ease(seg(v, PHASE.swapFade))
-  const stage = cover >= 1 ? 0 : (1 - cover) / (1 - PAINT * cover)
-  return { stage, cover }
+  return { stage: cover >= 1 ? 0 : 1, cover }
 }
 
 /** 0 → 1 across a span, clamped. */
