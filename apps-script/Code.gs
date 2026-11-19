@@ -328,12 +328,17 @@ function isTrue(value) {
   return value === true || String(value).trim().toLowerCase() === 'true';
 }
 
-/** The images in a Drive folder, in file-name order, as { name, id }. */
+/**
+ * The images in a Drive folder, in file-name order, as { name, id }.
+ * getFiles() also lists files in the trash, so a photo deleted in Drive
+ * would stay on the site; those are skipped.
+ */
 function imagesIn(folder) {
   var files = folder.getFiles();
   var images = [];
   while (files.hasNext()) {
     var f = files.next();
+    if (f.isTrashed()) continue;
     if (String(f.getMimeType()).indexOf('image/') === 0) {
       images.push({ name: f.getName(), id: f.getId() });
     }
@@ -360,9 +365,15 @@ function guestPhotoUrls(guestId) {
   try {
     var root = guestPhotosRoot();
     if (!root) return [];
+    // A guest folder in the trash doesn't count either.
     var folders = root.getFoldersByName(String(guestId));
-    if (!folders.hasNext()) return [];
-    return imagesIn(folders.next()).map(function(img) {
+    var folder = null;
+    while (folders.hasNext() && !folder) {
+      var candidate = folders.next();
+      if (!candidate.isTrashed()) folder = candidate;
+    }
+    if (!folder) return [];
+    return imagesIn(folder).map(function(img) {
       return 'https://lh3.googleusercontent.com/d/' + img.id + '=w1600';
     });
   } catch (e) {

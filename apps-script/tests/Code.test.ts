@@ -139,6 +139,30 @@ describe('handleGetGuest', () => {
     expect(app.handleGetGuest({ id: 'r02' })?.photos).toEqual([])
   })
 
+  it('photos: files in the trash are left out', () => {
+    const { app } = createSandbox({
+      guests: baseGuests,
+      properties: {
+        SHEET_ID: 's',
+        COUPLE_EMAILS: 'a@x.com',
+        GUEST_PHOTOS_FOLDER_ID: 'root',
+        PHOTO_SYNC_TOKEN: 'segredo',
+      },
+      drive: {
+        root: {
+          r01: [
+            { id: 'idA', name: 'a.jpg', mimeType: 'image/jpeg' },
+            { id: 'idT', name: 'b.jpg', mimeType: 'image/jpeg', trashed: true },
+          ],
+        },
+      },
+    })
+    expect(app.handleGetGuest({ id: 'r01' })?.photos).toEqual([
+      'https://lh3.googleusercontent.com/d/idA=w1600',
+    ])
+    expect(app.handlePhotoManifest({ token: 'segredo' })).toEqual({ ids: ['idA'] })
+  })
+
   it('photoManifest: every guest photo ID, only with the token', () => {
     const { app } = createSandbox({
       guests: baseGuests,

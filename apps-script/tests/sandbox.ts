@@ -54,6 +54,8 @@ export interface DriveFile {
   id: string
   name: string
   mimeType: string
+  /** In Drive's trash: getFiles() still lists it. */
+  trashed?: boolean
 }
 
 export interface FetchOptions {
@@ -225,12 +227,14 @@ export function createSandbox(opts: SandboxOptions = {}): Sandbox {
         const folder = drive[id]
         if (!folder) throw new Error('No item with the given ID could be found')
         const subfolder = (name: string) => ({
+          isTrashed: () => false,
           getFiles: () =>
             iterate(
               folder[name].map((f) => ({
                 getId: () => f.id,
                 getName: () => f.name,
                 getMimeType: () => f.mimeType,
+                isTrashed: () => f.trashed === true,
               })),
             ),
         })
