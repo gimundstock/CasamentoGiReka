@@ -22,6 +22,9 @@ interface Props {
 /** Quantas polaroides aparecem atrás da da frente, de cada lado. */
 const DEPTH = 2
 
+/** Quantos marcadores aparecem de uma vez embaixo da pilha. */
+const MAX_DOTS = 7
+
 /**
  * Esperas, em ms, antes de pedir de novo uma foto que falhou. O Drive, de
  * onde vêm as fotos dos convidados, responde 429 quando recebe pedidos demais
@@ -256,26 +259,38 @@ export function PhotoCarousel({ photos, intervalMs = 7000 }: Props) {
         </AnimatePresence>
       </motion.div>
 
-      {/* Marcadores, logo abaixo da pilha */}
+      {/* Marcadores, logo abaixo da pilha. Com muitas fotos, só uma janela
+          de MAX_DOTS pontos em volta da ativa aparece; os das pontas ficam
+          menores quando há mais fotos além deles, como no Instagram. Assim a
+          fileira cabe no celular com qualquer quantidade de fotos. */}
       {count > 1 && (
         <div className="z-40 flex">
           {/* O botão é a área de toque (44px de altura); o ponto é o span. */}
-          {visible.map((photo, i) => (
-            <button
-              key={`dot-${photo.src}`}
-              type="button"
-              onClick={() => andar(distancia(i))}
-              aria-label={`Foto ${i + 1} de ${count}`}
-              aria-current={i === safeIndex}
-              className="group flex h-11 items-center px-[9px]"
-            >
-              <span
-                className={`block h-1.5 rounded-full transition-[width,background-color] duration-700 ${
-                  i === safeIndex ? 'bg-title w-6' : 'bg-title/30 group-hover:bg-title/60 w-1.5'
-                }`}
-              />
-            </button>
-          ))}
+          {visible.map((photo, i) => {
+            const inicio = Math.min(
+              Math.max(0, safeIndex - Math.floor(MAX_DOTS / 2)),
+              Math.max(0, count - MAX_DOTS)
+            )
+            const fim = inicio + MAX_DOTS - 1
+            if (i < inicio || i > fim) return null
+            const ponta = (i === inicio && inicio > 0) || (i === fim && fim < count - 1)
+            return (
+              <button
+                key={`dot-${photo.src}`}
+                type="button"
+                onClick={() => andar(distancia(i))}
+                aria-label={`Foto ${i + 1} de ${count}`}
+                aria-current={i === safeIndex}
+                className="group flex h-11 items-center px-[9px]"
+              >
+                <span
+                  className={`block h-1.5 rounded-full transition-[width,background-color,transform] duration-700 ${
+                    i === safeIndex ? 'bg-title w-6' : 'bg-title/30 group-hover:bg-title/60 w-1.5'
+                  } ${ponta ? 'scale-[0.6]' : ''}`}
+                />
+              </button>
+            )
+          })}
         </div>
       )}
     </div>
