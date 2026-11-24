@@ -14,6 +14,7 @@ import { submitRSVP } from '../../api/sheets'
 import type { Guest, RSVPAttendee } from '../../types'
 import { guestName } from '../../utils/guest'
 import { CONFIG } from '../../content.config'
+import { paced } from '../../utils/scrollPace'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { deskLayout, isDesk, isHand, passportGeometry } from './passport/geometry'
 import { DeskFlowers } from './passport/DeskFlowers'
@@ -32,8 +33,11 @@ import { GiftsTitle } from '../gifts/GiftsTitle'
 
 const base = import.meta.env.BASE_URL
 
-/** The scroll (vh) of the envelope-to-reply scene; the hand-over follows. */
-export const RSVP_SCENE_VH = 480
+/**
+ * The scroll (vh) of the envelope-to-reply scene, as scrolled (480vh of
+ * timeline at SCROLL_PACE); the hand-over follows.
+ */
+export const RSVP_SCENE_VH = paced(480)
 
 /*
  * Scroll timeline (progress through the pinned track):
@@ -740,9 +744,13 @@ function InvitationFront({ guest, lang, wide }: { guest: Guest; lang: Lang; wide
 
 // ── Reply form (back of the card) ─────────────────────────
 
-const FIELD =
-  'w-full bg-transparent border-b border-forest-deep/20 py-2 font-serif text-base text-title placeholder:text-title/40 focus:outline-none focus:border-forest-deep focus:shadow-[0_1px_0_0_#3D3229] transition-[border-color,box-shadow]'
 const LABEL = 'font-sans text-[0.6rem] tracking-[0.4em] uppercase text-title/80 block mb-1'
+/**
+ * The song request: the card's hairline, but one guests see is a line to
+ * write on (pale, under pale text, they read past it).
+ */
+const SONG_FIELD =
+  'w-full bg-transparent border-b border-title/50 pt-1 pb-2 font-serif text-[1.05rem] text-title text-center placeholder:italic placeholder:text-title/70 focus:outline-none focus:border-forest-deep focus:shadow-[0_1px_0_0_#3D3229] transition-[border-color,box-shadow]'
 
 function ReplyForm({ guest }: { guest: Guest }) {
   const { t } = useTranslation()
@@ -866,7 +874,7 @@ function ReplyForm({ guest }: { guest: Guest }) {
       </div>
 
       <div className="text-center">
-        <label htmlFor="rsvp-song" className={LABEL}>
+        <label htmlFor="rsvp-song" className={`${LABEL} !text-title !mb-2 font-semibold`}>
           {t('rsvp.song')}
         </label>
         <input
@@ -876,8 +884,17 @@ function ReplyForm({ guest }: { guest: Guest }) {
           autoComplete="off"
           value={songRequest}
           onChange={(e) => setSongRequest(e.target.value)}
+          // Enter doesn't send the reply: the guest confirms with the button.
+          // (On a phone it just puts the keyboard away.)
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              e.currentTarget.blur()
+            }
+          }}
+          enterKeyHint="done"
           placeholder={t('rsvp.songPlaceholder')}
-          className={`${FIELD} text-center`}
+          className={SONG_FIELD}
         />
       </div>
 

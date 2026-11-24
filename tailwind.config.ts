@@ -66,12 +66,20 @@ export default {
         bloom: 'bloom 1.2s ease-out forwards',
         nudge: 'nudge 2.2s ease-in-out infinite',
         'page-peek': 'page-peek 4.5s ease-in-out infinite',
+        // The page's › arrow, out of the way while the corner lifts (in step).
+        'peek-hide': 'peek-hide 4.5s ease-in-out infinite',
       },
       keyframes: {
         // A page's corner lifting a little, then lying down again (PagePeek).
         'page-peek': {
           '0%, 55%, 100%': { transform: 'scale(0)' },
           '68%, 80%': { transform: 'scale(1)' },
+        },
+        // Gone just after the corner starts to lift (55%), back just before
+        // it lies flat again (100%).
+        'peek-hide': {
+          '0%, 59%, 93%, 100%': { opacity: '1' },
+          '60%, 92%': { opacity: '0' },
         },
         nudge: {
           '0%, 100%': { transform: 'translateY(0)' },

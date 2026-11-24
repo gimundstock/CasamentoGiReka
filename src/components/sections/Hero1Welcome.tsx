@@ -8,6 +8,7 @@ import {
 } from '../../utils/guest'
 import { CONFIG } from '../../content.config'
 import { PhotoCarousel, type CarouselPhoto } from '../ui/PhotoCarousel'
+import { ScrollHint } from '../ui/ScrollHint'
 
 interface Props {
   guest: Guest
@@ -110,6 +111,12 @@ export function Hero1Welcome({ guest, onReset }: Props) {
           >
             {t('welcome.notYou')}
           </button>
+
+          {/* No celular, a dica de rolar fica abaixo do "Não é você?" (no
+              desktop ela vai no canto, ver abaixo). */}
+          <div aria-hidden="true" className="relative z-10 mt-8 lg:hidden">
+            <ScrollHint label={t('welcome.scrollDown')} />
+          </div>
         </div>
       </div>
 
@@ -117,7 +124,7 @@ export function Hero1Welcome({ guest, onReset }: Props) {
           caía em cima do "Não é você?". */}
       <div aria-hidden="true" className="absolute right-6 bottom-6 hidden text-center lg:block">
         <span className="font-sans text-title text-[0.55rem] tracking-[0.4em] uppercase">
-          SCROLL
+          {t('welcome.scroll')}
         </span>
         <div className="bg-forest-deep/40 mx-auto mt-3 h-12 w-px" />
       </div>

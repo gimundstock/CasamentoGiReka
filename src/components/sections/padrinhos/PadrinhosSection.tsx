@@ -2,6 +2,7 @@ import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } fro
 import { useTranslation } from 'react-i18next'
 import { useMotionValueEvent, useScroll } from 'framer-motion'
 import { useReducedMotion } from '../../motion/useReducedMotion'
+import { paced } from '../../../utils/scrollPace'
 import { ScrollHint } from '../../ui/ScrollHint'
 import { ease, isDesk, passportGeometry, seg } from '../passport/geometry'
 import { PadrinhoRole, manualChapter, manualSection } from './available'
@@ -97,7 +98,7 @@ function Section({ vw, vh, reduced }: { vw: number; vh: number; reduced: boolean
       id="padrinhos"
       aria-label={t('padrinhos.label', role)}
       className="bg-peach bg-paper relative"
-      style={{ height: reduced ? '100svh' : `${end + 100}vh` }}
+      style={{ height: reduced ? '100svh' : `${paced(end) + 100}vh` }}
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         <p

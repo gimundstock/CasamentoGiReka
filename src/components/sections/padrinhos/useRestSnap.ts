@@ -1,4 +1,5 @@
 import { useEffect, type RefObject } from 'react'
+import { paced, unpaced } from '../../../utils/scrollPace'
 import { isAutoScrolling, smoothScrollToY } from '../../../utils/smoothScroll'
 
 /** How long the scroll must be still to count as come to rest, ms (as the passport's). */
@@ -27,8 +28,9 @@ export function restTarget(v: number, dir: 1 | -1, rests: Rest[]): number | null
 
 /**
  * The passport's snap (usePassportSnap) for a pinned section of its own:
- * once the scroll comes to rest between two of `rests` (vh scrolled since
- * the section's top reached the screen's), it is carried on to one.
+ * once the scroll comes to rest between two of `rests` (the section's
+ * timeline vh since its top reached the screen's, scrolled at SCROLL_PACE),
+ * it is carried on to one.
  */
 export function useRestSnap(
   trackRef: RefObject<HTMLElement | null>,
@@ -48,10 +50,10 @@ export function useRestSnap(
       if (!el || touching || isAutoScrolling()) return
       const top = window.scrollY + el.getBoundingClientRect().top
       const vh = window.innerHeight / 100
-      const v = (window.scrollY - top) / vh
+      const v = unpaced((window.scrollY - top) / vh)
       const target = restTarget(v, dir, list)
       if (target === null) return
-      const y = top + target * vh
+      const y = top + paced(target) * vh
       const dist = Math.abs(y - window.scrollY)
       if (dist >= 2) smoothScrollToY(y, Math.min(900, 350 + dist * 0.6), true)
     }
