@@ -1,4 +1,5 @@
 import { useEffect, type RefObject } from 'react'
+import { paced } from '../../../utils/scrollPace'
 import { isAutoScrolling, smoothScrollToY } from '../../../utils/smoothScroll'
 import { PASSPORT_START_VH, snapTarget, type Chapter } from './geometry'
 
@@ -40,9 +41,11 @@ export function usePassportSnap(
       const locked = lockedRef.current
       const top = window.scrollY + el.getBoundingClientRect().top
       // As HeroBigDay measures it: the stage's pinned scroll, `locked` vh of
-      // its 100 + locked (not against the screen's height, which on a phone
-      // changes with the browser's toolbar).
-      const span = (el.offsetHeight * locked) / (100 + locked)
+      // timeline scrolled in paced(locked) of its 100 + paced(locked) (not
+      // against the screen's height, which on a phone changes with the
+      // browser's toolbar).
+      const real = paced(locked)
+      const span = (el.offsetHeight * real) / (100 + real)
       if (span <= 0) return
       const p = (window.scrollY - top) / span
       if (p <= 0 || p >= 1) return

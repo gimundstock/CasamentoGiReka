@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
 import { ceremonyStart } from '../../utils/weddingDate'
+import { paced, SCROLL_PACE } from '../../utils/scrollPace'
 import { FallingFlowers } from '../motion/FallingFlowers'
 import { FlipLetters } from '../motion/FlipLetters'
 import { MaskReveal } from '../motion/MaskReveal'
@@ -88,6 +89,8 @@ const REAL_VH = [
   SCROLL_VH,
 ]
 const OLD_AT = [0, HEADING_AT, CASCADE_AT, SPIN_END, 1]
+// The pinned scroll as scrolled (see SCROLL_PACE): the timeline above, in less.
+const PIN_VH = paced(SCROLL_VH)
 
 /** The old timeline's progress at real progress `s` (0 → 1 of the pinned scroll). */
 function oldTimelineAt(s: number): number {
@@ -137,12 +140,13 @@ function daisyScaleAt(v: number): number {
 const DISSOLVE_START = 0.96
 
 // The stage's arrival (its top from the screen's bottom to its top), as
-// progress before 0: ~100vh, as much as 0.12 of the pinned scroll.
-const ARRIVE_SPAN = 0.12
-// "Save the Date" gathers from halfway through the arrival to a little way
-// into the pinned scroll (it was 0 → 0.1): already mostly there as the
-// stage settles.
-const TITLE_SPAN = [-0.06, 0.04] as const
+// progress before 0: ~100vh, as much as 0.12 of the pinned scroll at its
+// first pace (the arrival is a screen of real scroll whatever the pace).
+const ARRIVE_SPAN = 0.12 * SCROLL_PACE
+// "Save the Date" gathers while the stage comes up the screen, the S showing
+// as the title rises into view, and is whole just as the stage settles
+// (it was 0 → 0.1, then -0.06 → 0.04).
+const TITLE_SPAN = [-0.05, 0.01] as const
 
 /**
  * Combined Save-the-Date → Meet-the-Couple hero.
@@ -194,7 +198,7 @@ export function HeroSaveDateCouple() {
   const countdown = useCountdown(ceremonyStart())
 
   const stageRef = useRef<HTMLDivElement>(null)
-  // The pinned scroll, measured on `pinRef` (SCROLL_VH tall, from the
+  // The pinned scroll, measured on `pinRef` (PIN_VH tall, from the
   // stage's top) from top edges only — not to the stage's bottom at the
   // screen's bottom: on a phone the screen's height changes with the
   // browser's toolbar and isn't the CSS 100vh the stage is pinned by, so the
@@ -259,7 +263,7 @@ export function HeroSaveDateCouple() {
     target: stageRef,
     offset: ['start start', 'end start'],
   })
-  const unpinAt = SCROLL_VH / (SCROLL_VH + 100)
+  const unpinAt = PIN_VH / (PIN_VH + 100)
   // (Combines the two scroll readings themselves, not scrollYProgress: a
   // transform of a derived value could read it stale after a jump — a
   // reload part-way down — and stay that way until the next scroll.)
@@ -335,12 +339,12 @@ export function HeroSaveDateCouple() {
 
   return (
     <section id="couple" className="relative bg-peach">
-      <div ref={stageRef} className="relative" style={{ height: `${SCROLL_VH + 100}vh` }}>
+      <div ref={stageRef} className="relative" style={{ height: `${PIN_VH + 100}vh` }}>
         <div
           ref={pinRef}
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0"
-          style={{ height: `${SCROLL_VH}vh` }}
+          style={{ height: `${PIN_VH}vh` }}
         />
         {/* Inner anchor for the Nav "Save the Date" link — placed at scroll
             progress ~0.22 (800vh * 0.22 = 176vh into the stage), the moment
@@ -349,7 +353,7 @@ export function HeroSaveDateCouple() {
         <div
           id="save-the-date"
           className="pointer-events-none absolute h-px w-px"
-          style={{ top: '176vh' }}
+          style={{ top: `${paced(176)}vh` }}
         />
         <div className="sticky top-0 h-screen overflow-hidden">
           {/* ── z-0  Save-the-date layer (falling flowers + text)
@@ -375,7 +379,7 @@ export function HeroSaveDateCouple() {
                 scrollEnd={TITLE_SPAN[1]}
                 staggerRatio={0.95}
                 scaleFrom={0.15}
-                fadeIn={0.45}
+                fadeIn={0.3}
                 className="font-display text-title block text-[2.6rem] leading-[1.3] whitespace-nowrap sm:text-6xl md:text-7xl lg:text-8xl"
                 lineClassName="block"
               />

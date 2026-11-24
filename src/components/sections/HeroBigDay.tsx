@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion'
 import { CONFIG } from '../../content.config'
+import { paced, unpaced } from '../../utils/scrollPace'
 import { useReducedMotion } from '../motion/useReducedMotion'
 import { CerradoPaint } from './CerradoPaint'
 import { usePassportSnap } from './passport/usePassportSnap'
@@ -227,7 +228,12 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
     target: seamRef,
     offset: ['start start', 'end start'],
   })
-  const stageVh = useTransform(seam, (p: number) => p * (100 + lockedRef.current) - 100)
+  // (In the stage's timeline vh: the pinned scroll plays at SCROLL_PACE, the
+  // screen of the seam before it as scrolled.)
+  const stageVh = useTransform(seam, (p: number) => {
+    const real = p * (100 + paced(lockedRef.current)) - 100
+    return real <= 0 ? real : unpaced(real)
+  })
   // The big day's own 0 → 1 (its first BIG_DAY_VH of pinned scroll), and the
   // vh scrolled past it, which drives the passport.
   // (Anything that needs two of these computes both from `stageVh` itself:
@@ -351,6 +357,8 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
     geo?.vh ?? window.innerHeight
   )
   const locked = lockedVh(desk, chapter)
+  /** The pinned length as scrolled (SCROLL_PACE). */
+  const lockedReal = paced(locked)
   useLayoutEffect(() => {
     lockedRef.current = locked
   })
@@ -407,13 +415,13 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
           the stage's own length (stageRef), not on this. */}
       <div
         className="relative"
-        style={{ height: `${100 + locked + (desk && !reduced ? STAGE_OVERLAP_VH : 0)}vh` }}
+        style={{ height: `${100 + lockedReal + (desk && !reduced ? STAGE_OVERLAP_VH : 0)}vh` }}
       >
         <div
           ref={stageRef}
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0"
-          style={{ height: `${100 + locked}vh` }}
+          style={{ height: `${100 + lockedReal}vh` }}
         />
         {/* What the Nav watches: the big day, then the passport (city guide),
             and where its "Brasília" link lands — the book just opened. */}
@@ -421,20 +429,23 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
           id="wedding"
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0"
-          style={{ height: `${CITY_MARK_VH}vh` }}
+          style={{ height: `${paced(CITY_MARK_VH)}vh` }}
         />
         <div
           id="city"
           aria-hidden
           className="pointer-events-none absolute inset-x-0"
           // To the stage's own end, not into the overlap under the RSVP.
-          style={{ top: `${CITY_MARK_VH}vh`, height: `${100 + locked - CITY_MARK_VH}vh` }}
+          style={{
+            top: `${paced(CITY_MARK_VH)}vh`,
+            height: `${100 + lockedReal - paced(CITY_MARK_VH)}vh`,
+          }}
         />
         <div
           id="passport"
           aria-hidden
           className="pointer-events-none absolute h-px w-px"
-          style={{ top: `${passportAnchorVh(desk)}vh` }}
+          style={{ top: `${paced(passportAnchorVh(desk))}vh` }}
         />
         {/* Inner anchor for the Nav "The Wedding" link — placed at scroll
             progress ~0.95 (300vh * 0.95 = 285vh into the stage), the
@@ -450,7 +461,7 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
           ref={seamRef}
           aria-hidden
           className="pointer-events-none absolute inset-x-0"
-          style={{ top: '-100vh', height: `${100 + locked}vh` }}
+          style={{ top: '-100vh', height: `${100 + lockedReal}vh` }}
         />
         <motion.div
           aria-hidden
@@ -489,7 +500,7 @@ export function HeroBigDay({ holder, padrinho }: { holder?: string; padrinho?: b
         <div
           id="big-day"
           className="pointer-events-none absolute h-px w-px"
-          style={{ top: '285vh' }}
+          style={{ top: `${paced(285)}vh` }}
         />
         <div
           ref={viewRef}

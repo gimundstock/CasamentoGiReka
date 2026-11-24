@@ -668,6 +668,11 @@ export function BrasiliaPassport({
   const pageRight = g.right.x + g.right.w
   const noteText = t(touch ? 'city.passport.cornerTouch' : 'city.passport.cornerClick')
   const pageBottom = g.right.y + g.right.h
+  // The page arrows (‹ ›, 1.8em): level with the folio (its middle ~2em above
+  // the page's bottom, see Pages' Folio), in from the edge to about the
+  // text's margin.
+  const arrowTop = pageBottom - g.fontSize * 2.9
+  const arrowInset = g.right.w * 0.05
   const shutHintTop = g.book.y + g.coverBox.y + g.coverBox.h + 14
   const insideRect = { x: 0, y: 0, w: g.insideBox.w, h: g.insideBox.h }
   // The left page, where it lies on the inside of the cover.
@@ -973,6 +978,30 @@ export function BrasiliaPassport({
                   />
                 )
               )}
+              {/* A small ‹ and › in the pages' outer bottom corners: the pages
+                can be turned, either way. Gone at either end. */}
+              <PageArrow
+                dir="prev"
+                label={t('city.passport.prev')}
+                hidden={cur === 0}
+                onClick={() => go(cur - 1)}
+                style={{
+                  left: (spread ? g.left.x : g.right.x) + arrowInset,
+                  top: arrowTop,
+                }}
+              />
+              <PageArrow
+                dir="next"
+                label={t('city.passport.next')}
+                hidden={cur === count - 1}
+                // One page at a time, out of the way while the corner lifts.
+                peek={!spread && cur < count - 1}
+                onClick={() => go(cur + 1)}
+                style={{
+                  right: g.book.w - pageRight + arrowInset,
+                  top: arrowTop,
+                }}
+              />
             </div>
           </div>
 
@@ -1053,6 +1082,57 @@ export function BrasiliaPassport({
  * the book it comes down from the words above, its tip at the bottom left;
  * under the book it goes up from the words below, its tip at the top right.
  */
+/** A small chevron on a page's outer corner that turns the page. */
+function PageArrow({
+  dir,
+  label,
+  hidden,
+  peek,
+  onClick,
+  style,
+}: {
+  dir: 'prev' | 'next'
+  label: string
+  hidden: boolean
+  /** In step with PagePeek (mounted with it, so its cycle starts with it). */
+  peek?: boolean
+  onClick: () => void
+  style: CSSProperties
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      tabIndex={hidden ? -1 : undefined}
+      // (A finger-sized target round it; not .hit-area, which would
+      // make it position: relative.)
+      className={`text-amber-deep absolute flex after:absolute after:-inset-[0.6em] after:content-[''] h-[1.8em] w-[1.8em] items-center justify-center transition-opacity ${
+        hidden
+          ? 'pointer-events-none opacity-0 duration-500'
+          : 'pointer-events-auto opacity-60 duration-500 hover:opacity-100'
+      }`}
+      style={style}
+    >
+      <svg
+        key={String(peek)}
+        viewBox="0 0 24 24"
+        className={`h-full w-full ${peek ? 'animate-peek-hide' : ''}`}
+        aria-hidden
+      >
+        <path
+          d={dir === 'prev' ? 'M14.5 6l-6 6 6 6' : 'M9.5 6l6 6-6 6'}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  )
+}
+
 function CornerArrow({ to }: { to: 'down' | 'up' }) {
   return (
     <svg

@@ -31,7 +31,8 @@
       "seconds": "segundos",
       "title": "Contagem regressiva"
     },
-    "scrollDown": "Rolar para baixo",
+    "scroll": "Role",
+    "scrollDown": "Role para baixo",
     "notYou": "Não é você? Digitar outro nome"
   },
   "couple": {
@@ -65,6 +66,7 @@
       "map": "Ver no mapa",
       "airbnb": "Ver no Airbnb",
       "prev": "Página anterior",
+      "next": "Próxima página",
       "bookLabel": "Passaporte de Brasília — guia da cidade",
       "tabsLabel": "Capítulos do guia",
       "hintOpen": "Role para abrir o passaporte",
@@ -106,7 +108,7 @@
     "menu": "Cardápio",
     "menuPlaceholder": "Escolha o prato",
     "song": "Sugestão de músicas",
-    "songPlaceholder": "Contribua para a nossa playlist…",
+    "songPlaceholder": "Escreva aqui uma música para a nossa playlist",
     "message": "Mensagem para os noivos",
     "messagePlaceholder": "Uma mensagem especial para {{bride}} & {{groom}}…",
     "submit": "Confirmar presença",
